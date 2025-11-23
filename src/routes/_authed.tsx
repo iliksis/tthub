@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { Login } from "@/components/Login";
-import { hashPassword, prismaClient } from "@/lib/prisma";
+import { hashPassword, prismaClient } from "@/lib/db";
 import { useAppSession } from "@/lib/session";
 
 export const loginFn = createServerFn({ method: "POST" })
