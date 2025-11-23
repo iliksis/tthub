@@ -1,19 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import {
-	HouseIcon,
-	Moon,
-	PanelLeftOpenIcon,
-	Settings2Icon,
-	Sun,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { type AppTheme, useTheme } from "./Theme/ThemeProvider";
-
-const themeConfig: Record<AppTheme, { icon: React.ReactNode; label: string }> =
-	{
-		latte: { icon: <Sun className="my-1.5 size-4" />, label: "Light" },
-		frappe: { icon: <Moon className="my-1.5 size-4" />, label: "Dark" },
-	};
+import { HouseIcon, PanelLeftOpenIcon, Settings2Icon } from "lucide-react";
 
 interface NavigationWrapperProps {
 	title: string;
@@ -23,23 +9,21 @@ export const NavigationWrapper = ({
 	children,
 	title,
 }: React.PropsWithChildren<NavigationWrapperProps>) => {
-	const { theme, setTheme } = useTheme();
-
-	const getNextTheme = () => {
-		const themes = Object.keys(themeConfig) as AppTheme[];
-		const currentIndex = themes.indexOf(theme);
-		const nextIndex = (currentIndex + 1) % themes.length;
-		return themes[nextIndex];
+	const closeDrawer = () => {
+		const toggle = document.querySelector<HTMLInputElement>("#drawer-toggle");
+		if (toggle) {
+			toggle.checked = false;
+		}
 	};
 
 	return (
 		<div className="drawer lg:drawer-open">
-			<input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
+			<input id="drawer-toggle" type="checkbox" className="drawer-toggle" />
 			<div className="drawer-content">
 				{/* Navbar */}
 				<nav className="navbar w-full bg-base-300">
 					<label
-						htmlFor="my-drawer-4"
+						htmlFor="drawer-toggle"
 						aria-label="open sidebar"
 						className="btn btn-square btn-ghost"
 					>
@@ -67,6 +51,7 @@ export const NavigationWrapper = ({
 								className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
 								data-tip="Homepage"
 								to="/"
+								onClick={closeDrawer}
 							>
 								{/* Home icon */}
 								<HouseIcon className="my-1.5 size-4" />
@@ -80,42 +65,12 @@ export const NavigationWrapper = ({
 								className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
 								data-tip="Settings"
 								to="/settings"
+								onClick={closeDrawer}
 							>
 								{/* Settings icon */}
 								<Settings2Icon className="my-1.5 size-4" />
 								<span className="is-drawer-close:hidden">Settings</span>
 							</Link>
-						</li>
-						<div className="divider"></div>
-						<li>
-							<button
-								type="button"
-								onClick={() => setTheme(getNextTheme())}
-								className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
-								data-tip={
-									theme === "latte"
-										? "Switch to Dark Theme"
-										: "Switch to Light Theme"
-								}
-							>
-								<span
-									className={cn(
-										"flex items-center gap-2",
-										theme !== "latte" && "hidden",
-									)}
-								>
-									{themeConfig.latte.icon}
-									<span className="is-drawer-close:hidden">
-										{themeConfig.latte.label}
-									</span>
-								</span>
-								<span className={cn("", theme !== "frappe" && "hidden")}>
-									{themeConfig.frappe.icon}
-									<span className="is-drawer-close:hidden">
-										{themeConfig.frappe.label}
-									</span>
-								</span>
-							</button>
 						</li>
 					</ul>
 				</div>
