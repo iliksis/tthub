@@ -2,7 +2,7 @@ import { createServerFn, json } from "@tanstack/react-start";
 import { hashPassword, prismaClient } from "@/lib/db";
 import type { User } from "@/lib/prisma/client";
 import type { Role } from "@/lib/prisma/enums";
-import { useIsRole } from "@/lib/session";
+import { useIsRole, useIsUserOrRole } from "@/lib/session";
 import { loginFn } from "@/routes/_authed";
 import type { Return } from "./types";
 
@@ -17,8 +17,8 @@ export const fetchUsers = createServerFn({ method: "GET" }).handler(
 	},
 );
 
-export const updateUser = createServerFn({ method: "POST" })
-	.inputValidator((d: { id: string; name: string; role: Role }) => d)
+export const updateUserRole = createServerFn({ method: "POST" })
+	.inputValidator((d: { id: string; role: Role }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("ADMIN");
 		if (!isAuthorized) {
@@ -31,7 +31,6 @@ export const updateUser = createServerFn({ method: "POST" })
 					id: data.id,
 				},
 				data: {
-					name: data.name,
 					role: data.role,
 				},
 			});
@@ -46,16 +45,46 @@ export const updateUser = createServerFn({ method: "POST" })
 		}
 	});
 
+export const updateUserInformation = createServerFn({ method: "POST" })
+	.inputValidator((d: { id: string; name: string; password: string }) => d)
+	.handler(async ({ data }) => {
+		const isAuthorized = await useIsUserOrRole(data.id, "ADMIN");
+		if (!isAuthorized) {
+			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+		}
+
+		try {
+			const hashedPassword = await hashPassword(data.password);
+			const user = await prismaClient.user.update({
+				where: {
+					id: data.id,
+				},
+				data: {
+					name: data.name,
+					password: hashedPassword,
+				},
+			});
+			return json<Return<User>>(
+				{ message: "User information updated", data: user },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.log(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
 export const createUser = createServerFn({ method: "POST" })
 	.inputValidator((d: { userName: string; name: string; role: Role }) => d)
 	.handler(async ({ data }) => {
 		const isAuthenticated = await useIsRole("ADMIN");
 		if (!isAuthenticated) {
-			return json({}, { status: 401 });
+			return json<Return>({ message: "Unauthorized" }, { status: 401 });
 		}
 
 		try {
-			await prismaClient.user.create({
+			const user = await prismaClient.user.create({
 				data: {
 					userName: data.userName,
 					name: data.name,
@@ -65,6 +94,11 @@ export const createUser = createServerFn({ method: "POST" })
 					},
 				},
 			});
+
+			return json<Return<User>>(
+				{ message: "User created", data: user },
+				{ status: 200 },
+			);
 		} catch (e) {
 			console.log(e);
 			const error = e as Error;

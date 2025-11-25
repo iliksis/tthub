@@ -28,11 +28,7 @@ export const loginFn = createServerFn({ method: "POST" })
 		}
 
 		// Store the user's email in the session
-		await session.update({
-			userName: user.userName,
-			id: user.id,
-			role: user.role,
-		});
+		await session.update(user);
 	});
 
 export const Route = createFileRoute("/_authed")({

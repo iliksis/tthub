@@ -24,13 +24,14 @@ export const CreateUserModal = () => {
 	const createMutation = useMutation({
 		fn: createUser,
 		onSuccess: async (ctx) => {
-			if (!ctx.data?.error) {
+			const data = await ctx.data.json();
+			if (ctx.data?.status < 400) {
 				form.reset();
 				await router.invalidate();
-				notify({ text: "User created", status: "success" });
+				notify({ text: data.message, status: "success" });
 				return;
 			}
-			notify({ text: "User creation failed", status: "error" });
+			notify({ text: data.message, status: "error" });
 		},
 	});
 

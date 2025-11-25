@@ -1,16 +1,14 @@
-import { PrismaClient } from "@prisma/client";
+import { prismaClient } from "./src/lib/db";
 import { hashPassword } from "./src/lib/db";
-
-const prisma = new PrismaClient();
 
 async function main() {
 	console.log("🌱 Seeding database...");
 
 	// Clear existing todos
-	await prisma.todo.deleteMany();
+	await prismaClient.todo.deleteMany();
 
 	// Create example todos
-	const todos = await prisma.todo.createMany({
+	const todos = await prismaClient.todo.createMany({
 		data: [
 			{ title: "Buy groceries" },
 			{ title: "Read a book" },
@@ -21,12 +19,12 @@ async function main() {
 	console.log(`✅ Created ${todos.count} todos`);
 
 	// Clear existing users
-	await prisma.user.deleteMany();
+	await prismaClient.user.deleteMany();
 
 	// Create example users
 	const password = "password";
 	const hashedPassword = await hashPassword("password");
-	const user = await prisma.user.create({
+	const user = await prismaClient.user.create({
 		data: {
 			userName: "user",
 			name: "User",
@@ -47,5 +45,5 @@ main()
 		process.exit(1);
 	})
 	.finally(async () => {
-		await prisma.$disconnect();
+		await prismaClient.$disconnect();
 	});

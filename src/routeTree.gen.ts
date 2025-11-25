@@ -13,7 +13,8 @@ import { Route as SentryTunnelRouteImport } from './routes/sentry-tunnel'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as InviteInviteIdRouteImport } from './routes/invite/$inviteId'
-import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
+import { Route as AuthedSettingsUsersRouteImport } from './routes/_authed/settings/users'
+import { Route as AuthedSettingsProfileRouteImport } from './routes/_authed/settings/profile'
 
 const SentryTunnelRoute = SentryTunnelRouteImport.update({
   id: '/sentry-tunnel',
@@ -34,44 +35,63 @@ const InviteInviteIdRoute = InviteInviteIdRouteImport.update({
   path: '/invite/$inviteId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const AuthedSettingsUsersRoute = AuthedSettingsUsersRouteImport.update({
+  id: '/settings/users',
+  path: '/settings/users',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSettingsProfileRoute = AuthedSettingsProfileRouteImport.update({
+  id: '/settings/profile',
+  path: '/settings/profile',
   getParentRoute: () => AuthedRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/sentry-tunnel': typeof SentryTunnelRoute
-  '/settings': typeof AuthedSettingsRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/': typeof AuthedIndexRoute
+  '/settings/profile': typeof AuthedSettingsProfileRoute
+  '/settings/users': typeof AuthedSettingsUsersRoute
 }
 export interface FileRoutesByTo {
   '/sentry-tunnel': typeof SentryTunnelRoute
-  '/settings': typeof AuthedSettingsRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/': typeof AuthedIndexRoute
+  '/settings/profile': typeof AuthedSettingsProfileRoute
+  '/settings/users': typeof AuthedSettingsUsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteWithChildren
   '/sentry-tunnel': typeof SentryTunnelRoute
-  '/_authed/settings': typeof AuthedSettingsRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/_authed/': typeof AuthedIndexRoute
+  '/_authed/settings/profile': typeof AuthedSettingsProfileRoute
+  '/_authed/settings/users': typeof AuthedSettingsUsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/sentry-tunnel' | '/settings' | '/invite/$inviteId' | '/'
+  fullPaths:
+    | '/sentry-tunnel'
+    | '/invite/$inviteId'
+    | '/'
+    | '/settings/profile'
+    | '/settings/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/sentry-tunnel' | '/settings' | '/invite/$inviteId' | '/'
+  to:
+    | '/sentry-tunnel'
+    | '/invite/$inviteId'
+    | '/'
+    | '/settings/profile'
+    | '/settings/users'
   id:
     | '__root__'
     | '/_authed'
     | '/sentry-tunnel'
-    | '/_authed/settings'
     | '/invite/$inviteId'
     | '/_authed/'
+    | '/_authed/settings/profile'
+    | '/_authed/settings/users'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -110,24 +130,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteInviteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authed/settings': {
-      id: '/_authed/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthedSettingsRouteImport
+    '/_authed/settings/users': {
+      id: '/_authed/settings/users'
+      path: '/settings/users'
+      fullPath: '/settings/users'
+      preLoaderRoute: typeof AuthedSettingsUsersRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/settings/profile': {
+      id: '/_authed/settings/profile'
+      path: '/settings/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof AuthedSettingsProfileRouteImport
       parentRoute: typeof AuthedRoute
     }
   }
 }
 
 interface AuthedRouteChildren {
-  AuthedSettingsRoute: typeof AuthedSettingsRoute
   AuthedIndexRoute: typeof AuthedIndexRoute
+  AuthedSettingsProfileRoute: typeof AuthedSettingsProfileRoute
+  AuthedSettingsUsersRoute: typeof AuthedSettingsUsersRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
-  AuthedSettingsRoute: AuthedSettingsRoute,
   AuthedIndexRoute: AuthedIndexRoute,
+  AuthedSettingsProfileRoute: AuthedSettingsProfileRoute,
+  AuthedSettingsUsersRoute: AuthedSettingsUsersRoute,
 }
 
 const AuthedRouteWithChildren =

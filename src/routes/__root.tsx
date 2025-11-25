@@ -20,7 +20,8 @@ const fetchUser = createServerFn({ method: "GET" }).handler(async () => {
 	return {
 		id: session.data.id,
 		role: session.data.role,
-		name: session.data.userName,
+		useName: session.data.userName,
+		name: session.data.name,
 	};
 });
 

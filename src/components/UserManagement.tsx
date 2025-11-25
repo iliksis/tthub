@@ -1,7 +1,7 @@
 import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { LinkIcon, Trash2Icon } from "lucide-react";
 import { createUserInvitation } from "@/api/invitations";
-import { deleteUser, updateUser } from "@/api/users";
+import { deleteUser, updateUserRole } from "@/api/users";
 import { useMutation } from "@/hooks/useMutation";
 import type { User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";
@@ -41,7 +41,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 	};
 
 	const updateUserMutation = useMutation({
-		fn: updateUser,
+		fn: updateUserRole,
 		onSuccess: async (ctx) => {
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
@@ -55,7 +55,6 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 			updateUserMutation.mutate({
 				data: {
 					id: user.id,
-					name: user.name,
 					role: e.target.value as Role,
 				},
 			});
