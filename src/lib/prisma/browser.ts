@@ -27,3 +27,8 @@ export type Todo = Prisma.TodoModel
  * 
  */
 export type User = Prisma.UserModel
+/**
+ * Model UserInvitation
+ * 
+ */
+export type UserInvitation = Prisma.UserInvitationModel

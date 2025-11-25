@@ -58,7 +58,7 @@ export function Login() {
 						</label>
 						<input
 							id="userName"
-							className="input w-full"
+							className="input input-primary w-full"
 							placeholder="User Name"
 							{...register("userName", { required: true })}
 						/>
@@ -69,7 +69,7 @@ export function Login() {
 						</label>
 						<input
 							id="password"
-							className="input w-full"
+							className="input input-primary w-full"
 							type="password"
 							placeholder="Password"
 							{...register("password", { required: true })}

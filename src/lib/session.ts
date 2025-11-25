@@ -1,8 +1,10 @@
-import type { User } from "@prisma/client";
 import { useSession } from "@tanstack/react-start/server";
+import type { User } from "@/lib/prisma/client";
 
-type SessionUser = {
+export type SessionUser = {
 	userName: User["userName"];
+	id: User["id"];
+	role: User["role"];
 };
 
 export function useAppSession() {
@@ -11,3 +13,11 @@ export function useAppSession() {
 		password: "ChangeThisBeforeShippingToProdOrYouWillBeFired",
 	});
 }
+
+export const useIsRole = async (role: User["role"]) => {
+	const { data } = await useAppSession();
+	if (data.id === null) {
+		return false;
+	}
+	return data.role === role;
+};

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SentryTunnelRouteImport } from './routes/sentry-tunnel'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
+import { Route as InviteInviteIdRouteImport } from './routes/invite/$inviteId'
 import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
 
 const SentryTunnelRoute = SentryTunnelRouteImport.update({
@@ -28,6 +29,11 @@ const AuthedIndexRoute = AuthedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthedRoute,
 } as any)
+const InviteInviteIdRoute = InviteInviteIdRouteImport.update({
+  id: '/invite/$inviteId',
+  path: '/invite/$inviteId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -37,11 +43,13 @@ const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/settings': typeof AuthedSettingsRoute
+  '/invite/$inviteId': typeof InviteInviteIdRoute
   '/': typeof AuthedIndexRoute
 }
 export interface FileRoutesByTo {
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/settings': typeof AuthedSettingsRoute
+  '/invite/$inviteId': typeof InviteInviteIdRoute
   '/': typeof AuthedIndexRoute
 }
 export interface FileRoutesById {
@@ -49,24 +57,27 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteWithChildren
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/_authed/settings': typeof AuthedSettingsRoute
+  '/invite/$inviteId': typeof InviteInviteIdRoute
   '/_authed/': typeof AuthedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/sentry-tunnel' | '/settings' | '/'
+  fullPaths: '/sentry-tunnel' | '/settings' | '/invite/$inviteId' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/sentry-tunnel' | '/settings' | '/'
+  to: '/sentry-tunnel' | '/settings' | '/invite/$inviteId' | '/'
   id:
     | '__root__'
     | '/_authed'
     | '/sentry-tunnel'
     | '/_authed/settings'
+    | '/invite/$inviteId'
     | '/_authed/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthedRoute: typeof AuthedRouteWithChildren
   SentryTunnelRoute: typeof SentryTunnelRoute
+  InviteInviteIdRoute: typeof InviteInviteIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -91,6 +102,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AuthedIndexRouteImport
       parentRoute: typeof AuthedRoute
+    }
+    '/invite/$inviteId': {
+      id: '/invite/$inviteId'
+      path: '/invite/$inviteId'
+      fullPath: '/invite/$inviteId'
+      preLoaderRoute: typeof InviteInviteIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authed/settings': {
       id: '/_authed/settings'
@@ -118,6 +136,7 @@ const AuthedRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthedRoute: AuthedRouteWithChildren,
   SentryTunnelRoute: SentryTunnelRoute,
+  InviteInviteIdRoute: InviteInviteIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

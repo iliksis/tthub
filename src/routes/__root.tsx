@@ -7,19 +7,19 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
+import { ToastContainer } from "react-toastify";
 import { NavigationWrapper } from "@/components/NavigationWrapper";
 import { useAppSession } from "@/lib/session";
 import appCss from "../styles.css?url";
 
 const fetchUser = createServerFn({ method: "GET" }).handler(async () => {
-	// We need to auth on the server so we have access to secure cookies
 	const session = await useAppSession();
-
 	if (!session.data.userName) {
 		return null;
 	}
-
 	return {
+		id: session.data.id,
+		role: session.data.role,
 		name: session.data.userName,
 	};
 });
@@ -67,16 +67,19 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			);
 		},
 	});
-
 	const title = routerState.at(-1)?.[0]?.title ?? "Dashboard";
 
+	const isAuthedRoute = useRouterState({
+		select: (state) => state.matches.some((m) => m.routeId === "/_authed"),
+	});
+
 	return (
-		<html lang="en" data-theme="frappe">
+		<html lang="en" data-theme="macchiato">
 			<head>
 				<HeadContent />
 			</head>
 			<body>
-				{user ? (
+				{user && isAuthedRoute ? (
 					<>
 						<NavigationWrapper title={title}>{children}</NavigationWrapper>
 						<TanStackDevtools
@@ -94,6 +97,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				) : (
 					children
 				)}
+				<ToastContainer stacked />
 				<Scripts />
 			</body>
 		</html>

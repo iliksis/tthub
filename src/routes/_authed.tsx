@@ -30,6 +30,8 @@ export const loginFn = createServerFn({ method: "POST" })
 		// Store the user's email in the session
 		await session.update({
 			userName: user.userName,
+			id: user.id,
+			role: user.role,
 		});
 	});
 
