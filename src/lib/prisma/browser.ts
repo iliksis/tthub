@@ -27,3 +27,8 @@ export type User = Prisma.UserModel
  * 
  */
 export type UserInvitation = Prisma.UserInvitationModel
+/**
+ * Model Appointment
+ * 
+ */
+export type Appointment = Prisma.AppointmentModel

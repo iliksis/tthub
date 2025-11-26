@@ -116,7 +116,12 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 				},
 			});
 			if (!invitation) {
-				return { error: true };
+				return json<Return>(
+					{ message: "Invitation not found" },
+					{
+						status: 404,
+					},
+				);
 			}
 
 			const hashedPassword = await hashPassword(data.password);
@@ -141,7 +146,12 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 			await loginFn({
 				data: { userName: user.userName, password: data.password },
 			});
-			return { user, error: false };
+			return json<Return<User>>(
+				{ message: "User created", data: user },
+				{
+					status: 200,
+				},
+			);
 		} catch (e) {
 			console.log(e);
 			const error = e as Error;

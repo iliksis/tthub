@@ -52,7 +52,8 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
-  UserInvitation: 'UserInvitation'
+  UserInvitation: 'UserInvitation',
+  Appointment: 'Appointment'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -86,6 +87,20 @@ export const UserInvitationScalarFieldEnum = {
 } as const
 
 export type UserInvitationScalarFieldEnum = (typeof UserInvitationScalarFieldEnum)[keyof typeof UserInvitationScalarFieldEnum]
+
+
+export const AppointmentScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  title: 'title',
+  location: 'location',
+  type: 'type',
+  status: 'status'
+} as const
+
+export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
 
 
 export const SortOrder = {

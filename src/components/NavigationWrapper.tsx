@@ -22,6 +22,7 @@ type NavigationItem =
 
 const navigationItems: NavigationItem[] = [
 	{ name: "Homepage", href: "/", icon: HouseIcon },
+	{ name: "Create Appointment", href: "/create", icon: HouseIcon },
 	{
 		name: "Settings",
 		icon: Settings2Icon,

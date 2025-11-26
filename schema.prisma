@@ -29,3 +29,25 @@ model UserInvitation {
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id])
 }
+
+model Appointment {
+  id        String   @id @default(nanoid(6))
+  createdAt DateTime @default(now())
+  startDate DateTime
+  endDate   DateTime?
+  title     String
+  location  String?
+  type      AppointmentType
+  status    AppointmentStatus?
+}
+
+enum AppointmentStatus {
+	DRAFT
+	PUBLISHED
+}
+
+enum AppointmentType {
+	TOURNAMENT_BY
+	TOURNAMENT_DE
+	HOLIDAY
+}

@@ -10,4 +10,5 @@
  */
 export type * from './models/User.ts'
 export type * from './models/UserInvitation.ts'
+export type * from './models/Appointment.ts'
 export type * from './commonInputTypes.ts'

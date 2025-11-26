@@ -16,3 +16,20 @@ export const Role = {
 } as const
 
 export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const AppointmentStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED'
+} as const
+
+export type AppointmentStatus = (typeof AppointmentStatus)[keyof typeof AppointmentStatus]
+
+
+export const AppointmentType = {
+  TOURNAMENT_BY: 'TOURNAMENT_BY',
+  TOURNAMENT_DE: 'TOURNAMENT_DE',
+  HOLIDAY: 'HOLIDAY'
+} as const
+
+export type AppointmentType = (typeof AppointmentType)[keyof typeof AppointmentType]
