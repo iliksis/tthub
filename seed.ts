@@ -4,20 +4,6 @@ import { hashPassword } from "./src/lib/db";
 async function main() {
 	console.log("🌱 Seeding database...");
 
-	// Clear existing todos
-	await prismaClient.todo.deleteMany();
-
-	// Create example todos
-	const todos = await prismaClient.todo.createMany({
-		data: [
-			{ title: "Buy groceries" },
-			{ title: "Read a book" },
-			{ title: "Workout" },
-		],
-	});
-
-	console.log(`✅ Created ${todos.count} todos`);
-
 	// Clear existing users
 	await prismaClient.user.deleteMany();
 
