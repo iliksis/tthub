@@ -300,6 +300,10 @@ export type UserInvitationUncheckedUpdateOneWithoutUserNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserInvitationUpdateToOneWithWhereWithoutUserInput, Prisma.UserInvitationUpdateWithoutUserInput>, Prisma.UserInvitationUncheckedUpdateWithoutUserInput>
 }
 
+export type DateTimeFieldUpdateOperationsInput = {
+  set?: Date | string
+}
+
 export type UserInvitationCreateWithoutUserInput = {
   id?: string
   createdAt?: Date | string
