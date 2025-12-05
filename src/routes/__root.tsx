@@ -85,7 +85,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 						<NavigationWrapper title={title}>{children}</NavigationWrapper>
 						<TanStackDevtools
 							config={{
-								position: "bottom-right",
+								position: "bottom-left",
 							}}
 							plugins={[
 								{

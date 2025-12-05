@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarDaysIcon, Clock10Icon } from "lucide-react";
+import {
+	CalendarCogIcon,
+	CalendarDaysIcon,
+	Clock10Icon,
+	DownloadIcon,
+	EditIcon,
+} from "lucide-react";
 import type React from "react";
 import { getAppointment } from "@/api/appointments";
 import { AppointmentStatus } from "@/lib/prisma/enums";
@@ -24,6 +30,9 @@ export const Route = createFileRoute("/_authed/appt/$apptId")({
 });
 
 function RouteComponent() {
+	const { user } = Route.useRouteContext();
+	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
+
 	const { appointment } = Route.useLoaderData();
 	if (!appointment) return <div>Appointment not found.</div>;
 
@@ -71,6 +80,21 @@ function RouteComponent() {
 					<p>{appointment.location || "No location set"}</p>
 				</Card>
 			</div>
+
+			<div className="fab">
+				{/** biome-ignore lint/a11y/useSemanticElements: fixes safari bug */}
+				<div className="btn btn-lg btn-circle" role="button" tabIndex={0}>
+					<CalendarCogIcon className="size-4" />
+				</div>
+				<button className="btn btn-lg btn-circle" type="button">
+					<DownloadIcon className="size-4" />
+				</button>
+				{canEdit && (
+					<button className="btn btn-lg btn-circle" type="button">
+						<EditIcon className="size-4" />
+					</button>
+				)}
+			</div>
 		</div>
 	);
 }
@@ -78,11 +102,17 @@ function RouteComponent() {
 type CardProps = {
 	title: string;
 	icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-	gridRows?: number;
+	gridRows?: 1 | 2 | 3 | 4;
 };
 const Card = (props: React.PropsWithChildren<CardProps>) => {
+	const span = {
+		1: "col-span-1",
+		2: "col-span-2",
+		3: "col-span-3",
+		4: "col-span-4",
+	};
 	return (
-		<div className={`card bg-base-200 col-span-${props.gridRows}`}>
+		<div className={`card bg-base-200 ${span[props.gridRows || 1]}`}>
 			<div className="card-body p-4">
 				<h2 className="card-title text-base">
 					{props.icon && <props.icon className="my-1.5 size-4" />}
