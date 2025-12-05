@@ -1,45 +1,40 @@
 import { useId } from "react";
+import { cn } from "@/lib/utils";
 
 type ModalProps = {
-	openButtonText?: string;
-	openButtonIcon?: React.ReactNode;
+	open?: boolean;
+	onClose?: () => void;
+	className?: string;
+	modalBoxClassName?: string;
 };
 
 export const Modal = ({
 	children,
-	openButtonText,
-	openButtonIcon,
+	open,
+	className,
+	modalBoxClassName,
+	onClose,
 }: React.PropsWithChildren<ModalProps>) => {
 	const id = useId();
-	const onClick = () => {
-		const modal = document.querySelector<HTMLDialogElement>(`#modal_${id}`);
-		if (modal) {
-			modal.showModal();
-		}
-	};
+	const dialogProps = open ? { open: true } : {};
+
 	return (
-		<>
-			<button
-				type="button"
-				className="btn btn-primary"
-				onClick={onClick}
-				aria-label={openButtonText}
-			>
-				{openButtonIcon}
-				{openButtonText ?? "Open Modal"}
-			</button>
-			<dialog id={`modal_${id}`} className="modal modal-bottom sm:modal-middle">
-				<div className="modal-box">
-					{children}
-					<div className="modal-action">
-						<form method="dialog">
-							<button type="submit" className="btn btn-primary">
-								Close
-							</button>
-						</form>
-					</div>
+		<dialog
+			id={`modal_${id}`}
+			className={cn("modal", className)}
+			onClose={onClose}
+			{...dialogProps}
+		>
+			<div className={cn("modal-box", modalBoxClassName)}>
+				{children}
+				<div className="modal-action">
+					<form method="dialog">
+						<button type="submit" className="btn btn-primary">
+							Close
+						</button>
+					</form>
 				</div>
-			</dialog>
-		</>
+			</div>
+		</dialog>
 	);
 };

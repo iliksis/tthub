@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
 import { UserPlusIcon } from "lucide-react";
+import React from "react";
 import { createUser } from "@/api/users";
 import { useMutation } from "@/hooks/useMutation";
 import { Role } from "@/lib/prisma/enums";
@@ -48,27 +49,62 @@ export const CreateUserModal = () => {
 		},
 	});
 
+	const [modalOpen, setModalOpen] = React.useState(false);
+
+	const onClick = () => {
+		setModalOpen(true);
+	};
+	const onClose = () => {
+		setModalOpen(false);
+	};
+
 	return (
-		<Modal
-			openButtonText="Create a new User"
-			openButtonIcon={<UserPlusIcon className="size-4" />}
-		>
-			<form
-				onSubmit={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
-					form.handleSubmit();
-				}}
+		<>
+			<button type="button" className="btn btn-primary" onClick={onClick}>
+				<UserPlusIcon className="size-4" />
+				Create a new User
+			</button>
+			<Modal
+				className="modal-bottom sm:modal-middle"
+				open={modalOpen}
+				onClose={onClose}
 			>
-				<div>
-					{/* A type-safe field component*/}
-					<form.Field name="name">
-						{(field) => {
-							// Avoid hasty abstractions. Render props are great!
-							return (
+				<form
+					onSubmit={(e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						form.handleSubmit();
+					}}
+				>
+					<div>
+						{/* A type-safe field component*/}
+						<form.Field name="name">
+							{(field) => {
+								// Avoid hasty abstractions. Render props are great!
+								return (
+									<fieldset className="fieldset">
+										<label className="label" htmlFor={field.name}>
+											Name:
+										</label>
+										<input
+											id={field.name}
+											className="input input-primary w-full"
+											name={field.name}
+											value={field.state.value}
+											onBlur={field.handleBlur}
+											onChange={(e) => field.handleChange(e.target.value)}
+										/>
+									</fieldset>
+								);
+							}}
+						</form.Field>
+					</div>
+					<div>
+						<form.Field name="userName">
+							{(field) => (
 								<fieldset className="fieldset">
 									<label className="label" htmlFor={field.name}>
-										Name:
+										User Name:
 									</label>
 									<input
 										id={field.name}
@@ -79,65 +115,46 @@ export const CreateUserModal = () => {
 										onChange={(e) => field.handleChange(e.target.value)}
 									/>
 								</fieldset>
-							);
-						}}
-					</form.Field>
-				</div>
-				<div>
-					<form.Field name="userName">
-						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									User Name:
-								</label>
-								<input
-									id={field.name}
-									className="input input-primary w-full"
-									name={field.name}
-									value={field.state.value}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
-								/>
-							</fieldset>
+							)}
+						</form.Field>
+					</div>
+					<div>
+						<form.Field name="role">
+							{(field) => (
+								<fieldset className="fieldset">
+									<label className="label" htmlFor={field.name}>
+										Role:
+									</label>
+									<select
+										id={field.name}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value as Role)}
+										className="select select-primary w-full"
+										value={field.state.value}
+									>
+										{Object.keys(Role).map((role) => (
+											<option key={role}>{role}</option>
+										))}
+									</select>
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+					<form.Subscribe
+						selector={(state) => [state.canSubmit, state.isSubmitting]}
+					>
+						{([canSubmit, isSubmitting]) => (
+							<button
+								type="submit"
+								className="btn btn-primary mt-4"
+								disabled={!canSubmit}
+							>
+								{isSubmitting ? "..." : "Submit"}
+							</button>
 						)}
-					</form.Field>
-				</div>
-				<div>
-					<form.Field name="role">
-						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									Role:
-								</label>
-								<select
-									id={field.name}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value as Role)}
-									className="select select-primary w-full"
-									value={field.state.value}
-								>
-									{Object.keys(Role).map((role) => (
-										<option key={role}>{role}</option>
-									))}
-								</select>
-							</fieldset>
-						)}
-					</form.Field>
-				</div>
-				<form.Subscribe
-					selector={(state) => [state.canSubmit, state.isSubmitting]}
-				>
-					{([canSubmit, isSubmitting]) => (
-						<button
-							type="submit"
-							className="btn btn-primary mt-4"
-							disabled={!canSubmit}
-						>
-							{isSubmitting ? "..." : "Submit"}
-						</button>
-					)}
-				</form.Subscribe>
-			</form>
-		</Modal>
+					</form.Subscribe>
+				</form>
+			</Modal>
+		</>
 	);
 };

@@ -6,8 +6,9 @@ import {
 	DownloadIcon,
 	EditIcon,
 } from "lucide-react";
-import type React from "react";
+import React from "react";
 import { getAppointment } from "@/api/appointments";
+import { Modal } from "@/components/Modal";
 import { AppointmentStatus } from "@/lib/prisma/enums";
 
 export const Route = createFileRoute("/_authed/appt/$apptId")({
@@ -33,6 +34,8 @@ function RouteComponent() {
 	const { user } = Route.useRouteContext();
 	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
 
+	const [isEditing, setIsEditing] = React.useState(false);
+
 	const { appointment } = Route.useLoaderData();
 	if (!appointment) return <div>Appointment not found.</div>;
 
@@ -41,6 +44,13 @@ function RouteComponent() {
 			? new Date(appointment.startDate).getDate() !==
 				new Date(appointment.endDate).getDate()
 			: false;
+
+	const onEdit = () => {
+		setIsEditing(true);
+	};
+	const onStopEditing = () => {
+		setIsEditing(false);
+	};
 
 	return (
 		<div>
@@ -90,11 +100,22 @@ function RouteComponent() {
 					<DownloadIcon className="size-4" />
 				</button>
 				{canEdit && (
-					<button className="btn btn-lg btn-circle" type="button">
+					<button
+						className="btn btn-lg btn-circle"
+						type="button"
+						onClick={onEdit}
+					>
 						<EditIcon className="size-4" />
 					</button>
 				)}
 			</div>
+
+			<Modal
+				className="modal-end"
+				modalBoxClassName="w-10/12 max-w-lg"
+				open={isEditing}
+				onClose={onStopEditing}
+			></Modal>
 		</div>
 	);
 }
