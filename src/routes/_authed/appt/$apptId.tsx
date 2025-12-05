@@ -93,6 +93,18 @@ function RouteComponent() {
 					</Card>
 				)}
 			</div>
+			{/*User response*/}
+			<div className="mt-6 grid grid-cols-3 gap-2">
+				<button type="button" className="btn btn-soft btn-success w-auto">
+					Accept
+				</button>
+				<button type="button" className="btn btn-active btn-warning">
+					Maybe
+				</button>
+				<button type="button" className="btn btn-soft btn-error">
+					Response
+				</button>
+			</div>
 
 			<div className="fab">
 				{/** biome-ignore lint/a11y/useSemanticElements: fixes safari bug */}
