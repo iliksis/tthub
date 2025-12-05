@@ -1,120 +1,21 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
-import React from "react";
-import { create } from "zustand";
-import { createAppointment } from "@/api/appointments";
+import { updateAppointment } from "@/api/appointments";
 import { useMutation } from "@/hooks/useMutation";
+import type { Appointment } from "@/lib/prisma/client";
 import { AppointmentStatus, AppointmentType } from "@/lib/prisma/enums";
 import { dateToInputValue } from "@/lib/utils";
-import { notify } from "./Toast";
+import { notify } from "../Toast";
 
-const types = ["Tournament", "Holiday"] as const;
-const tournamentAreas = ["Bavaria", "Germany"] as const;
-
-type CreateState = {
-	type: (typeof types)[number] | undefined;
-	tournamentType: (typeof tournamentAreas)[number] | undefined;
+type UpdateFormProps = {
+	appointment: Appointment;
 };
 
-type CreateActions = {
-	setType: (type: (typeof types)[number]) => void;
-	setTournamentType: (tournamentType: (typeof tournamentAreas)[number]) => void;
-};
-
-const useCreateState = create<CreateState & CreateActions>((set) => ({
-	type: undefined,
-	tournamentType: undefined,
-	setType: (type: (typeof types)[number]) => set({ type }),
-	setTournamentType: (tournamentType: (typeof tournamentAreas)[number]) =>
-		set({ tournamentType }),
-}));
-
-export const CreateAppointmentForm = () => {
-	const { type, tournamentType } = useCreateState();
-
-	const appointmentType = React.useMemo(() => {
-		if (type === "Holiday") {
-			return AppointmentType.HOLIDAY;
-		} else if (tournamentType === "Bavaria") {
-			return AppointmentType.TOURNAMENT_BY;
-		} else if (tournamentType === "Germany") {
-			return AppointmentType.TOURNAMENT_DE;
-		}
-		return null;
-	}, [tournamentType, type]);
-
-	const renderEditSection = React.useCallback(() => {
-		if (!appointmentType) return null;
-
-		return <AppointmentEditSection appointmentType={appointmentType} />;
-	}, [appointmentType]);
-
-	return (
-		<div>
-			<AppointmentTypeSelect />
-			<div className="divider"></div>
-			{renderEditSection()}
-		</div>
-	);
-};
-
-const AppointmentTypeSelect = () => {
-	const { type, setType, setTournamentType } = useCreateState();
-	return (
-		<fieldset className="fieldset">
-			<legend className="fieldset-legend">Appointment type</legend>
-			<div className="flex gap-2">
-				<select
-					className="select select-primary max-w-1/2"
-					onChange={(e) => {
-						setType(e.target.value as any);
-					}}
-				>
-					<option disabled selected>
-						Choose a type
-					</option>
-					{types.map((t) => (
-						<option key={t}>{t}</option>
-					))}
-				</select>
-				{type === "Tournament" && (
-					<select
-						className="select select-primary max-w-1/2"
-						onChange={(e) => setTournamentType(e.target.value as any)}
-					>
-						<option disabled selected>
-							Choose an area
-						</option>
-						{tournamentAreas.map((t) => (
-							<option key={t}>{t}</option>
-						))}
-					</select>
-				)}
-			</div>
-		</fieldset>
-	);
-};
-
-const defaultFormValues: {
-	title: string;
-	startDate: Date;
-	endDate?: Date;
-	location?: string;
-	status: AppointmentStatus;
-} = {
-	title: "",
-	startDate: new Date(),
-	status: AppointmentStatus.DRAFT,
-};
-const AppointmentEditSection = ({
-	appointmentType,
-}: {
-	appointmentType: AppointmentType;
-}) => {
+export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 	const router = useRouter();
 
-	const createMutation = useMutation({
-		fn: createAppointment,
+	const updateMutation = useMutation({
+		fn: updateAppointment,
 		onSuccess: async (ctx) => {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400 && data.data) {
@@ -131,20 +32,29 @@ const AppointmentEditSection = ({
 	});
 
 	const form = useForm({
-		defaultValues: defaultFormValues,
+		defaultValues: {
+			title: appointment.title,
+			startDate: new Date(appointment.startDate),
+			endDate: appointment.endDate ? new Date(appointment.endDate) : null,
+			location: appointment.location,
+			status: appointment.status,
+		},
 		onSubmit: async ({ value }) => {
-			createMutation.mutate({
+			updateMutation.mutate({
 				data: {
-					title: value.title,
-					type: appointmentType,
-					startDate: value.startDate,
-					endDate: value.endDate,
-					location: value.location,
-					status: value.status,
+					id: appointment.id,
+					updates: {
+						title: value.title,
+						startDate: value.startDate,
+						endDate: value.endDate,
+						location: value.location,
+						status: value.status,
+					},
 				},
 			});
 		},
 	});
+
 	return (
 		<div>
 			<form
@@ -209,8 +119,9 @@ const AppointmentEditSection = ({
 									type="date"
 									name={field.name}
 									value={
-										field.state.value &&
-										dateToInputValue(field.state.value, false)
+										field.state.value
+											? dateToInputValue(field.state.value, false)
+											: undefined
 									}
 									onBlur={field.handleBlur}
 									onChange={(e) => field.handleChange(new Date(e.target.value))}
@@ -219,7 +130,7 @@ const AppointmentEditSection = ({
 						)}
 					</form.Field>
 				</div>
-				{appointmentType !== AppointmentType.HOLIDAY && (
+				{appointment.type !== AppointmentType.HOLIDAY && (
 					<>
 						<div>
 							<form.Field name="location">
@@ -232,7 +143,7 @@ const AppointmentEditSection = ({
 											id={field.name}
 											className="input input-primary w-full"
 											name={field.name}
-											value={field.state.value}
+											value={field.state.value || undefined}
 											onBlur={field.handleBlur}
 											onChange={(e) => field.handleChange(e.target.value)}
 										/>

@@ -26,3 +26,14 @@ export const compareRoles = (role1: Role, role2: Role) => {
 	if (role2 === Role.EDITOR) return -1;
 	return 1;
 };
+
+/**
+ * Converts a date to an input value for a date input field.
+ */
+export const dateToInputValue = (date: Date, withSeconds = true) => {
+	const offset = date.getTimezoneOffset() * 60 * 1000;
+	const offsetDate = new Date(date.getTime() - offset);
+	const isoString = offsetDate.toISOString().slice(0, -1);
+	if (withSeconds) return isoString.slice(0, -4);
+	return isoString.split("T")[0];
+};

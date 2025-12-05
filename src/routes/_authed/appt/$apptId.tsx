@@ -8,8 +8,9 @@ import {
 } from "lucide-react";
 import React from "react";
 import { getAppointment } from "@/api/appointments";
+import { UpdateForm } from "@/components/appointments/UpdateForm";
 import { Modal } from "@/components/Modal";
-import { AppointmentStatus } from "@/lib/prisma/enums";
+import { AppointmentStatus, AppointmentType } from "@/lib/prisma/enums";
 
 export const Route = createFileRoute("/_authed/appt/$apptId")({
 	component: RouteComponent,
@@ -86,9 +87,11 @@ function RouteComponent() {
 						})}
 					</p>
 				</Card>
-				<Card title="Location" icon={Clock10Icon} gridRows={4}>
-					<p>{appointment.location || "No location set"}</p>
-				</Card>
+				{appointment.type !== AppointmentType.HOLIDAY && (
+					<Card title="Location" icon={Clock10Icon} gridRows={4}>
+						<p>{appointment.location || "No location set"}</p>
+					</Card>
+				)}
 			</div>
 
 			<div className="fab">
@@ -110,12 +113,9 @@ function RouteComponent() {
 				)}
 			</div>
 
-			<Modal
-				className="modal-end"
-				modalBoxClassName="w-10/12 max-w-lg"
-				open={isEditing}
-				onClose={onStopEditing}
-			></Modal>
+			<Modal className="modal-bottom" open={isEditing} onClose={onStopEditing}>
+				<UpdateForm appointment={appointment} />
+			</Modal>
 		</div>
 	);
 }
@@ -136,7 +136,7 @@ const Card = (props: React.PropsWithChildren<CardProps>) => {
 		<div className={`card bg-base-200 ${span[props.gridRows || 1]}`}>
 			<div className="card-body p-4">
 				<h2 className="card-title text-base">
-					{props.icon && <props.icon className="my-1.5 size-4" />}
+					{/* {props.icon && <props.icon className="my-1.5 size-4" />} */}
 					{props.title}
 				</h2>
 				{props.children}

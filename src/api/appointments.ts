@@ -76,3 +76,33 @@ export const getAppointment = createServerFn()
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
 	});
+
+export const updateAppointment = createServerFn()
+	.inputValidator((d: { id: string; updates: Partial<Appointment> }) => d)
+	.handler(async ({ data }) => {
+		const isAuthorized = await useIsRole("EDITOR");
+		if (!isAuthorized) {
+			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+		}
+
+		try {
+			const appointment = await prismaClient.appointment.update({
+				where: { id: data.id },
+				data: {
+					title: data.updates.title,
+					startDate: data.updates.startDate,
+					endDate: data.updates.endDate,
+					location: data.updates.location,
+					status: data.updates.status,
+				},
+			});
+			return json<Return<Appointment>>(
+				{ message: "Appointment updated", data: appointment },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.log(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
