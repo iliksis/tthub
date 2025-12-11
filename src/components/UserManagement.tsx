@@ -6,7 +6,7 @@ import { useMutation } from "@/hooks/useMutation";
 import type { User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";
 import { isInvitationExpired } from "@/lib/utils";
-import { CreateUserModal } from "./CreateUserModal";
+import { CreateUserModal } from "./modal/CreateUserModal";
 import { notify } from "./Toast";
 
 type IUserManagementProps = {
@@ -104,6 +104,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 									type="button"
 									className="btn btn-square btn-error btn-ghost"
 									onClick={onDelete(user)}
+									disabled={user.id === currentUser?.id}
 								>
 									<Trash2Icon className="size-4" />
 								</button>

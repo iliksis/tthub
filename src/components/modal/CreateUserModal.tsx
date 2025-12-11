@@ -5,8 +5,8 @@ import React from "react";
 import { createUser } from "@/api/users";
 import { useMutation } from "@/hooks/useMutation";
 import { Role } from "@/lib/prisma/enums";
+import { notify } from "../Toast";
 import { Modal } from "./Modal";
-import { notify } from "./Toast";
 
 type NewUser = {
 	userName: string;
@@ -68,6 +68,19 @@ export const CreateUserModal = () => {
 				className="modal-bottom sm:modal-middle"
 				open={modalOpen}
 				onClose={onClose}
+				onRenderActionButton={() => (
+					<button
+						type="submit"
+						className="btn btn-primary"
+						onClick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							form.handleSubmit();
+						}}
+					>
+						Submit
+					</button>
+				)}
 			>
 				<form
 					onSubmit={(e) => {
@@ -140,19 +153,6 @@ export const CreateUserModal = () => {
 							)}
 						</form.Field>
 					</div>
-					<form.Subscribe
-						selector={(state) => [state.canSubmit, state.isSubmitting]}
-					>
-						{([canSubmit, isSubmitting]) => (
-							<button
-								type="submit"
-								className="btn btn-primary mt-4"
-								disabled={!canSubmit}
-							>
-								{isSubmitting ? "..." : "Submit"}
-							</button>
-						)}
-					</form.Subscribe>
 				</form>
 			</Modal>
 		</>

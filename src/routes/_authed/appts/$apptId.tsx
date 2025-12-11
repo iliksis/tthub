@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import {
 	CalendarCogIcon,
 	CalendarDaysIcon,
@@ -8,9 +9,11 @@ import {
 	Trash2Icon,
 } from "lucide-react";
 import React from "react";
-import { getAppointment } from "@/api/appointments";
+import { deleteAppointment, getAppointment } from "@/api/appointments";
 import { UpdateForm } from "@/components/appointments/UpdateForm";
-import { Modal } from "@/components/Modal";
+import { DeleteModal } from "@/components/modal/DeleteModal";
+import { Modal } from "@/components/modal/Modal";
+import { notify } from "@/components/Toast";
 import { AppointmentStatus, AppointmentType } from "@/lib/prisma/enums";
 
 export const Route = createFileRoute("/_authed/appts/$apptId")({
@@ -39,7 +42,10 @@ function RouteComponent() {
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [isDeleting, setIsDeleting] = React.useState(false);
 
+	const deleteAppointmentServerFn = useServerFn(deleteAppointment);
+
 	const { appointment } = Route.useLoaderData();
+	const router = useRouter();
 	if (!appointment) return <div>Appointment not found.</div>;
 
 	const isMultipleDays =
@@ -55,11 +61,27 @@ function RouteComponent() {
 		setIsEditing(false);
 	};
 
-	const onDelete = () => {
+	const onOpenDelete = () => {
 		setIsDeleting(true);
 	};
 	const onStopDeleting = () => {
 		setIsDeleting(false);
+	};
+
+	const onDelete = async () => {
+		const res = await deleteAppointmentServerFn({
+			data: { id: appointment.id },
+		});
+		const data = await res.json();
+		if (res.status < 400 && data) {
+			await router.invalidate();
+			notify({ text: data.message, status: "success" });
+			await router.navigate({
+				to: "/",
+			});
+			return;
+		}
+		notify({ text: data.message, status: "error" });
 	};
 
 	return (
@@ -149,7 +171,7 @@ function RouteComponent() {
 							className="btn btn-lg btn-circle"
 							type="button"
 							title="Delete appointment"
-							onClick={onDelete}
+							onClick={onOpenDelete}
 						>
 							<Trash2Icon className="size-4" />
 						</button>
@@ -161,32 +183,12 @@ function RouteComponent() {
 				<UpdateForm appointment={appointment} />
 			</Modal>
 
-			<Modal open={isDeleting} onClose={onStopDeleting}>
-				<div className="alert alert-warning">
-					<div className="flex flex-col gap-2">
-						<div className="flex gap-2">
-							<Trash2Icon className="size-4 text-warning" />
-							<p>Are you sure you want to delete this appointment?</p>
-						</div>
-						<div className="flex gap-2">
-							<button
-								type="button"
-								className="btn btn-error"
-								onClick={onStopDeleting}
-							>
-								Cancel
-							</button>
-							<button
-								type="button"
-								className="btn btn-warning"
-								onClick={onDelete}
-							>
-								Delete
-							</button>
-						</div>
-					</div>
-				</div>
-			</Modal>
+			<DeleteModal
+				label="Are you sure you want to delete this appointment?"
+				open={isDeleting}
+				onClose={onStopDeleting}
+				onDelete={onDelete}
+			/>
 		</div>
 	);
 }

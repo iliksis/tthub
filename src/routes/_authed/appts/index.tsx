@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_authed/appts/")({
 	component: RouteComponent,
 	loader: async () => {
 		const data = await getAppointments({
-			data: { type: AppointmentType.TOURNAMENT_BY },
+			data: { type: AppointmentType.TOURNAMENT_BY, withDeleted: false },
 		});
 		const response = await data.json();
 		if (data.status < 400) {

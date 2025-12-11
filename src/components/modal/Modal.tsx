@@ -6,6 +6,9 @@ type ModalProps = {
 	onClose?: () => void;
 	className?: string;
 	modalBoxClassName?: string;
+	onRenderActionButton?: () => React.ReactNode;
+	closeButtonLabel?: string;
+	closeButtonClassName?: string;
 };
 
 export const Modal = ({
@@ -14,6 +17,9 @@ export const Modal = ({
 	className,
 	modalBoxClassName,
 	onClose,
+	onRenderActionButton,
+	closeButtonLabel = "Close",
+	closeButtonClassName,
 }: React.PropsWithChildren<ModalProps>) => {
 	const id = useId();
 	const dialogProps = open ? { open: true } : {};
@@ -28,9 +34,13 @@ export const Modal = ({
 			<div className={cn("modal-box", modalBoxClassName)}>
 				{children}
 				<div className="modal-action">
-					<form method="dialog">
-						<button type="submit" className="btn btn-primary">
-							Close
+					<form method="dialog" className="flex gap-2">
+						{onRenderActionButton?.()}
+						<button
+							type="submit"
+							className={cn("btn btn-primary", closeButtonClassName)}
+						>
+							{closeButtonLabel}
 						</button>
 					</form>
 				</div>

@@ -81,11 +81,14 @@ export const getAppointment = createServerFn()
 	});
 
 export const getAppointments = createServerFn()
-	.inputValidator((d: { type: AppointmentType }) => d)
+	.inputValidator((d: { type: AppointmentType; withDeleted?: boolean }) => d)
 	.handler(async ({ data }) => {
 		try {
 			const appointments = await prismaClient.appointment.findMany({
-				where: { type: data.type },
+				where: {
+					type: data.type,
+					deletedAt: data.withDeleted ? undefined : null,
+				},
 			});
 			return json<Return<Appointment[]>>(
 				{ message: "Appointments found", data: appointments },
@@ -119,6 +122,32 @@ export const updateAppointment = createServerFn()
 			});
 			return json<Return<Appointment>>(
 				{ message: "Appointment updated", data: appointment },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.log(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
+export const deleteAppointment = createServerFn()
+	.inputValidator((d: { id: string }) => d)
+	.handler(async ({ data }) => {
+		const isAuthorized = await useIsRole("EDITOR");
+		if (!isAuthorized) {
+			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+		}
+
+		try {
+			const appointment = await prismaClient.appointment.update({
+				where: { id: data.id },
+				data: {
+					deletedAt: new Date(),
+				},
+			});
+			return json<Return<Appointment>>(
+				{ message: "Appointment deleted", data: appointment },
 				{ status: 200 },
 			);
 		} catch (e) {
