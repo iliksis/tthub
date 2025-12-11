@@ -5,6 +5,7 @@ import {
 	Clock10Icon,
 	DownloadIcon,
 	EditIcon,
+	Trash2Icon,
 } from "lucide-react";
 import React from "react";
 import { getAppointment } from "@/api/appointments";
@@ -12,7 +13,7 @@ import { UpdateForm } from "@/components/appointments/UpdateForm";
 import { Modal } from "@/components/Modal";
 import { AppointmentStatus, AppointmentType } from "@/lib/prisma/enums";
 
-export const Route = createFileRoute("/_authed/appt/$apptId")({
+export const Route = createFileRoute("/_authed/appts/$apptId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
 		const data = await getAppointment({ data: { id: params.apptId } });
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/_authed/appt/$apptId")({
 	head: ({ loaderData }) => ({
 		meta: [
 			{
-				title: loaderData?.appointment?.title,
+				title: loaderData?.appointment?.shortTitle,
 			},
 		],
 	}),
@@ -36,6 +37,7 @@ function RouteComponent() {
 	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
 
 	const [isEditing, setIsEditing] = React.useState(false);
+	const [isDeleting, setIsDeleting] = React.useState(false);
 
 	const { appointment } = Route.useLoaderData();
 	if (!appointment) return <div>Appointment not found.</div>;
@@ -53,19 +55,36 @@ function RouteComponent() {
 		setIsEditing(false);
 	};
 
+	const onDelete = () => {
+		setIsDeleting(true);
+	};
+	const onStopDeleting = () => {
+		setIsDeleting(false);
+	};
+
 	return (
 		<div>
 			{appointment?.status === AppointmentStatus.DRAFT && (
 				<div role="alert" className="alert alert-warning alert-soft mb-4">
-					<span>Appointment is still in draft.</span>
+					<span>
+						Appointment is still in draft.{" "}
+						{canEdit && (
+							<button type="button" className="underline hover:cursor-pointer">
+								Publish?
+							</button>
+						)}
+					</span>
 				</div>
 			)}
 			<div className="grid grid-cols-4 gap-2">
+				<h1 className="col-span-4 mb-2 font-bold">{appointment.title}</h1>
 				<Card title="Date" icon={CalendarDaysIcon} gridRows={3}>
 					<div className="flex flex-row">
 						<p>
 							{new Date(appointment.startDate).toLocaleDateString("de-DE", {
-								dateStyle: "long",
+								year: "numeric",
+								month: "short",
+								day: "2-digit",
 							})}
 
 							{isMultipleDays && appointment.endDate && (
@@ -73,7 +92,9 @@ function RouteComponent() {
 									{" "}
 									-{" "}
 									{new Date(appointment.endDate).toLocaleDateString("de-DE", {
-										dateStyle: "long",
+										year: "numeric",
+										month: "short",
+										day: "2-digit",
 									})}
 								</>
 							)}
@@ -115,25 +136,63 @@ function RouteComponent() {
 					<DownloadIcon className="size-4" />
 				</button>
 				{canEdit && (
-					<button
-						className="btn btn-lg btn-circle"
-						type="button"
-						onClick={onEdit}
-					>
-						<EditIcon className="size-4" />
-					</button>
+					<>
+						<button
+							className="btn btn-lg btn-circle"
+							type="button"
+							title="Edit appointment"
+							onClick={onEdit}
+						>
+							<EditIcon className="size-4" />
+						</button>
+						<button
+							className="btn btn-lg btn-circle"
+							type="button"
+							title="Delete appointment"
+							onClick={onDelete}
+						>
+							<Trash2Icon className="size-4" />
+						</button>
+					</>
 				)}
 			</div>
 
 			<Modal className="modal-bottom" open={isEditing} onClose={onStopEditing}>
 				<UpdateForm appointment={appointment} />
 			</Modal>
+
+			<Modal open={isDeleting} onClose={onStopDeleting}>
+				<div className="alert alert-warning">
+					<div className="flex flex-col gap-2">
+						<div className="flex gap-2">
+							<Trash2Icon className="size-4 text-warning" />
+							<p>Are you sure you want to delete this appointment?</p>
+						</div>
+						<div className="flex gap-2">
+							<button
+								type="button"
+								className="btn btn-error"
+								onClick={onStopDeleting}
+							>
+								Cancel
+							</button>
+							<button
+								type="button"
+								className="btn btn-warning"
+								onClick={onDelete}
+							>
+								Delete
+							</button>
+						</div>
+					</div>
+				</div>
+			</Modal>
 		</div>
 	);
 }
 
 type CardProps = {
-	title: string;
+	title?: string;
 	icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 	gridRows?: 1 | 2 | 3 | 4;
 };
@@ -147,10 +206,12 @@ const Card = (props: React.PropsWithChildren<CardProps>) => {
 	return (
 		<div className={`card bg-base-200 ${span[props.gridRows || 1]}`}>
 			<div className="card-body p-4">
-				<h2 className="card-title text-base">
-					{/* {props.icon && <props.icon className="my-1.5 size-4" />} */}
-					{props.title}
-				</h2>
+				{props.title && (
+					<h2 className="card-title text-base">
+						{/* {props.icon && <props.icon className="my-1.5 size-4" />} */}
+						{props.title}
+					</h2>
+				)}
 				{props.children}
 			</div>
 		</div>

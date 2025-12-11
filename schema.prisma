@@ -31,23 +31,25 @@ model UserInvitation {
 }
 
 model Appointment {
-  id        String   @id @default(nanoid(6))
-  createdAt DateTime @default(now())
-  startDate DateTime
-  endDate   DateTime?
-  title     String
-  location  String?
-  type      AppointmentType
-  status    AppointmentStatus?
+  id         String             @id @default(nanoid(6))
+  createdAt  DateTime           @default(now())
+  deletedAt  DateTime?
+  startDate  DateTime
+  endDate    DateTime?
+  title      String
+  shortTitle String
+  location   String?
+  type       AppointmentType
+  status     AppointmentStatus?
 }
 
 enum AppointmentStatus {
-	DRAFT
-	PUBLISHED
+  DRAFT
+  PUBLISHED
 }
 
 enum AppointmentType {
-	TOURNAMENT_BY
-	TOURNAMENT_DE
-	HOLIDAY
+  TOURNAMENT_BY
+  TOURNAMENT_DE
+  HOLIDAY
 }

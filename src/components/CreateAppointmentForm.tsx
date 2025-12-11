@@ -97,12 +97,14 @@ const AppointmentTypeSelect = () => {
 
 const defaultFormValues: {
 	title: string;
+	shortTitle: string;
 	startDate: Date;
 	endDate?: Date;
 	location?: string;
 	status: AppointmentStatus;
 } = {
 	title: "",
+	shortTitle: "",
 	startDate: new Date(),
 	status: AppointmentStatus.DRAFT,
 };
@@ -121,7 +123,7 @@ const AppointmentEditSection = ({
 				await router.invalidate();
 				notify({ text: data.message, status: "success" });
 				await router.navigate({
-					to: "/appt/$apptId",
+					to: "/appts/$apptId",
 					params: { apptId: data.data.id },
 				});
 				return;
@@ -136,6 +138,7 @@ const AppointmentEditSection = ({
 			createMutation.mutate({
 				data: {
 					title: value.title,
+					shortTitle: value.shortTitle,
 					type: appointmentType,
 					startDate: value.startDate,
 					endDate: value.endDate,
@@ -162,6 +165,27 @@ const AppointmentEditSection = ({
 								<fieldset className="fieldset">
 									<label className="label" htmlFor={field.name}>
 										Title:
+									</label>
+									<input
+										id={field.name}
+										className="input input-primary w-full"
+										name={field.name}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+								</fieldset>
+							);
+						}}
+					</form.Field>
+				</div>
+				<div>
+					<form.Field name="shortTitle">
+						{(field) => {
+							return (
+								<fieldset className="fieldset">
+									<label className="label" htmlFor={field.name}>
+										Short Title:
 									</label>
 									<input
 										id={field.name}

@@ -14,9 +14,10 @@ import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as InviteInviteIdRouteImport } from './routes/invite/$inviteId'
 import { Route as AuthedCreateRouteImport } from './routes/_authed/create'
+import { Route as AuthedApptsIndexRouteImport } from './routes/_authed/appts/index'
 import { Route as AuthedSettingsUsersRouteImport } from './routes/_authed/settings/users'
 import { Route as AuthedSettingsProfileRouteImport } from './routes/_authed/settings/profile'
-import { Route as AuthedApptApptIdRouteImport } from './routes/_authed/appt/$apptId'
+import { Route as AuthedApptsApptIdRouteImport } from './routes/_authed/appts/$apptId'
 
 const SentryTunnelRoute = SentryTunnelRouteImport.update({
   id: '/sentry-tunnel',
@@ -42,6 +43,11 @@ const AuthedCreateRoute = AuthedCreateRouteImport.update({
   path: '/create',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedApptsIndexRoute = AuthedApptsIndexRouteImport.update({
+  id: '/appts/',
+  path: '/appts/',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedSettingsUsersRoute = AuthedSettingsUsersRouteImport.update({
   id: '/settings/users',
   path: '/settings/users',
@@ -52,9 +58,9 @@ const AuthedSettingsProfileRoute = AuthedSettingsProfileRouteImport.update({
   path: '/settings/profile',
   getParentRoute: () => AuthedRoute,
 } as any)
-const AuthedApptApptIdRoute = AuthedApptApptIdRouteImport.update({
-  id: '/appt/$apptId',
-  path: '/appt/$apptId',
+const AuthedApptsApptIdRoute = AuthedApptsApptIdRouteImport.update({
+  id: '/appts/$apptId',
+  path: '/appts/$apptId',
   getParentRoute: () => AuthedRoute,
 } as any)
 
@@ -63,18 +69,20 @@ export interface FileRoutesByFullPath {
   '/create': typeof AuthedCreateRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/': typeof AuthedIndexRoute
-  '/appt/$apptId': typeof AuthedApptApptIdRoute
+  '/appts/$apptId': typeof AuthedApptsApptIdRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
+  '/appts': typeof AuthedApptsIndexRoute
 }
 export interface FileRoutesByTo {
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/create': typeof AuthedCreateRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/': typeof AuthedIndexRoute
-  '/appt/$apptId': typeof AuthedApptApptIdRoute
+  '/appts/$apptId': typeof AuthedApptsApptIdRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
+  '/appts': typeof AuthedApptsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -83,9 +91,10 @@ export interface FileRoutesById {
   '/_authed/create': typeof AuthedCreateRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/_authed/': typeof AuthedIndexRoute
-  '/_authed/appt/$apptId': typeof AuthedApptApptIdRoute
+  '/_authed/appts/$apptId': typeof AuthedApptsApptIdRoute
   '/_authed/settings/profile': typeof AuthedSettingsProfileRoute
   '/_authed/settings/users': typeof AuthedSettingsUsersRoute
+  '/_authed/appts/': typeof AuthedApptsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -94,18 +103,20 @@ export interface FileRouteTypes {
     | '/create'
     | '/invite/$inviteId'
     | '/'
-    | '/appt/$apptId'
+    | '/appts/$apptId'
     | '/settings/profile'
     | '/settings/users'
+    | '/appts'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sentry-tunnel'
     | '/create'
     | '/invite/$inviteId'
     | '/'
-    | '/appt/$apptId'
+    | '/appts/$apptId'
     | '/settings/profile'
     | '/settings/users'
+    | '/appts'
   id:
     | '__root__'
     | '/_authed'
@@ -113,9 +124,10 @@ export interface FileRouteTypes {
     | '/_authed/create'
     | '/invite/$inviteId'
     | '/_authed/'
-    | '/_authed/appt/$apptId'
+    | '/_authed/appts/$apptId'
     | '/_authed/settings/profile'
     | '/_authed/settings/users'
+    | '/_authed/appts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -161,6 +173,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedCreateRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/appts/': {
+      id: '/_authed/appts/'
+      path: '/appts'
+      fullPath: '/appts'
+      preLoaderRoute: typeof AuthedApptsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/settings/users': {
       id: '/_authed/settings/users'
       path: '/settings/users'
@@ -175,11 +194,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSettingsProfileRouteImport
       parentRoute: typeof AuthedRoute
     }
-    '/_authed/appt/$apptId': {
-      id: '/_authed/appt/$apptId'
-      path: '/appt/$apptId'
-      fullPath: '/appt/$apptId'
-      preLoaderRoute: typeof AuthedApptApptIdRouteImport
+    '/_authed/appts/$apptId': {
+      id: '/_authed/appts/$apptId'
+      path: '/appts/$apptId'
+      fullPath: '/appts/$apptId'
+      preLoaderRoute: typeof AuthedApptsApptIdRouteImport
       parentRoute: typeof AuthedRoute
     }
   }
@@ -188,17 +207,19 @@ declare module '@tanstack/react-router' {
 interface AuthedRouteChildren {
   AuthedCreateRoute: typeof AuthedCreateRoute
   AuthedIndexRoute: typeof AuthedIndexRoute
-  AuthedApptApptIdRoute: typeof AuthedApptApptIdRoute
+  AuthedApptsApptIdRoute: typeof AuthedApptsApptIdRoute
   AuthedSettingsProfileRoute: typeof AuthedSettingsProfileRoute
   AuthedSettingsUsersRoute: typeof AuthedSettingsUsersRoute
+  AuthedApptsIndexRoute: typeof AuthedApptsIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedCreateRoute: AuthedCreateRoute,
   AuthedIndexRoute: AuthedIndexRoute,
-  AuthedApptApptIdRoute: AuthedApptApptIdRoute,
+  AuthedApptsApptIdRoute: AuthedApptsApptIdRoute,
   AuthedSettingsProfileRoute: AuthedSettingsProfileRoute,
   AuthedSettingsUsersRoute: AuthedSettingsUsersRoute,
+  AuthedApptsIndexRoute: AuthedApptsIndexRoute,
 }
 
 const AuthedRouteWithChildren =

@@ -1,19 +1,21 @@
 import { createServerFn, json } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
 import type { Appointment } from "@/lib/prisma/client";
-import type { AppointmentStatus } from "@/lib/prisma/enums";
+import type { AppointmentStatus, AppointmentType } from "@/lib/prisma/enums";
 import { useIsRole } from "@/lib/session";
 import type { Return } from "./types";
 
 type ICreateAppointment =
 	| {
 			title: string;
+			shortTitle: string;
 			type: "HOLIDAY";
 			startDate: Date;
 			endDate?: Date;
 	  }
 	| {
 			title: string;
+			shortTitle: string;
 			type: "TOURNAMENT_BY" | "TOURNAMENT_DE";
 			startDate: Date;
 			endDate?: Date;
@@ -33,6 +35,7 @@ export const createAppointment = createServerFn()
 				data: {
 					title: data.title,
 					type: data.type,
+					shortTitle: data.shortTitle,
 					startDate: data.startDate,
 					endDate: data.endDate,
 					location: data.type === "HOLIDAY" ? undefined : data.location,
@@ -68,6 +71,24 @@ export const getAppointment = createServerFn()
 			}
 			return json<Return<Appointment>>(
 				{ message: "Appointment found", data: appointment },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.log(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
+export const getAppointments = createServerFn()
+	.inputValidator((d: { type: AppointmentType }) => d)
+	.handler(async ({ data }) => {
+		try {
+			const appointments = await prismaClient.appointment.findMany({
+				where: { type: data.type },
+			});
+			return json<Return<Appointment[]>>(
+				{ message: "Appointments found", data: appointments },
 				{ status: 200 },
 			);
 		} catch (e) {

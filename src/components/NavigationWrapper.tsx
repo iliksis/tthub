@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import {
+	CalendarDaysIcon,
 	CalendarPlusIcon,
 	HouseIcon,
 	PanelLeftOpenIcon,
@@ -23,6 +24,7 @@ type NavigationItem =
 
 const navigationItems: NavigationItem[] = [
 	{ name: "Homepage", href: "/", icon: HouseIcon },
+	{ name: "Appointments", href: "/appts", icon: CalendarDaysIcon },
 	{ name: "Create Appointment", href: "/create", icon: CalendarPlusIcon },
 	{
 		name: "Settings",

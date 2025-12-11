@@ -92,9 +92,11 @@ export type UserInvitationScalarFieldEnum = (typeof UserInvitationScalarFieldEnu
 export const AppointmentScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
+  deletedAt: 'deletedAt',
   startDate: 'startDate',
   endDate: 'endDate',
   title: 'title',
+  shortTitle: 'shortTitle',
   location: 'location',
   type: 'type',
   status: 'status'

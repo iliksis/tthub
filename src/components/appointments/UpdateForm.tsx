@@ -22,7 +22,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 				await router.invalidate();
 				notify({ text: data.message, status: "success" });
 				await router.navigate({
-					to: "/appt/$apptId",
+					to: "/appts/$apptId",
 					params: { apptId: data.data.id },
 				});
 				return;
@@ -34,6 +34,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 	const form = useForm({
 		defaultValues: {
 			title: appointment.title,
+			shortTitle: appointment.shortTitle,
 			startDate: new Date(appointment.startDate),
 			endDate: appointment.endDate ? new Date(appointment.endDate) : null,
 			location: appointment.location,
@@ -72,6 +73,27 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 								<fieldset className="fieldset">
 									<label className="label" htmlFor={field.name}>
 										Title:
+									</label>
+									<input
+										id={field.name}
+										className="input input-primary w-full"
+										name={field.name}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+								</fieldset>
+							);
+						}}
+					</form.Field>
+				</div>
+				<div>
+					<form.Field name="shortTitle">
+						{(field) => {
+							return (
+								<fieldset className="fieldset">
+									<label className="label" htmlFor={field.name}>
+										Short Title:
 									</label>
 									<input
 										id={field.name}
