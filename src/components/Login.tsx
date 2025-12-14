@@ -85,6 +85,19 @@ export function Login() {
 							);
 						}}
 					</form.Field>
+					<form.Subscribe
+						selector={(state) => [state.canSubmit, state.isSubmitting]}
+					>
+						{([canSubmit, isSubmitting]) => (
+							<button
+								type="submit"
+								className="btn btn-primary mt-4"
+								disabled={!canSubmit}
+							>
+								{isSubmitting ? "..." : "Login"}
+							</button>
+						)}
+					</form.Subscribe>
 				</div>
 			</form>
 		</div>
