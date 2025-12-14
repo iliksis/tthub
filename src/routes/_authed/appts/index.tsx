@@ -15,6 +15,13 @@ export const Route = createFileRoute("/_authed/appts/")({
 		}
 		throw new Error(response.message);
 	},
+	head: () => ({
+		meta: [
+			{
+				title: "Appointments",
+			},
+		],
+	}),
 });
 
 function RouteComponent() {

@@ -35,9 +35,6 @@ export const Route = createRootRoute({
 				name: "viewport",
 				content: "width=device-width, initial-scale=1",
 			},
-			{
-				title: "Dashboard",
-			},
 		],
 		links: [
 			{
@@ -61,14 +58,14 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			const path = state.location.pathname;
 			return (
 				state.matches
-					.filter((match) => match.pathname === path)
+					.filter((match) => match.pathname.startsWith(path))
 					// biome-ignore lint/style/noNonNullAssertion: is always defined
 					.map((match) => match.meta!)
 					.filter(Boolean)
 			);
 		},
 	});
-	const title = routerState.at(-1)?.[0]?.title ?? "Dashboard";
+	const title = routerState.at(-1)?.[0]?.title;
 
 	const isAuthedRoute = useRouterState({
 		select: (state) => state.matches.some((m) => m.routeId === "/_authed"),

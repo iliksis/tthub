@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/")({
 	component: App,
-	// head: () => ({
-	// 	meta: [{ title: "Dashboard" }],
-	// }),
+	head: () => ({
+		meta: [{ title: "Dashboard" }],
+	}),
 });
 
 function App() {

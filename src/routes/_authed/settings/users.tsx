@@ -21,6 +21,13 @@ export const Route = createFileRoute("/_authed/settings/users")({
 		const users = await fetchUsers();
 		return { users };
 	},
+	head: () => ({
+		meta: [
+			{
+				title: "User Management",
+			},
+		],
+	}),
 });
 
 function RouteComponent() {

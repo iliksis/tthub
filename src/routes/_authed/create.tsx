@@ -3,6 +3,13 @@ import { CreateAppointmentForm } from "@/components/CreateAppointmentForm";
 
 export const Route = createFileRoute("/_authed/create")({
 	component: RouteComponent,
+	head: () => ({
+		meta: [
+			{
+				title: "Create Appointment",
+			},
+		],
+	}),
 });
 
 function RouteComponent() {

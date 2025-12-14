@@ -37,7 +37,7 @@ const navigationItems: NavigationItem[] = [
 ];
 
 interface NavigationWrapperProps {
-	title: string;
+	title?: string;
 }
 
 export const NavigationWrapper = ({
