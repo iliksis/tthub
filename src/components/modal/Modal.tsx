@@ -38,7 +38,7 @@ export const Modal = ({
 						{onRenderActionButton?.()}
 						<button
 							type="submit"
-							className={cn("btn btn-primary", closeButtonClassName)}
+							className={cn("btn btn-secondary", closeButtonClassName)}
 						>
 							{closeButtonLabel}
 						</button>

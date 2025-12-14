@@ -105,6 +105,7 @@ const defaultFormValues: {
 } = {
 	title: "",
 	shortTitle: "",
+	location: "",
 	startDate: new Date(),
 	status: AppointmentStatus.DRAFT,
 };

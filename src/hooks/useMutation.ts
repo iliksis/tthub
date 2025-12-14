@@ -3,11 +3,12 @@ import * as React from "react";
 export function useMutation<TVariables, TData, TError = Error>(opts: {
 	fn: (variables: TVariables) => Promise<TData>;
 	onSuccess?: (ctx: { data: TData }) => void | Promise<void>;
+	defaultData?: TData;
 }) {
 	const [submittedAt, setSubmittedAt] = React.useState<number | undefined>();
 	const [variables, setVariables] = React.useState<TVariables | undefined>();
 	const [error, setError] = React.useState<TError | undefined>();
-	const [data, setData] = React.useState<TData | undefined>();
+	const [data, setData] = React.useState<TData | undefined>(opts.defaultData);
 	const [status, setStatus] = React.useState<
 		"idle" | "pending" | "success" | "error"
 	>("idle");

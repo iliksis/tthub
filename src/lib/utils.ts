@@ -37,3 +37,14 @@ export const dateToInputValue = (date: Date, withSeconds = true) => {
 	if (withSeconds) return isoString.slice(0, -4);
 	return isoString.split("T")[0];
 };
+
+/**
+ * Checks if a date is in the past.
+ */
+export const isDayInPast = (date: Date) => {
+	const today = new Date();
+	today.setHours(0, 0, 0, 0);
+	const inputDate = new Date(date);
+	inputDate.setHours(0, 0, 0, 0);
+	return inputDate < today;
+};

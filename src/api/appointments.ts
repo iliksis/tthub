@@ -1,6 +1,6 @@
 import { createServerFn, json } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
-import type { Appointment } from "@/lib/prisma/client";
+import type { Appointment, Prisma } from "@/lib/prisma/client";
 import type { AppointmentStatus, AppointmentType } from "@/lib/prisma/enums";
 import { useIsRole } from "@/lib/session";
 import type { Return } from "./types";
@@ -81,14 +81,33 @@ export const getAppointment = createServerFn()
 	});
 
 export const getAppointments = createServerFn()
-	.inputValidator((d: { type: AppointmentType; withDeleted?: boolean }) => d)
+	.inputValidator(
+		(d: {
+			type: AppointmentType;
+			title?: string;
+			withDeleted?: boolean;
+			orderBy?:
+				| Prisma.AppointmentOrderByWithRelationInput
+				| Prisma.AppointmentOrderByWithRelationInput[];
+		}) => d,
+	)
 	.handler(async ({ data }) => {
 		try {
+			const titleFilter: { OR?: Prisma.AppointmentWhereInput[] } = data.title
+				? {
+						OR: [
+							{ title: { contains: data.title } },
+							{ shortTitle: { contains: data.title } },
+						],
+					}
+				: {};
 			const appointments = await prismaClient.appointment.findMany({
 				where: {
 					type: data.type,
 					deletedAt: data.withDeleted ? undefined : null,
+					...titleFilter,
 				},
+				orderBy: data.orderBy,
 			});
 			return json<Return<Appointment[]>>(
 				{ message: "Appointments found", data: appointments },

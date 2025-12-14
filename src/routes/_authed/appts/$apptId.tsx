@@ -54,6 +54,8 @@ function RouteComponent() {
 				new Date(appointment.endDate).getDate()
 			: false;
 
+	const isDeleted = appointment.deletedAt !== null;
+
 	const onEdit = () => {
 		setIsEditing(true);
 	};
@@ -86,17 +88,33 @@ function RouteComponent() {
 
 	return (
 		<div>
-			{appointment?.status === AppointmentStatus.DRAFT && (
-				<div role="alert" className="alert alert-warning alert-soft mb-4">
+			{isDeleted ? (
+				<div role="alert" className="alert alert-error alert-soft mb-4">
 					<span>
-						Appointment is still in draft.{" "}
+						Appointment was deleted.{" "}
 						{canEdit && (
 							<button type="button" className="underline hover:cursor-pointer">
-								Publish?
+								Restore?
 							</button>
 						)}
 					</span>
 				</div>
+			) : (
+				appointment?.status === AppointmentStatus.DRAFT && (
+					<div role="alert" className="alert alert-warning alert-soft mb-4">
+						<span>
+							Appointment is still in draft.{" "}
+							{canEdit && (
+								<button
+									type="button"
+									className="underline hover:cursor-pointer"
+								>
+									Publish?
+								</button>
+							)}
+						</span>
+					</div>
+				)
 			)}
 			<div className="grid grid-cols-4 gap-2">
 				<h1 className="col-span-4 mb-2 font-bold">{appointment.title}</h1>
@@ -138,13 +156,25 @@ function RouteComponent() {
 			</div>
 			{/*User response*/}
 			<div className="mt-6 grid grid-cols-3 gap-2">
-				<button type="button" className="btn btn-soft btn-success w-auto">
+				<button
+					type="button"
+					className="btn btn-soft btn-success w-auto"
+					disabled={isDeleted}
+				>
 					Accept
 				</button>
-				<button type="button" className="btn btn-active btn-warning">
+				<button
+					type="button"
+					className="btn btn-active btn-warning"
+					disabled={isDeleted}
+				>
 					Maybe
 				</button>
-				<button type="button" className="btn btn-soft btn-error">
+				<button
+					type="button"
+					className="btn btn-soft btn-error"
+					disabled={isDeleted}
+				>
 					Response
 				</button>
 			</div>
