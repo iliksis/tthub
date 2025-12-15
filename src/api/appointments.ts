@@ -90,6 +90,7 @@ export const getAppointments = createServerFn()
 		(d: {
 			type: AppointmentType;
 			title?: string;
+			location?: string;
 			withDeleted?: boolean;
 			orderBy?:
 				| Prisma.AppointmentOrderByWithRelationInput
@@ -98,19 +99,17 @@ export const getAppointments = createServerFn()
 	)
 	.handler(async ({ data }) => {
 		try {
-			const titleFilter: { OR?: Prisma.AppointmentWhereInput[] } = data.title
-				? {
-						OR: [
-							{ title: { contains: data.title } },
-							{ shortTitle: { contains: data.title } },
-						],
-					}
-				: {};
 			const appointments = await prismaClient.appointment.findMany({
 				where: {
 					type: data.type,
 					deletedAt: data.withDeleted ? undefined : null,
-					...titleFilter,
+					location: {
+						contains: data.location,
+					},
+					OR: [
+						{ title: { contains: data.title ?? "" } },
+						{ shortTitle: { contains: data.title ?? "" } },
+					],
 				},
 				include: { responses: true },
 				orderBy: data.orderBy,

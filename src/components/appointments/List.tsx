@@ -99,17 +99,23 @@ export const List = ({ appointments }: ListProps) => {
 export const filterSchema = z.object({
 	deleted: z.boolean().optional(),
 	title: z.string().optional(),
+	location: z.string().optional(),
 });
 type FiltersProps = z.infer<typeof filterSchema>;
-export const Filters = ({ deleted = false, title = "" }: FiltersProps) => {
+export const Filters = ({
+	deleted = false,
+	title = "",
+	location = "",
+}: FiltersProps) => {
 	const router = useRouter();
 
 	const [modal, setModal] = React.useState(false);
 
 	const form = useForm({
 		defaultValues: {
-			deleted: deleted,
-			title: title,
+			deleted,
+			title,
+			location,
 		},
 		onSubmit: async ({ value }) => {
 			await router.navigate({
@@ -138,7 +144,13 @@ export const Filters = ({ deleted = false, title = "" }: FiltersProps) => {
 					type="button"
 					className="btn btn-accent"
 					onClick={() => {
-						form.update({ defaultValues: { deleted: false, title: "" } });
+						form.update({
+							defaultValues: {
+								deleted: false,
+								title: "",
+								location: "",
+							},
+						});
 						router.navigate({ to: ".", search: {}, replace: true });
 					}}
 				>
@@ -178,6 +190,25 @@ export const Filters = ({ deleted = false, title = "" }: FiltersProps) => {
 								<fieldset className="fieldset">
 									<label className="label" htmlFor={field.name}>
 										Title:
+									</label>
+									<input
+										id={field.name}
+										className="input input-primary w-full"
+										name={field.name}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+					<div>
+						<form.Field name="location">
+							{(field) => (
+								<fieldset className="fieldset">
+									<label className="label" htmlFor={field.name}>
+										Location:
 									</label>
 									<input
 										id={field.name}

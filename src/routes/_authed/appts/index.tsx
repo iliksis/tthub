@@ -7,11 +7,12 @@ export const Route = createFileRoute("/_authed/appts/")({
 	component: RouteComponent,
 	validateSearch: filterSchema,
 	loaderDeps: ({ search }) => ({ ...search }),
-	loader: async ({ deps: { deleted, title } }) => {
+	loader: async ({ deps: { deleted, title, location } }) => {
 		const data = await getAppointments({
 			data: {
 				type: AppointmentType.TOURNAMENT_BY,
 				title,
+				location,
 				withDeleted: deleted,
 				orderBy: { startDate: "desc" },
 			},
