@@ -1,8 +1,12 @@
 import { createServerFn, json } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
-import type { Appointment, Prisma } from "@/lib/prisma/client";
-import type { AppointmentStatus, AppointmentType } from "@/lib/prisma/enums";
-import { useIsRole } from "@/lib/session";
+import type { Appointment, Prisma, Response } from "@/lib/prisma/client";
+import type {
+	AppointmentStatus,
+	AppointmentType,
+	ResponseType,
+} from "@/lib/prisma/enums";
+import { useAppSession, useIsRole } from "@/lib/session";
 import type { Return } from "./types";
 
 type ICreateAppointment =
@@ -60,6 +64,7 @@ export const getAppointment = createServerFn()
 		try {
 			const appointment = await prismaClient.appointment.findUnique({
 				where: { id: data.id },
+				include: { responses: true },
 			});
 			if (!appointment) {
 				return json<Return>(
@@ -69,7 +74,7 @@ export const getAppointment = createServerFn()
 					},
 				);
 			}
-			return json<Return<Appointment>>(
+			return json<Return<typeof appointment>>(
 				{ message: "Appointment found", data: appointment },
 				{ status: 200 },
 			);
@@ -107,9 +112,10 @@ export const getAppointments = createServerFn()
 					deletedAt: data.withDeleted ? undefined : null,
 					...titleFilter,
 				},
+				include: { responses: true },
 				orderBy: data.orderBy,
 			});
-			return json<Return<Appointment[]>>(
+			return json<Return<typeof appointments>>(
 				{ message: "Appointments found", data: appointments },
 				{ status: 200 },
 			);
@@ -167,6 +173,42 @@ export const deleteAppointment = createServerFn()
 			});
 			return json<Return<Appointment>>(
 				{ message: "Appointment deleted", data: appointment },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.log(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
+export const createResponse = createServerFn()
+	.inputValidator((d: { appointmentId: string; response: ResponseType }) => d)
+	.handler(async ({ data }) => {
+		const session = await useAppSession();
+		if (!session.data.id) {
+			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+		}
+
+		try {
+			const response = await prismaClient.response.upsert({
+				where: {
+					userId_appointmentId: {
+						userId: session.data.id,
+						appointmentId: data.appointmentId,
+					},
+				},
+				update: {
+					responseType: data.response,
+				},
+				create: {
+					userId: session.data.id,
+					appointmentId: data.appointmentId,
+					responseType: data.response,
+				},
+			});
+			return json<Return<Response>>(
+				{ message: "Response created", data: response },
 				{ status: 200 },
 			);
 		} catch (e) {

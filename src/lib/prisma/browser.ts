@@ -32,3 +32,8 @@ export type UserInvitation = Prisma.UserInvitationModel
  * 
  */
 export type Appointment = Prisma.AppointmentModel
+/**
+ * Model Response
+ * 
+ */
+export type Response = Prisma.ResponseModel

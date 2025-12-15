@@ -182,6 +182,23 @@ export type EnumAppointmentStatusNullableWithAggregatesFilter<$PrismaModel = nev
   _max?: Prisma.NestedEnumAppointmentStatusNullableFilter<$PrismaModel>
 }
 
+export type EnumResponseTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.ResponseType | Prisma.EnumResponseTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ResponseType[]
+  notIn?: $Enums.ResponseType[]
+  not?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel> | $Enums.ResponseType
+}
+
+export type EnumResponseTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ResponseType | Prisma.EnumResponseTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ResponseType[]
+  notIn?: $Enums.ResponseType[]
+  not?: Prisma.NestedEnumResponseTypeWithAggregatesFilter<$PrismaModel> | $Enums.ResponseType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[]
@@ -365,6 +382,23 @@ export type NestedEnumAppointmentStatusNullableWithAggregatesFilter<$PrismaModel
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumAppointmentStatusNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumAppointmentStatusNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumResponseTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.ResponseType | Prisma.EnumResponseTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ResponseType[]
+  notIn?: $Enums.ResponseType[]
+  not?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel> | $Enums.ResponseType
+}
+
+export type NestedEnumResponseTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ResponseType | Prisma.EnumResponseTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ResponseType[]
+  notIn?: $Enums.ResponseType[]
+  not?: Prisma.NestedEnumResponseTypeWithAggregatesFilter<$PrismaModel> | $Enums.ResponseType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel>
 }
 
 

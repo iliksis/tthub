@@ -15,6 +15,7 @@ model User {
   name       String
   role       Role            @default(USER)
   invitation UserInvitation?
+  responses  Response[]
 }
 
 enum Role {
@@ -41,6 +42,7 @@ model Appointment {
   location   String?
   type       AppointmentType
   status     AppointmentStatus?
+  responses  Response[]
 }
 
 enum AppointmentStatus {
@@ -52,4 +54,20 @@ enum AppointmentType {
   TOURNAMENT_BY
   TOURNAMENT_DE
   HOLIDAY
+}
+
+model Response {
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
+  appointmentId String
+  appointment   Appointment  @relation(fields: [appointmentId], references: [id])
+  responseType  ResponseType
+
+  @@id([userId, appointmentId])
+}
+
+enum ResponseType {
+  ACCEPT
+  MAYBE
+  DECLINE
 }

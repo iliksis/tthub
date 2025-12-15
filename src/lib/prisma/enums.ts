@@ -33,3 +33,12 @@ export const AppointmentType = {
 } as const
 
 export type AppointmentType = (typeof AppointmentType)[keyof typeof AppointmentType]
+
+
+export const ResponseType = {
+  ACCEPT: 'ACCEPT',
+  MAYBE: 'MAYBE',
+  DECLINE: 'DECLINE'
+} as const
+
+export type ResponseType = (typeof ResponseType)[keyof typeof ResponseType]

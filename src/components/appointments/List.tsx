@@ -1,24 +1,25 @@
 import { useForm } from "@tanstack/react-form";
-import { useRouter } from "@tanstack/react-router";
+import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { FilterIcon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
-import type { Appointment } from "@/lib/prisma/client";
+import type { Appointment, Response } from "@/lib/prisma/client";
 import { cn, isDayInPast } from "@/lib/utils";
 import { Modal } from "../modal/Modal";
 
 type ListProps = {
-	appointments: Appointment[];
+	appointments: (Appointment & { responses: Response[] })[];
 };
 
 export const List = ({ appointments }: ListProps) => {
+	const { user } = useRouteContext({ from: "__root__" });
 	const router = useRouter();
 
 	const onClickAppointment = (id: string) => async () => {
 		await router.navigate({ to: "/appts/$apptId", params: { apptId: id } });
 	};
 
-	const renderRow = (appointment: Appointment) => {
+	const renderRow = (appointment: ListProps["appointments"][number]) => {
 		const isMultipleDays =
 			appointment.endDate !== null
 				? new Date(appointment.startDate).getDate() !==
@@ -26,6 +27,12 @@ export const List = ({ appointments }: ListProps) => {
 				: false;
 		const inPast = isDayInPast(appointment.startDate);
 		const isDeleted = appointment.deletedAt !== null;
+
+		const userResponse =
+			appointment.responses?.find((r) => r.userId === user?.id)?.responseType ??
+			"MAYBE";
+		const isAccepted = userResponse === "ACCEPT";
+		const isDeclined = userResponse === "DECLINE";
 
 		return (
 			<tr
@@ -37,8 +44,15 @@ export const List = ({ appointments }: ListProps) => {
 				)}
 				onClick={onClickAppointment(appointment.id)}
 			>
-				<th>{appointment.shortTitle}</th>
-				<th>
+				<td className="p-0 pl-1">
+					{isAccepted ? (
+						<div className="status status-success "></div>
+					) : isDeclined ? (
+						<div className="status status-error"></div>
+					) : null}
+				</td>
+				<td>{appointment.shortTitle}</td>
+				<td>
 					{new Date(appointment.startDate).toLocaleDateString("de-DE", {
 						day: "2-digit",
 						month: "2-digit",
@@ -55,8 +69,8 @@ export const List = ({ appointments }: ListProps) => {
 							})}{" "}
 						</>
 					)}
-				</th>
-				<th>{appointment.location}</th>
+				</td>
+				<td>{appointment.location}</td>
 			</tr>
 		);
 	};
@@ -67,6 +81,7 @@ export const List = ({ appointments }: ListProps) => {
 				<table className="table text-xs">
 					<thead className="text-xs">
 						<tr>
+							<th className="p-0"></th>
 							<th>Title</th>
 							<th>Date</th>
 							<th>Location</th>

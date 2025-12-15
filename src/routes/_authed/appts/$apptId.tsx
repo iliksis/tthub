@@ -9,22 +9,33 @@ import {
 	Trash2Icon,
 } from "lucide-react";
 import React from "react";
-import { deleteAppointment, getAppointment } from "@/api/appointments";
+import {
+	createResponse,
+	deleteAppointment,
+	getAppointment,
+} from "@/api/appointments";
 import { UpdateForm } from "@/components/appointments/UpdateForm";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Modal } from "@/components/modal/Modal";
 import { notify } from "@/components/Toast";
-import { AppointmentStatus, AppointmentType } from "@/lib/prisma/enums";
+import {
+	AppointmentStatus,
+	AppointmentType,
+	type ResponseType,
+} from "@/lib/prisma/enums";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed/appts/$apptId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
 		const data = await getAppointment({ data: { id: params.apptId } });
-		const response = await data.json();
+
+		const res = await data.json();
 		if (data.status < 400) {
-			return { appointment: response.data };
+			return { appointment: res.data };
 		}
-		throw new Error(response.message);
+
+		throw new Error(res.message);
 	},
 	head: ({ loaderData }) => ({
 		meta: [
@@ -43,10 +54,18 @@ function RouteComponent() {
 	const [isDeleting, setIsDeleting] = React.useState(false);
 
 	const deleteAppointmentServerFn = useServerFn(deleteAppointment);
+	const createResponseServerFn = useServerFn(createResponse);
 
 	const { appointment } = Route.useLoaderData();
 	const router = useRouter();
 	if (!appointment) return <div>Appointment not found.</div>;
+
+	const userResponse =
+		appointment.responses?.find((r) => r.userId === user?.id)?.responseType ??
+		"MAYBE";
+	const isAccepted = userResponse === "ACCEPT";
+	const isDeclined = userResponse === "DECLINE";
+	const isMaybe = userResponse === "MAYBE";
 
 	const isMultipleDays =
 		appointment.endDate !== null
@@ -81,6 +100,18 @@ function RouteComponent() {
 			await router.navigate({
 				to: "/",
 			});
+			return;
+		}
+		notify({ text: data.message, status: "error" });
+	};
+
+	const onResponse = (response: ResponseType) => async () => {
+		const res = await createResponseServerFn({
+			data: { appointmentId: appointment.id, response },
+		});
+		const data = await res.json();
+		if (res.status < 400 && data) {
+			await router.invalidate();
 			return;
 		}
 		notify({ text: data.message, status: "error" });
@@ -158,22 +189,28 @@ function RouteComponent() {
 			<div className="mt-6 grid grid-cols-3 gap-2">
 				<button
 					type="button"
-					className="btn btn-soft btn-success w-auto"
+					className={cn(
+						"btn btn-soft btn-success w-auto",
+						isAccepted && "btn-active",
+					)}
 					disabled={isDeleted}
+					onClick={onResponse("ACCEPT")}
 				>
 					Accept
 				</button>
 				<button
 					type="button"
-					className="btn btn-active btn-warning"
+					className={cn("btn btn-soft btn-warning", isMaybe && "btn-active")}
 					disabled={isDeleted}
+					onClick={onResponse("MAYBE")}
 				>
 					Maybe
 				</button>
 				<button
 					type="button"
-					className="btn btn-soft btn-error"
+					className={cn("btn btn-soft btn-error", isDeclined && "btn-active")}
 					disabled={isDeleted}
+					onClick={onResponse("DECLINE")}
 				>
 					Response
 				</button>
