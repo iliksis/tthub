@@ -18,6 +18,7 @@ import { UpdateForm } from "@/components/appointments/UpdateForm";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Modal } from "@/components/modal/Modal";
 import { notify } from "@/components/Toast";
+import type { Response, User } from "@/lib/prisma/client";
 import {
 	AppointmentStatus,
 	AppointmentType,
@@ -216,6 +217,20 @@ function RouteComponent() {
 				</button>
 			</div>
 
+			<div className="mt-3 grid grid-cols-3 gap-2">
+				<AvatarGroup
+					responses={appointment.responses.filter(
+						(r) => r.responseType === "ACCEPT",
+					)}
+				/>
+				<div></div>
+				<AvatarGroup
+					responses={appointment.responses.filter(
+						(r) => r.responseType === "DECLINE",
+					)}
+				/>
+			</div>
+
 			<div className="fab">
 				{/** biome-ignore lint/a11y/useSemanticElements: fixes safari bug */}
 				<div className="btn btn-lg btn-circle" role="button" tabIndex={0}>
@@ -283,6 +298,27 @@ const Card = (props: React.PropsWithChildren<CardProps>) => {
 				)}
 				{props.children}
 			</div>
+		</div>
+	);
+};
+
+type AvatarGroupProps = {
+	responses: (Response & { user: User })[];
+};
+const AvatarGroup = ({ responses }: AvatarGroupProps) => {
+	return (
+		<div className="-space-x-3">
+			{responses.map((r) => (
+				<div
+					key={r.userId}
+					className="avatar avatar-placeholder tooltip"
+					data-tip={r.user.name}
+				>
+					<div className="bg-neutral w-8 rounded-full border-base-100 border-2">
+						<span className="text-md">{r.user.name.slice(0, 2)}</span>
+					</div>
+				</div>
+			))}
 		</div>
 	);
 };

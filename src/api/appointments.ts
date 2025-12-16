@@ -64,7 +64,7 @@ export const getAppointment = createServerFn()
 		try {
 			const appointment = await prismaClient.appointment.findUnique({
 				where: { id: data.id },
-				include: { responses: true },
+				include: { responses: { include: { user: true } } },
 			});
 			if (!appointment) {
 				return json<Return>(

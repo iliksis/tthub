@@ -23,7 +23,7 @@ type NavigationItem =
 	  };
 
 const navigationItems: NavigationItem[] = [
-	{ name: "Homepage", href: "/", icon: HouseIcon },
+	{ name: "Dashboard", href: "/", icon: HouseIcon },
 	{ name: "Appointments", href: "/appts", icon: CalendarDaysIcon },
 	{ name: "Create Appointment", href: "/create", icon: CalendarPlusIcon },
 	{
@@ -78,6 +78,9 @@ export const NavigationWrapper = ({
 							data-tip={item.name}
 							to={item.href}
 							onClick={closeDrawer}
+							activeProps={{
+								className: "text-accent",
+							}}
 						>
 							<item.icon className="my-1.5 size-4" />
 							<span className="is-drawer-close:hidden"> {item.name}</span>
