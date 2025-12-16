@@ -168,6 +168,11 @@ export const deleteUser = createServerFn({ method: "POST" })
 		}
 
 		try {
+			await prismaClient.response.deleteMany({
+				where: {
+					userId: data.id,
+				},
+			});
 			await prismaClient.userInvitation.deleteMany({
 				where: {
 					userId: data.id,

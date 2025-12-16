@@ -216,3 +216,104 @@ export const createResponse = createServerFn()
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
 	});
+
+export const getNextAppointments = createServerFn().handler(async () => {
+	try {
+		const now = new Date();
+		const fourWeeks = new Date(now.getTime() + 86400000 * 28);
+		const appointments = await prismaClient.appointment.findMany({
+			where: {
+				AND: [
+					{
+						startDate: {
+							gt: now,
+						},
+					},
+					{
+						startDate: {
+							lt: fourWeeks,
+						},
+					},
+				],
+				deletedAt: null,
+			},
+			include: {
+				responses: true,
+			},
+			orderBy: {
+				startDate: "asc",
+			},
+		});
+		return json<Return<typeof appointments>>(
+			{ message: "Appointments found", data: appointments },
+			{ status: 200 },
+		);
+	} catch (e) {
+		console.log(e);
+		const error = e as Error;
+		return json<Return>({ message: error.message }, { status: 400 });
+	}
+});
+
+export const getUserAppointments = createServerFn()
+	.inputValidator((d: { userId: string }) => d)
+	.handler(async ({ data }) => {
+		try {
+			const appointments = await prismaClient.appointment.findMany({
+				where: {
+					startDate: {
+						gte: new Date(),
+					},
+					deletedAt: null,
+					responses: {
+						some: {
+							userId: data.userId,
+							responseType: "ACCEPT",
+						},
+					},
+				},
+				include: {
+					responses: true,
+				},
+			});
+			return json<Return<typeof appointments>>(
+				{ message: "Appointments found", data: appointments },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.log(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
+export const getUserAppointmentsWithoutResponses = createServerFn()
+	.inputValidator((d: { userId: string }) => d)
+	.handler(async ({ data }) => {
+		try {
+			const appointments = await prismaClient.appointment.findMany({
+				where: {
+					startDate: {
+						gte: new Date(),
+					},
+					deletedAt: null,
+					responses: {
+						none: {
+							userId: data.userId,
+						},
+					},
+				},
+				include: {
+					responses: true,
+				},
+			});
+			return json<Return<typeof appointments>>(
+				{ message: "Appointments found", data: appointments },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.log(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
