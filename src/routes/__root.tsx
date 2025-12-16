@@ -20,7 +20,7 @@ const fetchUser = createServerFn({ method: "GET" }).handler(async () => {
 	return {
 		id: session.data.id,
 		role: session.data.role,
-		useName: session.data.userName,
+		userName: session.data.userName,
 		name: session.data.name,
 	};
 });
@@ -45,7 +45,6 @@ export const Route = createRootRoute({
 	}),
 	beforeLoad: async () => {
 		const user = await fetchUser();
-
 		return { user };
 	},
 	shellComponent: RootDocument,

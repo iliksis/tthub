@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouteContext } from "@tanstack/react-router";
 import {
 	CalendarDaysIcon,
 	CalendarPlusIcon,
@@ -9,12 +9,14 @@ import {
 	UsersIcon,
 } from "lucide-react";
 import React from "react";
+import type { User } from "@/lib/prisma/client";
 
 type NavigationItem =
 	| {
 			name: string;
 			href: string;
 			icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+			isHidden?: (role: User["role"]) => boolean;
 	  }
 	| {
 			name: string;
@@ -31,7 +33,12 @@ const navigationItems: NavigationItem[] = [
 		icon: Settings2Icon,
 		children: [
 			{ name: "Profile", href: "/settings/profile", icon: UserPenIcon },
-			{ name: "User Management", href: "/settings/users", icon: UsersIcon },
+			{
+				name: "User Management",
+				href: "/settings/users",
+				icon: UsersIcon,
+				isHidden: (role) => role !== "ADMIN",
+			},
 		],
 	},
 ];
@@ -44,6 +51,7 @@ export const NavigationWrapper = ({
 	children,
 	title,
 }: React.PropsWithChildren<NavigationWrapperProps>) => {
+	const { user } = useRouteContext({ from: "__root__" });
 	const toggleRef = React.useRef<HTMLInputElement>(null);
 	const closeDrawer = React.useCallback(() => {
 		if (toggleRef.current) {
@@ -70,7 +78,11 @@ export const NavigationWrapper = ({
 						</ul>
 					</React.Fragment>
 				);
-			} else if ("href" in item) {
+			} else if (
+				"href" in item &&
+				user &&
+				!item.isHidden?.(user.role ?? "USER")
+			) {
 				return (
 					<li key={item.name}>
 						<Link
@@ -89,7 +101,7 @@ export const NavigationWrapper = ({
 				);
 			}
 		},
-		[closeDrawer],
+		[closeDrawer, user],
 	);
 
 	return (
