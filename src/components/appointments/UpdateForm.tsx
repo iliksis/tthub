@@ -39,6 +39,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 			endDate: appointment.endDate ? new Date(appointment.endDate) : null,
 			location: appointment.location,
 			status: appointment.status,
+			link: appointment.link,
 		},
 		onSubmit: async ({ value }) => {
 			updateMutation.mutate({
@@ -50,6 +51,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 						endDate: value.endDate,
 						location: value.location,
 						status: value.status,
+						link: value.link,
 					},
 				},
 			});
@@ -160,6 +162,25 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 									<fieldset className="fieldset">
 										<label className="label" htmlFor={field.name}>
 											Location:
+										</label>
+										<input
+											id={field.name}
+											className="input input-primary w-full"
+											name={field.name}
+											value={field.state.value || undefined}
+											onBlur={field.handleBlur}
+											onChange={(e) => field.handleChange(e.target.value)}
+										/>
+									</fieldset>
+								)}
+							</form.Field>
+						</div>
+						<div>
+							<form.Field name="link">
+								{(field) => (
+									<fieldset className="fieldset">
+										<label className="label" htmlFor={field.name}>
+											Link:
 										</label>
 										<input
 											id={field.name}

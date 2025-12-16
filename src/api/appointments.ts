@@ -142,6 +142,7 @@ export const updateAppointment = createServerFn()
 					endDate: data.updates.endDate,
 					location: data.updates.location,
 					status: data.updates.status,
+					link: data.updates.link,
 				},
 			});
 			return json<Return<Appointment>>(

@@ -48,3 +48,7 @@ export const isDayInPast = (date: Date) => {
 	inputDate.setHours(0, 0, 0, 0);
 	return inputDate < today;
 };
+
+export const createGoogleMapsLink = (location: string) => {
+	return `https://www.google.com/maps/search/?api=1&query=${location}`;
+};

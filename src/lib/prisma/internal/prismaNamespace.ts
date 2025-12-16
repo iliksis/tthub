@@ -768,6 +768,7 @@ export const AppointmentScalarFieldEnum = {
   title: 'title',
   shortTitle: 'shortTitle',
   location: 'location',
+  link: 'link',
   type: 'type',
   status: 'status'
 } as const

@@ -6,6 +6,7 @@ import {
 	Clock10Icon,
 	DownloadIcon,
 	EditIcon,
+	ExternalLinkIcon,
 	Trash2Icon,
 } from "lucide-react";
 import React from "react";
@@ -24,7 +25,7 @@ import {
 	AppointmentType,
 	type ResponseType,
 } from "@/lib/prisma/enums";
-import { cn } from "@/lib/utils";
+import { cn, createGoogleMapsLink } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed/appts/$apptId")({
 	component: RouteComponent,
@@ -181,9 +182,36 @@ function RouteComponent() {
 					</p>
 				</Card>
 				{appointment.type !== AppointmentType.HOLIDAY && (
-					<Card title="Location" icon={Clock10Icon} gridRows={4}>
-						<p>{appointment.location || "No location set"}</p>
-					</Card>
+					<>
+						<Card title="Location" icon={Clock10Icon} gridRows={4}>
+							<p>
+								{appointment.location ? (
+									<a
+										href={createGoogleMapsLink(appointment.location)}
+										target="_blank"
+										className="flex"
+									>
+										{appointment.location}
+										<ExternalLinkIcon className="size-4 inline-block ml-2 self-center" />
+									</a>
+								) : (
+									"No location set"
+								)}
+							</p>
+						</Card>
+						<Card title="Link" icon={Clock10Icon} gridRows={4}>
+							<p>
+								{appointment.link ? (
+									<a href={appointment.link} target="_blank" className="flex">
+										{appointment.link}
+										<ExternalLinkIcon className="size-4 inline-block ml-2 self-center" />
+									</a>
+								) : (
+									"No link set"
+								)}
+							</p>
+						</Card>
+					</>
 				)}
 			</div>
 			{/*User response*/}
