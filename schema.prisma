@@ -72,3 +72,21 @@ enum ResponseType {
   MAYBE
   DECLINE
 }
+
+model Player {
+  id        String   @id @default(nanoid(6))
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  year      Int
+  qttr      Int
+  teamId    String?
+  team      Team?     @relation(fields: [teamId], references: [id])
+}
+
+model Team {
+  id        String   @id @default(nanoid(6))
+  createdAt DateTime @default(now())
+  title     String
+  players   Player[]
+}

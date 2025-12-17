@@ -5,6 +5,7 @@ import {
 	HouseIcon,
 	PanelLeftOpenIcon,
 	Settings2Icon,
+	UserCogIcon,
 	UserPenIcon,
 	UsersIcon,
 } from "lucide-react";
@@ -28,6 +29,7 @@ const navigationItems: NavigationItem[] = [
 	{ name: "Dashboard", href: "/", icon: HouseIcon },
 	{ name: "Appointments", href: "/appts", icon: CalendarDaysIcon },
 	{ name: "Create Appointment", href: "/create", icon: CalendarPlusIcon },
+	{ name: "Players", href: "/players", icon: UsersIcon },
 	{
 		name: "Settings",
 		icon: Settings2Icon,
@@ -36,7 +38,7 @@ const navigationItems: NavigationItem[] = [
 			{
 				name: "User Management",
 				href: "/settings/users",
-				icon: UsersIcon,
+				icon: UserCogIcon,
 				isHidden: (role) => role !== "ADMIN",
 			},
 		],

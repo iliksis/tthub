@@ -90,10 +90,8 @@ export const CreateUserModal = () => {
 					}}
 				>
 					<div>
-						{/* A type-safe field component*/}
 						<form.Field name="name">
 							{(field) => {
-								// Avoid hasty abstractions. Render props are great!
 								return (
 									<fieldset className="fieldset">
 										<label className="label" htmlFor={field.name}>

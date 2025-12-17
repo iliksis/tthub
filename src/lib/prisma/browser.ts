@@ -37,3 +37,13 @@ export type Appointment = Prisma.AppointmentModel
  * 
  */
 export type Response = Prisma.ResponseModel
+/**
+ * Model Player
+ * 
+ */
+export type Player = Prisma.PlayerModel
+/**
+ * Model Team
+ * 
+ */
+export type Team = Prisma.TeamModel

@@ -14,9 +14,11 @@ import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as InviteInviteIdRouteImport } from './routes/invite/$inviteId'
 import { Route as AuthedCreateRouteImport } from './routes/_authed/create'
+import { Route as AuthedPlayersIndexRouteImport } from './routes/_authed/players/index'
 import { Route as AuthedApptsIndexRouteImport } from './routes/_authed/appts/index'
 import { Route as AuthedSettingsUsersRouteImport } from './routes/_authed/settings/users'
 import { Route as AuthedSettingsProfileRouteImport } from './routes/_authed/settings/profile'
+import { Route as AuthedPlayersPlayerIdRouteImport } from './routes/_authed/players/$playerId'
 import { Route as AuthedApptsApptIdRouteImport } from './routes/_authed/appts/$apptId'
 
 const SentryTunnelRoute = SentryTunnelRouteImport.update({
@@ -43,6 +45,11 @@ const AuthedCreateRoute = AuthedCreateRouteImport.update({
   path: '/create',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedPlayersIndexRoute = AuthedPlayersIndexRouteImport.update({
+  id: '/players/',
+  path: '/players/',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedApptsIndexRoute = AuthedApptsIndexRouteImport.update({
   id: '/appts/',
   path: '/appts/',
@@ -58,6 +65,11 @@ const AuthedSettingsProfileRoute = AuthedSettingsProfileRouteImport.update({
   path: '/settings/profile',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedPlayersPlayerIdRoute = AuthedPlayersPlayerIdRouteImport.update({
+  id: '/players/$playerId',
+  path: '/players/$playerId',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedApptsApptIdRoute = AuthedApptsApptIdRouteImport.update({
   id: '/appts/$apptId',
   path: '/appts/$apptId',
@@ -70,9 +82,11 @@ export interface FileRoutesByFullPath {
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/': typeof AuthedIndexRoute
   '/appts/$apptId': typeof AuthedApptsApptIdRoute
+  '/players/$playerId': typeof AuthedPlayersPlayerIdRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
   '/appts': typeof AuthedApptsIndexRoute
+  '/players': typeof AuthedPlayersIndexRoute
 }
 export interface FileRoutesByTo {
   '/sentry-tunnel': typeof SentryTunnelRoute
@@ -80,9 +94,11 @@ export interface FileRoutesByTo {
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/': typeof AuthedIndexRoute
   '/appts/$apptId': typeof AuthedApptsApptIdRoute
+  '/players/$playerId': typeof AuthedPlayersPlayerIdRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
   '/appts': typeof AuthedApptsIndexRoute
+  '/players': typeof AuthedPlayersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -92,9 +108,11 @@ export interface FileRoutesById {
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/_authed/': typeof AuthedIndexRoute
   '/_authed/appts/$apptId': typeof AuthedApptsApptIdRoute
+  '/_authed/players/$playerId': typeof AuthedPlayersPlayerIdRoute
   '/_authed/settings/profile': typeof AuthedSettingsProfileRoute
   '/_authed/settings/users': typeof AuthedSettingsUsersRoute
   '/_authed/appts/': typeof AuthedApptsIndexRoute
+  '/_authed/players/': typeof AuthedPlayersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -104,9 +122,11 @@ export interface FileRouteTypes {
     | '/invite/$inviteId'
     | '/'
     | '/appts/$apptId'
+    | '/players/$playerId'
     | '/settings/profile'
     | '/settings/users'
     | '/appts'
+    | '/players'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sentry-tunnel'
@@ -114,9 +134,11 @@ export interface FileRouteTypes {
     | '/invite/$inviteId'
     | '/'
     | '/appts/$apptId'
+    | '/players/$playerId'
     | '/settings/profile'
     | '/settings/users'
     | '/appts'
+    | '/players'
   id:
     | '__root__'
     | '/_authed'
@@ -125,9 +147,11 @@ export interface FileRouteTypes {
     | '/invite/$inviteId'
     | '/_authed/'
     | '/_authed/appts/$apptId'
+    | '/_authed/players/$playerId'
     | '/_authed/settings/profile'
     | '/_authed/settings/users'
     | '/_authed/appts/'
+    | '/_authed/players/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -173,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedCreateRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/players/': {
+      id: '/_authed/players/'
+      path: '/players'
+      fullPath: '/players'
+      preLoaderRoute: typeof AuthedPlayersIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/appts/': {
       id: '/_authed/appts/'
       path: '/appts'
@@ -194,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSettingsProfileRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/players/$playerId': {
+      id: '/_authed/players/$playerId'
+      path: '/players/$playerId'
+      fullPath: '/players/$playerId'
+      preLoaderRoute: typeof AuthedPlayersPlayerIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/appts/$apptId': {
       id: '/_authed/appts/$apptId'
       path: '/appts/$apptId'
@@ -208,18 +246,22 @@ interface AuthedRouteChildren {
   AuthedCreateRoute: typeof AuthedCreateRoute
   AuthedIndexRoute: typeof AuthedIndexRoute
   AuthedApptsApptIdRoute: typeof AuthedApptsApptIdRoute
+  AuthedPlayersPlayerIdRoute: typeof AuthedPlayersPlayerIdRoute
   AuthedSettingsProfileRoute: typeof AuthedSettingsProfileRoute
   AuthedSettingsUsersRoute: typeof AuthedSettingsUsersRoute
   AuthedApptsIndexRoute: typeof AuthedApptsIndexRoute
+  AuthedPlayersIndexRoute: typeof AuthedPlayersIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedCreateRoute: AuthedCreateRoute,
   AuthedIndexRoute: AuthedIndexRoute,
   AuthedApptsApptIdRoute: AuthedApptsApptIdRoute,
+  AuthedPlayersPlayerIdRoute: AuthedPlayersPlayerIdRoute,
   AuthedSettingsProfileRoute: AuthedSettingsProfileRoute,
   AuthedSettingsUsersRoute: AuthedSettingsUsersRoute,
   AuthedApptsIndexRoute: AuthedApptsIndexRoute,
+  AuthedPlayersIndexRoute: AuthedPlayersIndexRoute,
 }
 
 const AuthedRouteWithChildren =

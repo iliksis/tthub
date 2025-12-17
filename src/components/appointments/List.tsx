@@ -46,7 +46,7 @@ export const List = ({ appointments }: ListProps) => {
 			>
 				<td className="p-0 pl-1">
 					{isAccepted ? (
-						<div className="status status-success "></div>
+						<div className="status status-success"></div>
 					) : isDeclined ? (
 						<div className="status status-error"></div>
 					) : null}
@@ -167,7 +167,7 @@ export const Filters = ({
 				type="button"
 				onClick={() => setModal(true)}
 			>
-				<FilterIcon />
+				<FilterIcon className="size-4" />
 			</button>
 			<Modal
 				className="modal-bottom"

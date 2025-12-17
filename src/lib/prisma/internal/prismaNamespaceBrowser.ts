@@ -54,7 +54,9 @@ export const ModelName = {
   User: 'User',
   UserInvitation: 'UserInvitation',
   Appointment: 'Appointment',
-  Response: 'Response'
+  Response: 'Response',
+  Player: 'Player',
+  Team: 'Team'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -114,6 +116,28 @@ export const ResponseScalarFieldEnum = {
 } as const
 
 export type ResponseScalarFieldEnum = (typeof ResponseScalarFieldEnum)[keyof typeof ResponseScalarFieldEnum]
+
+
+export const PlayerScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  name: 'name',
+  year: 'year',
+  qttr: 'qttr',
+  teamId: 'teamId'
+} as const
+
+export type PlayerScalarFieldEnum = (typeof PlayerScalarFieldEnum)[keyof typeof PlayerScalarFieldEnum]
+
+
+export const TeamScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  title: 'title'
+} as const
+
+export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
 
 
 export const SortOrder = {

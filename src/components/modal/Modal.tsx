@@ -24,6 +24,8 @@ export const Modal = ({
 	const id = useId();
 	const dialogProps = open ? { open: true } : {};
 
+	if (!open) return null;
+
 	return (
 		<dialog
 			id={`modal_${id}`}
