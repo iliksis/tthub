@@ -19,6 +19,7 @@ import { Route as AuthedApptsIndexRouteImport } from './routes/_authed/appts/ind
 import { Route as AuthedSettingsUsersRouteImport } from './routes/_authed/settings/users'
 import { Route as AuthedSettingsProfileRouteImport } from './routes/_authed/settings/profile'
 import { Route as AuthedPlayersPlayerIdRouteImport } from './routes/_authed/players/$playerId'
+import { Route as AuthedApptsCalendarRouteImport } from './routes/_authed/appts/calendar'
 import { Route as AuthedApptsApptIdRouteImport } from './routes/_authed/appts/$apptId'
 
 const SentryTunnelRoute = SentryTunnelRouteImport.update({
@@ -70,6 +71,11 @@ const AuthedPlayersPlayerIdRoute = AuthedPlayersPlayerIdRouteImport.update({
   path: '/players/$playerId',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedApptsCalendarRoute = AuthedApptsCalendarRouteImport.update({
+  id: '/appts/calendar',
+  path: '/appts/calendar',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedApptsApptIdRoute = AuthedApptsApptIdRouteImport.update({
   id: '/appts/$apptId',
   path: '/appts/$apptId',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/': typeof AuthedIndexRoute
   '/appts/$apptId': typeof AuthedApptsApptIdRoute
+  '/appts/calendar': typeof AuthedApptsCalendarRoute
   '/players/$playerId': typeof AuthedPlayersPlayerIdRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/': typeof AuthedIndexRoute
   '/appts/$apptId': typeof AuthedApptsApptIdRoute
+  '/appts/calendar': typeof AuthedApptsCalendarRoute
   '/players/$playerId': typeof AuthedPlayersPlayerIdRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/_authed/': typeof AuthedIndexRoute
   '/_authed/appts/$apptId': typeof AuthedApptsApptIdRoute
+  '/_authed/appts/calendar': typeof AuthedApptsCalendarRoute
   '/_authed/players/$playerId': typeof AuthedPlayersPlayerIdRoute
   '/_authed/settings/profile': typeof AuthedSettingsProfileRoute
   '/_authed/settings/users': typeof AuthedSettingsUsersRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
     | '/invite/$inviteId'
     | '/'
     | '/appts/$apptId'
+    | '/appts/calendar'
     | '/players/$playerId'
     | '/settings/profile'
     | '/settings/users'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
     | '/invite/$inviteId'
     | '/'
     | '/appts/$apptId'
+    | '/appts/calendar'
     | '/players/$playerId'
     | '/settings/profile'
     | '/settings/users'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/invite/$inviteId'
     | '/_authed/'
     | '/_authed/appts/$apptId'
+    | '/_authed/appts/calendar'
     | '/_authed/players/$playerId'
     | '/_authed/settings/profile'
     | '/_authed/settings/users'
@@ -232,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedPlayersPlayerIdRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/appts/calendar': {
+      id: '/_authed/appts/calendar'
+      path: '/appts/calendar'
+      fullPath: '/appts/calendar'
+      preLoaderRoute: typeof AuthedApptsCalendarRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/appts/$apptId': {
       id: '/_authed/appts/$apptId'
       path: '/appts/$apptId'
@@ -246,6 +265,7 @@ interface AuthedRouteChildren {
   AuthedCreateRoute: typeof AuthedCreateRoute
   AuthedIndexRoute: typeof AuthedIndexRoute
   AuthedApptsApptIdRoute: typeof AuthedApptsApptIdRoute
+  AuthedApptsCalendarRoute: typeof AuthedApptsCalendarRoute
   AuthedPlayersPlayerIdRoute: typeof AuthedPlayersPlayerIdRoute
   AuthedSettingsProfileRoute: typeof AuthedSettingsProfileRoute
   AuthedSettingsUsersRoute: typeof AuthedSettingsUsersRoute
@@ -257,6 +277,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedCreateRoute: AuthedCreateRoute,
   AuthedIndexRoute: AuthedIndexRoute,
   AuthedApptsApptIdRoute: AuthedApptsApptIdRoute,
+  AuthedApptsCalendarRoute: AuthedApptsCalendarRoute,
   AuthedPlayersPlayerIdRoute: AuthedPlayersPlayerIdRoute,
   AuthedSettingsProfileRoute: AuthedSettingsProfileRoute,
   AuthedSettingsUsersRoute: AuthedSettingsUsersRoute,

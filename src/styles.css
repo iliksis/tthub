@@ -8,3 +8,65 @@
 
 @plugin "./catppuccinTheme.latte.ts";
 @plugin "./catppuccinTheme.frappe.ts";
+
+
+/*#####################*/
+/* FullCalendar Styles */
+/*#####################*/
+/* Resizing */
+#calendar {
+  width: 400px;
+  height: auto;
+  @apply py-3 rounded-lg;
+}
+
+.fc-view-harness .fc-view-harness-active {
+	@apply min-h-screen
+}
+
+/* Removing borders */
+.fc-scrollgrid,
+.fc-theme-standard td,
+.fc-theme-standard th,
+.fc-col-header-cell,
+.fc-daygrid-day {
+  @apply !border-none;
+}
+.fc-col-header-cell,
+.fc-daygrid-day {
+  @apply !w-2 !h-2;
+}
+
+/* Centering the date; for this, it's necessary to hide the events div (which would appear under the day, but doesn't fit there) */
+.fc-daygrid-day-top {
+  @apply flex items-center justify-center w-10 h-10;
+}
+
+/* Removing the yellow background from today */
+.fc-daygrid-day.fc-day-today {
+  @apply !bg-transparent;
+}
+.fc-daygrid-day.fc-day-today .fc-daygrid-day-top {
+  @apply text-accent-content bg-accent rounded-full font-bold;
+}
+
+/* Rounding the first and last of the selected dates */
+.fc-daygrid-day-bg > .fc-daygrid-bg-harness > .fc-highlight {
+  @apply first:rounded-tl-lg first:rounded-bl-lg last:rounded-tr-lg last:rounded-br-lg;
+}
+
+/* Header formatting */
+.fc-toolbar {
+  @apply px-3;
+}
+.fc-button {
+  @apply !border-none !bg-transparent;
+}
+
+/* Fixing font colors */
+.fc-col-header-cell {
+  @apply text-base-content font-medium;
+}
+.fc-daygrid-day {
+  @apply text-base-content;
+}

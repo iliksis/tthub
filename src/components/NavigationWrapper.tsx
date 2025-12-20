@@ -2,9 +2,11 @@ import { Link, useRouteContext } from "@tanstack/react-router";
 import {
 	CalendarDaysIcon,
 	CalendarPlusIcon,
+	CalendarsIcon,
 	HouseIcon,
 	PanelLeftOpenIcon,
 	Settings2Icon,
+	TextAlignJustifyIcon,
 	UserCogIcon,
 	UserPenIcon,
 	UsersIcon,
@@ -27,8 +29,15 @@ type NavigationItem =
 
 const navigationItems: NavigationItem[] = [
 	{ name: "Dashboard", href: "/", icon: HouseIcon },
-	{ name: "Appointments", href: "/appts", icon: CalendarDaysIcon },
-	{ name: "Create Appointment", href: "/create", icon: CalendarPlusIcon },
+	{
+		name: "Appointments",
+		icon: CalendarsIcon,
+		children: [
+			{ name: "List", href: "/appts", icon: TextAlignJustifyIcon },
+			{ name: "Calendar", href: "/appts/calendar", icon: CalendarDaysIcon },
+			{ name: "Create", href: "/create", icon: CalendarPlusIcon },
+		],
+	},
 	{ name: "Players", href: "/players", icon: UsersIcon },
 	{
 		name: "Settings",
@@ -95,6 +104,7 @@ export const NavigationWrapper = ({
 							activeProps={{
 								className: "text-accent",
 							}}
+							activeOptions={{ exact: true }}
 						>
 							<item.icon className="my-1.5 size-4" />
 							<span className="is-drawer-close:hidden"> {item.name}</span>

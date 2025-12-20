@@ -325,3 +325,62 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
 	});
+
+const colors = {
+	TOURNAMENT_BY: {
+		bg: "var(--color-success)",
+		text: "var(--color-success-content)",
+	},
+	TOURNAMENT_DE: {
+		bg: "var(--color-accent)",
+		text: "var(--color-accent-content)",
+	},
+	HOLIDAY: {
+		bg: "var(--color-primary)",
+		text: "var(--color-primary-content)",
+	},
+};
+export const getCalendarAppointments = createServerFn()
+	.inputValidator((d: { start: Date; end: Date }) => d)
+	.handler(async ({ data }) => {
+		try {
+			const appointments = await prismaClient.appointment.findMany({
+				where: {
+					startDate: {
+						gte: new Date(data.start),
+						lt: new Date(data.end),
+					},
+					deletedAt: null,
+				},
+				include: {
+					responses: true,
+				},
+			});
+			const calAppointments = appointments.map((a) => ({
+				title: a.title,
+				start: a.startDate,
+				end:
+					a.endDate ??
+					new Date(
+						a.startDate.getFullYear(),
+						a.startDate.getMonth(),
+						a.startDate.getDate(),
+						17,
+					),
+				color: colors[a.type].bg,
+				id: a.id,
+				textColor: colors[a.type].text,
+				extendedProps: {
+					shortTitle: a.shortTitle,
+				},
+			}));
+			return json<Return<typeof calAppointments>>(
+				{ message: "Appointments found", data: calAppointments },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.log(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
