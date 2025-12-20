@@ -42,7 +42,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 			link: appointment.link,
 		},
 		onSubmit: async ({ value }) => {
-			updateMutation.mutate({
+			await updateMutation.mutate({
 				data: {
 					id: appointment.id,
 					updates: {

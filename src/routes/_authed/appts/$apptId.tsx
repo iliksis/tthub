@@ -15,9 +15,12 @@ import {
 	deleteAppointment,
 	getAppointment,
 } from "@/api/appointments";
+import { getUniqueCategories } from "@/api/placements";
+import { getPlayers } from "@/api/players";
 import { UpdateForm } from "@/components/appointments/UpdateForm";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Modal } from "@/components/modal/Modal";
+import { ParticipantModal } from "@/components/placement/PlacementModal";
 import { notify } from "@/components/Toast";
 import { Card } from "@/components/ValueCard";
 import type { Response, User } from "@/lib/prisma/client";
@@ -31,14 +34,30 @@ import { cn, createGoogleMapsLink } from "@/lib/utils";
 export const Route = createFileRoute("/_authed/appts/$apptId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const data = await getAppointment({ data: { id: params.apptId } });
+		const apptData = await getAppointment({ data: { id: params.apptId } });
 
-		const res = await data.json();
-		if (data.status < 400) {
-			return { appointment: res.data };
+		const res = await apptData.json();
+		if (apptData.status >= 400) {
+			throw new Error(res.message);
 		}
 
-		throw new Error(res.message);
+		const playerData = await getPlayers();
+		const players = await playerData.json();
+		if (playerData.status >= 400) {
+			throw new Error(res.message);
+		}
+
+		const categoriesData = await getUniqueCategories();
+		const categories = await categoriesData.json();
+		if (categoriesData.status >= 400) {
+			throw new Error(res.message);
+		}
+
+		return {
+			appointment: res.data,
+			players: players.data,
+			categories: categories.data,
+		};
 	},
 	head: ({ loaderData }) => ({
 		meta: [
@@ -55,11 +74,13 @@ function RouteComponent() {
 
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [isDeleting, setIsDeleting] = React.useState(false);
+	const [isParticipantsModalOpen, setIsParticipantsModalOpen] =
+		React.useState(false);
 
 	const deleteAppointmentServerFn = useServerFn(deleteAppointment);
 	const createResponseServerFn = useServerFn(createResponse);
 
-	const { appointment } = Route.useLoaderData();
+	const { appointment, players, categories } = Route.useLoaderData();
 	const router = useRouter();
 	if (!appointment) return <div>Appointment not found.</div>;
 
@@ -78,6 +99,12 @@ function RouteComponent() {
 
 	const isDeleted = appointment.deletedAt !== null;
 
+	const uniqueParticipants = new Set(
+		appointment.placements.map((p) => p.playerId),
+	);
+
+	console.log(uniqueParticipants);
+
 	const onEdit = () => {
 		setIsEditing(true);
 	};
@@ -90,6 +117,13 @@ function RouteComponent() {
 	};
 	const onStopDeleting = () => {
 		setIsDeleting(false);
+	};
+
+	const onOpenParticipants = () => {
+		setIsParticipantsModalOpen(true);
+	};
+	const onCloseParticipants = () => {
+		setIsParticipantsModalOpen(false);
 	};
 
 	const onDelete = async () => {
@@ -200,12 +234,29 @@ function RouteComponent() {
 								)}
 							</p>
 						</Card>
-						<Card title="Link" icon={Clock10Icon} gridRows={4}>
+						<Card title="Participants" gridRows={2}>
+							<p className="flex flex-row items-center">
+								<span className="flex-1">{uniqueParticipants.size}</span>
+								<button
+									type="button"
+									className="btn btn-link btn-primary shrink h-5"
+									onClick={onOpenParticipants}
+								>
+									Show all
+								</button>
+							</p>
+						</Card>
+						<Card title="Link" icon={Clock10Icon} gridRows={2}>
 							<p>
 								{appointment.link ? (
-									<a href={appointment.link} target="_blank" className="flex">
+									<a
+										href={appointment.link}
+										title={appointment.link}
+										target="_blank"
+										className="flex flex-nowrap text-nowrap overflow-hidden"
+									>
+										<ExternalLinkIcon className="size-4 mr-2 self-center shrink-0" />
 										{appointment.link}
-										<ExternalLinkIcon className="size-4 inline-block ml-2 self-center" />
 									</a>
 								) : (
 									"No link set"
@@ -299,6 +350,15 @@ function RouteComponent() {
 				open={isDeleting}
 				onClose={onStopDeleting}
 				onDelete={onDelete}
+			/>
+
+			<ParticipantModal
+				open={isParticipantsModalOpen}
+				onClose={onCloseParticipants}
+				placements={appointment.placements}
+				players={players ?? []}
+				appointmentId={appointment.id}
+				categories={categories ?? []}
 			/>
 		</div>
 	);

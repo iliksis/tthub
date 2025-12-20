@@ -56,7 +56,8 @@ export const ModelName = {
   Appointment: 'Appointment',
   Response: 'Response',
   Player: 'Player',
-  Team: 'Team'
+  Team: 'Team',
+  Placement: 'Placement'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -138,6 +139,17 @@ export const TeamScalarFieldEnum = {
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
+
+
+export const PlacementScalarFieldEnum = {
+  createdAt: 'createdAt',
+  playerId: 'playerId',
+  appointmentId: 'appointmentId',
+  category: 'category',
+  placement: 'placement'
+} as const
+
+export type PlacementScalarFieldEnum = (typeof PlacementScalarFieldEnum)[keyof typeof PlacementScalarFieldEnum]
 
 
 export const SortOrder = {

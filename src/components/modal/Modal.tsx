@@ -33,9 +33,9 @@ export const Modal = ({
 			onClose={onClose}
 			{...dialogProps}
 		>
-			<div className={cn("modal-box", modalBoxClassName)}>
-				{children}
-				<div className="modal-action">
+			<div className={cn("modal-box flex flex-col", modalBoxClassName)}>
+				<div className="flex-1">{children}</div>
+				<div className="modal-action shrink">
 					<form method="dialog" className="flex gap-2">
 						{onRenderActionButton?.()}
 						<button

@@ -389,7 +389,8 @@ export const ModelName = {
   Appointment: 'Appointment',
   Response: 'Response',
   Player: 'Player',
-  Team: 'Team'
+  Team: 'Team',
+  Placement: 'Placement'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -405,7 +406,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "userInvitation" | "appointment" | "response" | "player" | "team"
+    modelProps: "user" | "userInvitation" | "appointment" | "response" | "player" | "team" | "placement"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -853,6 +854,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Placement: {
+      payload: Prisma.$PlacementPayload<ExtArgs>
+      fields: Prisma.PlacementFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PlacementFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlacementPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PlacementFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlacementPayload>
+        }
+        findFirst: {
+          args: Prisma.PlacementFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlacementPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PlacementFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlacementPayload>
+        }
+        findMany: {
+          args: Prisma.PlacementFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlacementPayload>[]
+        }
+        create: {
+          args: Prisma.PlacementCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlacementPayload>
+        }
+        createMany: {
+          args: Prisma.PlacementCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PlacementCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlacementPayload>[]
+        }
+        delete: {
+          args: Prisma.PlacementDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlacementPayload>
+        }
+        update: {
+          args: Prisma.PlacementUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlacementPayload>
+        }
+        deleteMany: {
+          args: Prisma.PlacementDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PlacementUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PlacementUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlacementPayload>[]
+        }
+        upsert: {
+          args: Prisma.PlacementUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlacementPayload>
+        }
+        aggregate: {
+          args: Prisma.PlacementAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePlacement>
+        }
+        groupBy: {
+          args: Prisma.PlacementGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlacementGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PlacementCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlacementCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -955,6 +1030,17 @@ export const TeamScalarFieldEnum = {
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
+
+
+export const PlacementScalarFieldEnum = {
+  createdAt: 'createdAt',
+  playerId: 'playerId',
+  appointmentId: 'appointmentId',
+  category: 'category',
+  placement: 'placement'
+} as const
+
+export type PlacementScalarFieldEnum = (typeof PlacementScalarFieldEnum)[keyof typeof PlacementScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1119,6 +1205,7 @@ export type GlobalOmitConfig = {
   response?: Prisma.ResponseOmit
   player?: Prisma.PlayerOmit
   team?: Prisma.TeamOmit
+  placement?: Prisma.PlacementOmit
 }
 
 /* Types for Logging */

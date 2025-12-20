@@ -47,3 +47,8 @@ export type Player = Prisma.PlayerModel
  * 
  */
 export type Team = Prisma.TeamModel
+/**
+ * Model Placement
+ * 
+ */
+export type Placement = Prisma.PlacementModel

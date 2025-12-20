@@ -44,6 +44,7 @@ model Appointment {
   type       AppointmentType
   status     AppointmentStatus?
   responses  Response[]
+  placements Placement[]
 }
 
 enum AppointmentStatus {
@@ -74,14 +75,15 @@ enum ResponseType {
 }
 
 model Player {
-  id        String   @id @default(nanoid(6))
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  name      String
-  year      Int
-  qttr      Int
-  teamId    String?
-  team      Team?     @relation(fields: [teamId], references: [id])
+  id         String      @id @default(nanoid(6))
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  name       String
+  year       Int
+  qttr       Int
+  teamId     String?
+  team       Team?       @relation(fields: [teamId], references: [id])
+  placements Placement[]
 }
 
 model Team {
@@ -89,4 +91,16 @@ model Team {
   createdAt DateTime @default(now())
   title     String
   players   Player[]
+}
+
+model Placement {
+  createdAt     DateTime    @default(now())
+  playerId      String
+  player        Player      @relation(fields: [playerId], references: [id])
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  category      String
+  placement     String?
+
+  @@id([playerId, appointmentId, category])
 }
