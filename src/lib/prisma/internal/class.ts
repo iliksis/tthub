@@ -17,8 +17,8 @@ import type * as Prisma from "./prismaNamespace.ts"
 
 const config: runtime.GetPrismaClientConfig = {
   "previewFeatures": [],
-  "clientVersion": "7.0.0",
-  "engineVersion": "0c19ccc313cf9911a90d99d2ac2eb0280c76c513",
+  "clientVersion": "7.2.0",
+  "engineVersion": "0c8ef2ce45c83248ab3df073180d5eda9e8be7a3",
   "activeProvider": "sqlite",
   "inlineSchema": "generator client {\n  provider   = \"prisma-client\"\n  output     = \"./src/lib/prisma\"\n  engineType = \"client\"\n}\n\ndatasource db {\n  provider = \"sqlite\"\n}\n\nmodel User {\n  id         String          @id @default(nanoid(6))\n  userName   String          @unique\n  password   String?\n  name       String\n  role       Role            @default(USER)\n  invitation UserInvitation?\n  responses  Response[]\n}\n\nenum Role {\n  USER\n  EDITOR\n  ADMIN\n}\n\nmodel UserInvitation {\n  id        String   @id @default(uuid())\n  createdAt DateTime @default(now())\n  userId    String   @unique\n  user      User     @relation(fields: [userId], references: [id])\n}\n\nmodel Appointment {\n  id         String             @id @default(nanoid(6))\n  createdAt  DateTime           @default(now())\n  deletedAt  DateTime?\n  startDate  DateTime\n  endDate    DateTime?\n  title      String\n  shortTitle String\n  location   String?\n  link       String?\n  type       AppointmentType\n  status     AppointmentStatus?\n  responses  Response[]\n  placements Placement[]\n}\n\nenum AppointmentStatus {\n  DRAFT\n  PUBLISHED\n}\n\nenum AppointmentType {\n  TOURNAMENT_BY\n  TOURNAMENT_DE\n  HOLIDAY\n}\n\nmodel Response {\n  userId        String\n  user          User         @relation(fields: [userId], references: [id])\n  appointmentId String\n  appointment   Appointment  @relation(fields: [appointmentId], references: [id])\n  responseType  ResponseType\n\n  @@id([userId, appointmentId])\n}\n\nenum ResponseType {\n  ACCEPT\n  MAYBE\n  DECLINE\n}\n\nmodel Player {\n  id         String      @id @default(nanoid(6))\n  createdAt  DateTime    @default(now())\n  updatedAt  DateTime    @updatedAt\n  name       String\n  year       Int\n  qttr       Int\n  teamId     String?\n  team       Team?       @relation(fields: [teamId], references: [id])\n  placements Placement[]\n}\n\nmodel Team {\n  id        String   @id @default(nanoid(6))\n  createdAt DateTime @default(now())\n  title     String\n  players   Player[]\n}\n\nmodel Placement {\n  createdAt     DateTime    @default(now())\n  playerId      String\n  player        Player      @relation(fields: [playerId], references: [id])\n  appointmentId String\n  appointment   Appointment @relation(fields: [appointmentId], references: [id])\n  category      String\n  placement     String?\n\n  @@id([playerId, appointmentId, category])\n}\n",
   "runtimeDataModel": {
@@ -62,7 +62,7 @@ export interface PrismaClientConstructor {
    * const users = await prisma.user.findMany()
    * ```
    * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
+   * Read more in our [docs](https://pris.ly/d/client).
    */
 
   new <
@@ -84,7 +84,7 @@ export interface PrismaClientConstructor {
  * const users = await prisma.user.findMany()
  * ```
  * 
- * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
+ * Read more in our [docs](https://pris.ly/d/client).
  */
 
 export interface PrismaClient<
@@ -113,7 +113,7 @@ export interface PrismaClient<
    * const result = await prisma.$executeRaw`UPDATE User SET cool = ${true} WHERE email = ${'user@email.com'};`
    * ```
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
 
@@ -125,7 +125,7 @@ export interface PrismaClient<
    * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
    * ```
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;
 
@@ -136,7 +136,7 @@ export interface PrismaClient<
    * const result = await prisma.$queryRaw`SELECT * FROM User WHERE id = ${1} OR email = ${'user@email.com'};`
    * ```
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
 
@@ -148,7 +148,7 @@ export interface PrismaClient<
    * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
    * ```
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;
 
