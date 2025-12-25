@@ -245,6 +245,7 @@ export const getNextAppointments = createServerFn().handler(async () => {
 					},
 				],
 				deletedAt: null,
+				type: AppointmentType.TOURNAMENT_BY,
 			},
 			include: {
 				responses: true,
@@ -274,6 +275,7 @@ export const getUserAppointments = createServerFn()
 						gte: new Date(),
 					},
 					deletedAt: null,
+					type: AppointmentType.TOURNAMENT_BY,
 					responses: {
 						some: {
 							userId: data.userId,
@@ -306,6 +308,7 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 						gte: new Date(),
 					},
 					deletedAt: null,
+					type: AppointmentType.TOURNAMENT_BY,
 					responses: {
 						none: {
 							userId: data.userId,
