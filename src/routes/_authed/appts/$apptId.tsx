@@ -267,49 +267,59 @@ function RouteComponent() {
 				)}
 			</div>
 			{/*User response*/}
-			<div className="mt-6 grid grid-cols-3 gap-2">
-				<button
-					type="button"
-					className={cn(
-						"btn btn-soft btn-success w-auto",
-						isAccepted && "btn-active",
-					)}
-					disabled={isDeleted}
-					onClick={onResponse("ACCEPT")}
-				>
-					Accept
-				</button>
-				<button
-					type="button"
-					className={cn("btn btn-soft btn-warning", isMaybe && "btn-active")}
-					disabled={isDeleted}
-					onClick={onResponse("MAYBE")}
-				>
-					Maybe
-				</button>
-				<button
-					type="button"
-					className={cn("btn btn-soft btn-error", isDeclined && "btn-active")}
-					disabled={isDeleted}
-					onClick={onResponse("DECLINE")}
-				>
-					Response
-				</button>
-			</div>
+			{appointment.type === AppointmentType.TOURNAMENT_BY && (
+				<>
+					<div className="mt-6 grid grid-cols-3 gap-2">
+						<button
+							type="button"
+							className={cn(
+								"btn btn-soft btn-success w-auto",
+								isAccepted && "btn-active",
+							)}
+							disabled={isDeleted}
+							onClick={onResponse("ACCEPT")}
+						>
+							Accept
+						</button>
+						<button
+							type="button"
+							className={cn(
+								"btn btn-soft btn-warning",
+								isMaybe && "btn-active",
+							)}
+							disabled={isDeleted}
+							onClick={onResponse("MAYBE")}
+						>
+							Maybe
+						</button>
+						<button
+							type="button"
+							className={cn(
+								"btn btn-soft btn-error",
+								isDeclined && "btn-active",
+							)}
+							disabled={isDeleted}
+							onClick={onResponse("DECLINE")}
+						>
+							Response
+						</button>
+					</div>
 
-			<div className="mt-3 grid grid-cols-3 gap-2">
-				<AvatarGroup
-					responses={appointment.responses.filter(
-						(r) => r.responseType === "ACCEPT",
-					)}
-				/>
-				<div></div>
-				<AvatarGroup
-					responses={appointment.responses.filter(
-						(r) => r.responseType === "DECLINE",
-					)}
-				/>
-			</div>
+					<div className="mt-3 grid grid-cols-3 gap-2">
+						<AvatarGroup
+							responses={appointment.responses.filter(
+								(r) => r.responseType === "ACCEPT",
+							)}
+						/>
+						<div></div>
+						<AvatarGroup
+							responses={appointment.responses.filter(
+								(r) => r.responseType === "DECLINE",
+							)}
+						/>
+					</div>
+				</>
+			)}
 
 			<div className="fab">
 				{/** biome-ignore lint/a11y/useSemanticElements: fixes safari bug */}
