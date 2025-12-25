@@ -157,7 +157,7 @@ export const NavigationWrapper = ({
 					<div className="px-4">{title}</div>
 				</nav>
 				{/* Page content here */}
-				<div className="p-4">{children}</div>
+				<div className="max-w-4xl m-auto p-4 relative">{children}</div>
 			</div>
 
 			<div className="drawer-side is-drawer-close:overflow-visible">

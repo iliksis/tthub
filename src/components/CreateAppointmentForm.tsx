@@ -66,7 +66,7 @@ const AppointmentTypeSelect = () => {
 			<legend className="fieldset-legend">{t("Appointment type")}</legend>
 			<div className="flex gap-2">
 				<select
-					className="select select-primary max-w-1/2"
+					className="select select-primary w-1/2"
 					onChange={(e) => {
 						setType(e.target.value as any);
 					}}
@@ -80,7 +80,7 @@ const AppointmentTypeSelect = () => {
 				</select>
 				{type === t("Tournament") && (
 					<select
-						className="select select-primary max-w-1/2"
+						className="select select-primary w-1/2"
 						onChange={(e) => setTournamentType(e.target.value as any)}
 					>
 						<option disabled selected>

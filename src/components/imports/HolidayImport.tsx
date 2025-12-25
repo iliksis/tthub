@@ -88,7 +88,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 									</label>
 									<select
 										id={field.name}
-										className="select select-primary"
+										className="select select-primary w-full"
 										name={field.name}
 										value={field.state.value}
 										onBlur={field.handleBlur}
@@ -116,7 +116,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 									</label>
 									<select
 										id={field.name}
-										className="select select-primary"
+										className="select select-primary w-full"
 										name={field.name}
 										disabled={!query.data || query.data.length === 0}
 										value={field.state.value}
@@ -144,7 +144,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 									</label>
 									<input
 										id={field.name}
-										className="input input-primary"
+										className="input input-primary  w-full"
 										type="date"
 										name={field.name}
 										value={field.state.value}
@@ -164,7 +164,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 									</label>
 									<input
 										id={field.name}
-										className="input input-primary"
+										className="input input-primary w-full"
 										type="date"
 										name={field.name}
 										value={field.state.value}

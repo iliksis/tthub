@@ -330,7 +330,7 @@ function RouteComponent() {
 						</button>
 					</div>
 
-					<div className="mt-3 grid grid-cols-3 gap-2">
+					<div className="mt-2 grid grid-cols-3 gap-2">
 						<AvatarGroup
 							responses={appointment.responses.filter(
 								(r) => r.responseType === "ACCEPT",
@@ -344,6 +344,16 @@ function RouteComponent() {
 						/>
 					</div>
 				</>
+			)}
+
+			{appointment.location && (
+				<div className="mt-4 hidden md:block">
+					<iframe
+						src={`https://maps.google.com/maps?hl=de&t=&z=14&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
+						className="w-full h-96"
+						title="Google Maps"
+					></iframe>
+				</div>
 			)}
 
 			<div className="fab">
@@ -381,7 +391,12 @@ function RouteComponent() {
 				)}
 			</div>
 
-			<Modal className="modal-bottom" open={isEditing} onClose={onStopEditing}>
+			<Modal
+				className="modal-bottom"
+				modalBoxClassName="md:max-w-xl md:mx-auto"
+				open={isEditing}
+				onClose={onStopEditing}
+			>
 				<UpdateForm appointment={appointment} />
 			</Modal>
 

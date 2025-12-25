@@ -96,7 +96,7 @@ export const ParticipantModal = ({
 				open={open}
 				onClose={onClose}
 				className="modal-end"
-				modalBoxClassName="w-[80vw]"
+				modalBoxClassName="w-[80vw] max-w-md"
 			>
 				<div className="flex items-center">
 					<h2 className="flex-1">{t("Participants")}</h2>

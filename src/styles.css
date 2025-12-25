@@ -23,6 +23,21 @@
 	--color-holiday: var(--color-red-800);
 }
 
+dialog {
+	&[open] {
+		animation: open 0.25s forwards;
+	}
+}
+
+@keyframes open {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
 /*#####################*/
 /* FullCalendar Styles */
 /*#####################*/

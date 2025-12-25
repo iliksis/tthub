@@ -164,7 +164,7 @@ export const Filters = ({
 	return (
 		<>
 			<button
-				className="fab btn btn-square"
+				className="fab btn btn-lg btn-circle"
 				type="button"
 				onClick={() => setModal(true)}
 			>
@@ -172,6 +172,7 @@ export const Filters = ({
 			</button>
 			<Modal
 				className="modal-bottom"
+				modalBoxClassName="md:max-w-xl md:mx-auto"
 				open={modal}
 				onClose={() => setModal(false)}
 				onRenderActionButton={onRenderActionButton}

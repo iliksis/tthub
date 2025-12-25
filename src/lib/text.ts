@@ -111,7 +111,7 @@ const texts: { [key: string]: string } = {
 	Show: "Zeige",
 	ShowAll: "Zeige alle",
 	"Show all": "Anzeigen",
-	"Show deleted?": "Zeige gelöschte?",
+	"Show deleted?": "Gelöschte anzeigen?",
 	Start: "Start",
 	StartDate: "Start",
 	Subdivision: "Region",

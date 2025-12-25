@@ -66,7 +66,8 @@ export const CreateUserModal = () => {
 				{t("Create new user")}
 			</button>
 			<Modal
-				className="modal-bottom sm:modal-middle"
+				className="modal-bottom"
+				modalBoxClassName="md:max-w-xl md:mx-auto"
 				open={modalOpen}
 				onClose={onClose}
 				onRenderActionButton={() => (
