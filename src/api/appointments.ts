@@ -1,10 +1,11 @@
 import { createServerFn, json } from "@tanstack/react-start";
+import { Holiday } from "open-holiday-js";
 import { prismaClient } from "@/lib/db";
 import type { Appointment, Prisma, Response } from "@/lib/prisma/client";
-import type {
-	AppointmentStatus,
+import {
+	type AppointmentStatus,
 	AppointmentType,
-	ResponseType,
+	type ResponseType,
 } from "@/lib/prisma/enums";
 import { useAppSession, useIsRole } from "@/lib/session";
 import type { Return } from "./types";
@@ -332,11 +333,11 @@ const colors = {
 		text: "var(--color-success-content)",
 	},
 	TOURNAMENT_DE: {
-		bg: "var(--color-accent)",
-		text: "var(--color-accent-content)",
+		bg: "var(--catppuccin-color-blue-400)",
+		text: "var(--color-primary-content)",
 	},
 	HOLIDAY: {
-		bg: "var(--color-primary)",
+		bg: "var(--catppuccin-color-lavender-400)",
 		text: "var(--color-primary-content)",
 	},
 };
@@ -357,7 +358,7 @@ export const getCalendarAppointments = createServerFn()
 				},
 			});
 			const calAppointments = appointments.map((a) => ({
-				title: a.title,
+				title: a.shortTitle,
 				start: a.startDate,
 				end:
 					a.endDate ??
@@ -376,6 +377,63 @@ export const getCalendarAppointments = createServerFn()
 			}));
 			return json<Return<typeof calAppointments>>(
 				{ message: "Appointments found", data: calAppointments },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.log(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
+export const importHolidays = createServerFn()
+	.inputValidator(
+		(d: {
+			country: string;
+			subdivision?: string;
+			startDate: string;
+			endDate: string;
+		}) => d,
+	)
+	.handler(async ({ data }) => {
+		try {
+			const api = new Holiday();
+			const schoolHolidays = await api.getSchoolHolidays(
+				data.country,
+				new Date(data.startDate),
+				new Date(data.endDate),
+				data.subdivision,
+			);
+			const publicHolidays = await api.getPublicHolidays(
+				data.country,
+				new Date(data.startDate),
+				new Date(data.endDate),
+				data.subdivision,
+			);
+			let count = 0;
+			for (const holiday of [...schoolHolidays, ...publicHolidays]) {
+				const existingAppointment = await prismaClient.appointment.findFirst({
+					where: {
+						id: holiday.id,
+					},
+				});
+				if (existingAppointment) {
+					continue;
+				}
+				await prismaClient.appointment.create({
+					data: {
+						id: holiday.id,
+						title: holiday.name[0].text,
+						shortTitle: holiday.name[0].text,
+						startDate: holiday.startDate,
+						endDate: holiday.endDate,
+						type: AppointmentType.HOLIDAY,
+					},
+				});
+				count++;
+			}
+			return json<Return>(
+				{ message: `${count} Appointments created` },
 				{ status: 200 },
 			);
 		} catch (e) {

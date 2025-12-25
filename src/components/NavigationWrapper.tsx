@@ -4,6 +4,7 @@ import {
 	CalendarPlusIcon,
 	CalendarsIcon,
 	HouseIcon,
+	ImportIcon,
 	PanelLeftOpenIcon,
 	Settings2Icon,
 	TextAlignJustifyIcon,
@@ -44,6 +45,12 @@ const navigationItems: NavigationItem[] = [
 		icon: Settings2Icon,
 		children: [
 			{ name: "Profile", href: "/settings/profile", icon: UserPenIcon },
+			{
+				name: "Imports",
+				href: "/settings/imports",
+				icon: ImportIcon,
+				isHidden: (role) => role === "USER",
+			},
 			{
 				name: "User Management",
 				href: "/settings/users",

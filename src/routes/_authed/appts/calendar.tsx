@@ -46,20 +46,38 @@ function RouteComponent() {
 			contentHeight={"600px"}
 			displayEventTime={false}
 			eventDisplay="block"
-			eventClassNames="hover:cursor-pointer"
+			eventClassNames="hover:cursor-pointer tooltip macchiato"
 			eventClick={(info) => {
 				router.navigate({
 					to: "/appts/$apptId",
 					params: { apptId: info.event.id },
 				});
 			}}
-			eventContent={({ event }) => {
-				return (
-					<div className="tooltip tooltip-left" data-tip={event.title}>
-						{event.extendedProps.shortTitle}
-					</div>
-				);
+			eventDidMount={({ el, event }) => {
+				el.setAttribute("data-tip", event.title);
+
+				const isStartOfLine = event.start?.getDay() === 1;
+				const isEndOfLine = event.end
+					? event.end.getDay() === 0
+					: event.start?.getDay() === 0;
+				console.log(event.title, event.end?.getDate());
+				const isLessThanTwoDays =
+					(event?.end?.getTime() ?? 0) - (event?.start?.getTime() ?? 0) <
+					86400000;
+				if (isStartOfLine && !isEndOfLine && isLessThanTwoDays) {
+					el.classList.add("tooltip-right");
+				}
+				if (isEndOfLine) {
+					el.classList.add("tooltip-left");
+				}
 			}}
+			// eventContent={({ event }) => {
+			// 	return (
+			// 		<div className="tooltip tooltip-left" data-tip={event.title}>
+			// 			{event.extendedProps.shortTitle}
+			// 		</div>
+			// 	);
+			// }}
 		/>
 	);
 }

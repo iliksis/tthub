@@ -1,4 +1,5 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
 	createRootRoute,
 	HeadContent,
@@ -50,6 +51,8 @@ export const Route = createRootRoute({
 	shellComponent: RootDocument,
 });
 
+const queryClient = new QueryClient();
+
 function RootDocument({ children }: { children: React.ReactNode }) {
 	const { user } = Route.useRouteContext();
 	const routerState = useRouterState({
@@ -76,24 +79,26 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
-				{user && isAuthedRoute ? (
-					<>
-						<NavigationWrapper title={title}>{children}</NavigationWrapper>
-						<TanStackDevtools
-							config={{
-								position: "bottom-left",
-							}}
-							plugins={[
-								{
-									name: "Tanstack Router",
-									render: <TanStackRouterDevtoolsPanel />,
-								},
-							]}
-						/>
-					</>
-				) : (
-					children
-				)}
+				<QueryClientProvider client={queryClient}>
+					{user && isAuthedRoute ? (
+						<>
+							<NavigationWrapper title={title}>{children}</NavigationWrapper>
+							<TanStackDevtools
+								config={{
+									position: "bottom-left",
+								}}
+								plugins={[
+									{
+										name: "Tanstack Router",
+										render: <TanStackRouterDevtoolsPanel />,
+									},
+								]}
+							/>
+						</>
+					) : (
+						children
+					)}
+				</QueryClientProvider>
 				<ToastContainer stacked />
 				<Scripts />
 			</body>
