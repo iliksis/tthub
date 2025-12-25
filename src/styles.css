@@ -1,16 +1,27 @@
 @import 'tailwindcss';
-
 @import "@catppuccin/tailwindcss/macchiato.css";
-
 @import 'tw-animate-css';
 
 @plugin "daisyui" {
 	theme: false;
 }
-
 @plugin "./catppuccinTheme.latte.ts";
 @plugin "./catppuccinTheme.frappe.ts";
 
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant light (&:where(.light, .light *));
+
+.dark {
+	--color-appointment-by: var(--catppuccin-color-green-400);
+	--color-tournament-de: var(--catppuccin-color-lavender-400);
+	--color-holiday: var(--catppuccin-color-lavender-400);
+}
+
+.light {
+	--color-appointment-by: var(--color-success);
+	--color-tournament-de: var(--catppuccin-color-lavender-400);
+	--color-holiday: var(--color-red-800);
+}
 
 /*#####################*/
 /* FullCalendar Styles */

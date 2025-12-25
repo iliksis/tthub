@@ -390,7 +390,9 @@ const AvatarGroup = ({ responses }: AvatarGroupProps) => {
 						className="bg-neutral w-8 rounded-full border-base-100 border-2"
 						style={{ backgroundColor: createColorForUserId(r.userId) }}
 					>
-						<span className="text-md">{r.user.name.slice(0, 2)}</span>
+						<span className="text-md light:text-white">
+							{r.user.name.slice(0, 2)}
+						</span>
 					</div>
 				</div>
 			))}

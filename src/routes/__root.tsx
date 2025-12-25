@@ -10,6 +10,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
 import { ToastContainer } from "react-toastify";
 import { NavigationWrapper } from "@/components/NavigationWrapper";
+import { getTheme } from "@/components/ThemeSwitch";
 import { useAppSession } from "@/lib/session";
 import appCss from "../styles.css?url";
 
@@ -46,7 +47,8 @@ export const Route = createRootRoute({
 	}),
 	beforeLoad: async () => {
 		const user = await fetchUser();
-		return { user };
+		const theme = await getTheme();
+		return { user, theme };
 	},
 	shellComponent: RootDocument,
 });
@@ -54,7 +56,7 @@ export const Route = createRootRoute({
 const queryClient = new QueryClient();
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-	const { user } = Route.useRouteContext();
+	const { user, theme } = Route.useRouteContext();
 	const routerState = useRouterState({
 		select: (state) => {
 			const path = state.location.pathname;
@@ -74,7 +76,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 	});
 
 	return (
-		<html lang="en" data-theme="macchiato">
+		<html
+			lang="en"
+			data-theme={theme === "dark" ? "macchiato" : "latte"}
+			className={theme}
+		>
 			<head>
 				<HeadContent />
 			</head>

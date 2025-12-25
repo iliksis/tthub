@@ -1,8 +1,13 @@
 import dayGridPlugin from "@fullcalendar/daygrid";
 import FullCalendar from "@fullcalendar/react";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	useRouteContext,
+	useRouter,
+} from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { getCalendarAppointments } from "@/api/appointments";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed/appts/calendar")({
 	component: RouteComponent,
@@ -12,6 +17,7 @@ export const Route = createFileRoute("/_authed/appts/calendar")({
 });
 
 function RouteComponent() {
+	const { theme } = useRouteContext({ from: "__root__" });
 	const router = useRouter();
 	const getEvents = useServerFn(getCalendarAppointments);
 
@@ -46,7 +52,10 @@ function RouteComponent() {
 			contentHeight={"600px"}
 			displayEventTime={false}
 			eventDisplay="block"
-			eventClassNames="hover:cursor-pointer tooltip macchiato"
+			eventClassNames={cn(
+				"hover:cursor-pointer tooltip",
+				theme === "light" ? "latte" : "macchiato",
+			)}
 			eventClick={(info) => {
 				router.navigate({
 					to: "/appts/$apptId",

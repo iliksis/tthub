@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import type { User } from "@/lib/prisma/client";
+import { ThemeSwitch } from "./ThemeSwitch";
 
 type NavigationItem =
 	| {
@@ -158,6 +159,10 @@ export const NavigationWrapper = ({
 					{/* Sidebar content here */}
 					<ul className="menu w-full grow">
 						{navigationItems.map(renderLink)}
+					</ul>
+					<div className="divider"></div>
+					<ul className="menu w-full mb-4">
+						<ThemeSwitch />
 					</ul>
 				</div>
 			</div>
