@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SentryTunnelRouteImport } from './routes/sentry-tunnel'
+import { Route as LogoutRouteImport } from './routes/logout'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as InviteInviteIdRouteImport } from './routes/invite/$inviteId'
@@ -26,6 +27,11 @@ import { Route as AuthedApptsApptIdRouteImport } from './routes/_authed/appts/$a
 const SentryTunnelRoute = SentryTunnelRouteImport.update({
   id: '/sentry-tunnel',
   path: '/sentry-tunnel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogoutRoute = LogoutRouteImport.update({
+  id: '/logout',
+  path: '/logout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedRoute = AuthedRouteImport.update({
@@ -89,6 +95,7 @@ const AuthedApptsApptIdRoute = AuthedApptsApptIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/logout': typeof LogoutRoute
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/create': typeof AuthedCreateRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/players': typeof AuthedPlayersIndexRoute
 }
 export interface FileRoutesByTo {
+  '/logout': typeof LogoutRoute
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/create': typeof AuthedCreateRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
@@ -119,6 +127,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteWithChildren
+  '/logout': typeof LogoutRoute
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/_authed/create': typeof AuthedCreateRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
@@ -135,6 +144,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/logout'
     | '/sentry-tunnel'
     | '/create'
     | '/invite/$inviteId'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/players'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/logout'
     | '/sentry-tunnel'
     | '/create'
     | '/invite/$inviteId'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authed'
+    | '/logout'
     | '/sentry-tunnel'
     | '/_authed/create'
     | '/invite/$inviteId'
@@ -180,6 +192,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthedRoute: typeof AuthedRouteWithChildren
+  LogoutRoute: typeof LogoutRoute
   SentryTunnelRoute: typeof SentryTunnelRoute
   InviteInviteIdRoute: typeof InviteInviteIdRoute
 }
@@ -191,6 +204,13 @@ declare module '@tanstack/react-router' {
       path: '/sentry-tunnel'
       fullPath: '/sentry-tunnel'
       preLoaderRoute: typeof SentryTunnelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logout': {
+      id: '/logout'
+      path: '/logout'
+      fullPath: '/logout'
+      preLoaderRoute: typeof LogoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed': {
@@ -311,6 +331,7 @@ const AuthedRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   AuthedRoute: AuthedRouteWithChildren,
+  LogoutRoute: LogoutRoute,
   SentryTunnelRoute: SentryTunnelRoute,
   InviteInviteIdRoute: InviteInviteIdRoute,
 }

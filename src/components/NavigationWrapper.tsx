@@ -5,6 +5,7 @@ import {
 	CalendarsIcon,
 	HouseIcon,
 	ImportIcon,
+	LogOutIcon,
 	PanelLeftOpenIcon,
 	Settings2Icon,
 	TextAlignJustifyIcon,
@@ -120,7 +121,7 @@ export const NavigationWrapper = ({
 							activeOptions={{ exact: true }}
 						>
 							<item.icon className="my-1.5 size-4" />
-							<span className="is-drawer-close:hidden"> {item.name}</span>
+							<span className="is-drawer-close:hidden">{item.name}</span>
 						</Link>
 					</li>
 				);
@@ -165,8 +166,18 @@ export const NavigationWrapper = ({
 					<ul className="menu w-full grow">
 						{navigationItems.map(renderLink)}
 					</ul>
-					<div className="divider"></div>
+					<div className="divider mb-0"></div>
 					<ul className="menu w-full mb-4">
+						<li>
+							<Link
+								to="/logout"
+								className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
+								data-tip="Logout"
+							>
+								<LogOutIcon className="my-1.5 size-4" />
+								<span className="is-drawer-close:hidden">Logout</span>
+							</Link>
+						</li>
 						<ThemeSwitch />
 					</ul>
 				</div>
