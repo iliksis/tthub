@@ -49,6 +49,25 @@ export const isDayInPast = (date: Date) => {
 	return inputDate < today;
 };
 
+/**
+ * Creates a Google Maps link for a given location.
+ */
 export const createGoogleMapsLink = (location: string) => {
 	return `https://www.google.com/maps/search/?api=1&query=${location}`;
+};
+
+/**
+ * Creates a color based on the user's id.
+ */
+export const createColorForUserId = (userId: string) => {
+	let hash = 0;
+	for (let i = 0; i < userId.length; i++) {
+		hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+	}
+	let color = "#";
+	for (let i = 0; i < 3; i++) {
+		const value = (hash >> (i * 8)) & 0xff;
+		color += `00${value.toString(16)}`.slice(-2);
+	}
+	return color;
 };

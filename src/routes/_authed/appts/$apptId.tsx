@@ -29,7 +29,7 @@ import {
 	AppointmentType,
 	type ResponseType,
 } from "@/lib/prisma/enums";
-import { cn, createGoogleMapsLink } from "@/lib/utils";
+import { cn, createColorForUserId, createGoogleMapsLink } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed/appts/$apptId")({
 	component: RouteComponent,
@@ -386,7 +386,10 @@ const AvatarGroup = ({ responses }: AvatarGroupProps) => {
 					className="avatar avatar-placeholder tooltip"
 					data-tip={r.user.name}
 				>
-					<div className="bg-neutral w-8 rounded-full border-base-100 border-2">
+					<div
+						className="bg-neutral w-8 rounded-full border-base-100 border-2"
+						style={{ backgroundColor: createColorForUserId(r.userId) }}
+					>
 						<span className="text-md">{r.user.name.slice(0, 2)}</span>
 					</div>
 				</div>
