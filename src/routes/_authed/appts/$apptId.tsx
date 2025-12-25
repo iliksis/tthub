@@ -25,6 +25,7 @@ import { Modal } from "@/components/modal/Modal";
 import { ParticipantModal } from "@/components/placement/PlacementModal";
 import { notify } from "@/components/Toast";
 import { Card } from "@/components/ValueCard";
+import { IcalGenerator } from "@/lib/ical";
 import type { Response, User } from "@/lib/prisma/client";
 import {
 	AppointmentStatus,
@@ -165,6 +166,11 @@ function RouteComponent() {
 	const onRestore = async () => {
 		await restore({ data: { id: appointment.id } });
 		await router.invalidate();
+	};
+
+	const onDownloadIcal = async () => {
+		const icalGenerator = new IcalGenerator();
+		icalGenerator.createAndDownloadIcalFile(appointment);
 	};
 
 	return (
@@ -344,7 +350,11 @@ function RouteComponent() {
 				<div className="btn btn-lg btn-circle" role="button" tabIndex={0}>
 					<CalendarCogIcon className="size-4" />
 				</div>
-				<button className="btn btn-lg btn-circle" type="button">
+				<button
+					className="btn btn-lg btn-circle"
+					type="button"
+					onClick={onDownloadIcal}
+				>
 					<DownloadIcon className="size-4" />
 				</button>
 				{canEdit && (
