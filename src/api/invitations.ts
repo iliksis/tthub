@@ -2,6 +2,7 @@ import { createServerFn, json } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
 import type { UserInvitation } from "@/lib/prisma/client";
 import { useIsRole } from "@/lib/session";
+import { t } from "@/lib/text";
 import type { Return } from "./types";
 
 export const getInvitation = createServerFn({ method: "GET" })
@@ -20,7 +21,7 @@ export const createUserInvitation = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("ADMIN");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -35,7 +36,7 @@ export const createUserInvitation = createServerFn({ method: "POST" })
 				},
 			});
 			return json<Return<UserInvitation>>(
-				{ message: "User updated", data: invitation },
+				{ message: t("User updated"), data: invitation },
 				{ status: 401 },
 			);
 		} catch (e) {

@@ -3,6 +3,7 @@ import { hashPassword, prismaClient } from "@/lib/db";
 import type { User } from "@/lib/prisma/client";
 import type { Role } from "@/lib/prisma/enums";
 import { useIsRole, useIsUserOrRole } from "@/lib/session";
+import { t } from "@/lib/text";
 import { loginFn } from "@/routes/_authed";
 import type { Return } from "./types";
 
@@ -22,7 +23,7 @@ export const updateUserRole = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("ADMIN");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -35,7 +36,7 @@ export const updateUserRole = createServerFn({ method: "POST" })
 				},
 			});
 			return json<Return<User>>(
-				{ message: "User updated", data: user },
+				{ message: t("User updated"), data: user },
 				{ status: 401 },
 			);
 		} catch (e) {
@@ -50,7 +51,7 @@ export const updateUserInformation = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsUserOrRole(data.id, "ADMIN");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -65,7 +66,7 @@ export const updateUserInformation = createServerFn({ method: "POST" })
 				},
 			});
 			return json<Return<User>>(
-				{ message: "User information updated", data: user },
+				{ message: t("User information updated"), data: user },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -80,7 +81,7 @@ export const createUser = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthenticated = await useIsRole("ADMIN");
 		if (!isAuthenticated) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -96,7 +97,7 @@ export const createUser = createServerFn({ method: "POST" })
 			});
 
 			return json<Return<User>>(
-				{ message: "User created", data: user },
+				{ message: t("User created"), data: user },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -117,7 +118,7 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 			});
 			if (!invitation) {
 				return json<Return>(
-					{ message: "Invitation not found" },
+					{ message: t("Invitation not found") },
 					{
 						status: 404,
 					},
@@ -147,7 +148,7 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 				data: { userName: user.userName, password: data.password },
 			});
 			return json<Return<User>>(
-				{ message: "User created", data: user },
+				{ message: t("User created"), data: user },
 				{
 					status: 200,
 				},
@@ -164,7 +165,7 @@ export const deleteUser = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("ADMIN");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -183,7 +184,7 @@ export const deleteUser = createServerFn({ method: "POST" })
 					id: data.id,
 				},
 			});
-			return json<Return>({ message: "User deleted" }, { status: 200 });
+			return json<Return>({ message: t("User deleted") }, { status: 200 });
 		} catch (e) {
 			console.error(e);
 			const error = e as Error;

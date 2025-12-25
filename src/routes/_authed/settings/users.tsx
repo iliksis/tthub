@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { fetchUsers } from "@/api/users";
 import { UserManagement } from "@/components/UserManagement";
 import { useIsRole } from "@/lib/session";
+import { t } from "@/lib/text";
 
 const isUserAuthorized = createServerFn({ method: "GET" }).handler(async () => {
 	return await useIsRole("ADMIN");
@@ -13,7 +14,7 @@ export const Route = createFileRoute("/_authed/settings/users")({
 	beforeLoad: async () => {
 		const isAuthorized = await isUserAuthorized();
 		if (!isAuthorized) {
-			throw new Error("Unauthorized");
+			throw new Error(t("Unauthorized"));
 		}
 	},
 	errorComponent: () => <div>Error</div>,
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/_authed/settings/users")({
 	head: () => ({
 		meta: [
 			{
-				title: "User Management",
+				title: t("User Management"),
 			},
 		],
 	}),

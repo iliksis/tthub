@@ -3,6 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { createPlacement } from "@/api/placements";
 import { useMutation } from "@/hooks/useMutation";
 import type { Player } from "@/lib/prisma/client";
+import { t } from "@/lib/text";
 import { Modal } from "../modal/Modal";
 import { notify } from "../Toast";
 
@@ -73,7 +74,7 @@ export const CreatePlacement = ({
 						form.handleSubmit();
 					}}
 				>
-					Submit
+					{t("Create")}
 				</button>
 			)}
 		>
@@ -83,7 +84,7 @@ export const CreatePlacement = ({
 						{(field) => (
 							<fieldset className="fieldset">
 								<label className="label" htmlFor={field.name}>
-									Player:
+									{t("Player")}:
 								</label>
 								<select
 									className="select select-primary w-full"
@@ -92,7 +93,7 @@ export const CreatePlacement = ({
 									onChange={(e) => field.handleChange(e.target.value)}
 								>
 									<option disabled selected>
-										Select a player
+										{t("Choose a player")}
 									</option>
 									{players.map((p) => (
 										<option key={p.id} value={p.id}>
@@ -109,7 +110,7 @@ export const CreatePlacement = ({
 						{(field) => (
 							<fieldset className="fieldset">
 								<label className="label" htmlFor={field.name}>
-									Category:
+									{t("Category")}:
 								</label>
 								<input
 									id={field.name}
@@ -134,7 +135,7 @@ export const CreatePlacement = ({
 						{(field) => (
 							<fieldset className="fieldset">
 								<label className="label" htmlFor={field.name}>
-									Placement:
+									{t("Placement")}:
 								</label>
 								<input
 									id={field.name}

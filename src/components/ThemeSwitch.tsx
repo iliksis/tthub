@@ -2,6 +2,7 @@ import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { getCookie, setCookie } from "@tanstack/react-start/server";
 import { MoonIcon, SunIcon } from "lucide-react";
+import { t } from "@/lib/text";
 
 export const ThemeSwitch = () => {
 	const { theme } = useRouteContext({ from: "__root__" });
@@ -14,8 +15,8 @@ export const ThemeSwitch = () => {
 
 	return (
 		<li
-			className="is-drawer-close:btn-square tooltip tooltip-right"
-			data-tip="Switch Theme"
+			className="is-drawer-close:btn-square is-drawer-close:tooltip is-drawer-close:tooltip-right"
+			data-tip={t("Switch Theme")}
 		>
 			<button type="button" onClick={onClick}>
 				{theme === "light" ? (
@@ -23,7 +24,7 @@ export const ThemeSwitch = () => {
 				) : (
 					<MoonIcon className="my-1.5 size-4" />
 				)}
-				<span className="is-drawer-close:hidden">Switch Theme</span>
+				<span className="is-drawer-close:hidden">{t("Switch Theme")}</span>
 			</button>
 		</li>
 	);

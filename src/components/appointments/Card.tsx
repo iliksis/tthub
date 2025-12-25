@@ -1,5 +1,6 @@
 import { Link, useRouteContext } from "@tanstack/react-router";
 import type { Appointment, Response } from "@/lib/prisma/client";
+import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
 type CardProps = {
@@ -32,8 +33,8 @@ export const Card = ({ appointment }: CardProps) => {
 		>
 			<div className="card-body p-4 flex flex-row gap-3.5">
 				<div className="size-12 flex flex-col items-center justify-center shrink-0 bg-base-300 border border-base-300 rounded-box">
-					<span className="uppercase text-xs"> {month}</span>
-					<span className="font-bold"> {day}</span>
+					<span className="uppercase text-xs">{month}</span>
+					<span className="font-bold">{day}</span>
 				</div>
 				<div className="flex-1 min-w-0">
 					<h3 className="font-bold mb-1 whitespace-nowrap overflow-hidden text-ellipsis">
@@ -55,7 +56,11 @@ export const Card = ({ appointment }: CardProps) => {
 							isMaybe && "badge-warning",
 						)}
 					>
-						{isAccepted ? "Accepted" : isDeclined ? "Declined" : "Maybe"}
+						{isAccepted
+							? t("Accepted")
+							: isDeclined
+								? t("Declined")
+								: t("Maybe")}
 					</span>
 				</div>
 			</div>

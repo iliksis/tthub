@@ -5,12 +5,13 @@ import {
 	getUserAppointmentsWithoutResponses,
 } from "@/api/appointments";
 import { Card } from "@/components/appointments/Card";
+import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/")({
 	component: App,
 	loader: async ({ context }) => {
 		if (!context.user?.id) {
-			throw new Error("Unauthorized");
+			throw new Error(t("Unauthorized"));
 		}
 
 		const promises = await Promise.all([
@@ -46,7 +47,7 @@ export const Route = createFileRoute("/_authed/")({
 		};
 	},
 	head: () => ({
-		meta: [{ title: "Dashboard" }],
+		meta: [{ title: t("Dashboard") }],
 	}),
 });
 
@@ -57,7 +58,7 @@ function App() {
 		<div className="flex flex-col gap-6">
 			<div className="flex flex-col gap-3">
 				<div className="flex flex-row">
-					<h2 className="font-bold flex-1">Your appointments</h2>
+					<h2 className="font-bold flex-1"> {t("Your appointments")}</h2>
 					{userAppointments && (
 						<span className="shrink-0 badge badge-secondary">
 							{userAppointments.length}
@@ -67,12 +68,12 @@ function App() {
 				{userAppointments && userAppointments.length > 0 ? (
 					userAppointments.map((a) => <Card key={a.id} appointment={a} />)
 				) : (
-					<div>You have no appointments accepted</div>
+					<div>{t("You have no appointments")}</div>
 				)}
 			</div>
 			<div className="flex flex-col gap-3">
 				<div className="flex flex-row">
-					<h2 className="font-bold flex-1">Upcoming appointments</h2>
+					<h2 className="font-bold flex-1">{t("Upcoming appointments")}</h2>
 					{nextAppointments && (
 						<span className="shrink-0 badge badge-secondary">
 							{nextAppointments.length}
@@ -82,12 +83,12 @@ function App() {
 				{nextAppointments && nextAppointments.length > 0 ? (
 					nextAppointments.map((a) => <Card key={a.id} appointment={a} />)
 				) : (
-					<div>No appointments in the next 4 weeks</div>
+					<div> {t("No appointments in the next 4 weeks")}</div>
 				)}
 			</div>
 			<div className="flex flex-col gap-3">
 				<div className="flex flex-row">
-					<h2 className="font-bold flex-1">Pending appointments</h2>
+					<h2 className="font-bold flex-1">{t("Pending appointments")}</h2>
 					{withoutResponses && (
 						<span className="shrink-0 badge badge-secondary">
 							{withoutResponses.length}
@@ -97,7 +98,7 @@ function App() {
 				{withoutResponses && withoutResponses.length > 0 ? (
 					withoutResponses.map((a) => <Card key={a.id} appointment={a} />)
 				) : (
-					<div>You responded to all appointments</div>
+					<div> {t("You responded to all appointments")}</div>
 				)}
 			</div>
 		</div>

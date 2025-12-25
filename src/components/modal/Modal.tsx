@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
 type ModalProps = {
@@ -18,7 +19,7 @@ export const Modal = ({
 	modalBoxClassName,
 	onClose,
 	onRenderActionButton,
-	closeButtonLabel = "Close",
+	closeButtonLabel = t("Close"),
 	closeButtonClassName,
 }: React.PropsWithChildren<ModalProps>) => {
 	const id = useId();

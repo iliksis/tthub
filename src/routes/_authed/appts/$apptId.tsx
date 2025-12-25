@@ -32,6 +32,7 @@ import {
 	AppointmentType,
 	type ResponseType,
 } from "@/lib/prisma/enums";
+import { t } from "@/lib/text";
 import { cn, createColorForUserId, createGoogleMapsLink } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed/appts/$apptId")({
@@ -88,7 +89,7 @@ function RouteComponent() {
 	const { appointment, players, categories } = Route.useLoaderData();
 	const router = useRouter();
 
-	if (!appointment) return <div>Appointment not found.</div>;
+	if (!appointment) return <div>{t("Appointment not found.")}</div>;
 
 	const userResponse =
 		appointment.responses?.find((r) => r.userId === user?.id)?.responseType ??
@@ -178,14 +179,14 @@ function RouteComponent() {
 			{isDeleted ? (
 				<div role="alert" className="alert alert-error alert-soft mb-4">
 					<span>
-						Appointment was deleted.{" "}
+						{t("Appointment was deleted.")}{" "}
 						{canEdit && (
 							<button
 								type="button"
 								className="underline hover:cursor-pointer"
 								onClick={onRestore}
 							>
-								Restore?
+								{t("Restore?")}
 							</button>
 						)}
 					</span>
@@ -194,14 +195,14 @@ function RouteComponent() {
 				appointment?.status === AppointmentStatus.DRAFT && (
 					<div role="alert" className="alert alert-warning alert-soft mb-4">
 						<span>
-							Appointment is still in draft.{" "}
+							{t("Appointment is still in draft.")}{" "}
 							{canEdit && (
 								<button
 									type="button"
 									className="underline hover:cursor-pointer"
 									onClick={onPublish}
 								>
-									Publish?
+									{t("Publish?")}
 								</button>
 							)}
 						</span>
@@ -210,7 +211,7 @@ function RouteComponent() {
 			)}
 			<div className="grid grid-cols-4 gap-2">
 				<h1 className="col-span-4 mb-2 font-bold">{appointment.title}</h1>
-				<Card title="Date" icon={CalendarDaysIcon} gridRows={3}>
+				<Card title={t("Date")} icon={CalendarDaysIcon} gridRows={3}>
 					<div className="flex flex-row">
 						<p>
 							{new Date(appointment.startDate).toLocaleDateString("de-DE", {
@@ -233,7 +234,7 @@ function RouteComponent() {
 						</p>
 					</div>
 				</Card>
-				<Card title="Time" icon={Clock10Icon} gridRows={1}>
+				<Card title={t("Time")} icon={Clock10Icon} gridRows={1}>
 					<p>
 						{new Date(appointment.startDate).toLocaleTimeString("de-DE", {
 							timeStyle: "short",
@@ -242,7 +243,7 @@ function RouteComponent() {
 				</Card>
 				{appointment.type !== AppointmentType.HOLIDAY && (
 					<>
-						<Card title="Location" icon={Clock10Icon} gridRows={4}>
+						<Card title={t("Location")} icon={Clock10Icon} gridRows={4}>
 							<p>
 								{appointment.location ? (
 									<a
@@ -254,11 +255,11 @@ function RouteComponent() {
 										<ExternalLinkIcon className="size-4 inline-block ml-2 self-center" />
 									</a>
 								) : (
-									"No location set"
+									t("No location set")
 								)}
 							</p>
 						</Card>
-						<Card title="Participants" gridRows={2}>
+						<Card title={t("Participants")} gridRows={2}>
 							<p className="flex flex-row items-center">
 								<span className="flex-1">{uniqueParticipants.size}</span>
 								<button
@@ -266,11 +267,11 @@ function RouteComponent() {
 									className="btn btn-link btn-primary shrink h-5"
 									onClick={onOpenParticipants}
 								>
-									Show all
+									{t("Show all")}
 								</button>
 							</p>
 						</Card>
-						<Card title="Link" icon={Clock10Icon} gridRows={2}>
+						<Card title={t("Link")} icon={Clock10Icon} gridRows={2}>
 							<p>
 								{appointment.link ? (
 									<a
@@ -283,7 +284,7 @@ function RouteComponent() {
 										{appointment.link}
 									</a>
 								) : (
-									"No link set"
+									t("No link set")
 								)}
 							</p>
 						</Card>
@@ -303,7 +304,7 @@ function RouteComponent() {
 							disabled={isDeleted}
 							onClick={onResponse("ACCEPT")}
 						>
-							Accept
+							{t("Accept")}
 						</button>
 						<button
 							type="button"
@@ -314,7 +315,7 @@ function RouteComponent() {
 							disabled={isDeleted}
 							onClick={onResponse("MAYBE")}
 						>
-							Maybe
+							{t("Maybe")}
 						</button>
 						<button
 							type="button"
@@ -325,7 +326,7 @@ function RouteComponent() {
 							disabled={isDeleted}
 							onClick={onResponse("DECLINE")}
 						>
-							Response
+							{t("Response")}
 						</button>
 					</div>
 
@@ -353,6 +354,7 @@ function RouteComponent() {
 				<button
 					className="btn btn-lg btn-circle"
 					type="button"
+					title={t("Download iCal")}
 					onClick={onDownloadIcal}
 				>
 					<DownloadIcon className="size-4" />
@@ -362,7 +364,7 @@ function RouteComponent() {
 						<button
 							className="btn btn-lg btn-circle"
 							type="button"
-							title="Edit appointment"
+							title={t("Edit appointment")}
 							onClick={onEdit}
 						>
 							<EditIcon className="size-4" />
@@ -370,7 +372,7 @@ function RouteComponent() {
 						<button
 							className="btn btn-lg btn-circle"
 							type="button"
-							title="Delete appointment"
+							title={t("Delete appointment")}
 							onClick={onOpenDelete}
 						>
 							<Trash2Icon className="size-4" />
@@ -384,7 +386,7 @@ function RouteComponent() {
 			</Modal>
 
 			<DeleteModal
-				label="Are you sure you want to delete this appointment?"
+				label={t("Are you sure you want to delete this appointment?")}
 				open={isDeleting}
 				onClose={onStopDeleting}
 				onDelete={onDelete}

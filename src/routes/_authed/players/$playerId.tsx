@@ -12,6 +12,7 @@ import { PlayerForm } from "@/components/players/PlayerForm";
 import { notify } from "@/components/Toast";
 import { Card } from "@/components/ValueCard";
 import { useMutation } from "@/hooks/useMutation";
+import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/players/$playerId")({
 	component: RouteComponent,
@@ -56,7 +57,7 @@ function RouteComponent() {
 		},
 	});
 
-	if (!player) return <div>An Error occurred</div>;
+	if (!player) return <div>{t("An Error occurred")}</div>;
 
 	const onEdit = () => {
 		setIsEditing(true);
@@ -91,14 +92,14 @@ function RouteComponent() {
 	return (
 		<div>
 			<div className="grid grid-cols-4 gap-2">
-				<Card title="Year of birth" gridRows={3}>
+				<Card title={t("Year of birth")} gridRows={3}>
 					<p>{player.year}</p>
 				</Card>
-				<Card title="QTTR" gridRows={1}>
+				<Card title={t("QTTR")} gridRows={1}>
 					<p>{player.qttr}</p>
 				</Card>
-				<Card title="Team" gridRows={4}>
-					<p>{player.team?.title || "No team set"}</p>
+				<Card title={t("Team")} gridRows={4}>
+					<p>{player.team?.title || t("No team set")}</p>
 				</Card>
 			</div>
 			{canEdit && (
@@ -111,7 +112,7 @@ function RouteComponent() {
 						<button
 							className="btn btn-lg btn-circle"
 							type="button"
-							title="Delete player"
+							title={t("Update player")}
 							onClick={onEdit}
 						>
 							<UserRoundPenIcon className="size-4" />
@@ -119,7 +120,7 @@ function RouteComponent() {
 						<button
 							className="btn btn-lg btn-circle"
 							type="button"
-							title="Delete player"
+							title={t("Delete player")}
 							onClick={onOpenDelete}
 						>
 							<UserRoundXIcon className="size-4" />
@@ -134,11 +135,11 @@ function RouteComponent() {
 								data: { ...values, id: player.id },
 							});
 						}}
-						submitLabel="Update"
+						submitLabel={t("Update")}
 						defaultValues={player}
 					/>
 					<DeleteModal
-						label="Are you sure you want to delete this player?"
+						label={t("Are you sure you want to delete this player?")}
 						open={isDeleting}
 						onClose={onStopDeleting}
 						onDelete={onDelete}

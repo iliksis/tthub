@@ -4,6 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { updateUserInformation } from "@/api/users";
 import { useMutation } from "@/hooks/useMutation";
 import { useAppSession } from "@/lib/session";
+import { t } from "@/lib/text";
 import { notify } from "./Toast";
 
 const updateSession = createServerFn({ method: "POST" })
@@ -64,7 +65,7 @@ export const Profile = () => {
 						{(field) => (
 							<fieldset className="fieldset">
 								<label className="label" htmlFor={field.name}>
-									Name:
+									{t("Name")}:
 								</label>
 								<input
 									id={field.name}
@@ -83,7 +84,7 @@ export const Profile = () => {
 						{(field) => (
 							<fieldset className="fieldset">
 								<label className="label" htmlFor={field.name}>
-									Password:
+									{t("Password")}:
 								</label>
 								<input
 									id={field.name}
@@ -106,7 +107,7 @@ export const Profile = () => {
 							className="btn btn-primary mt-4"
 							disabled={!canSubmit}
 						>
-							{isSubmitting ? "..." : "Update"}
+							{isSubmitting ? "..." : t("Update")}
 						</button>
 					)}
 				</form.Subscribe>

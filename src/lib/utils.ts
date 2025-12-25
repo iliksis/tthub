@@ -71,3 +71,9 @@ export const createColorForUserId = (userId: string) => {
 	}
 	return color;
 };
+
+export const format = (str: string, ...values: string[]) => {
+	return str.replace(/{(\d+)}/g, (match, index) => {
+		return typeof values[index] !== "undefined" ? values[index] : match;
+	});
+};

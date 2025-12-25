@@ -5,6 +5,7 @@ import React from "react";
 import { createUser } from "@/api/users";
 import { useMutation } from "@/hooks/useMutation";
 import { Role } from "@/lib/prisma/enums";
+import { t } from "@/lib/text";
 import { notify } from "../Toast";
 import { Modal } from "./Modal";
 
@@ -62,7 +63,7 @@ export const CreateUserModal = () => {
 		<>
 			<button type="button" className="btn btn-primary" onClick={onClick}>
 				<UserPlusIcon className="size-4" />
-				Create a new User
+				{t("Create new user")}
 			</button>
 			<Modal
 				className="modal-bottom sm:modal-middle"
@@ -78,7 +79,7 @@ export const CreateUserModal = () => {
 							form.handleSubmit();
 						}}
 					>
-						Submit
+						{t("Create")}
 					</button>
 				)}
 			>
@@ -95,7 +96,7 @@ export const CreateUserModal = () => {
 								return (
 									<fieldset className="fieldset">
 										<label className="label" htmlFor={field.name}>
-											Name:
+											{t("Name")}:
 										</label>
 										<input
 											id={field.name}
@@ -115,7 +116,7 @@ export const CreateUserModal = () => {
 							{(field) => (
 								<fieldset className="fieldset">
 									<label className="label" htmlFor={field.name}>
-										User Name:
+										{t("User Name")}:
 									</label>
 									<input
 										id={field.name}
@@ -134,7 +135,7 @@ export const CreateUserModal = () => {
 							{(field) => (
 								<fieldset className="fieldset">
 									<label className="label" htmlFor={field.name}>
-										Role:
+										{t("Role")}:
 									</label>
 									<select
 										id={field.name}

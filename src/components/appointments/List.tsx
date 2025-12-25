@@ -4,6 +4,7 @@ import { FilterIcon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
 import type { Appointment, Response } from "@/lib/prisma/client";
+import { t } from "@/lib/text";
 import { cn, isDayInPast } from "@/lib/utils";
 import { Modal } from "../modal/Modal";
 
@@ -82,15 +83,15 @@ export const List = ({ appointments }: ListProps) => {
 					<thead className="text-xs">
 						<tr>
 							<th className="p-0"></th>
-							<th>Title</th>
-							<th>Date</th>
-							<th>Location</th>
+							<th>{t("Title")}</th>
+							<th>{t("Date")}</th>
+							<th>{t("Location")}</th>
 						</tr>
 					</thead>
 					<tbody>{appointments.map(renderRow)}</tbody>
 				</table>
 			) : (
-				<div>No appointments found</div>
+				<div>{t("No appointments found")}</div>
 			)}
 		</div>
 	);
@@ -138,7 +139,7 @@ export const Filters = ({
 						form.handleSubmit();
 					}}
 				>
-					Apply
+					{t("Apply")}
 				</button>
 				<button
 					type="button"
@@ -154,7 +155,7 @@ export const Filters = ({
 						router.navigate({ to: ".", search: {}, replace: true });
 					}}
 				>
-					Clear
+					{t("Clear")}
 				</button>
 			</>
 		);
@@ -183,13 +184,13 @@ export const Filters = ({
 						form.handleSubmit();
 					}}
 				>
-					<h2>Filters</h2>
+					<h2>{t("Filters")}</h2>
 					<div>
 						<form.Field name="title">
 							{(field) => (
 								<fieldset className="fieldset">
 									<label className="label" htmlFor={field.name}>
-										Title:
+										{t("Title")}:
 									</label>
 									<input
 										id={field.name}
@@ -208,7 +209,7 @@ export const Filters = ({
 							{(field) => (
 								<fieldset className="fieldset">
 									<label className="label" htmlFor={field.name}>
-										Location:
+										{t("Location")}:
 									</label>
 									<input
 										id={field.name}
@@ -236,7 +237,7 @@ export const Filters = ({
 											onBlur={field.handleBlur}
 											onChange={(e) => field.handleChange(e.target.checked)}
 										/>
-										Show deleted?
+										{t("Show deleted?")}
 									</label>
 								</fieldset>
 							)}

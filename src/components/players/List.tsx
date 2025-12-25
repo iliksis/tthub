@@ -1,12 +1,13 @@
 import { useRouter } from "@tanstack/react-router";
 import type { Player, Team } from "@/lib/prisma/client";
+import { t } from "@/lib/text";
 
 type ListProps = {
 	players: (Player & { team: Team | null })[];
 };
 export const List = ({ players }: ListProps) => {
 	const router = useRouter();
-	if (players.length === 0) return <div>No players found</div>;
+	if (players.length === 0) return <div>{t("No players found")}</div>;
 
 	const onClickPlayer = (id: string) => async () => {
 		await router.navigate({
@@ -20,9 +21,9 @@ export const List = ({ players }: ListProps) => {
 			<table className="table text-xs">
 				<thead className="text-xs">
 					<tr>
-						<th>Name</th>
-						<th>QTTR</th>
-						<th>Team</th>
+						<th>{t("Name")}</th>
+						<th>{t("QTTR")}</th>
+						<th>{t("Team")}</th>
 					</tr>
 				</thead>
 				<tbody>

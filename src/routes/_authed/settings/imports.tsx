@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Holiday } from "open-holiday-js";
 import { HolidayImport } from "@/components/imports/HolidayImport";
 import { MyTTImport } from "@/components/imports/MyTTImport";
+import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/settings/imports")({
 	component: RouteComponent,
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/_authed/settings/imports")({
 	head: () => ({
 		meta: [
 			{
-				title: "Imports",
+				title: t("Imports"),
 			},
 		],
 	}),

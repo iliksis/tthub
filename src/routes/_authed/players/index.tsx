@@ -2,11 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getPlayers } from "@/api/players";
 import { CreatePlayer } from "@/components/players/CreatePlayer";
 import { List } from "@/components/players/List";
+import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/players/")({
 	component: RouteComponent,
 	head: () => ({
-		meta: [{ title: "Players" }],
+		meta: [{ title: t("Players") }],
 	}),
 	loader: async () => {
 		const data = await getPlayers();
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/_authed/players/")({
 function RouteComponent() {
 	const { players } = Route.useLoaderData();
 
-	if (!players) return <div>An Error occurred</div>;
+	if (!players) return <div>{t("An Error occurred")}</div>;
 
 	return (
 		<div>

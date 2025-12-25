@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import type { User } from "@/lib/prisma/client";
+import { t } from "@/lib/text";
 import { ThemeSwitch } from "./ThemeSwitch";
 
 type NavigationItem =
@@ -31,35 +32,39 @@ type NavigationItem =
 	  };
 
 const navigationItems: NavigationItem[] = [
-	{ name: "Dashboard", href: "/", icon: HouseIcon },
+	{ name: t("Dashboard"), href: "/", icon: HouseIcon },
 	{
-		name: "Appointments",
+		name: t("Appointments"),
 		icon: CalendarsIcon,
 		children: [
-			{ name: "List", href: "/appts", icon: TextAlignJustifyIcon },
-			{ name: "Calendar", href: "/appts/calendar", icon: CalendarDaysIcon },
+			{ name: t("List"), href: "/appts", icon: TextAlignJustifyIcon },
 			{
-				name: "Create",
+				name: t("Calendar"),
+				href: "/appts/calendar",
+				icon: CalendarDaysIcon,
+			},
+			{
+				name: t("Create"),
 				href: "/create",
 				icon: CalendarPlusIcon,
 				isHidden: (role) => role === "USER",
 			},
 		],
 	},
-	{ name: "Players", href: "/players", icon: UsersIcon },
+	{ name: t("Players"), href: "/players", icon: UsersIcon },
 	{
-		name: "Settings",
+		name: t("Settings"),
 		icon: Settings2Icon,
 		children: [
-			{ name: "Profile", href: "/settings/profile", icon: UserPenIcon },
+			{ name: t("Profile"), href: "/settings/profile", icon: UserPenIcon },
 			{
-				name: "Imports",
+				name: t("Imports"),
 				href: "/settings/imports",
 				icon: ImportIcon,
 				isHidden: (role) => role === "USER",
 			},
 			{
-				name: "User Management",
+				name: t("User Management"),
 				href: "/settings/users",
 				icon: UserCogIcon,
 				isHidden: (role) => role !== "ADMIN",
@@ -143,7 +148,7 @@ export const NavigationWrapper = ({
 				<nav className="navbar w-full bg-base-300">
 					<label
 						htmlFor="drawer-toggle"
-						aria-label="open sidebar"
+						aria-label={t("open sidebar")}
 						className="btn btn-square btn-ghost"
 					>
 						{/* Sidebar toggle icon */}
@@ -172,10 +177,10 @@ export const NavigationWrapper = ({
 							<Link
 								to="/logout"
 								className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
-								data-tip="Logout"
+								data-tip={t("Logout")}
 							>
 								<LogOutIcon className="my-1.5 size-4" />
-								<span className="is-drawer-close:hidden">Logout</span>
+								<span className="is-drawer-close:hidden">{t("Logout")}</span>
 							</Link>
 						</li>
 						<ThemeSwitch />

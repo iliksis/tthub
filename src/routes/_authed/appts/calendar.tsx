@@ -7,12 +7,13 @@ import {
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { getCalendarAppointments } from "@/api/appointments";
+import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed/appts/calendar")({
 	component: RouteComponent,
 	head: () => ({
-		meta: [{ title: "Calendar" }],
+		meta: [{ title: t("Calendar") }],
 	}),
 });
 
@@ -40,7 +41,11 @@ function RouteComponent() {
 			locale={"de"}
 			firstDay={1}
 			buttonText={{
-				today: "Heute",
+				today: t("Today"),
+			}}
+			buttonHints={{
+				prev: t("Previous month"),
+				next: t("Next month"),
 			}}
 			dayCellContent={({ dayNumberText }) => {
 				return (

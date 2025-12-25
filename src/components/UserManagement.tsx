@@ -5,6 +5,7 @@ import { deleteUser, updateUserRole } from "@/api/users";
 import { useMutation } from "@/hooks/useMutation";
 import type { User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";
+import { t } from "@/lib/text";
 import { isInvitationExpired } from "@/lib/utils";
 import { CreateUserModal } from "./modal/CreateUserModal";
 import { notify } from "./Toast";
@@ -90,9 +91,9 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 				<thead>
 					<tr>
 						<th></th>
-						<th>Name</th>
-						<th>User Name</th>
-						<th>Role</th>
+						<th>{t("Name")}</th>
+						<th>{t("User Name")}</th>
+						<th>{t("Role")}</th>
 						<th></th>
 					</tr>
 				</thead>
@@ -131,18 +132,18 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 										<button
 											type="button"
 											className="btn btn-warning tooltip tooltip-left"
-											aria-label="Create new link"
-											data-tip="Create new link"
+											aria-label={t("Create new link")}
+											data-tip={t("Create new link")}
 											onClick={onCreateInvitation(user)}
 										>
-											Expired
+											{t("Expired")}
 										</button>
 									) : (
 										<button
 											type="button"
 											className="btn btn-square btn-primary tooltip tooltip-left"
-											aria-label="Copy link"
-											data-tip="Copy link"
+											aria-label={t("Copy link")}
+											data-tip={t("Copy link")}
 											onClick={() => {
 												navigator.clipboard.writeText(
 													`${window.location.origin}/invite/${user.invitation?.id}`,

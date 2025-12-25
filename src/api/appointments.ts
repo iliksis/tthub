@@ -8,6 +8,7 @@ import {
 	type ResponseType,
 } from "@/lib/prisma/enums";
 import { useAppSession, useIsRole } from "@/lib/session";
+import { t } from "@/lib/text";
 import type { Return } from "./types";
 
 type ICreateAppointment =
@@ -32,7 +33,7 @@ export const createAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -49,7 +50,7 @@ export const createAppointment = createServerFn()
 			});
 
 			return json<Return<Appointment>>(
-				{ message: "Appointment created", data: appointment },
+				{ message: t("Appointment created"), data: appointment },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -76,14 +77,14 @@ export const getAppointment = createServerFn()
 			});
 			if (!appointment) {
 				return json<Return>(
-					{ message: "Appointment not found" },
+					{ message: t("Appointment not found") },
 					{
 						status: 404,
 					},
 				);
 			}
 			return json<Return<typeof appointment>>(
-				{ message: "Appointment found", data: appointment },
+				{ message: t("Appointment found"), data: appointment },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -123,7 +124,7 @@ export const getAppointments = createServerFn()
 				orderBy: data.orderBy,
 			});
 			return json<Return<typeof appointments>>(
-				{ message: "Appointments found", data: appointments },
+				{ message: t("Appointments found"), data: appointments },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -138,7 +139,7 @@ export const updateAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -154,7 +155,7 @@ export const updateAppointment = createServerFn()
 				},
 			});
 			return json<Return<Appointment>>(
-				{ message: "Appointment updated", data: appointment },
+				{ message: t("Appointment updated"), data: appointment },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -169,7 +170,7 @@ export const deleteAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -180,7 +181,7 @@ export const deleteAppointment = createServerFn()
 				},
 			});
 			return json<Return<Appointment>>(
-				{ message: "Appointment deleted", data: appointment },
+				{ message: t("Appointment deleted"), data: appointment },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -195,7 +196,7 @@ export const createResponse = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -216,7 +217,7 @@ export const createResponse = createServerFn()
 				},
 			});
 			return json<Return<Response>>(
-				{ message: "Response created", data: response },
+				{ message: t("Response created"), data: response },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -255,7 +256,7 @@ export const getNextAppointments = createServerFn().handler(async () => {
 			},
 		});
 		return json<Return<typeof appointments>>(
-			{ message: "Appointments found", data: appointments },
+			{ message: t("Appointments found"), data: appointments },
 			{ status: 200 },
 		);
 	} catch (e) {
@@ -288,7 +289,7 @@ export const getUserAppointments = createServerFn()
 				},
 			});
 			return json<Return<typeof appointments>>(
-				{ message: "Appointments found", data: appointments },
+				{ message: t("Appointments found"), data: appointments },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -320,7 +321,7 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 				},
 			});
 			return json<Return<typeof appointments>>(
-				{ message: "Appointments found", data: appointments },
+				{ message: t("Appointments found"), data: appointments },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -379,7 +380,7 @@ export const getCalendarAppointments = createServerFn()
 				},
 			}));
 			return json<Return<typeof calAppointments>>(
-				{ message: "Appointments found", data: calAppointments },
+				{ message: t("Appointments found"), data: calAppointments },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -436,7 +437,7 @@ export const importHolidays = createServerFn()
 				count++;
 			}
 			return json<Return>(
-				{ message: `${count} Appointments created` },
+				{ message: t("{0} Appointments created", count.toString()) },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -451,7 +452,7 @@ export const publishAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -462,7 +463,7 @@ export const publishAppointment = createServerFn()
 				},
 			});
 			return json<Return<Appointment>>(
-				{ message: "Appointment published", data: appointment },
+				{ message: t("Appointment published"), data: appointment },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -477,7 +478,7 @@ export const restoreAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -488,7 +489,7 @@ export const restoreAppointment = createServerFn()
 				},
 			});
 			return json<Return<Appointment>>(
-				{ message: "Appointment restored", data: appointment },
+				{ message: t("Appointment restored"), data: appointment },
 				{ status: 200 },
 			);
 		} catch (e) {

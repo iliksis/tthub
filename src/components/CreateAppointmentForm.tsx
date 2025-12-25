@@ -5,11 +5,12 @@ import { create } from "zustand";
 import { createAppointment } from "@/api/appointments";
 import { useMutation } from "@/hooks/useMutation";
 import { AppointmentStatus, AppointmentType } from "@/lib/prisma/enums";
+import { t } from "@/lib/text";
 import { dateToInputValue } from "@/lib/utils";
 import { notify } from "./Toast";
 
-const types = ["Tournament", "Holiday"] as const;
-const tournamentAreas = ["Bavaria", "Germany"] as const;
+const types = [t("Tournament"), t("Holiday")] as const;
+const tournamentAreas = [t("Bavaria"), t("Germany")] as const;
 
 type CreateState = {
 	type: (typeof types)[number] | undefined;
@@ -33,11 +34,11 @@ export const CreateAppointmentForm = () => {
 	const { type, tournamentType } = useCreateState();
 
 	const appointmentType = React.useMemo(() => {
-		if (type === "Holiday") {
+		if (type === t("Holiday")) {
 			return AppointmentType.HOLIDAY;
-		} else if (tournamentType === "Bavaria") {
+		} else if (tournamentType === t("Bavaria")) {
 			return AppointmentType.TOURNAMENT_BY;
-		} else if (tournamentType === "Germany") {
+		} else if (tournamentType === t("Germany")) {
 			return AppointmentType.TOURNAMENT_DE;
 		}
 		return null;
@@ -62,7 +63,7 @@ const AppointmentTypeSelect = () => {
 	const { type, setType, setTournamentType } = useCreateState();
 	return (
 		<fieldset className="fieldset">
-			<legend className="fieldset-legend">Appointment type</legend>
+			<legend className="fieldset-legend">{t("Appointment type")}</legend>
 			<div className="flex gap-2">
 				<select
 					className="select select-primary max-w-1/2"
@@ -71,19 +72,19 @@ const AppointmentTypeSelect = () => {
 					}}
 				>
 					<option disabled selected>
-						Choose a type
+						{t("Choose a type")}
 					</option>
 					{types.map((t) => (
 						<option key={t}>{t}</option>
 					))}
 				</select>
-				{type === "Tournament" && (
+				{type === t("Tournament") && (
 					<select
 						className="select select-primary max-w-1/2"
 						onChange={(e) => setTournamentType(e.target.value as any)}
 					>
 						<option disabled selected>
-							Choose an area
+							{t("Choose an area")}
 						</option>
 						{tournamentAreas.map((t) => (
 							<option key={t}>{t}</option>
@@ -165,7 +166,7 @@ const AppointmentEditSection = ({
 							return (
 								<fieldset className="fieldset">
 									<label className="label" htmlFor={field.name}>
-										Title:
+										{t("Title")}:
 									</label>
 									<input
 										id={field.name}
@@ -186,7 +187,7 @@ const AppointmentEditSection = ({
 							return (
 								<fieldset className="fieldset">
 									<label className="label" htmlFor={field.name}>
-										Short Title:
+										{t("ShortTitle")}:
 									</label>
 									<input
 										id={field.name}
@@ -206,7 +207,7 @@ const AppointmentEditSection = ({
 						{(field) => (
 							<fieldset className="fieldset">
 								<label className="label" htmlFor={field.name}>
-									Start Date:
+									{t("StartDate")}:
 								</label>
 								<input
 									id={field.name}
@@ -226,7 +227,7 @@ const AppointmentEditSection = ({
 						{(field) => (
 							<fieldset className="fieldset">
 								<label className="label" htmlFor={field.name}>
-									End Date:
+									{t("EndDate")}:
 								</label>
 								<input
 									id={field.name}
@@ -251,7 +252,7 @@ const AppointmentEditSection = ({
 								{(field) => (
 									<fieldset className="fieldset">
 										<label className="label" htmlFor={field.name}>
-											Location:
+											{t("Location")}:
 										</label>
 										<input
 											id={field.name}
@@ -270,7 +271,7 @@ const AppointmentEditSection = ({
 								{(field) => (
 									<fieldset className="fieldset">
 										<label className="label">
-											Publish?
+											{t("Publish")}?
 											<input
 												id={field.name}
 												className="checkbox checkbox-primary"
@@ -302,7 +303,7 @@ const AppointmentEditSection = ({
 							className="btn btn-primary mt-4"
 							disabled={!canSubmit}
 						>
-							{isSubmitting ? "..." : "Create"}
+							{isSubmitting ? "..." : t("Create")}
 						</button>
 					)}
 				</form.Subscribe>

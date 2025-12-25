@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
 import { useMutation } from "@/hooks/useMutation";
+import { t } from "@/lib/text";
 import { loginFn } from "@/routes/_authed";
 
 export function Login() {
@@ -48,12 +49,12 @@ export function Login() {
 								<fieldset className="fieldset">
 									{/* register your input into the hook by invoking the "register" function */}
 									<label className="label" htmlFor={field.name}>
-										User Name
+										{t("User Name")}
 									</label>
 									<input
 										id={field.name}
 										className="input input-primary w-full"
-										placeholder="User Name"
+										placeholder={t("User Name")}
 										name={field.name}
 										value={field.state.value}
 										onBlur={field.handleBlur}
@@ -69,13 +70,13 @@ export function Login() {
 								<fieldset className="fieldset">
 									{/* register your input into the hook by invoking the "register" function */}
 									<label className="label" htmlFor={field.name}>
-										Password
+										{t("Password")}
 									</label>
 									<input
 										id={field.name}
 										className="input input-primary w-full"
 										type="password"
-										placeholder="Password"
+										placeholder={t("Password")}
 										name={field.name}
 										value={field.state.value}
 										onBlur={field.handleBlur}
@@ -94,7 +95,7 @@ export function Login() {
 								className="btn btn-primary mt-4"
 								disabled={!canSubmit}
 							>
-								{isSubmitting ? "..." : "Login"}
+								{isSubmitting ? "..." : t("Login")}
 							</button>
 						)}
 					</form.Subscribe>

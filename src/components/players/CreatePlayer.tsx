@@ -3,6 +3,7 @@ import { UserPlus2Icon } from "lucide-react";
 import React from "react";
 import { createPlayer } from "@/api/players";
 import { useMutation } from "@/hooks/useMutation";
+import { t } from "@/lib/text";
 import { notify } from "../Toast";
 import { PlayerForm } from "./PlayerForm";
 
@@ -49,7 +50,7 @@ export const CreatePlayer = () => {
 			<PlayerForm
 				open={isCreating}
 				onClose={onStopCreating}
-				submitLabel="Create"
+				submitLabel={t("Create")}
 				onSubmit={async (values) => {
 					await createPlayerMutation.mutate({
 						data: { ...values },

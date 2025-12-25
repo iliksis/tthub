@@ -4,6 +4,7 @@ import { useRouter } from "@tanstack/react-router";
 import { Holiday } from "open-holiday-js";
 import { importHolidays } from "@/api/appointments";
 import { useMutation } from "@/hooks/useMutation";
+import { t } from "@/lib/text";
 import { notify } from "../Toast";
 
 const validator = (value: { startDate: string; endDate: string }) => {
@@ -75,7 +76,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 
 	return (
 		<div>
-			<h1>Import Holidays</h1>
+			<h1>{t("Import Holidays")}</h1>
 			<form className="mt-2 flex flex-col gap-2">
 				<div className="flex gap-2">
 					<form.Field name="country">
@@ -83,7 +84,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 							return (
 								<fieldset className="fieldset flex-1">
 									<label className="label" htmlFor={field.name}>
-										Country:
+										{t("Country")}:
 									</label>
 									<select
 										id={field.name}
@@ -111,7 +112,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 							return (
 								<fieldset className="fieldset flex-1">
 									<label className="label" htmlFor={field.name}>
-										Subdivision:
+										{t("Subdivision")}:
 									</label>
 									<select
 										id={field.name}
@@ -139,7 +140,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 							return (
 								<fieldset className="fieldset flex-1">
 									<label className="label" htmlFor={field.name}>
-										Start:
+										{t("Start")}:
 									</label>
 									<input
 										id={field.name}
@@ -159,7 +160,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 							return (
 								<fieldset className="fieldset flex-1">
 									<label className="label" htmlFor={field.name}>
-										End:
+										{t("End")}:
 									</label>
 									<input
 										id={field.name}
@@ -190,7 +191,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 							disabled={!canSubmit}
 							onClick={form.handleSubmit}
 						>
-							{isSubmitting ? "..." : "Import Holidays"}
+							{isSubmitting ? "..." : t("Import")}
 						</button>
 					)}
 				</form.Subscribe>

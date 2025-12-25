@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getAppointments } from "@/api/appointments";
 import { Filters, filterSchema, List } from "@/components/appointments/List";
 import { AppointmentType } from "@/lib/prisma/enums";
+import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/appts/")({
 	component: RouteComponent,
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/_authed/appts/")({
 	head: () => ({
 		meta: [
 			{
-				title: "Appointments",
+				title: t("Appointments"),
 			},
 		],
 	}),

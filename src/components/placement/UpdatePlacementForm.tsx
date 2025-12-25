@@ -3,6 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { updatePlacement } from "@/api/placements";
 import { useMutation } from "@/hooks/useMutation";
 import type { Placement } from "@/lib/prisma/client";
+import { t } from "@/lib/text";
 import { Modal } from "../modal/Modal";
 import { notify } from "../Toast";
 
@@ -69,7 +70,7 @@ export const UpdatePlacementForm = ({
 						form.handleSubmit();
 					}}
 				>
-					Submit
+					{t("Update")}
 				</button>
 			)}
 		>
@@ -79,7 +80,7 @@ export const UpdatePlacementForm = ({
 						{(field) => (
 							<fieldset className="fieldset">
 								<label className="label" htmlFor={field.name}>
-									Placement:
+									{t("Placement")}:
 								</label>
 								<input
 									id={field.name}

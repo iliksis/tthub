@@ -1,6 +1,7 @@
 import { createServerFn, json } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
 import { useIsRole } from "@/lib/session";
+import { t } from "@/lib/text";
 import type { Return } from "./types";
 
 export const getPlayers = createServerFn({ method: "GET" }).handler(
@@ -11,7 +12,7 @@ export const getPlayers = createServerFn({ method: "GET" }).handler(
 				orderBy: { name: "asc" },
 			});
 			return json<Return<typeof players>>(
-				{ message: "Players found", data: players },
+				{ message: t("Players found"), data: players },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -27,7 +28,7 @@ export const createPlayer = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -39,7 +40,7 @@ export const createPlayer = createServerFn({ method: "POST" })
 				},
 			});
 			return json<Return<typeof player>>(
-				{ message: "Player created", data: player },
+				{ message: t("Player created"), data: player },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -59,14 +60,14 @@ export const getPlayer = createServerFn()
 			});
 			if (!player) {
 				return json<Return>(
-					{ message: "Player not found" },
+					{ message: t("Player not found") },
 					{
 						status: 404,
 					},
 				);
 			}
 			return json<Return<typeof player>>(
-				{ message: "Player found", data: player },
+				{ message: t("Player found"), data: player },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -93,7 +94,7 @@ export const updatePlayer = createServerFn()
 				},
 			});
 			return json<Return<typeof player>>(
-				{ message: "Player updated", data: player },
+				{ message: t("Player updated"), data: player },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -108,7 +109,7 @@ export const deletePlayer = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 		try {
 			const player = await prismaClient.player.delete({
@@ -117,7 +118,7 @@ export const deletePlayer = createServerFn()
 				},
 			});
 			return json<Return<typeof player>>(
-				{ message: "Player deleted", data: player },
+				{ message: t("Player deleted"), data: player },
 				{ status: 200 },
 			);
 		} catch (e) {

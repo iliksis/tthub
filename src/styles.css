@@ -27,10 +27,8 @@
 /* FullCalendar Styles */
 /*#####################*/
 /* Resizing */
-#calendar {
-  width: 400px;
-  height: auto;
-  @apply py-3 rounded-lg;
+.fc {
+  --fc-button-text-color: var(--color-base-content);
 }
 
 .fc-view-harness .fc-view-harness-active {

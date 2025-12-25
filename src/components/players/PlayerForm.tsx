@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
 import { Modal } from "../modal/Modal";
 
@@ -68,14 +69,14 @@ export const PlayerForm = ({
 						validators={{
 							onChange: ({ value }) =>
 								value.length <= 1
-									? "Name must have more than 1 character"
+									? t("Name must be at least 2 characters long")
 									: undefined,
 						}}
 					>
 						{(field) => (
 							<fieldset className="fieldset">
 								<label className="label" htmlFor={field.name}>
-									Name:
+									{t("Name")}:
 								</label>
 								<input
 									id={field.name}
@@ -104,14 +105,14 @@ export const PlayerForm = ({
 						validators={{
 							onChange: ({ value }) =>
 								!Number.isInteger(value)
-									? "Year of birth must be set"
+									? t("Year of birth must be set")
 									: undefined,
 						}}
 					>
 						{(field) => (
 							<fieldset className="fieldset">
 								<label className="label" htmlFor={field.name}>
-									Year of birth:
+									{t("Year of birth")}:
 								</label>
 								<input
 									id={field.name}
@@ -142,14 +143,14 @@ export const PlayerForm = ({
 						validators={{
 							onChange: ({ value }) =>
 								!Number.isInteger(value)
-									? "QTTR must be set (0 is allowed)"
+									? t("QTTR must be set (0 is allowed)")
 									: undefined,
 						}}
 					>
 						{(field) => (
 							<fieldset className="fieldset">
 								<label className="label" htmlFor={field.name}>
-									qttr:
+									{t("QTTR")}:
 								</label>
 								<input
 									id={field.name}

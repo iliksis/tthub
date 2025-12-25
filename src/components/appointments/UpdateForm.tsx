@@ -4,6 +4,7 @@ import { updateAppointment } from "@/api/appointments";
 import { useMutation } from "@/hooks/useMutation";
 import type { Appointment } from "@/lib/prisma/client";
 import { AppointmentStatus, AppointmentType } from "@/lib/prisma/enums";
+import { t } from "@/lib/text";
 import { dateToInputValue } from "@/lib/utils";
 import { notify } from "../Toast";
 
@@ -74,7 +75,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 							return (
 								<fieldset className="fieldset">
 									<label className="label" htmlFor={field.name}>
-										Title:
+										{t("Title")}:
 									</label>
 									<input
 										id={field.name}
@@ -95,7 +96,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 							return (
 								<fieldset className="fieldset">
 									<label className="label" htmlFor={field.name}>
-										Short Title:
+										{t("ShortTitle")}:
 									</label>
 									<input
 										id={field.name}
@@ -115,7 +116,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 						{(field) => (
 							<fieldset className="fieldset">
 								<label className="label" htmlFor={field.name}>
-									Start Date:
+									{t("StartDate")}:
 								</label>
 								<input
 									id={field.name}
@@ -135,7 +136,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 						{(field) => (
 							<fieldset className="fieldset">
 								<label className="label" htmlFor={field.name}>
-									End Date:
+									{t("EndDate")}:
 								</label>
 								<input
 									id={field.name}
@@ -161,7 +162,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 								{(field) => (
 									<fieldset className="fieldset">
 										<label className="label" htmlFor={field.name}>
-											Location:
+											{t("Location")}:
 										</label>
 										<input
 											id={field.name}
@@ -180,7 +181,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 								{(field) => (
 									<fieldset className="fieldset">
 										<label className="label" htmlFor={field.name}>
-											Link:
+											{t("Link")}:
 										</label>
 										<input
 											id={field.name}
@@ -199,7 +200,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 								{(field) => (
 									<fieldset className="fieldset">
 										<label className="label">
-											Publish?
+											{t("Publish")}?
 											<input
 												id={field.name}
 												className="checkbox checkbox-primary"
@@ -231,7 +232,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 							className="btn btn-primary mt-4"
 							disabled={!canSubmit}
 						>
-							{isSubmitting ? "..." : "Create"}
+							{isSubmitting ? "..." : t("Update")}
 						</button>
 					)}
 				</form.Subscribe>

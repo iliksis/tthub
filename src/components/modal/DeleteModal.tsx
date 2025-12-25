@@ -1,3 +1,4 @@
+import { t } from "@/lib/text";
 import { Modal } from "./Modal";
 
 type DeleteModalProps = {
@@ -21,7 +22,7 @@ export const DeleteModal = ({
 			modalBoxClassName="bg-warning"
 			onRenderActionButton={() => (
 				<button type="button" className="btn btn-error" onClick={onDelete}>
-					Delete
+					{t("Delete")}
 				</button>
 			)}
 		>

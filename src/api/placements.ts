@@ -1,6 +1,7 @@
 import { createServerFn, json } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
 import { useIsRole } from "@/lib/session";
+import { t } from "@/lib/text";
 import type { Return } from "./types";
 
 export const createPlacement = createServerFn()
@@ -15,7 +16,7 @@ export const createPlacement = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -34,7 +35,7 @@ export const createPlacement = createServerFn()
 
 			if (existing) {
 				return json<Return>(
-					{ message: "Participant already exists in this category" },
+					{ message: t("Participant already exists in this category") },
 					{ status: 400 },
 				);
 			}
@@ -49,7 +50,7 @@ export const createPlacement = createServerFn()
 			});
 
 			return json<Return<typeof placement>>(
-				{ message: "Placement created", data: placement },
+				{ message: t("Placement created"), data: placement },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -66,7 +67,7 @@ export const getUniqueCategories = createServerFn().handler(async () => {
 		});
 		const result = categories.map((c) => c.category);
 		return json<Return<typeof result>>(
-			{ message: "Categories found", data: result },
+			{ message: t("Categories found"), data: result },
 			{ status: 200 },
 		);
 	} catch (e) {
@@ -90,7 +91,7 @@ export const updatePlacement = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -108,7 +109,7 @@ export const updatePlacement = createServerFn()
 			});
 
 			return json<Return<typeof placement>>(
-				{ message: "Placement updated", data: placement },
+				{ message: t("Placement updated"), data: placement },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -125,7 +126,7 @@ export const deletePlacement = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
@@ -140,7 +141,7 @@ export const deletePlacement = createServerFn()
 			});
 
 			return json<Return<typeof placement>>(
-				{ message: "Placement deleted", data: placement },
+				{ message: t("Placement deleted"), data: placement },
 				{ status: 200 },
 			);
 		} catch (e) {
