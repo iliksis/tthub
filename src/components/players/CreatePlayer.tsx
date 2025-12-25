@@ -1,4 +1,4 @@
-import { useRouter } from "@tanstack/react-router";
+import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { UserPlus2Icon } from "lucide-react";
 import React from "react";
 import { createPlayer } from "@/api/players";
@@ -7,6 +7,7 @@ import { notify } from "../Toast";
 import { PlayerForm } from "./PlayerForm";
 
 export const CreatePlayer = () => {
+	const { user } = useRouteContext({ from: "__root__" });
 	const router = useRouter();
 
 	const [isCreating, setIsCreating] = React.useState(false);
@@ -33,6 +34,8 @@ export const CreatePlayer = () => {
 			notify({ text: data.message, status: "error" });
 		},
 	});
+
+	if (user?.role === "USER") return null;
 
 	return (
 		<>

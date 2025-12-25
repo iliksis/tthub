@@ -1,4 +1,4 @@
-import { useRouter } from "@tanstack/react-router";
+import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { EditIcon, Plus, Trash2Icon } from "lucide-react";
 import React from "react";
 import { deletePlacement } from "@/api/placements";
@@ -26,6 +26,8 @@ export const ParticipantModal = ({
 	players,
 	appointmentId,
 }: ParticipantModalProps) => {
+	const { user } = useRouteContext({ from: "__root__" });
+	const canEdit = user?.role === "USER";
 	const router = useRouter();
 
 	const [showCreate, setShowCreate] = React.useState(false);
@@ -97,13 +99,15 @@ export const ParticipantModal = ({
 			>
 				<div className="flex items-center">
 					<h2 className="flex-1">Participants</h2>
-					<button
-						type="button"
-						className="shrink btn btn-primary btn-square btn-ghost"
-						onClick={onCreateCategory}
-					>
-						<Plus className="size-4" />
-					</button>
+					{!canEdit && (
+						<button
+							type="button"
+							className="shrink btn btn-primary btn-square btn-ghost"
+							onClick={onCreateCategory}
+						>
+							<Plus className="size-4" />
+						</button>
+					)}
 				</div>
 				{groupedPlacements.map((group) => (
 					<div key={group.category} className="flex flex-col gap-2 mt-8">
@@ -121,20 +125,24 @@ export const ParticipantModal = ({
 								<div className="flex-1">
 									<p>{p.placement}</p>
 								</div>
-								<button
-									type="button"
-									className="btn btn-square btn-ghost"
-									onClick={() => onUpdatePlacement(p)}
-								>
-									<EditIcon className="size-4" />
-								</button>
-								<button
-									type="button"
-									className="btn btn-square btn-error btn-ghost"
-									onClick={onDeletePlacement(p)}
-								>
-									<Trash2Icon className="size-4" />
-								</button>
+								{!canEdit && (
+									<>
+										<button
+											type="button"
+											className="btn btn-square btn-ghost"
+											onClick={() => onUpdatePlacement(p)}
+										>
+											<EditIcon className="size-4" />
+										</button>
+										<button
+											type="button"
+											className="btn btn-square btn-error btn-ghost"
+											onClick={onDeletePlacement(p)}
+										>
+											<Trash2Icon className="size-4" />
+										</button>
+									</>
+								)}
 							</div>
 						))}
 					</div>

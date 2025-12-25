@@ -37,7 +37,12 @@ const navigationItems: NavigationItem[] = [
 		children: [
 			{ name: "List", href: "/appts", icon: TextAlignJustifyIcon },
 			{ name: "Calendar", href: "/appts/calendar", icon: CalendarDaysIcon },
-			{ name: "Create", href: "/create", icon: CalendarPlusIcon },
+			{
+				name: "Create",
+				href: "/create",
+				icon: CalendarPlusIcon,
+				isHidden: (role) => role === "USER",
+			},
 		],
 	},
 	{ name: "Players", href: "/players", icon: UsersIcon },
