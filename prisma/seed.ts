@@ -1,5 +1,5 @@
-import { prismaClient } from "./src/lib/db";
-import { hashPassword } from "./src/lib/db";
+import { prismaClient } from "../src/lib/db";
+import { hashPassword } from "../src/lib/db";
 
 async function main() {
 	console.log("🌱 Seeding database...");
