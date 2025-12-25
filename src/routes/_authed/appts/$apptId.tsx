@@ -14,6 +14,8 @@ import {
 	createResponse,
 	deleteAppointment,
 	getAppointment,
+	publishAppointment,
+	restoreAppointment,
 } from "@/api/appointments";
 import { getUniqueCategories } from "@/api/placements";
 import { getPlayers } from "@/api/players";
@@ -79,9 +81,12 @@ function RouteComponent() {
 
 	const deleteAppointmentServerFn = useServerFn(deleteAppointment);
 	const createResponseServerFn = useServerFn(createResponse);
+	const publish = useServerFn(publishAppointment);
+	const restore = useServerFn(restoreAppointment);
 
 	const { appointment, players, categories } = Route.useLoaderData();
 	const router = useRouter();
+
 	if (!appointment) return <div>Appointment not found.</div>;
 
 	const userResponse =
@@ -102,8 +107,6 @@ function RouteComponent() {
 	const uniqueParticipants = new Set(
 		appointment.placements.map((p) => p.playerId),
 	);
-
-	console.log(uniqueParticipants);
 
 	const onEdit = () => {
 		setIsEditing(true);
@@ -154,6 +157,16 @@ function RouteComponent() {
 		notify({ text: data.message, status: "error" });
 	};
 
+	const onPublish = async () => {
+		await publish({ data: { id: appointment.id } });
+		await router.invalidate();
+	};
+
+	const onRestore = async () => {
+		await restore({ data: { id: appointment.id } });
+		await router.invalidate();
+	};
+
 	return (
 		<div>
 			{isDeleted ? (
@@ -161,7 +174,11 @@ function RouteComponent() {
 					<span>
 						Appointment was deleted.{" "}
 						{canEdit && (
-							<button type="button" className="underline hover:cursor-pointer">
+							<button
+								type="button"
+								className="underline hover:cursor-pointer"
+								onClick={onRestore}
+							>
 								Restore?
 							</button>
 						)}
@@ -176,6 +193,7 @@ function RouteComponent() {
 								<button
 									type="button"
 									className="underline hover:cursor-pointer"
+									onClick={onPublish}
 								>
 									Publish?
 								</button>

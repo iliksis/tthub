@@ -3,7 +3,7 @@ import { Holiday } from "open-holiday-js";
 import { prismaClient } from "@/lib/db";
 import type { Appointment, Prisma, Response } from "@/lib/prisma/client";
 import {
-	type AppointmentStatus,
+	AppointmentStatus,
 	AppointmentType,
 	type ResponseType,
 } from "@/lib/prisma/enums";
@@ -437,6 +437,58 @@ export const importHolidays = createServerFn()
 			}
 			return json<Return>(
 				{ message: `${count} Appointments created` },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.log(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
+export const publishAppointment = createServerFn()
+	.inputValidator((d: { id: string }) => d)
+	.handler(async ({ data }) => {
+		const isAuthorized = await useIsRole("EDITOR");
+		if (!isAuthorized) {
+			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+		}
+
+		try {
+			const appointment = await prismaClient.appointment.update({
+				where: { id: data.id },
+				data: {
+					status: AppointmentStatus.PUBLISHED,
+				},
+			});
+			return json<Return<Appointment>>(
+				{ message: "Appointment published", data: appointment },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.log(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
+export const restoreAppointment = createServerFn()
+	.inputValidator((d: { id: string }) => d)
+	.handler(async ({ data }) => {
+		const isAuthorized = await useIsRole("EDITOR");
+		if (!isAuthorized) {
+			return json<Return>({ message: "Unauthorized" }, { status: 401 });
+		}
+
+		try {
+			const appointment = await prismaClient.appointment.update({
+				where: { id: data.id },
+				data: {
+					deletedAt: null,
+				},
+			});
+			return json<Return<Appointment>>(
+				{ message: "Appointment restored", data: appointment },
 				{ status: 200 },
 			);
 		} catch (e) {
