@@ -19,14 +19,14 @@ export function Login() {
 
 	const form = useForm({
 		defaultValues: {
-			userName: "",
 			password: "",
+			userName: "",
 		},
 		onSubmit: async ({ value }) => {
 			loginMutation.mutate({
 				data: {
-					userName: value.userName,
 					password: value.password,
+					userName: value.userName,
 				},
 			});
 		},
@@ -42,7 +42,7 @@ export function Login() {
 					form.handleSubmit();
 				}}
 			>
-				<div className="card-body">
+				<div className="card-body gap-2">
 					<form.Field name="userName">
 						{(field) => {
 							return (
@@ -86,13 +86,18 @@ export function Login() {
 							);
 						}}
 					</form.Field>
+					{loginMutation.data?.error && (
+						<div className="alert alert-error alert-soft">
+							{loginMutation.data.message}
+						</div>
+					)}
 					<form.Subscribe
 						selector={(state) => [state.canSubmit, state.isSubmitting]}
 					>
 						{([canSubmit, isSubmitting]) => (
 							<button
 								type="submit"
-								className="btn btn-primary mt-4"
+								className="btn btn-primary mt-2"
 								disabled={!canSubmit}
 							>
 								{isSubmitting ? "..." : t("Login")}

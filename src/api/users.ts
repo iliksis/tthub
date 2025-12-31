@@ -2,9 +2,8 @@ import { createServerFn, json } from "@tanstack/react-start";
 import { hashPassword, prismaClient } from "@/lib/db";
 import type { User } from "@/lib/prisma/client";
 import type { Role } from "@/lib/prisma/enums";
-import { useIsRole, useIsUserOrRole } from "@/lib/session";
+import { useAppSession, useIsRole, useIsUserOrRole } from "@/lib/session";
 import { t } from "@/lib/text";
-import { loginFn } from "@/routes/_authed";
 import type { Return } from "./types";
 
 export const fetchUsers = createServerFn({ method: "GET" }).handler(
@@ -28,15 +27,15 @@ export const updateUserRole = createServerFn({ method: "POST" })
 
 		try {
 			const user = await prismaClient.user.update({
-				where: {
-					id: data.id,
-				},
 				data: {
 					role: data.role,
 				},
+				where: {
+					id: data.id,
+				},
 			});
 			return json<Return<User>>(
-				{ message: t("User updated"), data: user },
+				{ data: user, message: t("User updated") },
 				{ status: 401 },
 			);
 		} catch (e) {
@@ -57,16 +56,16 @@ export const updateUserInformation = createServerFn({ method: "POST" })
 		try {
 			const hashedPassword = await hashPassword(data.password);
 			const user = await prismaClient.user.update({
-				where: {
-					id: data.id,
-				},
 				data: {
 					name: data.name,
 					password: hashedPassword,
 				},
+				where: {
+					id: data.id,
+				},
 			});
 			return json<Return<User>>(
-				{ message: t("User information updated"), data: user },
+				{ data: user, message: t("User information updated") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -87,17 +86,17 @@ export const createUser = createServerFn({ method: "POST" })
 		try {
 			const user = await prismaClient.user.create({
 				data: {
-					userName: data.userName,
-					name: data.name,
-					role: data.role,
 					invitation: {
 						create: {},
 					},
+					name: data.name,
+					role: data.role,
+					userName: data.userName,
 				},
 			});
 
 			return json<Return<User>>(
-				{ message: t("User created"), data: user },
+				{ data: user, message: t("User created") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -111,6 +110,9 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 	.inputValidator((d: { invitationId: string; password: string }) => d)
 	.handler(async ({ data }) => {
 		try {
+			// biome-ignore lint/correctness/useHookAtTopLevel: not a real hook
+			const session = await useAppSession();
+
 			const invitation = await prismaClient.userInvitation.findUnique({
 				where: {
 					id: data.invitationId,
@@ -127,14 +129,14 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 
 			const hashedPassword = await hashPassword(data.password);
 			const user = await prismaClient.user.update({
-				where: {
-					id: invitation.userId,
-				},
 				data: {
 					password: hashedPassword,
 				},
 				include: {
 					invitation: true,
+				},
+				where: {
+					id: invitation.userId,
 				},
 			});
 			if (user.invitation) {
@@ -144,11 +146,9 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 					},
 				});
 			}
-			await loginFn({
-				data: { userName: user.userName, password: data.password },
-			});
+			await session.update(user);
 			return json<Return<User>>(
-				{ message: t("User created"), data: user },
+				{ data: user, message: t("User created") },
 				{
 					status: 200,
 				},

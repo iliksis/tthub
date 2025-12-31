@@ -1,13 +1,16 @@
 import { format } from "./utils";
 
-export const t = (key: string, ...params: string[]) =>
-	format(texts[key] ?? `${key} 🐧`, ...params);
+type TextKey = keyof typeof texts;
 
-const texts: { [key: string]: string } = {
+export const t = (key: TextKey | (string & {}), ...params: string[]) =>
+	format(key in texts ? texts[key as TextKey] : `${key} 🐧`, ...params);
+
+const texts = {
 	"{0} Appointments created": "{0} Termine erstellt",
 	Accept: "Annehmen",
 	Accepted: "Angenommen",
 	"An Error occurred": "Ein Fehler ist aufgetreten",
+	Apply: "Anwenden",
 	"Appointment created": "Termin erstellt",
 	"Appointment deleted": "Termin gelöscht",
 	"Appointment found": "Termin gefunden",
@@ -20,7 +23,6 @@ const texts: { [key: string]: string } = {
 	"Appointment updated": "Termin aktualisiert",
 	"Appointment was deleted.": "Termin wurde gelöscht.",
 	Appointments: "Termine",
-	Apply: "Anwenden",
 	"Are you sure you want to delete this appointment?":
 		"Bist du sicher, dass du diesen Termin löschen möchtest?",
 	"Are you sure you want to delete this player?":
@@ -36,10 +38,10 @@ const texts: { [key: string]: string } = {
 	Close: "Schließen",
 	"Copy link": "Link kopieren",
 	Country: "Land",
+	Create: "Erstellen",
 	"Create appointment": "Termin erstellen",
 	"Create new link": "Erstelle neuen Link",
 	"Create new user": "Neuen Benutzer erstellen",
-	Create: "Erstellen",
 	Dashboard: "Dashboard",
 	Date: "Datum",
 	Declined: "Abgelehnt",
@@ -58,7 +60,9 @@ const texts: { [key: string]: string } = {
 	Import: "Importieren",
 	"Import Holidays": "Ferien/Feiertage importieren",
 	Imports: "Importe",
-	"Incorrect user name or password": "Falscher Benutzername oder Passwort",
+	"Incorrect user name or password":
+		"Falscher Benutzername oder falsches Passwort",
+	"Invitation expired": "Einladung abgelaufen",
 	"Invitation not found": "Einladung nicht gefunden",
 	Link: "Link",
 	List: "Liste",
@@ -79,23 +83,23 @@ const texts: { [key: string]: string } = {
 	"No team set": "Gehört keinem Team an",
 	"Not authenticated": "Nicht authentifiziert",
 	"open sidebar": "Sidebar öffnen",
-	Participants: "Teilnehmer:innen",
 	"Participant already exists in this category":
 		"Teilnehmer:in existiert bereits in dieser Kategorie",
+	Participants: "Teilnehmer:innen",
 	Password: "Passwort",
 	"Pending appointments": "Offene Termine",
+	Placement: "Platzierung",
+	"Placement created": "Platzierung erstellt",
+	"Placement deleted": "Platzierung gelöscht",
+	"Placement updated": "Platzierung aktualisiert",
 	Player: "Spieler:in",
 	"Player created": "Spieler:in erstellt",
 	"Player deleted": "Spieler:in gelöscht",
 	"Player found": "Spieler:in gefunden",
 	"Player not found": "Spieler:in nicht gefunden",
 	"Player updated": "Spieler:in aktualisiert",
-	"Players found": "Spieler:innen gefunden",
 	Players: "Spieler:innen",
-	Placement: "Platzierung",
-	"Placement created": "Platzierung erstellt",
-	"Placement deleted": "Platzierung gelöscht",
-	"Placement updated": "Platzierung aktualisiert",
+	"Players found": "Spieler:innen gefunden",
 	"Previous month": "Vorheriger Monat",
 	Profile: "Profil",
 	Publish: "Veröffentlichen",
@@ -106,12 +110,14 @@ const texts: { [key: string]: string } = {
 	"Response created": "Antwort erstellt",
 	"Restore?": "Wiederherstellen?",
 	Role: "Rolle",
+	"Set a password to create your Account":
+		"Passwort festlegen, um Account zu erstellen",
 	Settings: "Einstellungen",
 	ShortTitle: "Kurztitel",
 	Show: "Zeige",
-	ShowAll: "Zeige alle",
 	"Show all": "Anzeigen",
 	"Show deleted?": "Gelöschte anzeigen?",
+	ShowAll: "Zeige alle",
 	Start: "Start",
 	StartDate: "Start",
 	Subdivision: "Region",
@@ -125,10 +131,11 @@ const texts: { [key: string]: string } = {
 	"Upcoming appointments": "Anstehende Termine",
 	Update: "Aktualisieren",
 	"Update player": "Spieler:in aktualisieren",
+	"User created": "Benutzer:in erstellt",
+	"User deleted": "Benutzer:in gelöscht",
+	"User information updated": "Benutzerinformationen aktualisiert",
 	"User Management": "Benutzerverwaltung",
 	"User Name": "Benutzername",
-	"User created": "Benutzer:in erstellt",
-	"User information updated": "Benutzerinformationen aktualisiert",
 	"User updated": "Benutzer aktualisiert",
 	"Year of birth": "Geburtsjahr",
 	"Year of birth must be set": "Geburtsjahr muss gesetzt sein",

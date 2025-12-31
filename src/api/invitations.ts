@@ -9,6 +9,9 @@ export const getInvitation = createServerFn({ method: "GET" })
 	.inputValidator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const invitation = await prismaClient.userInvitation.findUnique({
+			include: {
+				user: true,
+			},
 			where: {
 				id: data.id,
 			},
@@ -36,7 +39,7 @@ export const createUserInvitation = createServerFn({ method: "POST" })
 				},
 			});
 			return json<Return<UserInvitation>>(
-				{ message: t("User updated"), data: invitation },
+				{ data: invitation, message: t("User updated") },
 				{ status: 401 },
 			);
 		} catch (e) {

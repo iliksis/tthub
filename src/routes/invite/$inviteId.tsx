@@ -3,33 +3,37 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { getInvitation } from "@/api/invitations";
 import { createUserFromInvitation } from "@/api/users";
 import { useMutation } from "@/hooks/useMutation";
+import { t } from "@/lib/text";
 import { isInvitationExpired } from "@/lib/utils";
 
 export const Route = createFileRoute("/invite/$inviteId")({
-	component: RouteComponent,
 	beforeLoad: async ({ params }) => {
 		const invitation = await getInvitation({ data: { id: params.inviteId } });
 		if (invitation === null) {
-			throw new Error("Not found");
+			throw new Error(t("Invitation not found"));
 		}
 		if (isInvitationExpired(invitation)) {
-			throw new Error("Invitation expired");
+			throw new Error(t("Invitation expired"));
 		}
+		return { invitation };
 	},
+	component: RouteComponent,
 	errorComponent: ({ error }) => {
 		if (error.message === "Not found") {
-			return <div>Invitation not found.</div>;
+			return <div>{t("Invitation not found")}</div>;
 		}
 		if (error.message === "Invitation expired") {
-			return <div>Invitation has expired.</div>;
+			return <div>{t("Invitation expired")}</div>;
 		}
 		throw error;
 	},
+	loader: async ({ context }) => ({ invitation: context.invitation }),
 });
 
 function RouteComponent() {
-	const router = useRouter();
 	const params = Route.useParams();
+	const { invitation } = Route.useLoaderData();
+	const router = useRouter();
 
 	const createMutation = useMutation({
 		fn: createUserFromInvitation,
@@ -66,28 +70,38 @@ function RouteComponent() {
 				}}
 			>
 				<div className="card-body">
-					<h2 className="card-title">Set a password to create your Account</h2>
-					{/* A type-safe field component*/}
+					<h2 className="card-title">
+						{t("Set a password to create your Account")}
+					</h2>
+					<fieldset className="fieldset">
+						<label className="label" htmlFor="username">
+							{t("User Name")}:
+						</label>
+						<input
+							id="username"
+							className="input input-primary w-full"
+							name="UserName"
+							disabled={true}
+							value={invitation.user.userName}
+						/>
+					</fieldset>
 					<form.Field name="password">
-						{(field) => {
-							// Avoid hasty abstractions. Render props are great!
-							return (
-								<fieldset className="fieldset">
-									<label className="label" htmlFor={field.name}>
-										Password:
-									</label>
-									<input
-										id={field.name}
-										type="password"
-										className="input input-primary w-full"
-										name={field.name}
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-								</fieldset>
-							);
-						}}
+						{(field) => (
+							<fieldset className="fieldset">
+								<label className="label" htmlFor={field.name}>
+									{t("Password")}:
+								</label>
+								<input
+									id={field.name}
+									type="password"
+									className="input input-primary w-full"
+									name={field.name}
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onChange={(e) => field.handleChange(e.target.value)}
+								/>
+							</fieldset>
+						)}
 					</form.Field>
 					<form.Subscribe
 						selector={(state) => [state.canSubmit, state.isSubmitting]}

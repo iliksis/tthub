@@ -22,7 +22,9 @@
 		"enabled": true,
 		"indentStyle": "tab"
 	},
-	"assist": { "actions": { "source": { "organizeImports": "on" } } },
+	"assist": {
+		"actions": { "source": { "organizeImports": "on", "useSortedKeys": "on" } }
+	},
 	"linter": {
 		"enabled": true,
 		"rules": {
