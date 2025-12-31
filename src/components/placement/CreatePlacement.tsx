@@ -32,23 +32,23 @@ export const CreatePlacement = ({
 				onClose();
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", text: data.message });
 		},
 	});
 
 	const form = useForm({
 		defaultValues: {
-			player: "",
 			category: "",
 			placement: "",
+			player: "",
 		},
 		onSubmit: async ({ value }) => {
 			await createMutation.mutate({
 				data: {
+					appointmentId,
 					category: value.category,
 					placement: value.placement,
 					playerId: value.player,
-					appointmentId,
 				},
 			});
 		},

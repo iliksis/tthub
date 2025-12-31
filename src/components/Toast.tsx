@@ -21,13 +21,13 @@ export const Toast = ({ data }: ToastContentProps<ToastData>) => {
 
 export const notify = (data: ToastData) => {
 	toast(Toast, {
-		data,
 		closeButton: false,
+		data,
+		hideProgressBar: true,
 		style: {
-			padding: "0",
 			backgroundColor: "unset",
 			minHeight: "unset",
+			padding: "0",
 		},
-		hideProgressBar: true,
 	});
 };

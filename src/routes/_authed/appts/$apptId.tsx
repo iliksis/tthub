@@ -35,6 +35,7 @@ import {
 import { t } from "@/lib/text";
 import { cn, createColorForUserId, createGoogleMapsLink } from "@/lib/utils";
 
+// biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
 export const Route = createFileRoute("/_authed/appts/$apptId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
@@ -59,8 +60,8 @@ export const Route = createFileRoute("/_authed/appts/$apptId")({
 
 		return {
 			appointment: res.data,
-			players: players.data,
 			categories: categories.data,
+			players: players.data,
 		};
 	},
 	head: ({ loaderData }) => ({
@@ -138,13 +139,13 @@ function RouteComponent() {
 		const data = await res.json();
 		if (res.status < 400 && data) {
 			await router.invalidate();
-			notify({ text: data.message, status: "success" });
+			notify({ status: "success", text: data.message });
 			await router.navigate({
 				to: "/",
 			});
 			return;
 		}
-		notify({ text: data.message, status: "error" });
+		notify({ status: "error", text: data.message });
 	};
 
 	const onResponse = (response: ResponseType) => async () => {
@@ -156,7 +157,7 @@ function RouteComponent() {
 			await router.invalidate();
 			return;
 		}
-		notify({ text: data.message, status: "error" });
+		notify({ status: "error", text: data.message });
 	};
 
 	const onPublish = async () => {
@@ -215,9 +216,9 @@ function RouteComponent() {
 					<div className="flex flex-row">
 						<p>
 							{new Date(appointment.startDate).toLocaleDateString("de-DE", {
-								year: "numeric",
-								month: "short",
 								day: "2-digit",
+								month: "short",
+								year: "numeric",
 							})}
 
 							{isMultipleDays && appointment.endDate && (
@@ -225,9 +226,9 @@ function RouteComponent() {
 									{" "}
 									-{" "}
 									{new Date(appointment.endDate).toLocaleDateString("de-DE", {
-										year: "numeric",
-										month: "short",
 										day: "2-digit",
+										month: "short",
+										year: "numeric",
 									})}
 								</>
 							)}

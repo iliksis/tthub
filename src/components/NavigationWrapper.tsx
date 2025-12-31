@@ -32,44 +32,44 @@ type NavigationItem =
 	  };
 
 const navigationItems: NavigationItem[] = [
-	{ name: t("Dashboard"), href: "/", icon: HouseIcon },
+	{ href: "/", icon: HouseIcon, name: t("Dashboard") },
 	{
-		name: t("Appointments"),
-		icon: CalendarsIcon,
 		children: [
-			{ name: t("List"), href: "/appts", icon: TextAlignJustifyIcon },
+			{ href: "/appts", icon: TextAlignJustifyIcon, name: t("List") },
 			{
-				name: t("Calendar"),
 				href: "/appts/calendar",
 				icon: CalendarDaysIcon,
+				name: t("Calendar"),
 			},
 			{
-				name: t("Create"),
 				href: "/create",
 				icon: CalendarPlusIcon,
 				isHidden: (role) => role === "USER",
+				name: t("Create"),
 			},
 		],
+		icon: CalendarsIcon,
+		name: t("Appointments"),
 	},
-	{ name: t("Players"), href: "/players", icon: UsersIcon },
+	{ href: "/players", icon: UsersIcon, name: t("Players") },
 	{
-		name: t("Settings"),
-		icon: Settings2Icon,
 		children: [
-			{ name: t("Profile"), href: "/settings/profile", icon: UserPenIcon },
+			{ href: "/settings/profile", icon: UserPenIcon, name: t("Profile") },
 			{
-				name: t("Imports"),
 				href: "/settings/imports",
 				icon: ImportIcon,
 				isHidden: (role) => role === "USER",
+				name: t("Imports"),
 			},
 			{
-				name: t("User Management"),
 				href: "/settings/users",
 				icon: UserCogIcon,
 				isHidden: (role) => role !== "ADMIN",
+				name: t("User Management"),
 			},
 		],
+		icon: Settings2Icon,
+		name: t("Settings"),
 	},
 ];
 

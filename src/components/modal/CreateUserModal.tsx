@@ -15,9 +15,9 @@ type NewUser = {
 	role: Role;
 };
 const defaultUser: NewUser = {
-	userName: "",
 	name: "",
 	role: Role.USER,
+	userName: "",
 };
 
 export const CreateUserModal = () => {
@@ -30,10 +30,10 @@ export const CreateUserModal = () => {
 			if (ctx.data?.status < 400) {
 				form.reset();
 				await router.invalidate();
-				notify({ text: data.message, status: "success" });
+				notify({ status: "success", text: data.message });
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", text: data.message });
 		},
 	});
 
@@ -42,9 +42,9 @@ export const CreateUserModal = () => {
 		onSubmit: async ({ value }) => {
 			createMutation.mutate({
 				data: {
-					userName: value.userName,
 					name: value.name,
 					role: value.role,
+					userName: value.userName,
 				},
 			});
 		},

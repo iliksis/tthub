@@ -4,6 +4,7 @@ import { Filters, filterSchema, List } from "@/components/appointments/List";
 import { AppointmentType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 
+// biome-ignore assist/source/useSortedKeys: validateSearch and loaderDeps need to be before loader
 export const Route = createFileRoute("/_authed/appts/")({
 	component: RouteComponent,
 	validateSearch: filterSchema,
@@ -11,11 +12,11 @@ export const Route = createFileRoute("/_authed/appts/")({
 	loader: async ({ deps: { deleted, title, location } }) => {
 		const data = await getAppointments({
 			data: {
-				type: AppointmentType.TOURNAMENT_BY,
-				title,
 				location,
-				withDeleted: deleted,
 				orderBy: { startDate: "desc" },
+				title,
+				type: AppointmentType.TOURNAMENT_BY,
+				withDeleted: deleted,
 			},
 		});
 		const response = await data.json();

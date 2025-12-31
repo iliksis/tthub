@@ -21,35 +21,35 @@ const fetchUser = createServerFn({ method: "GET" }).handler(async () => {
 	}
 	return {
 		id: session.data.id,
+		name: session.data.name,
 		role: session.data.role,
 		userName: session.data.userName,
-		name: session.data.name,
 	};
 });
 
 export const Route = createRootRoute({
+	beforeLoad: async () => {
+		const user = await fetchUser();
+		const theme = await getTheme();
+		return { theme, user };
+	},
 	head: () => ({
+		links: [
+			{
+				href: appCss,
+				rel: "stylesheet",
+			},
+		],
 		meta: [
 			{
 				charSet: "utf-8",
 			},
 			{
-				name: "viewport",
 				content: "width=device-width, initial-scale=1",
-			},
-		],
-		links: [
-			{
-				rel: "stylesheet",
-				href: appCss,
+				name: "viewport",
 			},
 		],
 	}),
-	beforeLoad: async () => {
-		const user = await fetchUser();
-		const theme = await getTheme();
-		return { user, theme };
-	},
 	shellComponent: RootDocument,
 });
 

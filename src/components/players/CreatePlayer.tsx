@@ -27,12 +27,12 @@ export const CreatePlayer = () => {
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
 				notify({
-					text: data.message,
 					status: "success",
+					text: data.message,
 				});
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", text: data.message });
 		},
 	});
 

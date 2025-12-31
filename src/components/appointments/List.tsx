@@ -17,7 +17,7 @@ export const List = ({ appointments }: ListProps) => {
 	const router = useRouter();
 
 	const onClickAppointment = (id: string) => async () => {
-		await router.navigate({ to: "/appts/$apptId", params: { apptId: id } });
+		await router.navigate({ params: { apptId: id }, to: "/appts/$apptId" });
 	};
 
 	const renderRow = (appointment: ListProps["appointments"][number]) => {
@@ -99,8 +99,8 @@ export const List = ({ appointments }: ListProps) => {
 
 export const filterSchema = z.object({
 	deleted: z.boolean().optional(),
-	title: z.string().optional(),
 	location: z.string().optional(),
+	title: z.string().optional(),
 });
 type FiltersProps = z.infer<typeof filterSchema>;
 export const Filters = ({
@@ -115,14 +115,14 @@ export const Filters = ({
 	const form = useForm({
 		defaultValues: {
 			deleted,
-			title,
 			location,
+			title,
 		},
 		onSubmit: async ({ value }) => {
 			await router.navigate({
-				to: ".",
-				search: { ...value },
 				replace: true,
+				search: { ...value },
+				to: ".",
 			});
 		},
 	});
@@ -148,11 +148,11 @@ export const Filters = ({
 						form.update({
 							defaultValues: {
 								deleted: false,
-								title: "",
 								location: "",
+								title: "",
 							},
 						});
-						router.navigate({ to: ".", search: {}, replace: true });
+						router.navigate({ replace: true, search: {}, to: "." });
 					}}
 				>
 					{t("Clear")}

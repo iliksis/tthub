@@ -76,16 +76,16 @@ export const ParticipantModal = ({
 				await router.invalidate();
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", text: data.message });
 		},
 	});
 
 	const onDeletePlacement = (placement: Placement) => async () => {
 		await deleteMutation.mutate({
 			data: {
-				playerId: placement.playerId,
 				appointmentId: placement.appointmentId,
 				category: placement.category,
+				playerId: placement.playerId,
 			},
 		});
 	};

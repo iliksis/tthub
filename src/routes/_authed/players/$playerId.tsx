@@ -14,6 +14,7 @@ import { Card } from "@/components/ValueCard";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
 
+// biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
 export const Route = createFileRoute("/_authed/players/$playerId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
@@ -48,12 +49,12 @@ function RouteComponent() {
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
 				notify({
-					text: data.message,
 					status: "success",
+					text: data.message,
 				});
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", text: data.message });
 		},
 	});
 
@@ -80,13 +81,13 @@ function RouteComponent() {
 		const data = await res.json();
 		if (res.status < 400 && data) {
 			await router.invalidate();
-			notify({ text: data.message, status: "success" });
+			notify({ status: "success", text: data.message });
 			await router.navigate({
 				to: "..",
 			});
 			return;
 		}
-		notify({ text: data.message, status: "error" });
+		notify({ status: "error", text: data.message });
 	};
 
 	return (

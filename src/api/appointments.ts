@@ -39,18 +39,18 @@ export const createAppointment = createServerFn()
 		try {
 			const appointment = await prismaClient.appointment.create({
 				data: {
-					title: data.title,
-					type: data.type,
-					shortTitle: data.shortTitle,
-					startDate: data.startDate,
 					endDate: data.endDate,
 					location: data.type === "HOLIDAY" ? undefined : data.location,
+					shortTitle: data.shortTitle,
+					startDate: data.startDate,
 					status: data.type === "HOLIDAY" ? undefined : data.status,
+					title: data.title,
+					type: data.type,
 				},
 			});
 
 			return json<Return<Appointment>>(
-				{ message: t("Appointment created"), data: appointment },
+				{ data: appointment, message: t("Appointment created") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -65,15 +65,15 @@ export const getAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		try {
 			const appointment = await prismaClient.appointment.findUnique({
-				where: { id: data.id },
 				include: {
-					responses: {
-						include: { user: true },
-					},
 					placements: {
 						include: { player: true },
 					},
+					responses: {
+						include: { user: true },
+					},
 				},
+				where: { id: data.id },
 			});
 			if (!appointment) {
 				return json<Return>(
@@ -84,7 +84,7 @@ export const getAppointment = createServerFn()
 				);
 			}
 			return json<Return<typeof appointment>>(
-				{ message: t("Appointment found"), data: appointment },
+				{ data: appointment, message: t("Appointment found") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -109,8 +109,9 @@ export const getAppointments = createServerFn()
 	.handler(async ({ data }) => {
 		try {
 			const appointments = await prismaClient.appointment.findMany({
+				include: { responses: true },
+				orderBy: data.orderBy,
 				where: {
-					type: data.type,
 					deletedAt: data.withDeleted ? undefined : null,
 					location: {
 						contains: data.location,
@@ -119,12 +120,11 @@ export const getAppointments = createServerFn()
 						{ title: { contains: data.title ?? "" } },
 						{ shortTitle: { contains: data.title ?? "" } },
 					],
+					type: data.type,
 				},
-				include: { responses: true },
-				orderBy: data.orderBy,
 			});
 			return json<Return<typeof appointments>>(
-				{ message: t("Appointments found"), data: appointments },
+				{ data: appointments, message: t("Appointments found") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -144,18 +144,18 @@ export const updateAppointment = createServerFn()
 
 		try {
 			const appointment = await prismaClient.appointment.update({
-				where: { id: data.id },
 				data: {
-					title: data.updates.title,
-					startDate: data.updates.startDate,
 					endDate: data.updates.endDate,
-					location: data.updates.location,
-					status: data.updates.status,
 					link: data.updates.link,
+					location: data.updates.location,
+					startDate: data.updates.startDate,
+					status: data.updates.status,
+					title: data.updates.title,
 				},
+				where: { id: data.id },
 			});
 			return json<Return<Appointment>>(
-				{ message: t("Appointment updated"), data: appointment },
+				{ data: appointment, message: t("Appointment updated") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -175,13 +175,13 @@ export const deleteAppointment = createServerFn()
 
 		try {
 			const appointment = await prismaClient.appointment.update({
-				where: { id: data.id },
 				data: {
 					deletedAt: new Date(),
 				},
+				where: { id: data.id },
 			});
 			return json<Return<Appointment>>(
-				{ message: t("Appointment deleted"), data: appointment },
+				{ data: appointment, message: t("Appointment deleted") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -201,23 +201,23 @@ export const createResponse = createServerFn()
 
 		try {
 			const response = await prismaClient.response.upsert({
-				where: {
-					userId_appointmentId: {
-						userId: session.data.id,
-						appointmentId: data.appointmentId,
-					},
+				create: {
+					appointmentId: data.appointmentId,
+					responseType: data.response,
+					userId: session.data.id,
 				},
 				update: {
 					responseType: data.response,
 				},
-				create: {
-					userId: session.data.id,
-					appointmentId: data.appointmentId,
-					responseType: data.response,
+				where: {
+					userId_appointmentId: {
+						appointmentId: data.appointmentId,
+						userId: session.data.id,
+					},
 				},
 			});
 			return json<Return<Response>>(
-				{ message: t("Response created"), data: response },
+				{ data: response, message: t("Response created") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -232,6 +232,12 @@ export const getNextAppointments = createServerFn().handler(async () => {
 		const now = new Date();
 		const fourWeeks = new Date(now.getTime() + 86400000 * 28);
 		const appointments = await prismaClient.appointment.findMany({
+			include: {
+				responses: true,
+			},
+			orderBy: {
+				startDate: "asc",
+			},
 			where: {
 				AND: [
 					{
@@ -248,15 +254,9 @@ export const getNextAppointments = createServerFn().handler(async () => {
 				deletedAt: null,
 				type: AppointmentType.TOURNAMENT_BY,
 			},
-			include: {
-				responses: true,
-			},
-			orderBy: {
-				startDate: "asc",
-			},
 		});
 		return json<Return<typeof appointments>>(
-			{ message: t("Appointments found"), data: appointments },
+			{ data: appointments, message: t("Appointments found") },
 			{ status: 200 },
 		);
 	} catch (e) {
@@ -271,25 +271,25 @@ export const getUserAppointments = createServerFn()
 	.handler(async ({ data }) => {
 		try {
 			const appointments = await prismaClient.appointment.findMany({
-				where: {
-					startDate: {
-						gte: new Date(),
-					},
-					deletedAt: null,
-					type: AppointmentType.TOURNAMENT_BY,
-					responses: {
-						some: {
-							userId: data.userId,
-							responseType: "ACCEPT",
-						},
-					},
-				},
 				include: {
 					responses: true,
 				},
+				where: {
+					deletedAt: null,
+					responses: {
+						some: {
+							responseType: "ACCEPT",
+							userId: data.userId,
+						},
+					},
+					startDate: {
+						gte: new Date(),
+					},
+					type: AppointmentType.TOURNAMENT_BY,
+				},
 			});
 			return json<Return<typeof appointments>>(
-				{ message: t("Appointments found"), data: appointments },
+				{ data: appointments, message: t("Appointments found") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -304,24 +304,24 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 	.handler(async ({ data }) => {
 		try {
 			const appointments = await prismaClient.appointment.findMany({
+				include: {
+					responses: true,
+				},
 				where: {
-					startDate: {
-						gte: new Date(),
-					},
 					deletedAt: null,
-					type: AppointmentType.TOURNAMENT_BY,
 					responses: {
 						none: {
 							userId: data.userId,
 						},
 					},
-				},
-				include: {
-					responses: true,
+					startDate: {
+						gte: new Date(),
+					},
+					type: AppointmentType.TOURNAMENT_BY,
 				},
 			});
 			return json<Return<typeof appointments>>(
-				{ message: t("Appointments found"), data: appointments },
+				{ data: appointments, message: t("Appointments found") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -332,6 +332,10 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 	});
 
 const colors = {
+	HOLIDAY: {
+		bg: "var(--catppuccin-color-lavender-400)",
+		text: "var(--color-primary-content)",
+	},
 	TOURNAMENT_BY: {
 		bg: "var(--color-success)",
 		text: "var(--color-success-content)",
@@ -340,30 +344,25 @@ const colors = {
 		bg: "var(--catppuccin-color-blue-400)",
 		text: "var(--color-primary-content)",
 	},
-	HOLIDAY: {
-		bg: "var(--catppuccin-color-lavender-400)",
-		text: "var(--color-primary-content)",
-	},
 };
 export const getCalendarAppointments = createServerFn()
 	.inputValidator((d: { start: Date; end: Date }) => d)
 	.handler(async ({ data }) => {
 		try {
 			const appointments = await prismaClient.appointment.findMany({
+				include: {
+					responses: true,
+				},
 				where: {
+					deletedAt: null,
 					startDate: {
 						gte: new Date(data.start),
 						lt: new Date(data.end),
 					},
-					deletedAt: null,
-				},
-				include: {
-					responses: true,
 				},
 			});
 			const calAppointments = appointments.map((a) => ({
-				title: a.shortTitle,
-				start: a.startDate,
+				color: colors[a.type].bg,
 				end:
 					a.endDate ??
 					new Date(
@@ -372,15 +371,16 @@ export const getCalendarAppointments = createServerFn()
 						a.startDate.getDate(),
 						17,
 					),
-				color: colors[a.type].bg,
-				id: a.id,
-				textColor: colors[a.type].text,
 				extendedProps: {
 					shortTitle: a.shortTitle,
 				},
+				id: a.id,
+				start: a.startDate,
+				textColor: colors[a.type].text,
+				title: a.shortTitle,
 			}));
 			return json<Return<typeof calAppointments>>(
-				{ message: t("Appointments found"), data: calAppointments },
+				{ data: calAppointments, message: t("Appointments found") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -426,11 +426,11 @@ export const importHolidays = createServerFn()
 				}
 				await prismaClient.appointment.create({
 					data: {
+						endDate: holiday.endDate,
 						id: holiday.id,
-						title: holiday.name[0].text,
 						shortTitle: holiday.name[0].text,
 						startDate: holiday.startDate,
-						endDate: holiday.endDate,
+						title: holiday.name[0].text,
 						type: AppointmentType.HOLIDAY,
 					},
 				});
@@ -457,13 +457,13 @@ export const publishAppointment = createServerFn()
 
 		try {
 			const appointment = await prismaClient.appointment.update({
-				where: { id: data.id },
 				data: {
 					status: AppointmentStatus.PUBLISHED,
 				},
+				where: { id: data.id },
 			});
 			return json<Return<Appointment>>(
-				{ message: t("Appointment published"), data: appointment },
+				{ data: appointment, message: t("Appointment published") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -483,13 +483,13 @@ export const restoreAppointment = createServerFn()
 
 		try {
 			const appointment = await prismaClient.appointment.update({
-				where: { id: data.id },
 				data: {
 					deletedAt: null,
 				},
+				where: { id: data.id },
 			});
 			return json<Return<Appointment>>(
-				{ message: t("Appointment restored"), data: appointment },
+				{ data: appointment, message: t("Appointment restored") },
 				{ status: 200 },
 			);
 		} catch (e) {

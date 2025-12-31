@@ -5,11 +5,7 @@ import { t } from "@/lib/text";
 export const Route = createFileRoute("/_authed/create")({
 	component: RouteComponent,
 	head: () => ({
-		meta: [
-			{
-				title: t("Create appointment"),
-			},
-		],
+		meta: [{ title: t("Create appointment") }],
 	}),
 });
 

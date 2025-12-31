@@ -23,11 +23,11 @@ type CreateActions = {
 };
 
 const useCreateState = create<CreateState & CreateActions>((set) => ({
-	type: undefined,
-	tournamentType: undefined,
-	setType: (type: (typeof types)[number]) => set({ type }),
 	setTournamentType: (tournamentType: (typeof tournamentAreas)[number]) =>
 		set({ tournamentType }),
+	setType: (type: (typeof types)[number]) => set({ type }),
+	tournamentType: undefined,
+	type: undefined,
 }));
 
 export const CreateAppointmentForm = () => {
@@ -104,11 +104,11 @@ const defaultFormValues: {
 	location?: string;
 	status: AppointmentStatus;
 } = {
-	title: "",
-	shortTitle: "",
 	location: "",
+	shortTitle: "",
 	startDate: new Date(),
 	status: AppointmentStatus.DRAFT,
+	title: "",
 };
 const AppointmentEditSection = ({
 	appointmentType,
@@ -123,14 +123,14 @@ const AppointmentEditSection = ({
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400 && data.data) {
 				await router.invalidate();
-				notify({ text: data.message, status: "success" });
+				notify({ status: "success", text: data.message });
 				await router.navigate({
-					to: "/appts/$apptId",
 					params: { apptId: data.data.id },
+					to: "/appts/$apptId",
 				});
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", text: data.message });
 		},
 	});
 
@@ -139,13 +139,13 @@ const AppointmentEditSection = ({
 		onSubmit: async ({ value }) => {
 			createMutation.mutate({
 				data: {
-					title: value.title,
-					shortTitle: value.shortTitle,
-					type: appointmentType,
-					startDate: value.startDate,
 					endDate: value.endDate,
 					location: value.location,
+					shortTitle: value.shortTitle,
+					startDate: value.startDate,
 					status: value.status,
+					title: value.title,
+					type: appointmentType,
 				},
 			});
 		},

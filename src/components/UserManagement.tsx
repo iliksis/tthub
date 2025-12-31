@@ -24,12 +24,12 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
 				notify({
-					text: data.message,
 					status: "success",
+					text: data.message,
 				});
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", text: data.message });
 		},
 	});
 
@@ -68,12 +68,12 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
 				notify({
-					text: data.message,
 					status: "success",
+					text: data.message,
 				});
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", text: data.message });
 		},
 	});
 

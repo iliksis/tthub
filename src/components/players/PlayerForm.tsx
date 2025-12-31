@@ -22,7 +22,7 @@ export const PlayerForm = ({
 	open,
 	onClose,
 	submitLabel,
-	defaultValues = { name: "", year: new Date().getFullYear(), qttr: 0 },
+	defaultValues = { name: "", qttr: 0, year: new Date().getFullYear() },
 	onSubmit,
 }: PlayerFormProps) => {
 	const form = useForm({

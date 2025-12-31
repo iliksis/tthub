@@ -21,15 +21,15 @@ export const createPlacement = createServerFn()
 
 		try {
 			const existing = await prismaClient.placement.findUnique({
-				where: {
-					playerId_appointmentId_category: {
-						playerId: data.playerId,
-						appointmentId: data.appointmentId,
-						category: data.category,
-					},
-				},
 				select: {
 					placement: true,
+				},
+				where: {
+					playerId_appointmentId_category: {
+						appointmentId: data.appointmentId,
+						category: data.category,
+						playerId: data.playerId,
+					},
 				},
 			});
 
@@ -42,15 +42,15 @@ export const createPlacement = createServerFn()
 
 			const placement = await prismaClient.placement.create({
 				data: {
-					category: data.category,
-					playerId: data.playerId,
 					appointmentId: data.appointmentId,
+					category: data.category,
 					placement: data.placement,
+					playerId: data.playerId,
 				},
 			});
 
 			return json<Return<typeof placement>>(
-				{ message: t("Placement created"), data: placement },
+				{ data: placement, message: t("Placement created") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -67,7 +67,7 @@ export const getUniqueCategories = createServerFn().handler(async () => {
 		});
 		const result = categories.map((c) => c.category);
 		return json<Return<typeof result>>(
-			{ message: t("Categories found"), data: result },
+			{ data: result, message: t("Categories found") },
 			{ status: 200 },
 		);
 	} catch (e) {
@@ -96,20 +96,20 @@ export const updatePlacement = createServerFn()
 
 		try {
 			const placement = await prismaClient.placement.update({
-				where: {
-					playerId_appointmentId_category: {
-						playerId: data.playerId,
-						appointmentId: data.appointmentId,
-						category: data.category,
-					},
-				},
 				data: {
 					placement: data.updates.placement,
+				},
+				where: {
+					playerId_appointmentId_category: {
+						appointmentId: data.appointmentId,
+						category: data.category,
+						playerId: data.playerId,
+					},
 				},
 			});
 
 			return json<Return<typeof placement>>(
-				{ message: t("Placement updated"), data: placement },
+				{ data: placement, message: t("Placement updated") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -133,15 +133,15 @@ export const deletePlacement = createServerFn()
 			const placement = await prismaClient.placement.delete({
 				where: {
 					playerId_appointmentId_category: {
-						playerId: data.playerId,
 						appointmentId: data.appointmentId,
 						category: data.category,
+						playerId: data.playerId,
 					},
 				},
 			});
 
 			return json<Return<typeof placement>>(
-				{ message: t("Placement deleted"), data: placement },
+				{ data: placement, message: t("Placement deleted") },
 				{ status: 200 },
 			);
 		} catch (e) {

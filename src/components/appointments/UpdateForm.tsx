@@ -21,38 +21,38 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400 && data.data) {
 				await router.invalidate();
-				notify({ text: data.message, status: "success" });
+				notify({ status: "success", text: data.message });
 				await router.navigate({
-					to: "/appts/$apptId",
 					params: { apptId: data.data.id },
+					to: "/appts/$apptId",
 				});
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", text: data.message });
 		},
 	});
 
 	const form = useForm({
 		defaultValues: {
-			title: appointment.title,
+			endDate: appointment.endDate ? new Date(appointment.endDate) : null,
+			link: appointment.link,
+			location: appointment.location,
 			shortTitle: appointment.shortTitle,
 			startDate: new Date(appointment.startDate),
-			endDate: appointment.endDate ? new Date(appointment.endDate) : null,
-			location: appointment.location,
 			status: appointment.status,
-			link: appointment.link,
+			title: appointment.title,
 		},
 		onSubmit: async ({ value }) => {
 			await updateMutation.mutate({
 				data: {
 					id: appointment.id,
 					updates: {
-						title: value.title,
-						startDate: value.startDate,
 						endDate: value.endDate,
-						location: value.location,
-						status: value.status,
 						link: value.link,
+						location: value.location,
+						startDate: value.startDate,
+						status: value.status,
+						title: value.title,
 					},
 				},
 			});

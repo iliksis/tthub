@@ -11,8 +11,8 @@ export const List = ({ players }: ListProps) => {
 
 	const onClickPlayer = (id: string) => async () => {
 		await router.navigate({
-			to: "/players/$playerId",
 			params: { playerId: id },
+			to: "/players/$playerId",
 		});
 	};
 

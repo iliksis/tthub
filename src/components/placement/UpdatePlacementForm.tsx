@@ -28,7 +28,7 @@ export const UpdatePlacementForm = ({
 				onClose();
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", text: data.message });
 		},
 	});
 
@@ -39,9 +39,9 @@ export const UpdatePlacementForm = ({
 		onSubmit: async ({ value }) => {
 			await updateMutation.mutate({
 				data: {
-					playerId: placement.playerId,
 					appointmentId: placement.appointmentId,
 					category: placement.category,
+					playerId: placement.playerId,
 					updates: {
 						placement: value.placement,
 					},
