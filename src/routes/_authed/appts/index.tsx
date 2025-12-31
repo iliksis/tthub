@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authed/appts/")({
 				location,
 				orderBy: { startDate: "desc" },
 				title,
-				type: AppointmentType.TOURNAMENT_BY,
+				type: AppointmentType.TOURNAMENT,
 				withDeleted: deleted,
 			},
 		});

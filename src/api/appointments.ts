@@ -22,7 +22,7 @@ type ICreateAppointment =
 	| {
 			title: string;
 			shortTitle: string;
-			type: "TOURNAMENT_BY" | "TOURNAMENT_DE";
+			type: "TOURNAMENT" | "TOURNAMENT_DE";
 			startDate: Date;
 			endDate?: Date;
 			location?: string;
@@ -252,7 +252,7 @@ export const getNextAppointments = createServerFn().handler(async () => {
 					},
 				],
 				deletedAt: null,
-				type: AppointmentType.TOURNAMENT_BY,
+				type: AppointmentType.TOURNAMENT,
 			},
 		});
 		return json<Return<typeof appointments>>(
@@ -285,7 +285,7 @@ export const getUserAppointments = createServerFn()
 					startDate: {
 						gte: new Date(),
 					},
-					type: AppointmentType.TOURNAMENT_BY,
+					type: AppointmentType.TOURNAMENT,
 				},
 			});
 			return json<Return<typeof appointments>>(
@@ -317,7 +317,7 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 					startDate: {
 						gte: new Date(),
 					},
-					type: AppointmentType.TOURNAMENT_BY,
+					type: AppointmentType.TOURNAMENT,
 				},
 			});
 			return json<Return<typeof appointments>>(
@@ -336,7 +336,7 @@ const colors = {
 		bg: "var(--catppuccin-color-lavender-400)",
 		text: "var(--color-primary-content)",
 	},
-	TOURNAMENT_BY: {
+	TOURNAMENT: {
 		bg: "var(--color-success)",
 		text: "var(--color-success-content)",
 	},

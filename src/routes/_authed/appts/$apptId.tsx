@@ -293,7 +293,7 @@ function RouteComponent() {
 				)}
 			</div>
 			{/*User response*/}
-			{appointment.type === AppointmentType.TOURNAMENT_BY && (
+			{appointment.type === AppointmentType.TOURNAMENT && (
 				<>
 					<div className="mt-6 grid grid-cols-3 gap-2">
 						<button

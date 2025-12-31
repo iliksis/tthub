@@ -53,7 +53,7 @@ enum AppointmentStatus {
 }
 
 enum AppointmentType {
-  TOURNAMENT_BY
+  TOURNAMENT
   TOURNAMENT_DE
   HOLIDAY
 }
