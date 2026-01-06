@@ -57,7 +57,9 @@ export const ModelName = {
   Response: 'Response',
   Player: 'Player',
   Team: 'Team',
-  Placement: 'Placement'
+  Placement: 'Placement',
+  Subscription: 'Subscription',
+  NotificationSettings: 'NotificationSettings'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -150,6 +152,28 @@ export const PlacementScalarFieldEnum = {
 } as const
 
 export type PlacementScalarFieldEnum = (typeof PlacementScalarFieldEnum)[keyof typeof PlacementScalarFieldEnum]
+
+
+export const SubscriptionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  device: 'device',
+  endpoint: 'endpoint',
+  p256dh: 'p256dh',
+  auth: 'auth'
+} as const
+
+export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
+
+
+export const NotificationSettingsScalarFieldEnum = {
+  userId: 'userId',
+  subscriptionId: 'subscriptionId',
+  newAppointment: 'newAppointment',
+  changedAppointment: 'changedAppointment'
+} as const
+
+export type NotificationSettingsScalarFieldEnum = (typeof NotificationSettingsScalarFieldEnum)[keyof typeof NotificationSettingsScalarFieldEnum]
 
 
 export const SortOrder = {

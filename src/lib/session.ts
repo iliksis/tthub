@@ -9,12 +9,12 @@ export type SessionUser = {
 	role: User["role"];
 };
 
-export function useAppSession() {
+export const useAppSession = () => {
 	return useSession<SessionUser>({
 		name: "tthub-session",
-		password: "ChangeThisBeforeShippingToProdOrYouWillBeFired",
+		password: process.env.SESSION_PASSWORD,
 	});
-}
+};
 
 export const useIsRole = async (role: User["role"]) => {
 	const { data } = await useAppSession();

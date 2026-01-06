@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { FileRouteTypes } from "@/routeTree.gen";
 import type { UserInvitation } from "./prisma/client";
 import { Role } from "./prisma/enums";
 
@@ -72,8 +73,24 @@ export const createColorForUserId = (userId: string) => {
 	return color;
 };
 
+/**
+ * Formats a string with numeric placeholders (e.g. {0}, {1}, ...) and replaces them with the provided values.
+ */
 export const format = (str: string, ...values: string[]) => {
 	return str.replace(/{(\d+)}/g, (match, index) => {
 		return typeof values[index] !== "undefined" ? values[index] : match;
 	});
+};
+
+export const formatTanstackRouterPath = (
+	path: FileRouteTypes["fullPaths"],
+	params: Record<string, string>,
+) => {
+	const keys = Object.keys(params);
+	const values = Object.values(params);
+	return path
+		.replace(/\/$/, "")
+		.replace(new RegExp(`\\$${keys.join("|\\$")}`, "g"), (match, index) => {
+			return values[index] ?? match;
+		});
 };

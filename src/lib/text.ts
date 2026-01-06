@@ -9,6 +9,7 @@ const texts = {
 	"{0} Appointments created": "{0} Termine erstellt",
 	Accept: "Annehmen",
 	Accepted: "Angenommen",
+	"Active Subscriptions": "Geräte mit aktivierten Benachrichtigungen",
 	"An Error occurred": "Ein Fehler ist aufgetreten",
 	Apply: "Anwenden",
 	"Appointment created": "Termin erstellt",
@@ -56,6 +57,10 @@ const texts = {
 	Expired: "Abgelaufen",
 	Filters: "Filter",
 	Germany: "Deutschland",
+	"Get a notification when a new appointment is created":
+		"Erhalte eine Benachrichtigung, wenn ein neuer Termin erstellt wird",
+	"Get a notification when an accepted appointment was changed":
+		"Erhalte eine Benachrichtigung, wenn ein akzeptierter Termin geändert wurde",
 	Holiday: "Ferien",
 	Import: "Importieren",
 	"Import Holidays": "Ferien/Feiertage importieren",
@@ -73,6 +78,7 @@ const texts = {
 	Name: "Name",
 	"Name must be at least 2 characters long":
 		"Name muss mindestens 2 Zeichen lang sein",
+	"New Appointment": "Neuer Termin",
 	"Next month": "Nächster Monat",
 	"No appointments found": "Keine Termine gefunden",
 	"No appointments in the next 4 weeks":
@@ -82,6 +88,11 @@ const texts = {
 	"No players found": "Keine Spieler:innen gefunden",
 	"No team set": "Gehört keinem Team an",
 	"Not authenticated": "Nicht authentifiziert",
+	Notifications: "Benachrichtigungen",
+	"Notifications are not supported in this browser":
+		"Benachrichtigungen werden in diesem Browser nicht unterstützt",
+	"On iOS devices, you must add the website to the home screen before notifications will work.":
+		"Auf iOS-Geräten muss die Website zur Startseite hinzufügt werden, bevor Benachrichtigungen funktionieren.",
 	"open sidebar": "Sidebar öffnen",
 	"Participant already exists in this category":
 		"Teilnehmer:in existiert bereits in dieser Kategorie",
@@ -113,6 +124,7 @@ const texts = {
 	"Set a password to create your Account":
 		"Passwort festlegen, um Account zu erstellen",
 	Settings: "Einstellungen",
+	"Settings updated": "Einstellungen aktualisiert",
 	ShortTitle: "Kurztitel",
 	Show: "Zeige",
 	"Show all": "Anzeigen",
@@ -133,7 +145,6 @@ const texts = {
 	"Update player": "Spieler:in aktualisieren",
 	"User created": "Benutzer:in erstellt",
 	"User deleted": "Benutzer:in gelöscht",
-	"User information updated": "Benutzerinformationen aktualisiert",
 	"User Management": "Benutzerverwaltung",
 	"User Name": "Benutzername",
 	"User updated": "Benutzer aktualisiert",

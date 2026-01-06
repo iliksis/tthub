@@ -50,6 +50,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 						endDate: value.endDate,
 						link: value.link,
 						location: value.location,
+						shortTitle: value.shortTitle,
 						startDate: value.startDate,
 						status: value.status,
 						title: value.title,

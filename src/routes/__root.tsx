@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
+import React from "react";
 import { ToastContainer } from "react-toastify";
 import { NavigationWrapper } from "@/components/NavigationWrapper";
 import { getTheme } from "@/components/ThemeSwitch";
@@ -38,6 +39,34 @@ export const Route = createRootRoute({
 			{
 				href: appCss,
 				rel: "stylesheet",
+			},
+			{
+				href: "/favicon-96x96.png",
+				rel: "icon",
+				sizes: "96x96",
+				type: "image/png",
+			},
+			{
+				href: "/favicon.svg",
+				rel: "icon",
+				type: "image/svg+xml",
+			},
+			{
+				href: "/favicon.ico",
+				rel: "shortcut icon",
+			},
+			{
+				href: "/apple-touch-icon.png",
+				rel: "apple-touch-icon",
+				sizes: "180x180",
+			},
+			{
+				content: "TT Hub",
+				rel: "apple-mobile-web-app-title",
+			},
+			{
+				href: "/manifest.json",
+				rel: "manifest",
 			},
 		],
 		meta: [
@@ -74,6 +103,31 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 	const isAuthedRoute = useRouterState({
 		select: (state) => state.matches.some((m) => m.routeId === "/_authed"),
 	});
+
+	React.useEffect(() => {
+		const registerServiceWorker = async () => {
+			if ("serviceWorker" in navigator) {
+				try {
+					const registration = await navigator.serviceWorker.register(
+						"/sw.js",
+						{
+							scope: "/",
+						},
+					);
+					if (registration.installing) {
+						console.log("Service worker installing");
+					} else if (registration.waiting) {
+						console.log("Service worker installed");
+					} else if (registration.active) {
+						console.log("Service worker active");
+					}
+				} catch (error) {
+					console.error(`Registration failed with ${error}`);
+				}
+			}
+		};
+		registerServiceWorker();
+	}, []);
 
 	return (
 		<html

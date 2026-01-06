@@ -65,7 +65,7 @@ export const updateUserInformation = createServerFn({ method: "POST" })
 				},
 			});
 			return json<Return<User>>(
-				{ data: user, message: t("User information updated") },
+				{ data: user, message: t("Settings updated") },
 				{ status: 200 },
 			);
 		} catch (e) {

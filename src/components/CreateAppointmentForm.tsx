@@ -34,7 +34,6 @@ export const CreateAppointmentForm = () => {
 
 const AppointmentTypeSelect = () => {
 	const { state, dispatch } = useCreateAppointmentContext();
-	console.log(state);
 
 	return (
 		<fieldset className="fieldset">
@@ -43,7 +42,6 @@ const AppointmentTypeSelect = () => {
 				<select
 					className="select select-primary w-1/2"
 					onChange={(e) => {
-						console.log(e);
 						dispatch({
 							payload: e.target.value as AppointmentType,
 							type: "SET_TYPE",

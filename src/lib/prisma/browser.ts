@@ -52,3 +52,13 @@ export type Team = Prisma.TeamModel
  * 
  */
 export type Placement = Prisma.PlacementModel
+/**
+ * Model Subscription
+ * 
+ */
+export type Subscription = Prisma.SubscriptionModel
+/**
+ * Model NotificationSettings
+ * 
+ */
+export type NotificationSettings = Prisma.NotificationSettingsModel

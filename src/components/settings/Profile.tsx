@@ -5,7 +5,7 @@ import { updateUserInformation } from "@/api/users";
 import { useMutation } from "@/hooks/useMutation";
 import { useAppSession } from "@/lib/session";
 import { t } from "@/lib/text";
-import { notify } from "./Toast";
+import { notify } from "../Toast";
 
 const updateSession = createServerFn({ method: "POST" })
 	.inputValidator((d: { name: string }) => d)
@@ -104,7 +104,7 @@ export const Profile = () => {
 					{([canSubmit, isSubmitting]) => (
 						<button
 							type="submit"
-							className="btn btn-primary mt-4"
+							className="btn btn-primary mt-4 w-36"
 							disabled={!canSubmit}
 						>
 							{isSubmitting ? "..." : t("Update")}

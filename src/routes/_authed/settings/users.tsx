@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { fetchUsers } from "@/api/users";
-import { UserManagement } from "@/components/UserManagement";
+import { UserManagement } from "@/components/settings/UserManagement";
 import { useIsRole } from "@/lib/session";
 import { t } from "@/lib/text";
 

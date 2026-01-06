@@ -2,13 +2,13 @@ import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { LinkIcon, Trash2Icon } from "lucide-react";
 import { createUserInvitation } from "@/api/invitations";
 import { deleteUser, updateUserRole } from "@/api/users";
+import { CreateUserModal } from "@/components/modal/CreateUserModal";
+import { notify } from "@/components/Toast";
 import { useMutation } from "@/hooks/useMutation";
 import type { User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { isInvitationExpired } from "@/lib/utils";
-import { CreateUserModal } from "./modal/CreateUserModal";
-import { notify } from "./Toast";
 
 type IUserManagementProps = {
 	users: (User & { invitation: UserInvitation | null })[];

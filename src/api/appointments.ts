@@ -9,6 +9,8 @@ import {
 } from "@/lib/prisma/enums";
 import { useAppSession, useIsRole } from "@/lib/session";
 import { t } from "@/lib/text";
+import { formatTanstackRouterPath } from "@/lib/utils";
+import { sendNotification } from "./notifications";
 import type { Return } from "./types";
 
 type ICreateAppointment =
@@ -48,6 +50,17 @@ export const createAppointment = createServerFn()
 					type: data.type,
 				},
 			});
+
+			if (appointment.type === AppointmentType.TOURNAMENT) {
+				await sendNotification({
+					body: appointment.title,
+					scope: "new",
+					title: t("New Appointment"),
+					url: formatTanstackRouterPath("/appts/$apptId", {
+						apptId: appointment.id,
+					}),
+				});
+			}
 
 			return json<Return<Appointment>>(
 				{ data: appointment, message: t("Appointment created") },
@@ -148,12 +161,25 @@ export const updateAppointment = createServerFn()
 					endDate: data.updates.endDate,
 					link: data.updates.link,
 					location: data.updates.location,
+					shortTitle: data.updates.shortTitle,
 					startDate: data.updates.startDate,
 					status: data.updates.status,
 					title: data.updates.title,
 				},
 				where: { id: data.id },
 			});
+
+			if (appointment.type === AppointmentType.TOURNAMENT) {
+				await sendNotification({
+					body: appointment.title,
+					scope: "updated",
+					title: t("Appointment updated"),
+					url: formatTanstackRouterPath("/appts/$apptId", {
+						apptId: appointment.id,
+					}),
+				});
+			}
+
 			return json<Return<Appointment>>(
 				{ data: appointment, message: t("Appointment updated") },
 				{ status: 200 },
