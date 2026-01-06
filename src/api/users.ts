@@ -46,11 +46,25 @@ export const updateUserRole = createServerFn({ method: "POST" })
 	});
 
 export const updateUserInformation = createServerFn({ method: "POST" })
-	.inputValidator((d: { id: string; name: string; password: string }) => d)
+	.inputValidator(
+		(d: {
+			id: string;
+			name: string;
+			password: string;
+			confirmPassword: string;
+		}) => d,
+	)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsUserOrRole(data.id, "ADMIN");
 		if (!isAuthorized) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
+
+		if (data.password !== data.confirmPassword) {
+			return json<Return>(
+				{ message: t("The passwords entered do not match") },
+				{ status: 400 },
+			);
 		}
 
 		try {
@@ -107,7 +121,10 @@ export const createUser = createServerFn({ method: "POST" })
 	});
 
 export const createUserFromInvitation = createServerFn({ method: "POST" })
-	.inputValidator((d: { invitationId: string; password: string }) => d)
+	.inputValidator(
+		(d: { invitationId: string; password: string; confirmPassword: string }) =>
+			d,
+	)
 	.handler(async ({ data }) => {
 		try {
 			// biome-ignore lint/correctness/useHookAtTopLevel: not a real hook
@@ -124,6 +141,13 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 					{
 						status: 404,
 					},
+				);
+			}
+
+			if (data.password !== data.confirmPassword) {
+				return json<Return>(
+					{ message: t("The passwords entered do not match") },
+					{ status: 400 },
 				);
 			}
 

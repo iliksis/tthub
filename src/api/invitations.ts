@@ -40,7 +40,7 @@ export const createUserInvitation = createServerFn({ method: "POST" })
 			});
 			return json<Return<UserInvitation>>(
 				{ data: invitation, message: t("User updated") },
-				{ status: 401 },
+				{ status: 200 },
 			);
 		} catch (e) {
 			console.error(e);

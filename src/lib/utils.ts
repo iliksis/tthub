@@ -10,7 +10,7 @@ export function cn(...inputs: ClassValue[]) {
 
 const expirationDays = 3;
 export const isInvitationExpired = (invitation: UserInvitation) => {
-	const expirationDate = invitation.createdAt;
+	const expirationDate = new Date(invitation.createdAt);
 	expirationDate.setDate(expirationDate.getDate() + expirationDays);
 	return expirationDate < new Date();
 };

@@ -1,4 +1,4 @@
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { updateUserInformation } from "@/api/users";
@@ -37,19 +37,37 @@ export const Profile = () => {
 
 	const form = useForm({
 		defaultValues: {
+			confirmPassword: "",
 			name: currentUser?.name || "",
 			password: "",
 		},
-		onSubmit: async ({ value }) => {
-			updateMutation.mutate({
+		onSubmit: async ({ value, formApi }) => {
+			await updateMutation.mutate({
 				data: {
+					confirmPassword: value.confirmPassword,
 					id: currentUser?.id || "empty",
 					name: value.name,
 					password: value.password,
 				},
 			});
+			formApi.reset();
+		},
+		validators: {
+			onChange: ({ value }) => {
+				if (value.password.length > 0 && value.confirmPassword.length === 0) {
+					return true;
+				}
+				if (value.password.length === 0 && value.confirmPassword.length > 0) {
+					return true;
+				}
+				if (value.password !== value.confirmPassword) {
+					return t("The passwords entered do not match");
+				}
+			},
 		},
 	});
+
+	const formErrorMap = useStore(form.store, (state) => state.errorMap);
 
 	return (
 		<div>
@@ -89,6 +107,7 @@ export const Profile = () => {
 								<input
 									id={field.name}
 									className="input input-primary w-full"
+									type="password"
 									name={field.name}
 									value={field.state.value}
 									onBlur={field.handleBlur}
@@ -98,14 +117,41 @@ export const Profile = () => {
 						)}
 					</form.Field>
 				</div>
+				<div>
+					<form.Field name="confirmPassword">
+						{(field) => (
+							<fieldset className="fieldset">
+								<label className="label" htmlFor={field.name}>
+									{t("Confirm Password")}:
+								</label>
+								<input
+									id={field.name}
+									className="input input-primary w-full"
+									type="password"
+									name={field.name}
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onChange={(e) => field.handleChange(e.target.value)}
+								/>
+							</fieldset>
+						)}
+					</form.Field>
+				</div>
+				{formErrorMap.onChange && (
+					<div className="text-error text-xs">{formErrorMap.onChange}</div>
+				)}
 				<form.Subscribe
-					selector={(state) => [state.canSubmit, state.isSubmitting]}
+					selector={(state) => [
+						state.canSubmit,
+						state.isSubmitting,
+						state.isDefaultValue,
+					]}
 				>
-					{([canSubmit, isSubmitting]) => (
+					{([canSubmit, isSubmitting, isDefaultValue]) => (
 						<button
 							type="submit"
 							className="btn btn-primary mt-4 w-36"
-							disabled={!canSubmit}
+							disabled={!canSubmit || isDefaultValue}
 						>
 							{isSubmitting ? "..." : t("Update")}
 						</button>

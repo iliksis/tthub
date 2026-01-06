@@ -234,7 +234,7 @@ const ActiveSubscriptions = ({ subscriptions }: ActiveSubscriptionsProps) => {
 		notify({ status: "error", text: result.message });
 	};
 
-	if (!subscriptions) return null;
+	if (!subscriptions || subscriptions.length === 0) return null;
 	return (
 		<div className="mt-6">
 			<h3>{t("Active Subscriptions")}</h3>

@@ -1,4 +1,4 @@
-import { useRouteContext, useRouter } from "@tanstack/react-router";
+import { ClientOnly, useRouteContext, useRouter } from "@tanstack/react-router";
 import { LinkIcon, Trash2Icon } from "lucide-react";
 import { createUserInvitation } from "@/api/invitations";
 import { deleteUser, updateUserRole } from "@/api/users";
@@ -127,33 +127,35 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 								</select>
 							</td>
 							<td>
-								{user.invitation ? (
-									isInvitationExpired(user.invitation) ? (
-										<button
-											type="button"
-											className="btn btn-warning tooltip tooltip-left"
-											aria-label={t("Create new link")}
-											data-tip={t("Create new link")}
-											onClick={onCreateInvitation(user)}
-										>
-											{t("Expired")}
-										</button>
-									) : (
-										<button
-											type="button"
-											className="btn btn-square btn-primary tooltip tooltip-left"
-											aria-label={t("Copy link")}
-											data-tip={t("Copy link")}
-											onClick={() => {
-												navigator.clipboard.writeText(
-													`${window.location.origin}/invite/${user.invitation?.id}`,
-												);
-											}}
-										>
-											<LinkIcon className="size-4" />
-										</button>
-									)
-								) : null}
+								<ClientOnly fallback={<div></div>}>
+									{user.invitation ? (
+										isInvitationExpired(user.invitation) ? (
+											<button
+												type="button"
+												className="btn btn-warning tooltip tooltip-left"
+												aria-label={t("Create new link")}
+												data-tip={t("Create new link")}
+												onClick={onCreateInvitation(user)}
+											>
+												{t("Expired")}
+											</button>
+										) : (
+											<button
+												type="button"
+												className="btn btn-square btn-primary tooltip tooltip-left"
+												aria-label={t("Copy link")}
+												data-tip={t("Copy link")}
+												onClick={() => {
+													navigator.clipboard.writeText(
+														`${window.location.origin}/invite/${user.invitation?.id}`,
+													);
+												}}
+											>
+												<LinkIcon className="size-4" />
+											</button>
+										)
+									) : null}
+								</ClientOnly>
 							</td>
 						</tr>
 					))}

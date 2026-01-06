@@ -37,6 +37,7 @@ const texts = {
 	"Choose an area": "Wähle eine Region",
 	Clear: "Löschen",
 	Close: "Schließen",
+	"Confirm Password": "Passwort bestätigen",
 	"Copy link": "Link kopieren",
 	Country: "Land",
 	Create: "Erstellen",
@@ -135,6 +136,8 @@ const texts = {
 	Subdivision: "Region",
 	"Switch Theme": "Theme wechseln",
 	Team: "Team",
+	"The passwords entered do not match":
+		"Die eingegebenen Passwörter stimmen nicht überein",
 	Time: "Zeit",
 	Title: "Titel",
 	Today: "Heute",
