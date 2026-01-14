@@ -34,19 +34,22 @@ model UserInvitation {
 }
 
 model Appointment {
-  id         String             @id @default(nanoid(6))
-  createdAt  DateTime           @default(now())
-  deletedAt  DateTime?
-  startDate  DateTime
-  endDate    DateTime?
-  title      String
-  shortTitle String
-  location   String?
-  link       String?
-  type       AppointmentType
-  status     AppointmentStatus?
-  responses  Response[]
-  placements Placement[]
+  id                   String             @id @default(nanoid(6))
+  createdAt            DateTime           @default(now())
+  deletedAt            DateTime?
+  startDate            DateTime
+  endDate              DateTime?
+  title                String
+  shortTitle           String
+  location             String?
+  link                 String?
+  type                 AppointmentType
+  status               AppointmentStatus?
+  responses            Response[]
+  placements           Placement[]
+  nextAppointmentId    String?
+  nextAppointment      Appointment?       @relation("AppointmentSeries", fields: [nextAppointmentId], references: [id])
+  previousAppointments Appointment[]      @relation("AppointmentSeries")
 }
 
 enum AppointmentStatus {

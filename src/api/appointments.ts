@@ -79,6 +79,7 @@ export const getAppointment = createServerFn()
 		try {
 			const appointment = await prismaClient.appointment.findUnique({
 				include: {
+					nextAppointment: true,
 					placements: {
 						include: { player: true },
 					},
@@ -110,7 +111,6 @@ export const getAppointment = createServerFn()
 export const getAppointments = createServerFn()
 	.inputValidator(
 		(d: {
-			type: AppointmentType;
 			title?: string;
 			location?: string;
 			withDeleted?: boolean;
@@ -132,8 +132,9 @@ export const getAppointments = createServerFn()
 					OR: [
 						{ title: { contains: data.title ?? "" } },
 						{ shortTitle: { contains: data.title ?? "" } },
+						{ type: AppointmentType.TOURNAMENT },
+						{ type: AppointmentType.TOURNAMENT_DE },
 					],
-					type: data.type,
 				},
 			});
 			return json<Return<typeof appointments>>(
@@ -161,6 +162,7 @@ export const updateAppointment = createServerFn()
 					endDate: data.updates.endDate,
 					link: data.updates.link,
 					location: data.updates.location,
+					nextAppointmentId: data.updates.nextAppointmentId,
 					shortTitle: data.updates.shortTitle,
 					startDate: data.updates.startDate,
 					status: data.updates.status,

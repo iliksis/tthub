@@ -1145,7 +1145,8 @@ export const AppointmentScalarFieldEnum = {
   location: 'location',
   link: 'link',
   type: 'type',
-  status: 'status'
+  status: 'status',
+  nextAppointmentId: 'nextAppointmentId'
 } as const
 
 export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]

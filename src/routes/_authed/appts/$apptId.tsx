@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
 	CalendarCogIcon,
@@ -14,6 +14,7 @@ import {
 	createResponse,
 	deleteAppointment,
 	getAppointment,
+	getAppointments,
 	publishAppointment,
 	restoreAppointment,
 } from "@/api/appointments";
@@ -39,27 +40,38 @@ import { cn, createColorForUserId, createGoogleMapsLink } from "@/lib/utils";
 export const Route = createFileRoute("/_authed/appts/$apptId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const apptData = await getAppointment({ data: { id: params.apptId } });
+		const [apptData, playerData, categoriesData, apptsData] = await Promise.all(
+			[
+				getAppointment({ data: { id: params.apptId } }),
+				getPlayers(),
+				getUniqueCategories(),
+				getAppointments({ data: { orderBy: { startDate: "desc" } } }),
+			],
+		);
 
 		const res = await apptData.json();
 		if (apptData.status >= 400) {
 			throw new Error(res.message);
 		}
 
-		const playerData = await getPlayers();
 		const players = await playerData.json();
 		if (playerData.status >= 400) {
 			throw new Error(res.message);
 		}
 
-		const categoriesData = await getUniqueCategories();
 		const categories = await categoriesData.json();
 		if (categoriesData.status >= 400) {
 			throw new Error(res.message);
 		}
 
+		const appointments = await apptsData.json();
+		if (apptsData.status >= 400) {
+			throw new Error(res.message);
+		}
+
 		return {
 			appointment: res.data,
+			appointments: appointments.data,
 			categories: categories.data,
 			players: players.data,
 		};
@@ -87,7 +99,8 @@ function RouteComponent() {
 	const publish = useServerFn(publishAppointment);
 	const restore = useServerFn(restoreAppointment);
 
-	const { appointment, players, categories } = Route.useLoaderData();
+	const { appointment, players, categories, appointments } =
+		Route.useLoaderData();
 	const router = useRouter();
 
 	if (!appointment) return <div>{t("Appointment not found.")}</div>;
@@ -289,6 +302,19 @@ function RouteComponent() {
 								)}
 							</p>
 						</Card>
+						<Card title={t("Next Appointment")} gridRows={4}>
+							{appointment.nextAppointment ? (
+								<Link
+									className="link link-hover"
+									to="/appts/$apptId"
+									params={{ apptId: appointment.nextAppointment.id }}
+								>
+									{appointment.nextAppointment.title}
+								</Link>
+							) : (
+								t("No appointment set")
+							)}
+						</Card>
 					</>
 				)}
 			</div>
@@ -305,7 +331,7 @@ function RouteComponent() {
 							disabled={isDeleted}
 							onClick={onResponse("ACCEPT")}
 						>
-							{t("Accept")}
+							{isAccepted ? t("Accepted") : t("Accept")}
 						</button>
 						<button
 							type="button"
@@ -316,7 +342,7 @@ function RouteComponent() {
 							disabled={isDeleted}
 							onClick={onResponse("MAYBE")}
 						>
-							{t("Maybe")}
+							{isMaybe ? t("Maybe") : t("Maybe")}
 						</button>
 						<button
 							type="button"
@@ -327,7 +353,7 @@ function RouteComponent() {
 							disabled={isDeleted}
 							onClick={onResponse("DECLINE")}
 						>
-							{t("Response")}
+							{isDeclined ? t("Declined") : t("Decline")}
 						</button>
 					</div>
 
@@ -398,7 +424,10 @@ function RouteComponent() {
 				open={isEditing}
 				onClose={onStopEditing}
 			>
-				<UpdateForm appointment={appointment} />
+				<UpdateForm
+					appointment={appointment}
+					appointments={appointments ?? []}
+				/>
 			</Modal>
 
 			<DeleteModal

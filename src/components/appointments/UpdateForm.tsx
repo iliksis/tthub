@@ -10,9 +10,10 @@ import { notify } from "../Toast";
 
 type UpdateFormProps = {
 	appointment: Appointment;
+	appointments: Appointment[];
 };
 
-export const UpdateForm = ({ appointment }: UpdateFormProps) => {
+export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 	const router = useRouter();
 
 	const updateMutation = useMutation({
@@ -37,6 +38,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 			endDate: appointment.endDate ? new Date(appointment.endDate) : null,
 			link: appointment.link,
 			location: appointment.location,
+			nextAppointment: appointment.nextAppointmentId,
 			shortTitle: appointment.shortTitle,
 			startDate: new Date(appointment.startDate),
 			status: appointment.status,
@@ -50,6 +52,7 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 						endDate: value.endDate,
 						link: value.link,
 						location: value.location,
+						nextAppointmentId: value.nextAppointment,
 						shortTitle: value.shortTitle,
 						startDate: value.startDate,
 						status: value.status,
@@ -218,6 +221,45 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 												}
 											/>
 										</label>
+									</fieldset>
+								)}
+							</form.Field>
+						</div>
+						<div>
+							<form.Field name="nextAppointment">
+								{(field) => (
+									<fieldset className="fieldset">
+										<label className="label" htmlFor={field.name}>
+											{t("Next Appointment")}:
+										</label>
+										<select
+											className="select select-primary w-full"
+											name={field.name}
+											onBlur={field.handleBlur}
+											onChange={(e) => field.handleChange(e.target.value)}
+										>
+											<option disabled selected>
+												{t("Choose an appointment")}
+											</option>
+											{appointments
+												.filter((p) => p.id !== appointment.id)
+												.map((p) => (
+													<option
+														key={p.id}
+														value={p.id}
+														className="before:content-[attr(data-before)] before:opacity-60"
+														data-before={new Date(
+															p.startDate,
+														).toLocaleDateString("de-DE", {
+															day: "2-digit",
+															month: "2-digit",
+															year: "2-digit",
+														})}
+													>
+														{p.title}
+													</option>
+												))}
+										</select>
 									</fieldset>
 								)}
 							</form.Field>
