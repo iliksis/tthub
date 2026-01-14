@@ -8,6 +8,7 @@ import {
 	LogOutIcon,
 	PanelLeftOpenIcon,
 	Settings2Icon,
+	ShieldIcon,
 	TextAlignJustifyIcon,
 	UserCogIcon,
 	UserPenIcon,
@@ -52,6 +53,7 @@ const navigationItems: NavigationItem[] = [
 		name: t("Appointments"),
 	},
 	{ href: "/players", icon: UsersIcon, name: t("Players") },
+	{ href: "/teams", icon: ShieldIcon, name: t("Teams") },
 	{
 		children: [
 			{ href: "/settings/profile", icon: UserPenIcon, name: t("Profile") },

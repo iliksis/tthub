@@ -28,6 +28,8 @@ const texts = {
 		"Bist du sicher, dass du diesen Termin löschen möchtest?",
 	"Are you sure you want to delete this player?":
 		"Bist du sicher, dass du diese Spieler:in löschen möchtest?",
+	"Are you sure you want to delete this team?":
+		"Bist du sicher, dass du dieses Team löschen möchtest?",
 	Bavaria: "Bayern",
 	Calendar: "Kalender",
 	"Categories found": "Kategorien gefunden",
@@ -70,6 +72,7 @@ const texts = {
 		"Falscher Benutzername oder falsches Passwort",
 	"Invitation expired": "Einladung abgelaufen",
 	"Invitation not found": "Einladung nicht gefunden",
+	League: "Liga",
 	Link: "Link",
 	List: "Liste",
 	Location: "Ort",
@@ -88,6 +91,7 @@ const texts = {
 	"No location set": "Kein Ort gesetzt",
 	"No players found": "Keine Spieler:innen gefunden",
 	"No team set": "Gehört keinem Team an",
+	"No teams found": "Keine Teams gefunden",
 	"Not authenticated": "Nicht authentifiziert",
 	Notifications: "Benachrichtigungen",
 	"Notifications are not supported in this browser":
@@ -136,6 +140,12 @@ const texts = {
 	Subdivision: "Region",
 	"Switch Theme": "Theme wechseln",
 	Team: "Team",
+	"Team created": "Team erstellt",
+	"Team deleted": "Team gelöscht",
+	"Team found": "Team gefunden",
+	"Team updated": "Team aktualisiert",
+	Teams: "Teams",
+	"Teams found": "Teams gefunden",
 	"The passwords entered do not match":
 		"Die eingegebenen Passwörter stimmen nicht überein",
 	Time: "Zeit",

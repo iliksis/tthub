@@ -15,8 +15,10 @@ import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as InviteInviteIdRouteImport } from './routes/invite/$inviteId'
 import { Route as AuthedCreateRouteImport } from './routes/_authed/create'
+import { Route as AuthedTeamsIndexRouteImport } from './routes/_authed/teams/index'
 import { Route as AuthedPlayersIndexRouteImport } from './routes/_authed/players/index'
 import { Route as AuthedApptsIndexRouteImport } from './routes/_authed/appts/index'
+import { Route as AuthedTeamsTeamIdRouteImport } from './routes/_authed/teams/$teamId'
 import { Route as AuthedSettingsUsersRouteImport } from './routes/_authed/settings/users'
 import { Route as AuthedSettingsProfileRouteImport } from './routes/_authed/settings/profile'
 import { Route as AuthedSettingsImportsRouteImport } from './routes/_authed/settings/imports'
@@ -53,6 +55,11 @@ const AuthedCreateRoute = AuthedCreateRouteImport.update({
   path: '/create',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedTeamsIndexRoute = AuthedTeamsIndexRouteImport.update({
+  id: '/teams/',
+  path: '/teams/',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedPlayersIndexRoute = AuthedPlayersIndexRouteImport.update({
   id: '/players/',
   path: '/players/',
@@ -61,6 +68,11 @@ const AuthedPlayersIndexRoute = AuthedPlayersIndexRouteImport.update({
 const AuthedApptsIndexRoute = AuthedApptsIndexRouteImport.update({
   id: '/appts/',
   path: '/appts/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedTeamsTeamIdRoute = AuthedTeamsTeamIdRouteImport.update({
+  id: '/teams/$teamId',
+  path: '/teams/$teamId',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedSettingsUsersRoute = AuthedSettingsUsersRouteImport.update({
@@ -106,8 +118,10 @@ export interface FileRoutesByFullPath {
   '/settings/imports': typeof AuthedSettingsImportsRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
+  '/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/appts': typeof AuthedApptsIndexRoute
   '/players': typeof AuthedPlayersIndexRoute
+  '/teams': typeof AuthedTeamsIndexRoute
 }
 export interface FileRoutesByTo {
   '/logout': typeof LogoutRoute
@@ -121,8 +135,10 @@ export interface FileRoutesByTo {
   '/settings/imports': typeof AuthedSettingsImportsRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
+  '/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/appts': typeof AuthedApptsIndexRoute
   '/players': typeof AuthedPlayersIndexRoute
+  '/teams': typeof AuthedTeamsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -138,8 +154,10 @@ export interface FileRoutesById {
   '/_authed/settings/imports': typeof AuthedSettingsImportsRoute
   '/_authed/settings/profile': typeof AuthedSettingsProfileRoute
   '/_authed/settings/users': typeof AuthedSettingsUsersRoute
+  '/_authed/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/_authed/appts/': typeof AuthedApptsIndexRoute
   '/_authed/players/': typeof AuthedPlayersIndexRoute
+  '/_authed/teams/': typeof AuthedTeamsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -155,8 +173,10 @@ export interface FileRouteTypes {
     | '/settings/imports'
     | '/settings/profile'
     | '/settings/users'
+    | '/teams/$teamId'
     | '/appts'
     | '/players'
+    | '/teams'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/logout'
@@ -170,8 +190,10 @@ export interface FileRouteTypes {
     | '/settings/imports'
     | '/settings/profile'
     | '/settings/users'
+    | '/teams/$teamId'
     | '/appts'
     | '/players'
+    | '/teams'
   id:
     | '__root__'
     | '/_authed'
@@ -186,8 +208,10 @@ export interface FileRouteTypes {
     | '/_authed/settings/imports'
     | '/_authed/settings/profile'
     | '/_authed/settings/users'
+    | '/_authed/teams/$teamId'
     | '/_authed/appts/'
     | '/_authed/players/'
+    | '/_authed/teams/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -241,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedCreateRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/teams/': {
+      id: '/_authed/teams/'
+      path: '/teams'
+      fullPath: '/teams'
+      preLoaderRoute: typeof AuthedTeamsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/players/': {
       id: '/_authed/players/'
       path: '/players'
@@ -253,6 +284,13 @@ declare module '@tanstack/react-router' {
       path: '/appts'
       fullPath: '/appts'
       preLoaderRoute: typeof AuthedApptsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/teams/$teamId': {
+      id: '/_authed/teams/$teamId'
+      path: '/teams/$teamId'
+      fullPath: '/teams/$teamId'
+      preLoaderRoute: typeof AuthedTeamsTeamIdRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/settings/users': {
@@ -309,8 +347,10 @@ interface AuthedRouteChildren {
   AuthedSettingsImportsRoute: typeof AuthedSettingsImportsRoute
   AuthedSettingsProfileRoute: typeof AuthedSettingsProfileRoute
   AuthedSettingsUsersRoute: typeof AuthedSettingsUsersRoute
+  AuthedTeamsTeamIdRoute: typeof AuthedTeamsTeamIdRoute
   AuthedApptsIndexRoute: typeof AuthedApptsIndexRoute
   AuthedPlayersIndexRoute: typeof AuthedPlayersIndexRoute
+  AuthedTeamsIndexRoute: typeof AuthedTeamsIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
@@ -322,8 +362,10 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedSettingsImportsRoute: AuthedSettingsImportsRoute,
   AuthedSettingsProfileRoute: AuthedSettingsProfileRoute,
   AuthedSettingsUsersRoute: AuthedSettingsUsersRoute,
+  AuthedTeamsTeamIdRoute: AuthedTeamsTeamIdRoute,
   AuthedApptsIndexRoute: AuthedApptsIndexRoute,
   AuthedPlayersIndexRoute: AuthedPlayersIndexRoute,
+  AuthedTeamsIndexRoute: AuthedTeamsIndexRoute,
 }
 
 const AuthedRouteWithChildren =

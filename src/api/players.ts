@@ -79,7 +79,13 @@ export const getPlayer = createServerFn()
 
 export const updatePlayer = createServerFn()
 	.inputValidator(
-		(d: { id: string; name: string; year: number; qttr: number }) => d,
+		(d: {
+			id: string;
+			name: string;
+			year: number;
+			qttr: number;
+			team: string;
+		}) => d,
 	)
 	.handler(async ({ data }) => {
 		try {
@@ -87,6 +93,7 @@ export const updatePlayer = createServerFn()
 				data: {
 					name: data.name,
 					qttr: data.qttr,
+					teamId: data.team,
 					year: data.year,
 				},
 				where: {
