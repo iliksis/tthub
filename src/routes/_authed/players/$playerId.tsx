@@ -15,6 +15,7 @@ import { notify } from "@/components/Toast";
 import { Card } from "@/components/ValueCard";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
+import { calculateAgeGroup } from "@/lib/utils";
 
 // biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
 export const Route = createFileRoute("/_authed/players/$playerId")({
@@ -103,7 +104,12 @@ function RouteComponent() {
 		<div>
 			<div className="grid grid-cols-4 gap-2">
 				<Card title={t("Year of birth")} gridRows={3}>
-					<p>{player.year}</p>
+					<p>
+						{player.year}{" "}
+						<span className="opacity-75">
+							- {calculateAgeGroup(player.year)}
+						</span>
+					</p>
 				</Card>
 				<Card title={t("QTTR")} gridRows={1}>
 					<p>{player.qttr}</p>
@@ -154,11 +160,15 @@ function RouteComponent() {
 						onClose={onStopEditing}
 						onSubmit={async (values) => {
 							await updatePlayerMutation.mutate({
-								data: { ...values, id: player.id },
+								data: {
+									...values,
+									id: player.id,
+									team: values.team ?? undefined,
+								},
 							});
 						}}
 						submitLabel={t("Update")}
-						defaultValues={{ ...player, team: player.team?.id ?? "" }}
+						defaultValues={{ ...player, team: player.team?.id ?? null }}
 						teams={teams ?? []}
 					/>
 					<DeleteModal

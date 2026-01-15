@@ -84,10 +84,11 @@ export const updatePlayer = createServerFn()
 			name: string;
 			year: number;
 			qttr: number;
-			team: string;
+			team?: string;
 		}) => d,
 	)
 	.handler(async ({ data }) => {
+		console.log(data.team ?? undefined);
 		try {
 			const player = await prismaClient.player.update({
 				data: {

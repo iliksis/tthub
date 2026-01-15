@@ -13,13 +13,13 @@ type PlayerFormProps = {
 		name: string;
 		year: number;
 		qttr: number;
-		team: string;
+		team: string | null;
 	};
 	onSubmit: (updates: {
 		name: string;
 		year: number;
 		qttr: number;
-		team: string;
+		team: string | null;
 	}) => Promise<void>;
 };
 export const PlayerForm = ({
@@ -30,7 +30,7 @@ export const PlayerForm = ({
 	defaultValues = {
 		name: "",
 		qttr: 0,
-		team: "",
+		team: null,
 		year: new Date().getFullYear(),
 	},
 	onSubmit,

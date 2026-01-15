@@ -1,6 +1,7 @@
 import { useRouter } from "@tanstack/react-router";
 import type { Player, Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
+import { calculateAgeGroup } from "@/lib/utils";
 
 type ListProps = {
 	players: (Player & { team: Team | null })[];
@@ -22,6 +23,7 @@ export const List = ({ players }: ListProps) => {
 				<thead className="text-xs">
 					<tr>
 						<th>{t("Name")}</th>
+						<th>{t("Age Group")}</th>
 						<th>{t("QTTR")}</th>
 						<th>{t("Team")}</th>
 					</tr>
@@ -34,6 +36,7 @@ export const List = ({ players }: ListProps) => {
 							onClick={onClickPlayer(player.id)}
 						>
 							<td>{player.name}</td>
+							<td>{calculateAgeGroup(player.year)}</td>
 							<td>{player.qttr}</td>
 							<td>{player.team?.title}</td>
 						</tr>

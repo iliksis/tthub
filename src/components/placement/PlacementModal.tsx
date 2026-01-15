@@ -1,4 +1,4 @@
-import { useRouteContext, useRouter } from "@tanstack/react-router";
+import { Link, useRouteContext, useRouter } from "@tanstack/react-router";
 import { EditIcon, Plus, Trash2Icon } from "lucide-react";
 import React from "react";
 import { deletePlacement } from "@/api/placements";
@@ -122,7 +122,13 @@ export const ParticipantModal = ({
 								className="flex items-center gap-2"
 							>
 								<div className="flex-1">
-									<p>{p.player.name}</p>
+									<Link
+										className="link link-hover"
+										to="/players/$playerId"
+										params={{ playerId: p.player.id }}
+									>
+										{p.player.name}
+									</Link>
 								</div>
 								<div className="flex-1">
 									<p>{p.placement}</p>
