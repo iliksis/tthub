@@ -151,7 +151,7 @@ export type TeamGroupByOutputType = {
   id: string
   createdAt: Date
   title: string
-  league: string
+  league: string | null
   placement: string | null
   _count: TeamCountAggregateOutputType | null
   _min: TeamMinAggregateOutputType | null
@@ -180,7 +180,7 @@ export type TeamWhereInput = {
   id?: Prisma.StringFilter<"Team"> | string
   createdAt?: Prisma.DateTimeFilter<"Team"> | Date | string
   title?: Prisma.StringFilter<"Team"> | string
-  league?: Prisma.StringFilter<"Team"> | string
+  league?: Prisma.StringNullableFilter<"Team"> | string | null
   placement?: Prisma.StringNullableFilter<"Team"> | string | null
   players?: Prisma.PlayerListRelationFilter
 }
@@ -189,7 +189,7 @@ export type TeamOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  league?: Prisma.SortOrder
+  league?: Prisma.SortOrderInput | Prisma.SortOrder
   placement?: Prisma.SortOrderInput | Prisma.SortOrder
   players?: Prisma.PlayerOrderByRelationAggregateInput
 }
@@ -201,7 +201,7 @@ export type TeamWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.TeamWhereInput | Prisma.TeamWhereInput[]
   createdAt?: Prisma.DateTimeFilter<"Team"> | Date | string
   title?: Prisma.StringFilter<"Team"> | string
-  league?: Prisma.StringFilter<"Team"> | string
+  league?: Prisma.StringNullableFilter<"Team"> | string | null
   placement?: Prisma.StringNullableFilter<"Team"> | string | null
   players?: Prisma.PlayerListRelationFilter
 }, "id">
@@ -210,7 +210,7 @@ export type TeamOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  league?: Prisma.SortOrder
+  league?: Prisma.SortOrderInput | Prisma.SortOrder
   placement?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.TeamCountOrderByAggregateInput
   _max?: Prisma.TeamMaxOrderByAggregateInput
@@ -224,7 +224,7 @@ export type TeamScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Team"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Team"> | Date | string
   title?: Prisma.StringWithAggregatesFilter<"Team"> | string
-  league?: Prisma.StringWithAggregatesFilter<"Team"> | string
+  league?: Prisma.StringNullableWithAggregatesFilter<"Team"> | string | null
   placement?: Prisma.StringNullableWithAggregatesFilter<"Team"> | string | null
 }
 
@@ -232,7 +232,7 @@ export type TeamCreateInput = {
   id?: string
   createdAt?: Date | string
   title: string
-  league: string
+  league?: string | null
   placement?: string | null
   players?: Prisma.PlayerCreateNestedManyWithoutTeamInput
 }
@@ -241,7 +241,7 @@ export type TeamUncheckedCreateInput = {
   id?: string
   createdAt?: Date | string
   title: string
-  league: string
+  league?: string | null
   placement?: string | null
   players?: Prisma.PlayerUncheckedCreateNestedManyWithoutTeamInput
 }
@@ -250,7 +250,7 @@ export type TeamUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  league?: Prisma.StringFieldUpdateOperationsInput | string
+  league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   players?: Prisma.PlayerUpdateManyWithoutTeamNestedInput
 }
@@ -259,7 +259,7 @@ export type TeamUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  league?: Prisma.StringFieldUpdateOperationsInput | string
+  league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   players?: Prisma.PlayerUncheckedUpdateManyWithoutTeamNestedInput
 }
@@ -268,7 +268,7 @@ export type TeamCreateManyInput = {
   id?: string
   createdAt?: Date | string
   title: string
-  league: string
+  league?: string | null
   placement?: string | null
 }
 
@@ -276,7 +276,7 @@ export type TeamUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  league?: Prisma.StringFieldUpdateOperationsInput | string
+  league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -284,7 +284,7 @@ export type TeamUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  league?: Prisma.StringFieldUpdateOperationsInput | string
+  league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -337,7 +337,7 @@ export type TeamCreateWithoutPlayersInput = {
   id?: string
   createdAt?: Date | string
   title: string
-  league: string
+  league?: string | null
   placement?: string | null
 }
 
@@ -345,7 +345,7 @@ export type TeamUncheckedCreateWithoutPlayersInput = {
   id?: string
   createdAt?: Date | string
   title: string
-  league: string
+  league?: string | null
   placement?: string | null
 }
 
@@ -369,7 +369,7 @@ export type TeamUpdateWithoutPlayersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  league?: Prisma.StringFieldUpdateOperationsInput | string
+  league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -377,7 +377,7 @@ export type TeamUncheckedUpdateWithoutPlayersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  league?: Prisma.StringFieldUpdateOperationsInput | string
+  league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -463,7 +463,7 @@ export type $TeamPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     id: string
     createdAt: Date
     title: string
-    league: string
+    league: string | null
     placement: string | null
   }, ExtArgs["result"]["team"]>
   composites: {}

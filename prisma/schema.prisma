@@ -95,7 +95,7 @@ model Team {
   id        String   @id @default(nanoid(6))
   createdAt DateTime @default(now())
   title     String
-  league    String
+  league    String?
   placement String?
   players   Player[]
 }
