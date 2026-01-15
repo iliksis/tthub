@@ -8,7 +8,7 @@ type PlayerFormProps = {
 	open?: boolean;
 	onClose?: () => void;
 	submitLabel: string;
-	teams: Team[];
+	teams?: Team[];
 	defaultValues?: {
 		name: string;
 		year: number;
@@ -186,32 +186,34 @@ export const PlayerForm = ({
 						)}
 					</form.Field>
 				</div>
-				<div>
-					<form.Field name="team">
-						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Team")}:
-								</label>
-								<select
-									className="select select-primary w-full"
-									name={field.name}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
-								>
-									<option disabled selected>
-										{t("Choose a team")}
-									</option>
-									{teams.map((p) => (
-										<option key={p.id} value={p.id}>
-											{p.title}
+				{teams && (
+					<div>
+						<form.Field name="team">
+							{(field) => (
+								<fieldset className="fieldset">
+									<label className="label" htmlFor={field.name}>
+										{t("Team")}:
+									</label>
+									<select
+										className="select select-primary w-full"
+										name={field.name}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									>
+										<option disabled selected>
+											{t("Choose a team")}
 										</option>
-									))}
-								</select>
-							</fieldset>
-						)}
-					</form.Field>
-				</div>
+										{teams.map((p) => (
+											<option key={p.id} value={p.id}>
+												{p.title}
+											</option>
+										))}
+									</select>
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+				)}
 			</form>
 		</Modal>
 	);
