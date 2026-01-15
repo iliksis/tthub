@@ -59,11 +59,11 @@ function RouteComponent() {
 				await router.invalidate();
 				notify({
 					status: "success",
-					text: data.message,
+					title: data.message,
 				});
 				return;
 			}
-			notify({ status: "error", text: data.message });
+			notify({ status: "error", title: data.message });
 		},
 	});
 
@@ -90,13 +90,13 @@ function RouteComponent() {
 		const data = await res.json();
 		if (res.status < 400 && data) {
 			await router.invalidate();
-			notify({ status: "success", text: data.message });
+			notify({ status: "success", title: data.message });
 			await router.navigate({
 				to: "..",
 			});
 			return;
 		}
-		notify({ status: "error", text: data.message });
+		notify({ status: "error", title: data.message });
 	};
 
 	return (

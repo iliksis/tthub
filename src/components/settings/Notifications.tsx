@@ -115,10 +115,10 @@ const Form = ({ subscription }: FormProps) => {
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
 				await query.refetch();
-				notify({ status: "success", text: data.message });
+				notify({ status: "success", title: data.message });
 				return;
 			}
-			notify({ status: "error", text: data.message });
+			notify({ status: "error", title: data.message });
 		},
 	});
 
@@ -228,10 +228,10 @@ const ActiveSubscriptions = ({ subscriptions }: ActiveSubscriptionsProps) => {
 		const result = await response.json();
 		if (response.status < 400) {
 			await router.invalidate();
-			notify({ status: "success", text: result.message });
+			notify({ status: "success", title: result.message });
 			return;
 		}
-		notify({ status: "error", text: result.message });
+		notify({ status: "error", title: result.message });
 	};
 
 	if (!subscriptions || subscriptions.length === 0) return null;

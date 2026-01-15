@@ -9,7 +9,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
 import React from "react";
-import { ToastContainer } from "react-toastify";
+import { Toaster } from "sonner";
 import { NavigationWrapper } from "@/components/NavigationWrapper";
 import { getTheme } from "@/components/ThemeSwitch";
 import { useAppSession } from "@/lib/session";
@@ -159,7 +159,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 						children
 					)}
 				</QueryClientProvider>
-				<ToastContainer stacked />
+				<Toaster position="top-center" />
 				<Scripts />
 			</body>
 		</html>

@@ -1,33 +1,26 @@
-import { type ToastContentProps, toast } from "react-toastify";
+import { toast as sonnerToast } from "sonner";
 import { cn } from "@/lib/utils";
 
-type ToastData = {
+type ToastProps = {
+	id: string | number;
 	status: "success" | "error";
-	text: string;
+	title: string;
 };
 
-export const Toast = ({ data }: ToastContentProps<ToastData>) => {
+export const Toast = ({ status, title, id }: ToastProps) => {
 	return (
 		<div
+			key={id}
 			className={cn(
-				"w-full h-full alert alert-soft",
-				data.status === "success" ? "alert-success" : "alert-error",
+				"alert alert-soft",
+				status === "success" ? "alert-success" : "alert-error",
 			)}
 		>
-			<span>{data.text}</span>
+			<span>{title}</span>
 		</div>
 	);
 };
 
-export const notify = (data: ToastData) => {
-	toast(Toast, {
-		closeButton: false,
-		data,
-		hideProgressBar: true,
-		style: {
-			backgroundColor: "unset",
-			minHeight: "unset",
-			padding: "0",
-		},
-	});
+export const notify = (toast: Omit<ToastProps, "id">) => {
+	return sonnerToast.custom((id) => <Toast id={id} {...toast} />);
 };

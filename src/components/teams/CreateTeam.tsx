@@ -28,11 +28,11 @@ export const CreateTeam = () => {
 				await router.invalidate();
 				notify({
 					status: "success",
-					text: data.message,
+					title: data.message,
 				});
 				return;
 			}
-			notify({ status: "error", text: data.message });
+			notify({ status: "error", title: data.message });
 		},
 	});
 

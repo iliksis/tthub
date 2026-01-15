@@ -32,10 +32,10 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
-				notify({ status: "success", text: data.message });
+				notify({ status: "success", title: data.message });
 				return;
 			}
-			notify({ status: "error", text: data.message });
+			notify({ status: "error", title: data.message });
 		},
 	});
 

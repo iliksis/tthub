@@ -32,7 +32,7 @@ export const CreatePlacement = ({
 				onClose();
 				return;
 			}
-			notify({ status: "error", text: data.message });
+			notify({ status: "error", title: data.message });
 		},
 	});
 

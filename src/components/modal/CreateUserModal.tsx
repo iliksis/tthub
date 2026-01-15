@@ -30,10 +30,10 @@ export const CreateUserModal = () => {
 			if (ctx.data?.status < 400) {
 				form.reset();
 				await router.invalidate();
-				notify({ status: "success", text: data.message });
+				notify({ status: "success", title: data.message });
 				return;
 			}
-			notify({ status: "error", text: data.message });
+			notify({ status: "error", title: data.message });
 		},
 	});
 

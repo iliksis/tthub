@@ -28,10 +28,10 @@ export const Profile = () => {
 				await router.invalidate();
 				data.data?.name &&
 					(await updateSession({ data: { name: data.data.name } }));
-				notify({ status: "success", text: data.message });
+				notify({ status: "success", title: data.message });
 				return;
 			}
-			notify({ status: "error", text: data.message });
+			notify({ status: "error", title: data.message });
 		},
 	});
 

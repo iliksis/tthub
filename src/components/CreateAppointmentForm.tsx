@@ -107,14 +107,14 @@ const AppointmentEditSection = () => {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400 && data.data) {
 				await router.invalidate();
-				notify({ status: "success", text: data.message });
+				notify({ status: "success", title: data.message });
 				await router.navigate({
 					params: { apptId: data.data.id },
 					to: "/appts/$apptId",
 				});
 				return;
 			}
-			notify({ status: "error", text: data.message });
+			notify({ status: "error", title: data.message });
 		},
 	});
 
