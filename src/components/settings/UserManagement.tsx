@@ -1,21 +1,26 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouteContext, useRouter } from "@tanstack/react-router";
-import { LinkIcon, Trash2Icon, UserPlusIcon } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Trash2Icon, UserPlusIcon } from "lucide-react";
 import React from "react";
 import { createUserInvitation } from "@/api/invitations";
+import { createPasswordReset } from "@/api/passwordReset";
 import { deleteUser, updateUserRole } from "@/api/users";
 import { DetailsList } from "@/components/DetailsList";
 import { CreateUserModal } from "@/components/modal/CreateUserModal";
 import { notify } from "@/components/Toast";
 import { useMutation } from "@/hooks/useMutation";
-import type { User, UserInvitation } from "@/lib/prisma/client";
+import type { PasswordReset, User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { isInvitationExpired } from "@/lib/utils";
 import { Modal } from "../modal/Modal";
 
 type IUserManagementProps = {
-	users: (User & { invitation: UserInvitation | null })[];
+	users: (User & {
+		invitation: UserInvitation | null;
+		passwordReset: PasswordReset | null;
+	})[];
 };
 export const UserManagement = ({ users }: IUserManagementProps) => {
 	const router = useRouter();
@@ -25,6 +30,8 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 		User | undefined
 	>(undefined);
 	const [showNewUserModal, setShowNewUserModal] = React.useState(false);
+
+	const createPasswordResetServerFn = useServerFn(createPasswordReset);
 
 	const deleteMutation = useMutation({
 		fn: deleteUser,
@@ -123,10 +130,28 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 					},
 					{
 						isDisabled: (items) =>
-							items.length !== 1 || items[0].id === currentUser?.id,
+							items.length !== 1 ||
+							items[0].id === currentUser?.id ||
+							items[0].invitation !== null,
 						key: "password-reset",
 						label: t("Reset Password"),
-						onClick: (items) => {},
+						onClick: async (items) => {
+							const response = await createPasswordResetServerFn({
+								data: { userId: items[0].id },
+							});
+							const data = await response.json();
+							if (response.status < 400 && data.data) {
+								await navigator.clipboard.writeText(
+									`${window.location.origin}/password-reset/${data.data.id}`,
+								);
+								notify({
+									status: "success",
+									title: t("Password reset created"),
+								});
+							} else {
+								notify({ status: "error", title: data.message });
+							}
+						},
 						variant: "secondary",
 					},
 					{
@@ -135,25 +160,48 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 							items[0].invitation === null ||
 							!isInvitationExpired(items[0].invitation),
 						key: "create-invitation",
-						label: t("Create Invitation"),
+						label: t("Create new Invitation"),
 						onClick: (items) => onCreateInvitation(items[0])(),
 						variant: "secondary",
 					},
 					{
-						icon: <LinkIcon className="size-4" />,
-						isDisabled: (items) =>
-							items.length !== 1 || items[0].invitation == null,
-						key: "copy-invitation-link",
-						label: t("Copy Invitation Link"),
-						onClick: async (items) => {
-							await navigator.clipboard.writeText(
-								`${window.location.origin}/invite/${items[0].invitation?.id}`,
-							);
-							notify({
-								status: "success",
-								title: t("Invitation link copied to clipboard"),
-							});
+						dropdown: {
+							items: [
+								{
+									isDisabled: (items) =>
+										items.length !== 1 || items[0].invitation == null,
+									key: "copy-invitation-link",
+									label: t("Copy Invitation Link"),
+									onClick: async (items) => {
+										await navigator.clipboard.writeText(
+											`${window.location.origin}/invite/${items[0].invitation?.id}`,
+										);
+										notify({
+											status: "success",
+											title: t("Invitation link copied to clipboard"),
+										});
+									},
+								},
+								{
+									isDisabled: (items) =>
+										items.length !== 1 || items[0].passwordReset == null,
+									key: "copy-reset-link",
+									label: t("Copy Password Reset Link"),
+									onClick: async (items) => {
+										await navigator.clipboard.writeText(
+											`${window.location.origin}/password-reset/${items[0].passwordReset?.id}`,
+										);
+										notify({
+											status: "success",
+											title: t("Password reset link copied to clipboard"),
+										});
+									},
+								},
+							],
 						},
+						isDisabled: (items) => items.length !== 1,
+						key: "copy-links",
+						label: t("Copy Links"),
 						variant: "secondary",
 					},
 					{
@@ -168,7 +216,6 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 					},
 				]}
 			/>
-			<div className="divider h-1"></div>
 			<CreateUserModal
 				modalOpen={showNewUserModal}
 				onClose={() => setShowNewUserModal(false)}

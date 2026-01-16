@@ -12,12 +12,21 @@ import React from "react";
 import { Toaster } from "sonner";
 import { NavigationWrapper } from "@/components/NavigationWrapper";
 import { getTheme } from "@/components/ThemeSwitch";
+import { prismaClient } from "@/lib/db";
 import { useAppSession } from "@/lib/session";
 import appCss from "../styles.css?url";
 
 const fetchUser = createServerFn({ method: "GET" }).handler(async () => {
 	const session = await useAppSession();
 	if (!session.data.userName) {
+		return null;
+	}
+	const user = await prismaClient.user.findUnique({
+		where: {
+			userName: session.data.userName,
+		},
+	});
+	if (user === null) {
 		return null;
 	}
 	return {

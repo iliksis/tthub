@@ -13,6 +13,7 @@ import { Route as SentryTunnelRouteImport } from './routes/sentry-tunnel'
 import { Route as LogoutRouteImport } from './routes/logout'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
+import { Route as PasswordResetResetIdRouteImport } from './routes/password-reset/$resetId'
 import { Route as InviteInviteIdRouteImport } from './routes/invite/$inviteId'
 import { Route as AuthedCreateRouteImport } from './routes/_authed/create'
 import { Route as AuthedTeamsIndexRouteImport } from './routes/_authed/teams/index'
@@ -44,6 +45,11 @@ const AuthedIndexRoute = AuthedIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthedRoute,
+} as any)
+const PasswordResetResetIdRoute = PasswordResetResetIdRouteImport.update({
+  id: '/password-reset/$resetId',
+  path: '/password-reset/$resetId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const InviteInviteIdRoute = InviteInviteIdRouteImport.update({
   id: '/invite/$inviteId',
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/create': typeof AuthedCreateRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
+  '/password-reset/$resetId': typeof PasswordResetResetIdRoute
   '/': typeof AuthedIndexRoute
   '/appts/$apptId': typeof AuthedApptsApptIdRoute
   '/appts/calendar': typeof AuthedApptsCalendarRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/create': typeof AuthedCreateRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
+  '/password-reset/$resetId': typeof PasswordResetResetIdRoute
   '/': typeof AuthedIndexRoute
   '/appts/$apptId': typeof AuthedApptsApptIdRoute
   '/appts/calendar': typeof AuthedApptsCalendarRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/_authed/create': typeof AuthedCreateRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
+  '/password-reset/$resetId': typeof PasswordResetResetIdRoute
   '/_authed/': typeof AuthedIndexRoute
   '/_authed/appts/$apptId': typeof AuthedApptsApptIdRoute
   '/_authed/appts/calendar': typeof AuthedApptsCalendarRoute
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/sentry-tunnel'
     | '/create'
     | '/invite/$inviteId'
+    | '/password-reset/$resetId'
     | '/'
     | '/appts/$apptId'
     | '/appts/calendar'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/sentry-tunnel'
     | '/create'
     | '/invite/$inviteId'
+    | '/password-reset/$resetId'
     | '/'
     | '/appts/$apptId'
     | '/appts/calendar'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/sentry-tunnel'
     | '/_authed/create'
     | '/invite/$inviteId'
+    | '/password-reset/$resetId'
     | '/_authed/'
     | '/_authed/appts/$apptId'
     | '/_authed/appts/calendar'
@@ -219,6 +231,7 @@ export interface RootRouteChildren {
   LogoutRoute: typeof LogoutRoute
   SentryTunnelRoute: typeof SentryTunnelRoute
   InviteInviteIdRoute: typeof InviteInviteIdRoute
+  PasswordResetResetIdRoute: typeof PasswordResetResetIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -250,6 +263,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AuthedIndexRouteImport
       parentRoute: typeof AuthedRoute
+    }
+    '/password-reset/$resetId': {
+      id: '/password-reset/$resetId'
+      path: '/password-reset/$resetId'
+      fullPath: '/password-reset/$resetId'
+      preLoaderRoute: typeof PasswordResetResetIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/invite/$inviteId': {
       id: '/invite/$inviteId'
@@ -376,6 +396,7 @@ const rootRouteChildren: RootRouteChildren = {
   LogoutRoute: LogoutRoute,
   SentryTunnelRoute: SentryTunnelRoute,
   InviteInviteIdRoute: InviteInviteIdRoute,
+  PasswordResetResetIdRoute: PasswordResetResetIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

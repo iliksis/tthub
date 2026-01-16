@@ -18,6 +18,7 @@ model User {
   responses            Response[]
   subscriptions        Subscription[]
   notificationSettings NotificationSettings[]
+  passwordReset        PasswordReset?
 }
 
 enum Role {
@@ -27,6 +28,13 @@ enum Role {
 }
 
 model UserInvitation {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model PasswordReset {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   userId    String   @unique

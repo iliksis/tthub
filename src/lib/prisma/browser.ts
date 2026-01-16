@@ -28,6 +28,11 @@ export type User = Prisma.UserModel
  */
 export type UserInvitation = Prisma.UserInvitationModel
 /**
+ * Model PasswordReset
+ * 
+ */
+export type PasswordReset = Prisma.PasswordResetModel
+/**
  * Model Appointment
  * 
  */

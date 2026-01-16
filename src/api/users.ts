@@ -11,6 +11,7 @@ export const fetchUsers = createServerFn({ method: "GET" }).handler(
 		const users = await prismaClient.user.findMany({
 			include: {
 				invitation: true,
+				passwordReset: true,
 			},
 		});
 		return users;
@@ -211,6 +212,66 @@ export const deleteUser = createServerFn({ method: "POST" })
 			return json<Return>({ message: t("User deleted") }, { status: 200 });
 		} catch (e) {
 			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
+export const updatePasswordFromReset = createServerFn({ method: "POST" })
+	.inputValidator(
+		(d: { resetId: string; password: string; confirmPassword: string }) => d,
+	)
+	.handler(async ({ data }) => {
+		try {
+			// biome-ignore lint/correctness/useHookAtTopLevel: not a real hook
+			const session = await useAppSession();
+
+			const passwordReset = await prismaClient.passwordReset.findUnique({
+				where: {
+					id: data.resetId,
+				},
+			});
+			if (!passwordReset) {
+				return json<Return>(
+					{ message: t("Password reset request not found") },
+					{
+						status: 404,
+					},
+				);
+			}
+
+			if (data.password !== data.confirmPassword) {
+				return json<Return>(
+					{ message: t("The passwords entered do not match") },
+					{ status: 400 },
+				);
+			}
+
+			const hashedPassword = await hashPassword(data.password);
+			const user = await prismaClient.user.update({
+				data: {
+					password: hashedPassword,
+				},
+				where: {
+					id: passwordReset.userId,
+				},
+			});
+
+			await prismaClient.passwordReset.delete({
+				where: {
+					id: data.resetId,
+				},
+			});
+
+			await session.update(user);
+			return json<Return<User>>(
+				{ data: user, message: t("User updated") },
+				{
+					status: 200,
+				},
+			);
+		} catch (e) {
+			console.log(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
