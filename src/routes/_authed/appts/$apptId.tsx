@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
-	CalendarCogIcon,
 	CalendarDaysIcon,
 	Clock10Icon,
+	CogIcon,
 	DownloadIcon,
 	EditIcon,
 	ExternalLinkIcon,
@@ -386,7 +386,7 @@ function RouteComponent() {
 			<div className="fab">
 				{/** biome-ignore lint/a11y/useSemanticElements: fixes safari bug */}
 				<div className="btn btn-lg btn-circle" role="button" tabIndex={0}>
-					<CalendarCogIcon className="size-4" />
+					<CogIcon className="size-4" />
 				</div>
 				<button
 					className="btn btn-lg btn-circle"

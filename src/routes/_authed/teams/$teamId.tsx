@@ -5,7 +5,7 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ShieldIcon, ShieldPlusIcon, ShieldXIcon } from "lucide-react";
+import { CogIcon, EditIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { deleteTeam, getTeam, updateTeam } from "@/api/teams";
 import { DeleteModal } from "@/components/modal/DeleteModal";
@@ -116,23 +116,23 @@ function RouteComponent() {
 					<div className="fab">
 						{/** biome-ignore lint/a11y/useSemanticElements: fixes safari bug */}
 						<div className="btn btn-lg btn-circle" role="button" tabIndex={0}>
-							<ShieldIcon className="size-4" />
+							<CogIcon className="size-4" />
 						</div>
 						<button
 							className="btn btn-lg btn-circle"
 							type="button"
-							title={t("Update player")}
+							title={t("Update team")}
 							onClick={onEdit}
 						>
-							<ShieldPlusIcon className="size-4" />
+							<EditIcon className="size-4" />
 						</button>
 						<button
 							className="btn btn-lg btn-circle"
 							type="button"
-							title={t("Delete player")}
+							title={t("Delete team")}
 							onClick={onOpenDelete}
 						>
-							<ShieldXIcon className="size-4" />
+							<Trash2Icon className="size-4" />
 						</button>
 					</div>
 					<TeamForm

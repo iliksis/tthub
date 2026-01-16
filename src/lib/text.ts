@@ -60,6 +60,7 @@ const texts = {
 	Delete: "Löschen",
 	"Delete appointment": "Termin löschen",
 	"Delete player": "Spieler:in löschen",
+	"Delete team": "Team löschen",
 	"Download iCal": "Termin speichern",
 	Edit: "Bearbeiten",
 	"Edit appointment": "Termin bearbeiten",
@@ -72,6 +73,7 @@ const texts = {
 		"Erhalte eine Benachrichtigung, wenn ein neuer Termin erstellt wird",
 	"Get a notification when an accepted appointment was changed":
 		"Erhalte eine Benachrichtigung, wenn ein akzeptierter Termin geändert wurde",
+	"Grant Permission": "Benachrichtigunen erlauben",
 	Holiday: "Ferien",
 	Import: "Importieren",
 	"Import Holidays": "Ferien/Feiertage importieren",
@@ -177,6 +179,7 @@ const texts = {
 	"Update password": "Passwort aktualisieren",
 	"Update player": "Spieler:in aktualisieren",
 	"Update Role": "Rolle aktualisieren",
+	"Update team": "Team aktualisieren",
 	"Update your password": "Aktualisiere dein Passwort",
 	"User created": "Benutzer:in erstellt",
 	"User deleted": "Benutzer:in gelöscht",

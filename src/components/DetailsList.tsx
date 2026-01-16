@@ -154,113 +154,115 @@ export function DetailsList<T>({
 	return (
 		<div className={`flex flex-col gap-4 ${className}`}>
 			{commandBarItems.length > 0 && (
-				<div className="flex gap-2 flex-wrap items-center">
-					<div className="flex gap-2 ml-auto flex-wrap">
-						{commandBarItems.map((commandItem) => {
-							const isDisabled = commandItem.isDisabled?.(selectedItems);
+				<>
+					<div className="flex gap-2 flex-wrap items-center">
+						<div className="flex gap-2 ml-auto flex-wrap">
+							{commandBarItems.map((commandItem) => {
+								const isDisabled = commandItem.isDisabled?.(selectedItems);
 
-							// Render dropdown if dropdown items are provided
-							if (commandItem.dropdown) {
-								return (
-									<div key={commandItem.key} className="dropdown">
-										<button
-											type="button"
-											tabIndex={0}
-											disabled={isDisabled}
-											title={commandItem.label}
-											className={cn(
-												"btn btn-sm",
-												commandItem.variant === "error" && "btn-error",
-												commandItem.variant === "primary" && "btn-primary",
-												commandItem.variant === "secondary" && "btn-secondary",
-												commandItem.variant === "ghost" && "btn-ghost",
-											)}
-										>
-											{commandItem.icon && (
-												<span className="w-4 h-4">{commandItem.icon}</span>
-											)}
-											{commandItem.onlyIcon ? null : commandItem.label}
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="12"
-												height="12"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth="2"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												aria-hidden="true"
+								// Render dropdown if dropdown items are provided
+								if (commandItem.dropdown) {
+									return (
+										<div key={commandItem.key} className="dropdown">
+											<button
+												type="button"
+												tabIndex={0}
+												disabled={isDisabled}
+												title={commandItem.label}
+												className={cn(
+													"btn btn-sm",
+													commandItem.variant === "error" && "btn-error",
+													commandItem.variant === "primary" && "btn-primary",
+													commandItem.variant === "secondary" &&
+														"btn-secondary",
+													commandItem.variant === "ghost" && "btn-ghost",
+												)}
 											>
-												<polyline points="6 9 12 15 18 9" />
-											</svg>
-										</button>
-										<ul
-											tabIndex={-1}
-											className="dropdown-content menu bg-base-200 rounded-box w-60 p-2 shadow"
-										>
-											{commandItem.dropdown.items.map((dropdownItem) => {
-												const isDropdownDisabled =
-													dropdownItem.isDisabled?.(selectedItems) ?? false;
+												{commandItem.icon && (
+													<span className="w-4 h-4">{commandItem.icon}</span>
+												)}
+												{commandItem.onlyIcon ? null : commandItem.label}
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="12"
+													height="12"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													strokeWidth="2"
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													aria-hidden="true"
+												>
+													<polyline points="6 9 12 15 18 9" />
+												</svg>
+											</button>
+											<ul
+												tabIndex={-1}
+												className="dropdown-content menu bg-base-200 rounded-box w-60 p-2 shadow"
+											>
+												{commandItem.dropdown.items.map((dropdownItem) => {
+													const isDropdownDisabled =
+														dropdownItem.isDisabled?.(selectedItems) ?? false;
 
-												return (
-													<li key={dropdownItem.key}>
-														<button
-															type="button"
-															onClick={() =>
-																dropdownItem.onClick(selectedItems)
-															}
-															disabled={isDropdownDisabled}
-															className={cn(
-																"flex items-center gap-2",
-																isDropdownDisabled &&
-																	"opacity-50 cursor-not-allowed",
-															)}
-														>
-															{dropdownItem.icon && (
-																<span className="w-4 h-4">
-																	{dropdownItem.icon}
-																</span>
-															)}
-															{dropdownItem.label}
-														</button>
-													</li>
-												);
-											})}
-										</ul>
-									</div>
+													return (
+														<li key={dropdownItem.key}>
+															<button
+																type="button"
+																onClick={() =>
+																	dropdownItem.onClick(selectedItems)
+																}
+																disabled={isDropdownDisabled}
+																className={cn(
+																	"flex items-center gap-2",
+																	isDropdownDisabled &&
+																		"opacity-50 cursor-not-allowed",
+																)}
+															>
+																{dropdownItem.icon && (
+																	<span className="w-4 h-4">
+																		{dropdownItem.icon}
+																	</span>
+																)}
+																{dropdownItem.label}
+															</button>
+														</li>
+													);
+												})}
+											</ul>
+										</div>
+									);
+								}
+
+								return (
+									<button
+										type="button"
+										key={commandItem.key}
+										onClick={() => commandItem.onClick?.(selectedItems)}
+										disabled={isDisabled}
+										title={commandItem.label}
+										className={`btn btn-sm ${
+											commandItem.variant === "error"
+												? "btn-error"
+												: commandItem.variant === "primary"
+													? "btn-primary"
+													: commandItem.variant === "secondary"
+														? "btn-secondary"
+														: "btn-ghost"
+										}`}
+									>
+										{commandItem.icon && (
+											<span className="w-4 h-4">{commandItem.icon}</span>
+										)}
+										{commandItem.onlyIcon ? null : commandItem.label}
+									</button>
 								);
-							}
-
-							return (
-								<button
-									type="button"
-									key={commandItem.key}
-									onClick={() => commandItem.onClick?.(selectedItems)}
-									disabled={isDisabled}
-									title={commandItem.label}
-									className={`btn btn-sm ${
-										commandItem.variant === "error"
-											? "btn-error"
-											: commandItem.variant === "primary"
-												? "btn-primary"
-												: commandItem.variant === "secondary"
-													? "btn-secondary"
-													: "btn-ghost"
-									}`}
-								>
-									{commandItem.icon && (
-										<span className="w-4 h-4">{commandItem.icon}</span>
-									)}
-									{commandItem.onlyIcon ? null : commandItem.label}
-								</button>
-							);
-						})}
+							})}
+						</div>
 					</div>
-				</div>
+					<div className="divider h-1 m-0"></div>
+				</>
 			)}
-
-			<div className="divider h-1 m-0"></div>
 
 			<div className="overflow-x-auto">
 				<table className="table table-sm">
