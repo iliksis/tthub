@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { cn, isDayInPast } from "@/lib/utils";
+import { DetailsList } from "../DetailsList";
 import { Modal } from "../modal/Modal";
 
 type ListProps = {
@@ -20,79 +21,90 @@ export const List = ({ appointments }: ListProps) => {
 		await router.navigate({ params: { apptId: id }, to: "/appts/$apptId" });
 	};
 
-	const renderRow = (appointment: ListProps["appointments"][number]) => {
-		const isMultipleDays =
-			appointment.endDate !== null
-				? new Date(appointment.startDate).getDate() !==
-					new Date(appointment.endDate).getDate()
-				: false;
-		const inPast = isDayInPast(appointment.startDate);
-		const isDeleted = appointment.deletedAt !== null;
-
-		const userResponse =
-			appointment.responses?.find((r) => r.userId === user?.id)?.responseType ??
-			"MAYBE";
-		const isAccepted = userResponse === "ACCEPT";
-		const isDeclined = userResponse === "DECLINE";
-
-		return (
-			<tr
-				key={appointment.id}
-				className={cn(
-					"hover:bg-base-200 hover:cursor-pointer",
-					inPast && "opacity-65",
-					isDeleted && "text-error",
-				)}
-				onClick={onClickAppointment(appointment.id)}
-			>
-				<td className="p-0 pl-1">
-					{isAccepted ? (
-						<div className="status status-success"></div>
-					) : isDeclined ? (
-						<div className="status status-error"></div>
-					) : null}
-				</td>
-				<td>{appointment.shortTitle}</td>
-				<td>
-					{new Date(appointment.startDate).toLocaleDateString("de-DE", {
-						day: "2-digit",
-						month: "2-digit",
-						year: "2-digit",
-					})}{" "}
-					{isMultipleDays && appointment.endDate && (
-						<>
-							{" "}
-							-{" "}
-							{new Date(appointment.endDate).toLocaleDateString("de-DE", {
-								day: "2-digit",
-								month: "2-digit",
-								year: "2-digit",
-							})}{" "}
-						</>
-					)}
-				</td>
-				<td>{appointment.location}</td>
-			</tr>
-		);
-	};
-
 	return (
 		<div className="overflow-x-auto">
-			{appointments.length > 0 ? (
-				<table className="table text-xs">
-					<thead className="text-xs">
-						<tr>
-							<th className="p-0"></th>
-							<th>{t("Title")}</th>
-							<th>{t("Date")}</th>
-							<th>{t("Location")}</th>
+			<DetailsList
+				items={appointments}
+				getItemId={(item) => item.id}
+				columns={[
+					{
+						key: "status",
+						label: "",
+						render: (item) => {
+							const userResponse =
+								item.responses?.find((r) => r.userId === user?.id)
+									?.responseType ?? "MAYBE";
+							const isAccepted = userResponse === "ACCEPT";
+							const isDeclined = userResponse === "DECLINE";
+							return isAccepted ? (
+								<div className="status status-success"></div>
+							) : isDeclined ? (
+								<div className="status status-error"></div>
+							) : null;
+						},
+					},
+					{
+						key: "title",
+						label: t("Title"),
+						render: (item) => item.shortTitle,
+					},
+					{
+						key: "date",
+						label: t("Date"),
+						render: (item) => {
+							const isMultipleDays =
+								item.endDate !== null
+									? new Date(item.startDate).getDate() !==
+										new Date(item.endDate).getDate()
+									: false;
+
+							return (
+								<>
+									{new Date(item.startDate).toLocaleDateString("de-DE", {
+										day: "2-digit",
+										month: "2-digit",
+										year: "2-digit",
+									})}{" "}
+									{isMultipleDays && item.endDate && (
+										<>
+											{" "}
+											-{" "}
+											{new Date(item.endDate).toLocaleDateString("de-DE", {
+												day: "2-digit",
+												month: "2-digit",
+												year: "2-digit",
+											})}
+										</>
+									)}
+								</>
+							);
+						},
+					},
+					{
+						key: "location",
+						label: t("Location"),
+						render: (item) => item.location,
+					},
+				]}
+				onRenderRow={(item, children) => {
+					const inPast = isDayInPast(item.startDate);
+					const isDeleted = item.deletedAt !== null;
+					return (
+						<tr
+							key={item.id}
+							className={cn(
+								"hover:bg-base-200 hover:cursor-pointer h-10",
+								inPast && "opacity-65",
+								isDeleted && "text-error",
+							)}
+							onClick={onClickAppointment(item.id)}
+						>
+							{children}
 						</tr>
-					</thead>
-					<tbody>{appointments.map(renderRow)}</tbody>
-				</table>
-			) : (
-				<div>{t("No appointments found")}</div>
-			)}
+					);
+				}}
+				selectMode="none"
+			/>
 		</div>
 	);
 };

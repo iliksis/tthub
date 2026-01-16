@@ -1,7 +1,5 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
-import { UserPlusIcon } from "lucide-react";
-import React from "react";
 import { createUser } from "@/api/users";
 import { useMutation } from "@/hooks/useMutation";
 import { Role } from "@/lib/prisma/enums";
@@ -20,7 +18,14 @@ const defaultUser: NewUser = {
 	userName: "",
 };
 
-export const CreateUserModal = () => {
+type CreateUserModalProps = {
+	modalOpen: boolean;
+	onClose: () => void;
+};
+export const CreateUserModal = ({
+	modalOpen,
+	onClose,
+}: CreateUserModalProps) => {
 	const router = useRouter();
 
 	const createMutation = useMutation({
@@ -50,74 +55,40 @@ export const CreateUserModal = () => {
 		},
 	});
 
-	const [modalOpen, setModalOpen] = React.useState(false);
-
-	const onClick = () => {
-		setModalOpen(true);
-	};
-	const onClose = () => {
-		setModalOpen(false);
-	};
-
 	return (
-		<>
-			<button type="button" className="btn btn-primary" onClick={onClick}>
-				<UserPlusIcon className="size-4" />
-				{t("Create new user")}
-			</button>
-			<Modal
-				className="modal-bottom"
-				modalBoxClassName="md:max-w-xl md:mx-auto"
-				open={modalOpen}
-				onClose={onClose}
-				onRenderActionButton={() => (
-					<button
-						type="submit"
-						className="btn btn-primary"
-						onClick={(e) => {
-							e.preventDefault();
-							e.stopPropagation();
-							form.handleSubmit();
-						}}
-					>
-						{t("Create")}
-					</button>
-				)}
-			>
-				<form
-					onSubmit={(e) => {
+		<Modal
+			className="modal-bottom"
+			modalBoxClassName="md:max-w-xl md:mx-auto"
+			open={modalOpen}
+			onClose={onClose}
+			onRenderActionButton={() => (
+				<button
+					type="submit"
+					className="btn btn-primary"
+					onClick={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
 						form.handleSubmit();
 					}}
 				>
-					<div>
-						<form.Field name="name">
-							{(field) => {
-								return (
-									<fieldset className="fieldset">
-										<label className="label" htmlFor={field.name}>
-											{t("Name")}:
-										</label>
-										<input
-											id={field.name}
-											className="input input-primary w-full"
-											name={field.name}
-											value={field.state.value}
-											onBlur={field.handleBlur}
-											onChange={(e) => field.handleChange(e.target.value)}
-										/>
-									</fieldset>
-								);
-							}}
-						</form.Field>
-					</div>
-					<div>
-						<form.Field name="userName">
-							{(field) => (
+					{t("Create")}
+				</button>
+			)}
+		>
+			<form
+				onSubmit={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					form.handleSubmit();
+				}}
+			>
+				<div>
+					<form.Field name="name">
+						{(field) => {
+							return (
 								<fieldset className="fieldset">
 									<label className="label" htmlFor={field.name}>
-										{t("User Name")}:
+										{t("Name")}:
 									</label>
 									<input
 										id={field.name}
@@ -128,33 +99,52 @@ export const CreateUserModal = () => {
 										onChange={(e) => field.handleChange(e.target.value)}
 									/>
 								</fieldset>
-							)}
-						</form.Field>
-					</div>
-					<div>
-						<form.Field name="role">
-							{(field) => (
-								<fieldset className="fieldset">
-									<label className="label" htmlFor={field.name}>
-										{t("Role")}:
-									</label>
-									<select
-										id={field.name}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value as Role)}
-										className="select select-primary w-full"
-										value={field.state.value}
-									>
-										{Object.keys(Role).map((role) => (
-											<option key={role}>{role}</option>
-										))}
-									</select>
-								</fieldset>
-							)}
-						</form.Field>
-					</div>
-				</form>
-			</Modal>
-		</>
+							);
+						}}
+					</form.Field>
+				</div>
+				<div>
+					<form.Field name="userName">
+						{(field) => (
+							<fieldset className="fieldset">
+								<label className="label" htmlFor={field.name}>
+									{t("User Name")}:
+								</label>
+								<input
+									id={field.name}
+									className="input input-primary w-full"
+									name={field.name}
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onChange={(e) => field.handleChange(e.target.value)}
+								/>
+							</fieldset>
+						)}
+					</form.Field>
+				</div>
+				<div>
+					<form.Field name="role">
+						{(field) => (
+							<fieldset className="fieldset">
+								<label className="label" htmlFor={field.name}>
+									{t("Role")}:
+								</label>
+								<select
+									id={field.name}
+									onBlur={field.handleBlur}
+									onChange={(e) => field.handleChange(e.target.value as Role)}
+									className="select select-primary w-full"
+									value={field.state.value}
+								>
+									{Object.keys(Role).map((role) => (
+										<option key={role}>{role}</option>
+									))}
+								</select>
+							</fieldset>
+						)}
+					</form.Field>
+				</div>
+			</form>
+		</Modal>
 	);
 };

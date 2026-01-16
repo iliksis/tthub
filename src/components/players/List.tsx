@@ -1,4 +1,5 @@
 import { useRouter } from "@tanstack/react-router";
+import { DetailsList } from "@/components/DetailsList";
 import type { Player, Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { calculateAgeGroup } from "@/lib/utils";
@@ -10,7 +11,7 @@ export const List = ({ players }: ListProps) => {
 	const router = useRouter();
 	if (players.length === 0) return <div>{t("No players found")}</div>;
 
-	const onClickPlayer = (id: string) => async () => {
+	const onClickPlayer = async (id: string) => {
 		await router.navigate({
 			params: { playerId: id },
 			to: "/players/$playerId",
@@ -18,31 +19,25 @@ export const List = ({ players }: ListProps) => {
 	};
 
 	return (
-		<div>
-			<table className="table text-xs">
-				<thead className="text-xs">
-					<tr>
-						<th>{t("Name")}</th>
-						<th>{t("Age Group")}</th>
-						<th>{t("QTTR")}</th>
-						<th>{t("Team")}</th>
-					</tr>
-				</thead>
-				<tbody>
-					{players.map((player) => (
-						<tr
-							key={player.id}
-							className="hover:bg-base-200 hover:cursor-pointer"
-							onClick={onClickPlayer(player.id)}
-						>
-							<td>{player.name}</td>
-							<td>{calculateAgeGroup(player.year)}</td>
-							<td>{player.qttr}</td>
-							<td>{player.team?.title}</td>
-						</tr>
-					))}
-				</tbody>
-			</table>
-		</div>
+		<DetailsList
+			items={players}
+			columns={[
+				{ key: "name", label: t("Name"), render: (item) => item.name },
+				{
+					key: "ageGroup",
+					label: t("Age Group"),
+					render: (item) => calculateAgeGroup(item.year),
+				},
+				{ key: "qttr", label: t("QTTR"), render: (item) => item.qttr },
+				{
+					key: "team",
+					label: t("Team"),
+					render: (item) => item.team?.title,
+				},
+			]}
+			getItemId={(item) => item.id}
+			selectMode="none"
+			onItemClick={(item) => onClickPlayer(item.id)}
+		/>
 	);
 };

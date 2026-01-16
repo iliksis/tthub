@@ -36,7 +36,7 @@ export const updateUserRole = createServerFn({ method: "POST" })
 			});
 			return json<Return<User>>(
 				{ data: user, message: t("User updated") },
-				{ status: 401 },
+				{ status: 200 },
 			);
 		} catch (e) {
 			console.log(e);

@@ -1,7 +1,10 @@
-import { ClientOnly, useRouteContext, useRouter } from "@tanstack/react-router";
-import { LinkIcon, Trash2Icon } from "lucide-react";
+import { useForm } from "@tanstack/react-form";
+import { useRouteContext, useRouter } from "@tanstack/react-router";
+import { LinkIcon, Trash2Icon, UserPlusIcon } from "lucide-react";
+import React from "react";
 import { createUserInvitation } from "@/api/invitations";
 import { deleteUser, updateUserRole } from "@/api/users";
+import { DetailsList } from "@/components/DetailsList";
 import { CreateUserModal } from "@/components/modal/CreateUserModal";
 import { notify } from "@/components/Toast";
 import { useMutation } from "@/hooks/useMutation";
@@ -9,6 +12,7 @@ import type { User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { isInvitationExpired } from "@/lib/utils";
+import { Modal } from "../modal/Modal";
 
 type IUserManagementProps = {
 	users: (User & { invitation: UserInvitation | null })[];
@@ -16,6 +20,11 @@ type IUserManagementProps = {
 export const UserManagement = ({ users }: IUserManagementProps) => {
 	const router = useRouter();
 	const { user: currentUser } = useRouteContext({ from: "__root__" });
+
+	const [showRoleUpdateModal, setShowRoleUpdateModal] = React.useState<
+		User | undefined
+	>(undefined);
+	const [showNewUserModal, setShowNewUserModal] = React.useState(false);
 
 	const deleteMutation = useMutation({
 		fn: deleteUser,
@@ -40,26 +49,6 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 			},
 		});
 	};
-
-	const updateUserMutation = useMutation({
-		fn: updateUserRole,
-		onSuccess: async (ctx) => {
-			if (ctx.data?.status < 400) {
-				await router.invalidate();
-				return;
-			}
-		},
-	});
-
-	const onUpdate =
-		(user: User) => async (e: React.ChangeEvent<HTMLSelectElement>) => {
-			updateUserMutation.mutate({
-				data: {
-					id: user.id,
-					role: e.target.value as Role,
-				},
-			});
-		};
 
 	const createInvitationMutation = useMutation({
 		fn: createUserInvitation,
@@ -87,82 +76,197 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 
 	return (
 		<div className="overflow-x-auto">
-			<table className="table">
-				<thead>
-					<tr>
-						<th></th>
-						<th>{t("Name")}</th>
-						<th>{t("User Name")}</th>
-						<th>{t("Role")}</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody>
-					{users.map((user) => (
-						<tr key={user.id}>
-							<td>
-								<button
-									type="button"
-									className="btn btn-square btn-error btn-ghost"
-									onClick={onDelete(user)}
-									disabled={user.id === currentUser?.id}
-								>
-									<Trash2Icon className="size-4" />
-								</button>
-							</td>
-							<td>{user.name}</td>
-							<td>{user.userName}</td>
-							<td>
-								<select
-									className="select select-primary"
-									defaultValue={user.role}
-									disabled={user.id === currentUser?.id}
-									onChange={onUpdate(user)}
-								>
-									{Object.keys(Role).map((role) => (
-										<option key={role} selected={user.role === role}>
-											{role}
-										</option>
-									))}
-								</select>
-							</td>
-							<td>
-								<ClientOnly fallback={<div></div>}>
-									{user.invitation ? (
-										isInvitationExpired(user.invitation) ? (
-											<button
-												type="button"
-												className="btn btn-warning tooltip tooltip-left"
-												aria-label={t("Create new link")}
-												data-tip={t("Create new link")}
-												onClick={onCreateInvitation(user)}
-											>
-												{t("Expired")}
-											</button>
-										) : (
-											<button
-												type="button"
-												className="btn btn-square btn-primary tooltip tooltip-left"
-												aria-label={t("Copy link")}
-												data-tip={t("Copy link")}
-												onClick={() => {
-													navigator.clipboard.writeText(
-														`${window.location.origin}/invite/${user.invitation?.id}`,
-													);
-												}}
-											>
-												<LinkIcon className="size-4" />
-											</button>
-										)
-									) : null}
-								</ClientOnly>
-							</td>
-						</tr>
-					))}
-				</tbody>
-			</table>
+			<DetailsList
+				items={users}
+				getItemId={(item) => item.id}
+				selectMode="single"
+				columns={[
+					{ key: "name", label: t("Name"), render: (item) => item.name },
+					{
+						key: "userName",
+						label: t("User Name"),
+						render: (item) => item.userName,
+					},
+					{ key: "role", label: t("Role"), render: (item) => item.role },
+					{
+						key: "invitation",
+						label: "",
+						render: (item) => {
+							if (!item.invitation) return null;
+
+							return isInvitationExpired(item.invitation) ? (
+								<span className="text-warning">{t("Invitation expired")}</span>
+							) : (
+								t("Invitation Active")
+							);
+						},
+					},
+				]}
+				commandBarItems={[
+					{
+						icon: <UserPlusIcon className="size-4" />,
+						key: "create-user",
+						label: t("Create User"),
+						onClick: () => setShowNewUserModal(true),
+						onlyIcon: true,
+						variant: "primary",
+					},
+					{
+						isDisabled: (items) =>
+							items.length !== 1 || items[0].id === currentUser?.id,
+						key: "update-role",
+						label: t("Update Role"),
+						onClick: (items) => {
+							setShowRoleUpdateModal(items[0]);
+						},
+						variant: "secondary",
+					},
+					{
+						isDisabled: (items) =>
+							items.length !== 1 || items[0].id === currentUser?.id,
+						key: "password-reset",
+						label: t("Reset Password"),
+						onClick: (items) => {},
+						variant: "secondary",
+					},
+					{
+						isDisabled: (items) =>
+							items.length !== 1 ||
+							items[0].invitation === null ||
+							!isInvitationExpired(items[0].invitation),
+						key: "create-invitation",
+						label: t("Create Invitation"),
+						onClick: (items) => onCreateInvitation(items[0])(),
+						variant: "secondary",
+					},
+					{
+						icon: <LinkIcon className="size-4" />,
+						isDisabled: (items) =>
+							items.length !== 1 || items[0].invitation == null,
+						key: "copy-invitation-link",
+						label: t("Copy Invitation Link"),
+						onClick: async (items) => {
+							await navigator.clipboard.writeText(
+								`${window.location.origin}/invite/${items[0].invitation?.id}`,
+							);
+							notify({
+								status: "success",
+								title: t("Invitation link copied to clipboard"),
+							});
+						},
+						variant: "secondary",
+					},
+					{
+						icon: <Trash2Icon className="size-4" />,
+						isDisabled: (items) =>
+							items.length !== 1 || items[0].id === currentUser?.id,
+						key: "delete",
+						label: t("Delete"),
+						onClick: (items) => onDelete(items[0])(),
+						onlyIcon: true,
+						variant: "error",
+					},
+				]}
+			/>
 			<div className="divider h-1"></div>
-			<CreateUserModal />
+			<CreateUserModal
+				modalOpen={showNewUserModal}
+				onClose={() => setShowNewUserModal(false)}
+			/>
+			{showRoleUpdateModal && (
+				<UpdateRoleModal
+					onClose={() => setShowRoleUpdateModal(undefined)}
+					user={showRoleUpdateModal}
+				/>
+			)}
 		</div>
+	);
+};
+
+type UpdateRoleModalProps = {
+	onClose: () => void;
+	user: User;
+};
+export const UpdateRoleModal = ({ onClose, user }: UpdateRoleModalProps) => {
+	const router = useRouter();
+
+	const updateUserMutation = useMutation({
+		fn: updateUserRole,
+		onSuccess: async (ctx) => {
+			if (ctx.data?.status < 400) {
+				await router.invalidate();
+				onClose();
+				return;
+			}
+		},
+	});
+
+	const form = useForm({
+		defaultValues: {
+			role: user.role,
+		},
+		onSubmit: async ({ value }) => {
+			updateUserMutation.mutate({
+				data: {
+					id: user.id,
+					role: value.role,
+				},
+			});
+		},
+	});
+
+	return (
+		<Modal
+			className="modal-bottom"
+			modalBoxClassName="md:max-w-xl md:mx-auto"
+			open={true}
+			onClose={onClose}
+			onRenderActionButton={() => (
+				<button
+					type="submit"
+					className="btn btn-primary"
+					onClick={(e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						form.handleSubmit();
+					}}
+				>
+					{t("Update")}
+				</button>
+			)}
+		>
+			<form
+				onSubmit={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					form.handleSubmit();
+				}}
+			>
+				<div>
+					<form.Field name="role">
+						{(field) => {
+							return (
+								<fieldset className="fieldset">
+									<label className="label" htmlFor={field.name}>
+										{t("Role")}:
+									</label>
+									<select
+										className="select select-primary w-full"
+										value={field.state.value}
+										onChange={(e) => field.handleChange(e.target.value as Role)}
+										id={field.name}
+										onBlur={field.handleBlur}
+									>
+										{Object.keys(Role).map((role) => (
+											<option key={role}>{role}</option>
+										))}
+									</select>
+								</fieldset>
+							);
+						}}
+					</form.Field>
+				</div>
+			</form>
+		</Modal>
 	);
 };
