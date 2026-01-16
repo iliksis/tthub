@@ -54,6 +54,7 @@ RUN mkdir -p /data
 VOLUME /data
 
 # Entrypoint prepares the database.
+RUN chmod +x  /app/docker-entrypoint.js
 ENTRYPOINT [ "/app/docker-entrypoint.js" ]
 
 # Start the server by default, this can be overwritten at runtime
