@@ -1,4 +1,5 @@
 import React from "react";
+import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
 export type DetailsListColumn<T> = {
@@ -46,7 +47,7 @@ export function DetailsList<T>({
 	onItemClick,
 	onRenderRow,
 	commandBarItems = [],
-	emptyMessage = "No items found",
+	emptyMessage = t("No items found"),
 	className = "",
 	selectMode = "multiple",
 }: DetailsListProps<T>) {
@@ -153,7 +154,7 @@ export function DetailsList<T>({
 	return (
 		<div className={`flex flex-col gap-4 ${className}`}>
 			{commandBarItems.length > 0 && (
-				<div className="flex gap-2 flex-wrap items-center border-b border-base-300 pb-4">
+				<div className="flex gap-2 flex-wrap items-center">
 					<div className="flex gap-2 ml-auto flex-wrap">
 						{commandBarItems.map((commandItem) => {
 							const isDisabled = commandItem.isDisabled?.(selectedItems);
@@ -231,7 +232,6 @@ export function DetailsList<T>({
 								);
 							}
 
-							// Render regular button
 							return (
 								<button
 									type="button"
@@ -259,6 +259,8 @@ export function DetailsList<T>({
 					</div>
 				</div>
 			)}
+
+			<div className="divider h-1 m-0"></div>
 
 			<div className="overflow-x-auto">
 				<table className="table table-sm">

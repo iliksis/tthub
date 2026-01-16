@@ -100,6 +100,7 @@ const texts = {
 	"No appointments found": "Keine Termine gefunden",
 	"No appointments in the next 4 weeks":
 		"Keine Termine in den nächsten 4 Wochen",
+	"No items found": "Keine Einträge gefunden",
 	"No link set": "Kein Link gesetzt",
 	"No location set": "Kein Ort gesetzt",
 	"No players found": "Keine Spieler:innen gefunden",
