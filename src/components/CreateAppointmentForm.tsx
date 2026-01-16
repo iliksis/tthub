@@ -1,66 +1,40 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
-import React from "react";
-import { create } from "zustand";
 import { createAppointment } from "@/api/appointments";
 import { useMutation } from "@/hooks/useMutation";
-import { AppointmentStatus, AppointmentType } from "@/lib/prisma/enums";
+import { AppointmentStatus } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { dateToInputValue } from "@/lib/utils";
+import {
+	type AppointmentType,
+	CreateAppointmentProvider,
+	type TournamentType,
+	useCreateAppointmentContext,
+} from "./CreateAppointmentForm.context";
 import { notify } from "./Toast";
 
-const types = [t("Tournament"), t("Holiday")] as const;
-const tournamentAreas = [t("Bavaria"), t("Germany")] as const;
-
-type CreateState = {
-	type: (typeof types)[number] | undefined;
-	tournamentType: (typeof tournamentAreas)[number] | undefined;
-};
-
-type CreateActions = {
-	setType: (type: (typeof types)[number]) => void;
-	setTournamentType: (tournamentType: (typeof tournamentAreas)[number]) => void;
-};
-
-const useCreateState = create<CreateState & CreateActions>((set) => ({
-	type: undefined,
-	tournamentType: undefined,
-	setType: (type: (typeof types)[number]) => set({ type }),
-	setTournamentType: (tournamentType: (typeof tournamentAreas)[number]) =>
-		set({ tournamentType }),
-}));
+const types: { key: AppointmentType; value: string }[] = [
+	{ key: "holiday", value: t("Holiday") },
+	{ key: "tournament", value: t("Tournament") },
+] as const;
+const tournamentAreas: { key: TournamentType; value: string }[] = [
+	{ key: "bavaria", value: t("Bavaria") },
+	{ key: "germany", value: t("Germany") },
+] as const;
 
 export const CreateAppointmentForm = () => {
-	const { type, tournamentType } = useCreateState();
-
-	const appointmentType = React.useMemo(() => {
-		if (type === t("Holiday")) {
-			return AppointmentType.HOLIDAY;
-		} else if (tournamentType === t("Bavaria")) {
-			return AppointmentType.TOURNAMENT_BY;
-		} else if (tournamentType === t("Germany")) {
-			return AppointmentType.TOURNAMENT_DE;
-		}
-		return null;
-	}, [tournamentType, type]);
-
-	const renderEditSection = React.useCallback(() => {
-		if (!appointmentType) return null;
-
-		return <AppointmentEditSection appointmentType={appointmentType} />;
-	}, [appointmentType]);
-
 	return (
-		<div>
+		<CreateAppointmentProvider>
 			<AppointmentTypeSelect />
 			<div className="divider"></div>
-			{renderEditSection()}
-		</div>
+			<AppointmentEditSection />
+		</CreateAppointmentProvider>
 	);
 };
 
 const AppointmentTypeSelect = () => {
-	const { type, setType, setTournamentType } = useCreateState();
+	const { state, dispatch } = useCreateAppointmentContext();
+
 	return (
 		<fieldset className="fieldset">
 			<legend className="fieldset-legend">{t("Appointment type")}</legend>
@@ -68,26 +42,38 @@ const AppointmentTypeSelect = () => {
 				<select
 					className="select select-primary w-1/2"
 					onChange={(e) => {
-						setType(e.target.value as any);
+						dispatch({
+							payload: e.target.value as AppointmentType,
+							type: "SET_TYPE",
+						});
 					}}
 				>
 					<option disabled selected>
 						{t("Choose a type")}
 					</option>
 					{types.map((t) => (
-						<option key={t}>{t}</option>
+						<option key={t.key} value={t.key}>
+							{t.value}
+						</option>
 					))}
 				</select>
-				{type === t("Tournament") && (
+				{state.type === "tournament" && (
 					<select
 						className="select select-primary w-1/2"
-						onChange={(e) => setTournamentType(e.target.value as any)}
+						onChange={(e) => {
+							dispatch({
+								payload: e.target.value as TournamentType,
+								type: "SET_TOURNAMENT_TYPE",
+							});
+						}}
 					>
 						<option disabled selected>
 							{t("Choose an area")}
 						</option>
 						{tournamentAreas.map((t) => (
-							<option key={t}>{t}</option>
+							<option key={t.key} value={t.key}>
+								{t.value}
+							</option>
 						))}
 					</select>
 				)}
@@ -104,18 +90,16 @@ const defaultFormValues: {
 	location?: string;
 	status: AppointmentStatus;
 } = {
-	title: "",
-	shortTitle: "",
 	location: "",
+	shortTitle: "",
 	startDate: new Date(),
 	status: AppointmentStatus.DRAFT,
+	title: "",
 };
-const AppointmentEditSection = ({
-	appointmentType,
-}: {
-	appointmentType: AppointmentType;
-}) => {
+const AppointmentEditSection = () => {
 	const router = useRouter();
+
+	const { state } = useCreateAppointmentContext();
 
 	const createMutation = useMutation({
 		fn: createAppointment,
@@ -123,14 +107,14 @@ const AppointmentEditSection = ({
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400 && data.data) {
 				await router.invalidate();
-				notify({ text: data.message, status: "success" });
+				notify({ status: "success", title: data.message });
 				await router.navigate({
-					to: "/appts/$apptId",
 					params: { apptId: data.data.id },
+					to: "/appts/$apptId",
 				});
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", title: data.message });
 		},
 	});
 
@@ -139,17 +123,25 @@ const AppointmentEditSection = ({
 		onSubmit: async ({ value }) => {
 			createMutation.mutate({
 				data: {
-					title: value.title,
-					shortTitle: value.shortTitle,
-					type: appointmentType,
-					startDate: value.startDate,
 					endDate: value.endDate,
 					location: value.location,
+					shortTitle: value.shortTitle,
+					startDate: value.startDate,
 					status: value.status,
+					title: value.title,
+					type:
+						state.type === "holiday"
+							? "HOLIDAY"
+							: state.tournamentType === "bavaria"
+								? "TOURNAMENT"
+								: "TOURNAMENT_DE",
 				},
 			});
 		},
 	});
+
+	if (!state.type) return null;
+
 	return (
 		<div>
 			<form
@@ -245,7 +237,7 @@ const AppointmentEditSection = ({
 						)}
 					</form.Field>
 				</div>
-				{appointmentType !== AppointmentType.HOLIDAY && (
+				{state.type !== "holiday" && (
 					<>
 						<div>
 							<form.Field name="location">

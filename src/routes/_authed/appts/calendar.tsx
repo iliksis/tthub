@@ -26,7 +26,7 @@ function RouteComponent() {
 		<FullCalendar
 			events={async (info, success, failure) => {
 				const res = await getEvents({
-					data: { start: info.start, end: info.end },
+					data: { end: info.end, start: info.start },
 				});
 
 				const data = await res.json();
@@ -44,8 +44,8 @@ function RouteComponent() {
 				today: t("Today"),
 			}}
 			buttonHints={{
-				prev: t("Previous month"),
 				next: t("Next month"),
+				prev: t("Previous month"),
 			}}
 			dayCellContent={({ dayNumberText }) => {
 				return (
@@ -63,8 +63,8 @@ function RouteComponent() {
 			)}
 			eventClick={(info) => {
 				router.navigate({
-					to: "/appts/$apptId",
 					params: { apptId: info.event.id },
+					to: "/appts/$apptId",
 				});
 			}}
 			eventDidMount={({ el, event }) => {

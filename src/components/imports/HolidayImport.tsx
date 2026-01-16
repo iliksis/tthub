@@ -32,27 +32,27 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
-				notify({ text: data.message, status: "success" });
+				notify({ status: "success", title: data.message });
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", title: data.message });
 		},
 	});
 
 	const form = useForm({
 		defaultValues: {
 			country: "DE",
-			subdivision: "",
-			startDate: "",
 			endDate: "",
+			startDate: "",
+			subdivision: "",
 		},
 		onSubmit: async ({ value }) => {
 			await importMutation.mutate({
 				data: {
-					subdivision: value.subdivision,
 					country: value.country,
-					startDate: value.startDate,
 					endDate: value.endDate,
+					startDate: value.startDate,
+					subdivision: value.subdivision,
 				},
 			});
 		},
@@ -66,12 +66,12 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 	const countrySelect = useStore(form.store, (state) => state.values.country);
 
 	const query = useQuery({
-		queryKey: ["subdivisions", countrySelect],
+		enabled: !!countrySelect,
 		queryFn: async () => {
 			const api = new Holiday();
 			return await api.getSubdivisions(countrySelect);
 		},
-		enabled: !!countrySelect,
+		queryKey: ["subdivisions", countrySelect],
 	});
 
 	return (

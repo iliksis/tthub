@@ -1,28 +1,39 @@
 import {
 	createFileRoute,
+	Link,
 	useRouteContext,
 	useRouter,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { UserCog2Icon, UserRoundPenIcon, UserRoundXIcon } from "lucide-react";
+import { CogIcon, EditIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { deletePlayer, getPlayer, updatePlayer } from "@/api/players";
+import { getTeams } from "@/api/teams";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlayerForm } from "@/components/players/PlayerForm";
 import { notify } from "@/components/Toast";
 import { Card } from "@/components/ValueCard";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
+import { calculateAgeGroup } from "@/lib/utils";
 
+// biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
 export const Route = createFileRoute("/_authed/players/$playerId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const data = await getPlayer({ data: { id: params.playerId } });
-		const res = await data.json();
-		if (data.status < 400) {
-			return { player: res.data };
+		const [playerData, teamsData] = await Promise.all([
+			getPlayer({ data: { id: params.playerId } }),
+			getTeams(),
+		]);
+		const playerRes = await playerData.json();
+		const teamsRes = await teamsData.json();
+		if (playerData.status >= 400) {
+			throw new Error(playerRes.message);
 		}
-		throw new Error(res.message);
+		if (teamsData.status >= 400) {
+			throw new Error(teamsRes.message);
+		}
+		return { player: playerRes.data, teams: teamsRes.data };
 	},
 	head: ({ loaderData }) => ({
 		meta: [{ title: loaderData?.player?.name }],
@@ -31,7 +42,7 @@ export const Route = createFileRoute("/_authed/players/$playerId")({
 
 function RouteComponent() {
 	const router = useRouter();
-	const { player } = Route.useLoaderData();
+	const { player, teams } = Route.useLoaderData();
 	const { user } = useRouteContext({ from: "__root__" });
 
 	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
@@ -48,12 +59,12 @@ function RouteComponent() {
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
 				notify({
-					text: data.message,
 					status: "success",
+					title: data.message,
 				});
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", title: data.message });
 		},
 	});
 
@@ -80,26 +91,43 @@ function RouteComponent() {
 		const data = await res.json();
 		if (res.status < 400 && data) {
 			await router.invalidate();
-			notify({ text: data.message, status: "success" });
+			notify({ status: "success", title: data.message });
 			await router.navigate({
 				to: "..",
 			});
 			return;
 		}
-		notify({ text: data.message, status: "error" });
+		notify({ status: "error", title: data.message });
 	};
 
 	return (
 		<div>
 			<div className="grid grid-cols-4 gap-2">
 				<Card title={t("Year of birth")} gridRows={3}>
-					<p>{player.year}</p>
+					<p>
+						{player.year}{" "}
+						<span className="opacity-75">
+							- {calculateAgeGroup(player.year)}
+						</span>
+					</p>
 				</Card>
 				<Card title={t("QTTR")} gridRows={1}>
 					<p>{player.qttr}</p>
 				</Card>
 				<Card title={t("Team")} gridRows={4}>
-					<p>{player.team?.title || t("No team set")}</p>
+					<p>
+						{player.team ? (
+							<Link
+								className="link link-hover"
+								to="/teams/$teamId"
+								params={{ teamId: player.team.id }}
+							>
+								{player.team.title}
+							</Link>
+						) : (
+							t("No team set")
+						)}
+					</p>
 				</Card>
 			</div>
 			{canEdit && (
@@ -107,7 +135,7 @@ function RouteComponent() {
 					<div className="fab">
 						{/** biome-ignore lint/a11y/useSemanticElements: fixes safari bug */}
 						<div className="btn btn-lg btn-circle" role="button" tabIndex={0}>
-							<UserCog2Icon className="size-4" />
+							<CogIcon className="size-4" />
 						</div>
 						<button
 							className="btn btn-lg btn-circle"
@@ -115,7 +143,7 @@ function RouteComponent() {
 							title={t("Update player")}
 							onClick={onEdit}
 						>
-							<UserRoundPenIcon className="size-4" />
+							<EditIcon className="size-4" />
 						</button>
 						<button
 							className="btn btn-lg btn-circle"
@@ -123,7 +151,7 @@ function RouteComponent() {
 							title={t("Delete player")}
 							onClick={onOpenDelete}
 						>
-							<UserRoundXIcon className="size-4" />
+							<Trash2Icon className="size-4" />
 						</button>
 					</div>
 
@@ -132,11 +160,16 @@ function RouteComponent() {
 						onClose={onStopEditing}
 						onSubmit={async (values) => {
 							await updatePlayerMutation.mutate({
-								data: { ...values, id: player.id },
+								data: {
+									...values,
+									id: player.id,
+									team: values.team ?? undefined,
+								},
 							});
 						}}
 						submitLabel={t("Update")}
-						defaultValues={player}
+						defaultValues={{ ...player, team: player.team?.id ?? null }}
+						teams={teams ?? []}
 					/>
 					<DeleteModal
 						label={t("Are you sure you want to delete this player?")}

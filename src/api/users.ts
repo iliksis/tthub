@@ -2,9 +2,8 @@ import { createServerFn, json } from "@tanstack/react-start";
 import { hashPassword, prismaClient } from "@/lib/db";
 import type { User } from "@/lib/prisma/client";
 import type { Role } from "@/lib/prisma/enums";
-import { useIsRole, useIsUserOrRole } from "@/lib/session";
+import { useAppSession, useIsRole, useIsUserOrRole } from "@/lib/session";
 import { t } from "@/lib/text";
-import { loginFn } from "@/routes/_authed";
 import type { Return } from "./types";
 
 export const fetchUsers = createServerFn({ method: "GET" }).handler(
@@ -12,6 +11,7 @@ export const fetchUsers = createServerFn({ method: "GET" }).handler(
 		const users = await prismaClient.user.findMany({
 			include: {
 				invitation: true,
+				passwordReset: true,
 			},
 		});
 		return users;
@@ -28,16 +28,16 @@ export const updateUserRole = createServerFn({ method: "POST" })
 
 		try {
 			const user = await prismaClient.user.update({
-				where: {
-					id: data.id,
-				},
 				data: {
 					role: data.role,
 				},
+				where: {
+					id: data.id,
+				},
 			});
 			return json<Return<User>>(
-				{ message: t("User updated"), data: user },
-				{ status: 401 },
+				{ data: user, message: t("User updated") },
+				{ status: 200 },
 			);
 		} catch (e) {
 			console.log(e);
@@ -47,26 +47,40 @@ export const updateUserRole = createServerFn({ method: "POST" })
 	});
 
 export const updateUserInformation = createServerFn({ method: "POST" })
-	.inputValidator((d: { id: string; name: string; password: string }) => d)
+	.inputValidator(
+		(d: {
+			id: string;
+			name: string;
+			password: string;
+			confirmPassword: string;
+		}) => d,
+	)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsUserOrRole(data.id, "ADMIN");
 		if (!isAuthorized) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
+		if (data.password !== data.confirmPassword) {
+			return json<Return>(
+				{ message: t("The passwords entered do not match") },
+				{ status: 400 },
+			);
+		}
+
 		try {
 			const hashedPassword = await hashPassword(data.password);
 			const user = await prismaClient.user.update({
-				where: {
-					id: data.id,
-				},
 				data: {
 					name: data.name,
 					password: hashedPassword,
 				},
+				where: {
+					id: data.id,
+				},
 			});
 			return json<Return<User>>(
-				{ message: t("User information updated"), data: user },
+				{ data: user, message: t("Settings updated") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -87,17 +101,17 @@ export const createUser = createServerFn({ method: "POST" })
 		try {
 			const user = await prismaClient.user.create({
 				data: {
-					userName: data.userName,
-					name: data.name,
-					role: data.role,
 					invitation: {
 						create: {},
 					},
+					name: data.name,
+					role: data.role,
+					userName: data.userName,
 				},
 			});
 
 			return json<Return<User>>(
-				{ message: t("User created"), data: user },
+				{ data: user, message: t("User created") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -108,9 +122,15 @@ export const createUser = createServerFn({ method: "POST" })
 	});
 
 export const createUserFromInvitation = createServerFn({ method: "POST" })
-	.inputValidator((d: { invitationId: string; password: string }) => d)
+	.inputValidator(
+		(d: { invitationId: string; password: string; confirmPassword: string }) =>
+			d,
+	)
 	.handler(async ({ data }) => {
 		try {
+			// biome-ignore lint/correctness/useHookAtTopLevel: not a real hook
+			const session = await useAppSession();
+
 			const invitation = await prismaClient.userInvitation.findUnique({
 				where: {
 					id: data.invitationId,
@@ -125,16 +145,23 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 				);
 			}
 
+			if (data.password !== data.confirmPassword) {
+				return json<Return>(
+					{ message: t("The passwords entered do not match") },
+					{ status: 400 },
+				);
+			}
+
 			const hashedPassword = await hashPassword(data.password);
 			const user = await prismaClient.user.update({
-				where: {
-					id: invitation.userId,
-				},
 				data: {
 					password: hashedPassword,
 				},
 				include: {
 					invitation: true,
+				},
+				where: {
+					id: invitation.userId,
 				},
 			});
 			if (user.invitation) {
@@ -144,11 +171,9 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 					},
 				});
 			}
-			await loginFn({
-				data: { userName: user.userName, password: data.password },
-			});
+			await session.update(user);
 			return json<Return<User>>(
-				{ message: t("User created"), data: user },
+				{ data: user, message: t("User created") },
 				{
 					status: 200,
 				},
@@ -187,6 +212,66 @@ export const deleteUser = createServerFn({ method: "POST" })
 			return json<Return>({ message: t("User deleted") }, { status: 200 });
 		} catch (e) {
 			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
+export const updatePasswordFromReset = createServerFn({ method: "POST" })
+	.inputValidator(
+		(d: { resetId: string; password: string; confirmPassword: string }) => d,
+	)
+	.handler(async ({ data }) => {
+		try {
+			// biome-ignore lint/correctness/useHookAtTopLevel: not a real hook
+			const session = await useAppSession();
+
+			const passwordReset = await prismaClient.passwordReset.findUnique({
+				where: {
+					id: data.resetId,
+				},
+			});
+			if (!passwordReset) {
+				return json<Return>(
+					{ message: t("Password reset request not found") },
+					{
+						status: 404,
+					},
+				);
+			}
+
+			if (data.password !== data.confirmPassword) {
+				return json<Return>(
+					{ message: t("The passwords entered do not match") },
+					{ status: 400 },
+				);
+			}
+
+			const hashedPassword = await hashPassword(data.password);
+			const user = await prismaClient.user.update({
+				data: {
+					password: hashedPassword,
+				},
+				where: {
+					id: passwordReset.userId,
+				},
+			});
+
+			await prismaClient.passwordReset.delete({
+				where: {
+					id: data.resetId,
+				},
+			});
+
+			await session.update(user);
+			return json<Return<User>>(
+				{ data: user, message: t("User updated") },
+				{
+					status: 200,
+				},
+			);
+		} catch (e) {
+			console.log(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}

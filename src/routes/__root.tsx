@@ -8,9 +8,11 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
-import { ToastContainer } from "react-toastify";
+import React from "react";
+import { Toaster } from "sonner";
 import { NavigationWrapper } from "@/components/NavigationWrapper";
 import { getTheme } from "@/components/ThemeSwitch";
+import { prismaClient } from "@/lib/db";
 import { useAppSession } from "@/lib/session";
 import appCss from "../styles.css?url";
 
@@ -19,37 +21,73 @@ const fetchUser = createServerFn({ method: "GET" }).handler(async () => {
 	if (!session.data.userName) {
 		return null;
 	}
+	const user = await prismaClient.user.findUnique({
+		where: {
+			userName: session.data.userName,
+		},
+	});
+	if (user === null) {
+		return null;
+	}
 	return {
 		id: session.data.id,
+		name: session.data.name,
 		role: session.data.role,
 		userName: session.data.userName,
-		name: session.data.name,
 	};
 });
 
 export const Route = createRootRoute({
+	beforeLoad: async () => {
+		const user = await fetchUser();
+		const theme = await getTheme();
+		return { theme, user };
+	},
 	head: () => ({
+		links: [
+			{
+				href: appCss,
+				rel: "stylesheet",
+			},
+			{
+				href: "/favicon-96x96.png",
+				rel: "icon",
+				sizes: "96x96",
+				type: "image/png",
+			},
+			{
+				href: "/favicon.svg",
+				rel: "icon",
+				type: "image/svg+xml",
+			},
+			{
+				href: "/favicon.ico",
+				rel: "shortcut icon",
+			},
+			{
+				href: "/apple-touch-icon.png",
+				rel: "apple-touch-icon",
+				sizes: "180x180",
+			},
+			{
+				content: "TT Hub",
+				rel: "apple-mobile-web-app-title",
+			},
+			{
+				href: "/manifest.json",
+				rel: "manifest",
+			},
+		],
 		meta: [
 			{
 				charSet: "utf-8",
 			},
 			{
-				name: "viewport",
 				content: "width=device-width, initial-scale=1",
-			},
-		],
-		links: [
-			{
-				rel: "stylesheet",
-				href: appCss,
+				name: "viewport",
 			},
 		],
 	}),
-	beforeLoad: async () => {
-		const user = await fetchUser();
-		const theme = await getTheme();
-		return { user, theme };
-	},
 	shellComponent: RootDocument,
 });
 
@@ -74,6 +112,31 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 	const isAuthedRoute = useRouterState({
 		select: (state) => state.matches.some((m) => m.routeId === "/_authed"),
 	});
+
+	React.useEffect(() => {
+		const registerServiceWorker = async () => {
+			if ("serviceWorker" in navigator) {
+				try {
+					const registration = await navigator.serviceWorker.register(
+						"/sw.js",
+						{
+							scope: "/",
+						},
+					);
+					if (registration.installing) {
+						console.log("Service worker installing");
+					} else if (registration.waiting) {
+						console.log("Service worker installed");
+					} else if (registration.active) {
+						console.log("Service worker active");
+					}
+				} catch (error) {
+					console.error(`Registration failed with ${error}`);
+				}
+			}
+		};
+		registerServiceWorker();
+	}, []);
 
 	return (
 		<html
@@ -105,7 +168,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 						children
 					)}
 				</QueryClientProvider>
-				<ToastContainer stacked />
+				<Toaster position="top-center" />
 				<Scripts />
 			</body>
 		</html>

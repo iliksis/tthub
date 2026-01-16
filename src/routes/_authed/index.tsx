@@ -9,6 +9,9 @@ import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/")({
 	component: App,
+	head: () => ({
+		meta: [{ title: t("Dashboard") }],
+	}),
 	loader: async ({ context }) => {
 		if (!context.user?.id) {
 			throw new Error(t("Unauthorized"));
@@ -46,9 +49,6 @@ export const Route = createFileRoute("/_authed/")({
 			withoutResponses: withoutResponsesRes.data,
 		};
 	},
-	head: () => ({
-		meta: [{ title: t("Dashboard") }],
-	}),
 });
 
 function App() {

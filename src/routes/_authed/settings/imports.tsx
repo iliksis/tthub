@@ -6,23 +6,19 @@ import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/settings/imports")({
 	component: RouteComponent,
+	head: () => ({
+		meta: [{ title: t("Imports") }],
+	}),
 	loader: async () => {
 		const api = new Holiday();
 		const countries = await api.getCountries();
 		return {
 			countries: countries.map((c) => ({
-				title: c.name[0].text,
 				code: c.isoCode,
+				title: c.name[0].text,
 			})),
 		};
 	},
-	head: () => ({
-		meta: [
-			{
-				title: t("Imports"),
-			},
-		],
-	}),
 });
 
 function RouteComponent() {

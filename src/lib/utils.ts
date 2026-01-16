@@ -1,7 +1,9 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { FileRouteTypes } from "@/routeTree.gen";
 import type { UserInvitation } from "./prisma/client";
 import { Role } from "./prisma/enums";
+import { t } from "./text";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -9,7 +11,7 @@ export function cn(...inputs: ClassValue[]) {
 
 const expirationDays = 3;
 export const isInvitationExpired = (invitation: UserInvitation) => {
-	const expirationDate = invitation.createdAt;
+	const expirationDate = new Date(invitation.createdAt);
 	expirationDate.setDate(expirationDate.getDate() + expirationDays);
 	return expirationDate < new Date();
 };
@@ -72,8 +74,35 @@ export const createColorForUserId = (userId: string) => {
 	return color;
 };
 
+/**
+ * Formats a string with numeric placeholders (e.g. {0}, {1}, ...) and replaces them with the provided values.
+ */
 export const format = (str: string, ...values: string[]) => {
 	return str.replace(/{(\d+)}/g, (match, index) => {
 		return typeof values[index] !== "undefined" ? values[index] : match;
 	});
+};
+
+export const formatTanstackRouterPath = (
+	path: FileRouteTypes["fullPaths"],
+	params: Record<string, string>,
+) => {
+	const keys = Object.keys(params);
+	const values = Object.values(params);
+	return path
+		.replace(/\/$/, "")
+		.replace(new RegExp(`\\$${keys.join("|\\$")}`, "g"), (match, index) => {
+			return values[index] ?? match;
+		});
+};
+
+export const calculateAgeGroup = (year: number) => {
+	const currentYear = new Date().getFullYear();
+	const age = currentYear - year;
+
+	if (age < 11) return "U11";
+	if (age < 13) return "U13";
+	if (age < 15) return "U15";
+	if (age < 19) return "U19";
+	return t("Adult");
 };

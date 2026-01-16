@@ -35,11 +35,11 @@ export function useMutation<TVariables, TData, TError = Error>(opts: {
 	);
 
 	return {
-		status,
-		variables,
-		submittedAt,
-		mutate,
-		error,
 		data,
+		error,
+		mutate,
+		status,
+		submittedAt,
+		variables,
 	};
 }

@@ -7,17 +7,17 @@ import { routeTree } from "./routeTree.gen";
 // Create a new router instance
 export const getRouter = () => {
 	const router = createRouter({
+		defaultPreloadStaleTime: 0,
 		routeTree,
 		scrollRestoration: true,
-		defaultPreloadStaleTime: 0,
 	});
 
 	if (!router.isServer) {
 		Sentry.init({
-			dsn: import.meta.env.VITE_SENTRY_DSN,
-			integrations: [],
 			debug: import.meta.env.DEV,
+			dsn: import.meta.env.VITE_SENTRY_DSN,
 			environment: import.meta.env.MODE,
+			integrations: [],
 			tunnel: "/sentry-tunnel",
 		});
 	}

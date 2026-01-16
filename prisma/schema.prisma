@@ -1,0 +1,143 @@
+generator client {
+  provider   = "prisma-client"
+  output     = "../src/lib/prisma"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id                   String                 @id @default(nanoid(6))
+  userName             String                 @unique
+  password             String?
+  name                 String
+  role                 Role                   @default(USER)
+  invitation           UserInvitation?
+  responses            Response[]
+  subscriptions        Subscription[]
+  notificationSettings NotificationSettings[]
+  passwordReset        PasswordReset?
+}
+
+enum Role {
+  USER
+  EDITOR
+  ADMIN
+}
+
+model UserInvitation {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Appointment {
+  id                   String             @id @default(nanoid(6))
+  createdAt            DateTime           @default(now())
+  deletedAt            DateTime?
+  startDate            DateTime
+  endDate              DateTime?
+  title                String
+  shortTitle           String
+  location             String?
+  link                 String?
+  type                 AppointmentType
+  status               AppointmentStatus?
+  responses            Response[]
+  placements           Placement[]
+  nextAppointmentId    String?
+  nextAppointment      Appointment?       @relation("AppointmentSeries", fields: [nextAppointmentId], references: [id])
+  previousAppointments Appointment[]      @relation("AppointmentSeries")
+}
+
+enum AppointmentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum AppointmentType {
+  TOURNAMENT
+  TOURNAMENT_DE
+  HOLIDAY
+}
+
+model Response {
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
+  appointmentId String
+  appointment   Appointment  @relation(fields: [appointmentId], references: [id])
+  responseType  ResponseType
+
+  @@id([userId, appointmentId])
+}
+
+enum ResponseType {
+  ACCEPT
+  MAYBE
+  DECLINE
+}
+
+model Player {
+  id         String      @id @default(nanoid(6))
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  name       String
+  year       Int
+  qttr       Int
+  teamId     String?
+  team       Team?       @relation(fields: [teamId], references: [id])
+  placements Placement[]
+}
+
+model Team {
+  id        String   @id @default(nanoid(6))
+  createdAt DateTime @default(now())
+  title     String
+  league    String?
+  placement String?
+  players   Player[]
+}
+
+model Placement {
+  createdAt     DateTime    @default(now())
+  playerId      String
+  player        Player      @relation(fields: [playerId], references: [id])
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  category      String
+  placement     String?
+
+  @@id([playerId, appointmentId, category])
+}
+
+model Subscription {
+  id                   String                 @id @default(uuid())
+  userId               String
+  user                 User                   @relation(fields: [userId], references: [id])
+  device               String
+  endpoint             String
+  p256dh               String                 @unique
+  auth                 String                 @unique
+  notificationSettings NotificationSettings[]
+}
+
+model NotificationSettings {
+  userId             String
+  user               User         @relation(fields: [userId], references: [id])
+  subscriptionId     String
+  subscription       Subscription @relation(fields: [subscriptionId], references: [id])
+  newAppointment     Boolean
+  changedAppointment Boolean
+
+  @@id([userId, subscriptionId])
+}

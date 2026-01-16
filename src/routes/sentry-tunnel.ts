@@ -19,8 +19,8 @@ export const Route = createFileRoute("/sentry-tunnel")({
 					}
 					const upstream_sentry_url = `https://${SENTRY_HOST}/api/${project_id}/envelope/`;
 					await fetch(upstream_sentry_url, {
-						method: "POST",
 						body: envelopeBytes,
+						method: "POST",
 					});
 					return json({}, { status: 200 });
 				} catch (e) {

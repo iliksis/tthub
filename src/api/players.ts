@@ -12,7 +12,7 @@ export const getPlayers = createServerFn({ method: "GET" }).handler(
 				orderBy: { name: "asc" },
 			});
 			return json<Return<typeof players>>(
-				{ message: t("Players found"), data: players },
+				{ data: players, message: t("Players found") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -35,12 +35,12 @@ export const createPlayer = createServerFn({ method: "POST" })
 			const player = await prismaClient.player.create({
 				data: {
 					name: data.name,
-					year: data.year,
 					qttr: data.qttr ?? 0,
+					year: data.year,
 				},
 			});
 			return json<Return<typeof player>>(
-				{ message: t("Player created"), data: player },
+				{ data: player, message: t("Player created") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -55,8 +55,8 @@ export const getPlayer = createServerFn()
 	.handler(async ({ data }) => {
 		try {
 			const player = await prismaClient.player.findUnique({
-				where: { id: data.id },
 				include: { team: true },
+				where: { id: data.id },
 			});
 			if (!player) {
 				return json<Return>(
@@ -67,7 +67,7 @@ export const getPlayer = createServerFn()
 				);
 			}
 			return json<Return<typeof player>>(
-				{ message: t("Player found"), data: player },
+				{ data: player, message: t("Player found") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -79,22 +79,30 @@ export const getPlayer = createServerFn()
 
 export const updatePlayer = createServerFn()
 	.inputValidator(
-		(d: { id: string; name: string; year: number; qttr: number }) => d,
+		(d: {
+			id: string;
+			name: string;
+			year: number;
+			qttr: number;
+			team?: string;
+		}) => d,
 	)
 	.handler(async ({ data }) => {
+		console.log(data.team ?? undefined);
 		try {
 			const player = await prismaClient.player.update({
+				data: {
+					name: data.name,
+					qttr: data.qttr,
+					teamId: data.team,
+					year: data.year,
+				},
 				where: {
 					id: data.id,
 				},
-				data: {
-					name: data.name,
-					year: data.year,
-					qttr: data.qttr,
-				},
 			});
 			return json<Return<typeof player>>(
-				{ message: t("Player updated"), data: player },
+				{ data: player, message: t("Player updated") },
 				{ status: 200 },
 			);
 		} catch (e) {
@@ -118,7 +126,7 @@ export const deletePlayer = createServerFn()
 				},
 			});
 			return json<Return<typeof player>>(
-				{ message: t("Player deleted"), data: player },
+				{ data: player, message: t("Player deleted") },
 				{ status: 200 },
 			);
 		} catch (e) {

@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import type { Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
 import { Modal } from "../modal/Modal";
@@ -7,22 +8,31 @@ type PlayerFormProps = {
 	open?: boolean;
 	onClose?: () => void;
 	submitLabel: string;
+	teams?: Team[];
 	defaultValues?: {
 		name: string;
 		year: number;
 		qttr: number;
+		team: string | null;
 	};
 	onSubmit: (updates: {
 		name: string;
 		year: number;
 		qttr: number;
+		team: string | null;
 	}) => Promise<void>;
 };
 export const PlayerForm = ({
 	open,
 	onClose,
 	submitLabel,
-	defaultValues = { name: "", year: new Date().getFullYear(), qttr: 0 },
+	teams,
+	defaultValues = {
+		name: "",
+		qttr: 0,
+		team: null,
+		year: new Date().getFullYear(),
+	},
 	onSubmit,
 }: PlayerFormProps) => {
 	const form = useForm({
@@ -176,6 +186,34 @@ export const PlayerForm = ({
 						)}
 					</form.Field>
 				</div>
+				{teams && (
+					<div>
+						<form.Field name="team">
+							{(field) => (
+								<fieldset className="fieldset">
+									<label className="label" htmlFor={field.name}>
+										{t("Team")}:
+									</label>
+									<select
+										className="select select-primary w-full"
+										name={field.name}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									>
+										<option disabled selected>
+											{t("Choose a team")}
+										</option>
+										{teams.map((p) => (
+											<option key={p.id} value={p.id}>
+												{p.title}
+											</option>
+										))}
+									</select>
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+				)}
 			</form>
 		</Modal>
 	);

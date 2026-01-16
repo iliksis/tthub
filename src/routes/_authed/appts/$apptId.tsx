@@ -1,9 +1,9 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
-	CalendarCogIcon,
 	CalendarDaysIcon,
 	Clock10Icon,
+	CogIcon,
 	DownloadIcon,
 	EditIcon,
 	ExternalLinkIcon,
@@ -14,6 +14,7 @@ import {
 	createResponse,
 	deleteAppointment,
 	getAppointment,
+	getAppointments,
 	publishAppointment,
 	restoreAppointment,
 } from "@/api/appointments";
@@ -35,32 +36,44 @@ import {
 import { t } from "@/lib/text";
 import { cn, createColorForUserId, createGoogleMapsLink } from "@/lib/utils";
 
+// biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
 export const Route = createFileRoute("/_authed/appts/$apptId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const apptData = await getAppointment({ data: { id: params.apptId } });
+		const [apptData, playerData, categoriesData, apptsData] = await Promise.all(
+			[
+				getAppointment({ data: { id: params.apptId } }),
+				getPlayers(),
+				getUniqueCategories(),
+				getAppointments({ data: { orderBy: { startDate: "desc" } } }),
+			],
+		);
 
 		const res = await apptData.json();
 		if (apptData.status >= 400) {
 			throw new Error(res.message);
 		}
 
-		const playerData = await getPlayers();
 		const players = await playerData.json();
 		if (playerData.status >= 400) {
 			throw new Error(res.message);
 		}
 
-		const categoriesData = await getUniqueCategories();
 		const categories = await categoriesData.json();
 		if (categoriesData.status >= 400) {
 			throw new Error(res.message);
 		}
 
+		const appointments = await apptsData.json();
+		if (apptsData.status >= 400) {
+			throw new Error(res.message);
+		}
+
 		return {
 			appointment: res.data,
-			players: players.data,
+			appointments: appointments.data,
 			categories: categories.data,
+			players: players.data,
 		};
 	},
 	head: ({ loaderData }) => ({
@@ -86,7 +99,8 @@ function RouteComponent() {
 	const publish = useServerFn(publishAppointment);
 	const restore = useServerFn(restoreAppointment);
 
-	const { appointment, players, categories } = Route.useLoaderData();
+	const { appointment, players, categories, appointments } =
+		Route.useLoaderData();
 	const router = useRouter();
 
 	if (!appointment) return <div>{t("Appointment not found.")}</div>;
@@ -138,13 +152,13 @@ function RouteComponent() {
 		const data = await res.json();
 		if (res.status < 400 && data) {
 			await router.invalidate();
-			notify({ text: data.message, status: "success" });
+			notify({ status: "success", title: data.message });
 			await router.navigate({
 				to: "/",
 			});
 			return;
 		}
-		notify({ text: data.message, status: "error" });
+		notify({ status: "error", title: data.message });
 	};
 
 	const onResponse = (response: ResponseType) => async () => {
@@ -156,7 +170,7 @@ function RouteComponent() {
 			await router.invalidate();
 			return;
 		}
-		notify({ text: data.message, status: "error" });
+		notify({ status: "error", title: data.message });
 	};
 
 	const onPublish = async () => {
@@ -215,9 +229,9 @@ function RouteComponent() {
 					<div className="flex flex-row">
 						<p>
 							{new Date(appointment.startDate).toLocaleDateString("de-DE", {
-								year: "numeric",
-								month: "short",
 								day: "2-digit",
+								month: "short",
+								year: "numeric",
 							})}
 
 							{isMultipleDays && appointment.endDate && (
@@ -225,9 +239,9 @@ function RouteComponent() {
 									{" "}
 									-{" "}
 									{new Date(appointment.endDate).toLocaleDateString("de-DE", {
-										year: "numeric",
-										month: "short",
 										day: "2-digit",
+										month: "short",
+										year: "numeric",
 									})}
 								</>
 							)}
@@ -288,11 +302,24 @@ function RouteComponent() {
 								)}
 							</p>
 						</Card>
+						<Card title={t("Next Appointment")} gridRows={4}>
+							{appointment.nextAppointment ? (
+								<Link
+									className="link link-hover"
+									to="/appts/$apptId"
+									params={{ apptId: appointment.nextAppointment.id }}
+								>
+									{appointment.nextAppointment.title}
+								</Link>
+							) : (
+								t("No appointment set")
+							)}
+						</Card>
 					</>
 				)}
 			</div>
 			{/*User response*/}
-			{appointment.type === AppointmentType.TOURNAMENT_BY && (
+			{appointment.type === AppointmentType.TOURNAMENT && (
 				<>
 					<div className="mt-6 grid grid-cols-3 gap-2">
 						<button
@@ -304,7 +331,7 @@ function RouteComponent() {
 							disabled={isDeleted}
 							onClick={onResponse("ACCEPT")}
 						>
-							{t("Accept")}
+							{isAccepted ? t("Accepted") : t("Accept")}
 						</button>
 						<button
 							type="button"
@@ -315,7 +342,7 @@ function RouteComponent() {
 							disabled={isDeleted}
 							onClick={onResponse("MAYBE")}
 						>
-							{t("Maybe")}
+							{isMaybe ? t("Maybe") : t("Maybe")}
 						</button>
 						<button
 							type="button"
@@ -326,7 +353,7 @@ function RouteComponent() {
 							disabled={isDeleted}
 							onClick={onResponse("DECLINE")}
 						>
-							{t("Response")}
+							{isDeclined ? t("Declined") : t("Decline")}
 						</button>
 					</div>
 
@@ -359,7 +386,7 @@ function RouteComponent() {
 			<div className="fab">
 				{/** biome-ignore lint/a11y/useSemanticElements: fixes safari bug */}
 				<div className="btn btn-lg btn-circle" role="button" tabIndex={0}>
-					<CalendarCogIcon className="size-4" />
+					<CogIcon className="size-4" />
 				</div>
 				<button
 					className="btn btn-lg btn-circle"
@@ -397,7 +424,10 @@ function RouteComponent() {
 				open={isEditing}
 				onClose={onStopEditing}
 			>
-				<UpdateForm appointment={appointment} />
+				<UpdateForm
+					appointment={appointment}
+					appointments={appointments ?? []}
+				/>
 			</Modal>
 
 			<DeleteModal

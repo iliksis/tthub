@@ -21,8 +21,6 @@ END:VEVENT
 {{/appointments}}
 END:VCALENDAR`.replace(/\n/g, "\r\n");
 
-	constructor() {}
-
 	private _createIcalEvent(event: Appointment) {
 		const start = this._createIcalDate(new Date(event.startDate));
 		const end = event.endDate
@@ -32,12 +30,12 @@ END:VCALENDAR`.replace(/\n/g, "\r\n");
 		const title = this._formatIcalEntry(event.title);
 
 		return {
-			id: event.id,
-			start,
 			end,
+			id: event.id,
 			location,
-			title,
 			now: this._createIcalDate(new Date()),
+			start,
+			title,
 		};
 	}
 

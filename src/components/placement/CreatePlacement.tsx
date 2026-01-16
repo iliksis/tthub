@@ -4,6 +4,7 @@ import { createPlacement } from "@/api/placements";
 import { useMutation } from "@/hooks/useMutation";
 import type { Player } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
+import { calculateAgeGroup } from "@/lib/utils";
 import { Modal } from "../modal/Modal";
 import { notify } from "../Toast";
 
@@ -32,23 +33,23 @@ export const CreatePlacement = ({
 				onClose();
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", title: data.message });
 		},
 	});
 
 	const form = useForm({
 		defaultValues: {
-			player: "",
 			category: "",
 			placement: "",
+			player: "",
 		},
 		onSubmit: async ({ value }) => {
 			await createMutation.mutate({
 				data: {
+					appointmentId,
 					category: value.category,
 					placement: value.placement,
 					playerId: value.player,
-					appointmentId,
 				},
 			});
 		},
@@ -97,7 +98,12 @@ export const CreatePlacement = ({
 										{t("Choose a player")}
 									</option>
 									{players.map((p) => (
-										<option key={p.id} value={p.id}>
+										<option
+											key={p.id}
+											value={p.id}
+											className="before:content-[attr(data-before)] before:opacity-60"
+											data-before={calculateAgeGroup(p.year)}
+										>
 											{p.name}
 										</option>
 									))}

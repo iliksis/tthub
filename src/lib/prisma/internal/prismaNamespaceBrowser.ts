@@ -53,11 +53,14 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   UserInvitation: 'UserInvitation',
+  PasswordReset: 'PasswordReset',
   Appointment: 'Appointment',
   Response: 'Response',
   Player: 'Player',
   Team: 'Team',
-  Placement: 'Placement'
+  Placement: 'Placement',
+  Subscription: 'Subscription',
+  NotificationSettings: 'NotificationSettings'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -93,6 +96,15 @@ export const UserInvitationScalarFieldEnum = {
 export type UserInvitationScalarFieldEnum = (typeof UserInvitationScalarFieldEnum)[keyof typeof UserInvitationScalarFieldEnum]
 
 
+export const PasswordResetScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  userId: 'userId'
+} as const
+
+export type PasswordResetScalarFieldEnum = (typeof PasswordResetScalarFieldEnum)[keyof typeof PasswordResetScalarFieldEnum]
+
+
 export const AppointmentScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
@@ -104,7 +116,8 @@ export const AppointmentScalarFieldEnum = {
   location: 'location',
   link: 'link',
   type: 'type',
-  status: 'status'
+  status: 'status',
+  nextAppointmentId: 'nextAppointmentId'
 } as const
 
 export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
@@ -135,7 +148,9 @@ export type PlayerScalarFieldEnum = (typeof PlayerScalarFieldEnum)[keyof typeof 
 export const TeamScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
-  title: 'title'
+  title: 'title',
+  league: 'league',
+  placement: 'placement'
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
@@ -150,6 +165,28 @@ export const PlacementScalarFieldEnum = {
 } as const
 
 export type PlacementScalarFieldEnum = (typeof PlacementScalarFieldEnum)[keyof typeof PlacementScalarFieldEnum]
+
+
+export const SubscriptionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  device: 'device',
+  endpoint: 'endpoint',
+  p256dh: 'p256dh',
+  auth: 'auth'
+} as const
+
+export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
+
+
+export const NotificationSettingsScalarFieldEnum = {
+  userId: 'userId',
+  subscriptionId: 'subscriptionId',
+  newAppointment: 'newAppointment',
+  changedAppointment: 'changedAppointment'
+} as const
+
+export type NotificationSettingsScalarFieldEnum = (typeof NotificationSettingsScalarFieldEnum)[keyof typeof NotificationSettingsScalarFieldEnum]
 
 
 export const SortOrder = {

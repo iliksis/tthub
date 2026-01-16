@@ -10,9 +10,10 @@ import { notify } from "../Toast";
 
 type UpdateFormProps = {
 	appointment: Appointment;
+	appointments: Appointment[];
 };
 
-export const UpdateForm = ({ appointment }: UpdateFormProps) => {
+export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 	const router = useRouter();
 
 	const updateMutation = useMutation({
@@ -21,38 +22,41 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400 && data.data) {
 				await router.invalidate();
-				notify({ text: data.message, status: "success" });
+				notify({ status: "success", title: data.message });
 				await router.navigate({
-					to: "/appts/$apptId",
 					params: { apptId: data.data.id },
+					to: "/appts/$apptId",
 				});
 				return;
 			}
-			notify({ text: data.message, status: "error" });
+			notify({ status: "error", title: data.message });
 		},
 	});
 
 	const form = useForm({
 		defaultValues: {
-			title: appointment.title,
+			endDate: appointment.endDate ? new Date(appointment.endDate) : null,
+			link: appointment.link,
+			location: appointment.location,
+			nextAppointment: appointment.nextAppointmentId,
 			shortTitle: appointment.shortTitle,
 			startDate: new Date(appointment.startDate),
-			endDate: appointment.endDate ? new Date(appointment.endDate) : null,
-			location: appointment.location,
 			status: appointment.status,
-			link: appointment.link,
+			title: appointment.title,
 		},
 		onSubmit: async ({ value }) => {
 			await updateMutation.mutate({
 				data: {
 					id: appointment.id,
 					updates: {
-						title: value.title,
-						startDate: value.startDate,
 						endDate: value.endDate,
-						location: value.location,
-						status: value.status,
 						link: value.link,
+						location: value.location,
+						nextAppointmentId: value.nextAppointment,
+						shortTitle: value.shortTitle,
+						startDate: value.startDate,
+						status: value.status,
+						title: value.title,
 					},
 				},
 			});
@@ -217,6 +221,45 @@ export const UpdateForm = ({ appointment }: UpdateFormProps) => {
 												}
 											/>
 										</label>
+									</fieldset>
+								)}
+							</form.Field>
+						</div>
+						<div>
+							<form.Field name="nextAppointment">
+								{(field) => (
+									<fieldset className="fieldset">
+										<label className="label" htmlFor={field.name}>
+											{t("Next Appointment")}:
+										</label>
+										<select
+											className="select select-primary w-full"
+											name={field.name}
+											onBlur={field.handleBlur}
+											onChange={(e) => field.handleChange(e.target.value)}
+										>
+											<option disabled selected>
+												{t("Choose an appointment")}
+											</option>
+											{appointments
+												.filter((p) => p.id !== appointment.id)
+												.map((p) => (
+													<option
+														key={p.id}
+														value={p.id}
+														className="before:content-[attr(data-before)] before:opacity-60"
+														data-before={new Date(
+															p.startDate,
+														).toLocaleDateString("de-DE", {
+															day: "2-digit",
+															month: "2-digit",
+															year: "2-digit",
+														})}
+													>
+														{p.title}
+													</option>
+												))}
+										</select>
 									</fieldset>
 								)}
 							</form.Field>
