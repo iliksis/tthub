@@ -54,7 +54,7 @@ export const createPlacement = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -71,7 +71,7 @@ export const getUniqueCategories = createServerFn().handler(async () => {
 			{ status: 200 },
 		);
 	} catch (e) {
-		console.log(e);
+		console.error(e);
 		const error = e as Error;
 		return json<Return>({ message: error.message }, { status: 400 });
 	}
@@ -113,7 +113,7 @@ export const updatePlacement = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -145,7 +145,7 @@ export const deletePlacement = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}

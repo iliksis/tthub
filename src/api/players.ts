@@ -16,7 +16,7 @@ export const getPlayers = createServerFn({ method: "GET" }).handler(
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -44,7 +44,7 @@ export const createPlayer = createServerFn({ method: "POST" })
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -71,7 +71,7 @@ export const getPlayer = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -88,7 +88,6 @@ export const updatePlayer = createServerFn()
 		}) => d,
 	)
 	.handler(async ({ data }) => {
-		console.log(data.team ?? undefined);
 		try {
 			const player = await prismaClient.player.update({
 				data: {
@@ -106,7 +105,7 @@ export const updatePlayer = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -130,7 +129,7 @@ export const deletePlayer = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}

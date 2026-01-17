@@ -74,7 +74,6 @@ function RouteComponent() {
 				const isEndOfLine = event.end
 					? event.end.getDay() === 0
 					: event.start?.getDay() === 0;
-				console.log(event.title, event.end?.getDate());
 				const isLessThanTwoDays =
 					(event?.end?.getTime() ?? 0) - (event?.start?.getTime() ?? 0) <
 					86400000;
@@ -85,13 +84,6 @@ function RouteComponent() {
 					el.classList.add("tooltip-left");
 				}
 			}}
-			// eventContent={({ event }) => {
-			// 	return (
-			// 		<div className="tooltip tooltip-left" data-tip={event.title}>
-			// 			{event.extendedProps.shortTitle}
-			// 		</div>
-			// 	);
-			// }}
 		/>
 	);
 }

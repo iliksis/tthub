@@ -22,17 +22,38 @@ export const List = ({ players }: ListProps) => {
 		<DetailsList
 			items={players}
 			columns={[
-				{ key: "name", label: t("Name"), render: (item) => item.name },
+				{
+					key: "name",
+					label: t("Name"),
+					render: (item) => item.name,
+					sortable: true,
+					sortFn: (a, b) => a.name.localeCompare(b.name),
+				},
 				{
 					key: "ageGroup",
 					label: t("Age Group"),
 					render: (item) => calculateAgeGroup(item.year),
+					sortable: true,
+					sortFn: (a, b) =>
+						calculateAgeGroup(a.year).localeCompare(calculateAgeGroup(b.year)),
 				},
-				{ key: "qttr", label: t("QTTR"), render: (item) => item.qttr },
+				{
+					key: "qttr",
+					label: t("QTTR"),
+					render: (item) => item.qttr,
+					sortable: true,
+					sortFn: (a, b) => a.qttr - b.qttr,
+				},
 				{
 					key: "team",
 					label: t("Team"),
 					render: (item) => item.team?.title,
+					sortable: true,
+					sortFn: (a, b) => {
+						const teamA = a.team?.title || "";
+						const teamB = b.team?.title || "";
+						return teamA.localeCompare(teamB);
+					},
 				},
 			]}
 			getItemId={(item) => item.id}

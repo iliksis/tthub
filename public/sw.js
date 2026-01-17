@@ -23,7 +23,6 @@ self.addEventListener("push", (event) => {
 	event.waitUntil(
 		self.registration
 			.showNotification(notificationTitle, notificationOptions)
-			.then(() => console.log("Notification shown."))
 	);
 });
 

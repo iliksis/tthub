@@ -15,7 +15,7 @@ export const getTeams = createServerFn({ method: "GET" }).handler(async () => {
 			{ status: 200 },
 		);
 	} catch (e) {
-		console.log(e);
+		console.error(e);
 		const error = e as Error;
 		return json<Return>({ message: error.message }, { status: 400 });
 	}
@@ -41,7 +41,7 @@ export const createTeam = createServerFn({ method: "POST" })
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -68,7 +68,7 @@ export const getTeam = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -97,7 +97,7 @@ export const updateTeam = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -123,7 +123,7 @@ export const deleteTeam = createServerFn()
 			});
 			return json<Return>({ message: t("Team deleted") }, { status: 200 });
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}

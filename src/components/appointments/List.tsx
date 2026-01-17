@@ -47,6 +47,8 @@ export const List = ({ appointments }: ListProps) => {
 						key: "title",
 						label: t("Title"),
 						render: (item) => item.shortTitle,
+						sortable: true,
+						sortFn: (a, b) => a.shortTitle.localeCompare(b.shortTitle),
 					},
 					{
 						key: "date",
@@ -79,6 +81,9 @@ export const List = ({ appointments }: ListProps) => {
 								</>
 							);
 						},
+						sortable: true,
+						sortFn: (a, b) =>
+							new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
 					},
 					{
 						key: "location",
