@@ -4,7 +4,16 @@ import { hashPassword } from "../src/lib/db";
 async function main() {
 	console.log("🌱 Seeding database...");
 
-	// Clear existing users
+	// Clear db
+	await prismaClient.userInvitation.deleteMany();
+	await prismaClient.passwordReset.deleteMany();
+	await prismaClient.notificationSettings.deleteMany();
+	await prismaClient.subscription.deleteMany();
+	await prismaClient.placement.deleteMany();
+	await prismaClient.team.deleteMany();
+	await prismaClient.player.deleteMany();
+	await prismaClient.response.deleteMany();
+	await prismaClient.appointment.deleteMany();
 	await prismaClient.user.deleteMany();
 
 	// Create example users

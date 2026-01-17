@@ -119,6 +119,7 @@ const texts = {
 		"Teilnehmer:in existiert bereits in dieser Kategorie",
 	Participants: "Teilnehmer:innen",
 	Password: "Passwort",
+	"Password reset created": "Passwort-Zurücksetzung erstellt",
 	"Password reset link copied to clipboard":
 		"Zurücksetzungslink in die Zwischenablage kopiert",
 	"Password reset request not found":
