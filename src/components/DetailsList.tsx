@@ -1,3 +1,13 @@
+import {
+	type ColumnDef,
+	flexRender,
+	getCoreRowModel,
+	getSortedRowModel,
+	type RowSelectionState,
+	type SortingState,
+	useReactTable,
+} from "@tanstack/react-table";
+import { ChevronDown, ChevronsDownUp, ChevronUp } from "lucide-react";
 import React from "react";
 import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
@@ -7,6 +17,8 @@ export type DetailsListColumn<T> = {
 	label: string;
 	render: (item: T) => React.ReactNode;
 	minWidth?: string;
+	sortable?: boolean;
+	sortFn?: (a: T, b: T) => number;
 };
 
 export type CommandBarItem<T> = {
@@ -51,42 +63,109 @@ export function DetailsList<T>({
 	className = "",
 	selectMode = "multiple",
 }: DetailsListProps<T>) {
-	const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
-	const selectedItems = items.filter((item) =>
-		selectedIds.has(getItemId(item)),
-	);
+	// Convert custom columns to TanStack Table column definitions
+	const tableColumns = React.useMemo<ColumnDef<T>[]>(() => {
+		const cols: ColumnDef<T>[] = [];
 
-	const allSelected = items.length > 0 && selectedIds.size === items.length;
-	const someSelected = selectedIds.size > 0 && !allSelected;
-
-	const handleSelectAll = () => {
-		if (allSelected) {
-			setSelectedIds(new Set());
-		} else {
-			setSelectedIds(new Set(items.map(getItemId)));
+		// Add selection column if needed
+		if (selectMode !== "none") {
+			cols.push({
+				cell: ({ row }) => (
+					<label className="cursor-pointer flex items-center justify-center">
+						<input
+							type="checkbox"
+							checked={row.getIsSelected()}
+							onChange={row.getToggleSelectedHandler()}
+							className="checkbox checkbox-sm"
+							onClick={(e) => e.stopPropagation()}
+						/>
+					</label>
+				),
+				enableSorting: false,
+				header: ({ table }) => {
+					if (selectMode === "multiple") {
+						return (
+							<label className="cursor-pointer flex items-center justify-center">
+								<input
+									type="checkbox"
+									checked={table.getIsAllRowsSelected()}
+									ref={(el) => {
+										if (el) {
+											el.indeterminate = table.getIsSomeRowsSelected();
+										}
+									}}
+									onChange={table.getToggleAllRowsSelectedHandler()}
+									className="checkbox checkbox-sm"
+								/>
+							</label>
+						);
+					}
+					return null;
+				},
+				id: "select",
+				size: 48,
+			});
 		}
-	};
 
-	const handleSelectItem = (itemId: string) => {
-		if (selectMode === "single") {
-			// Single mode: only one item can be selected
-			if (selectedIds.has(itemId)) {
-				setSelectedIds(new Set());
-			} else {
-				setSelectedIds(new Set([itemId]));
-			}
-		} else {
-			// Multiple mode: toggle selection
-			const newSelection = new Set(selectedIds);
-			if (newSelection.has(itemId)) {
-				newSelection.delete(itemId);
-			} else {
-				newSelection.add(itemId);
-			}
-			setSelectedIds(newSelection);
+		// Add data columns
+		for (const column of columns) {
+			cols.push({
+				accessorFn: (row) => row,
+				cell: ({ getValue }) => column.render(getValue() as T),
+				enableSorting: column.sortable ?? false,
+				header: column.label,
+				id: column.key,
+				minSize: column.minWidth ? Number.parseInt(column.minWidth) : undefined,
+				sortingFn: column.sortFn
+					? // biome-ignore lint/style/noNonNullAssertion: Cannot be null here
+						(rowA, rowB) => column.sortFn!(rowA.original, rowB.original)
+					: undefined,
+			});
 		}
-	};
+
+		return cols;
+	}, [columns, selectMode]);
+
+	const table = useReactTable({
+		columns: tableColumns,
+		data: items,
+		enableMultiRowSelection: selectMode === "multiple",
+		enableRowSelection: selectMode !== "none",
+		getCoreRowModel: getCoreRowModel(),
+		getRowId: (row) => getItemId(row),
+		getSortedRowModel: getSortedRowModel(),
+		onRowSelectionChange: (updater) => {
+			if (selectMode === "single") {
+				// For single mode, only allow one selection
+				const newSelection =
+					typeof updater === "function" ? updater(rowSelection) : updater;
+				const selectedIds = Object.keys(newSelection).filter(
+					(key) => newSelection[key],
+				);
+				if (selectedIds.length > 1) {
+					// Keep only the most recently selected
+					const lastSelected = selectedIds[selectedIds.length - 1];
+					setRowSelection({ [lastSelected]: true });
+				} else {
+					setRowSelection(newSelection);
+				}
+			} else {
+				setRowSelection(updater);
+			}
+		},
+		onSortingChange: setSorting,
+		state: {
+			rowSelection,
+			sorting,
+		},
+	});
+
+	const selectedItems = table
+		.getSelectedRowModel()
+		.rows.map((row) => row.original);
 
 	const handleItemClick = (item: T, e: React.MouseEvent) => {
 		// Prevent triggering row click when clicking checkbox
@@ -95,8 +174,6 @@ export function DetailsList<T>({
 		}
 		if (onItemClick) {
 			onItemClick(item);
-		} else {
-			handleSelectItem(getItemId(item));
 		}
 	};
 
@@ -107,49 +184,6 @@ export function DetailsList<T>({
 			</div>
 		);
 	}
-
-	const renderRow = (item: T) => {
-		const itemId = getItemId(item);
-		const isSelected = selectedIds.has(itemId);
-
-		const children = (
-			<>
-				{selectMode !== "none" && (
-					<td>
-						<label className="cursor-pointer flex items-center justify-center">
-							<input
-								type="checkbox"
-								checked={isSelected}
-								onChange={() => handleSelectItem(itemId)}
-								className="checkbox checkbox-sm"
-								onClick={(e) => e.stopPropagation()}
-							/>
-						</label>
-					</td>
-				)}
-				{columns.map((column) => (
-					<td key={column.key}>{column.render(item)}</td>
-				))}
-			</>
-		);
-
-		if (onRenderRow) {
-			return onRenderRow(item, children);
-		}
-
-		return (
-			<tr
-				key={itemId}
-				className={cn(
-					"h-10 hover:bg-base-200 cursor-pointer",
-					isSelected && "bg-base-200",
-				)}
-				onClick={(e) => handleItemClick(item, e)}
-			>
-				{children}
-			</tr>
-		);
-	};
 
 	return (
 		<div className={`flex flex-col gap-4 ${className}`}>
@@ -267,33 +301,81 @@ export function DetailsList<T>({
 			<div className="overflow-x-auto">
 				<table className="table table-sm">
 					<thead>
-						<tr>
-							{selectMode === "multiple" && (
-								<th className="w-12">
-									<label className="cursor-pointer flex items-center justify-center">
-										<input
-											type="checkbox"
-											checked={allSelected}
-											ref={(el) => {
-												if (el) {
-													el.indeterminate = someSelected;
-												}
-											}}
-											onChange={handleSelectAll}
-											className="checkbox checkbox-sm"
-										/>
-									</label>
-								</th>
-							)}
-							{selectMode === "single" && <th className="w-12" />}
-							{columns.map((column) => (
-								<th key={column.key} style={{ minWidth: column.minWidth }}>
-									{column.label}
-								</th>
-							))}
-						</tr>
+						{table.getHeaderGroups().map((headerGroup) => (
+							<tr key={headerGroup.id}>
+								{headerGroup.headers.map((header) => (
+									<th
+										key={header.id}
+										style={{
+											minWidth: header.column.columnDef.minSize,
+											width:
+												header.column.id === "select"
+													? header.column.getSize()
+													: undefined,
+										}}
+										className={cn(
+											header.column.getCanSort() &&
+												"cursor-pointer select-none",
+										)}
+										onClick={header.column.getToggleSortingHandler()}
+									>
+										{header.isPlaceholder ? null : (
+											<div className="flex items-center gap-1">
+												{flexRender(
+													header.column.columnDef.header,
+													header.getContext(),
+												)}
+												{header.column.getCanSort() && (
+													<span className="inline-flex flex-col">
+														{header.column.getIsSorted() === "asc" ? (
+															<ChevronUp className="size-4" />
+														) : header.column.getIsSorted() === "desc" ? (
+															<ChevronDown className="size-4" />
+														) : (
+															<ChevronsDownUp className="size-4" />
+														)}
+													</span>
+												)}
+											</div>
+										)}
+									</th>
+								))}
+							</tr>
+						))}
 					</thead>
-					<tbody>{items.map(renderRow)}</tbody>
+					<tbody>
+						{table.getRowModel().rows.map((row) => {
+							const children = (
+								<>
+									{row.getVisibleCells().map((cell) => (
+										<td key={cell.id}>
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext(),
+											)}
+										</td>
+									))}
+								</>
+							);
+
+							if (onRenderRow) {
+								return onRenderRow(row.original, children);
+							}
+
+							return (
+								<tr
+									key={row.id}
+									className={cn(
+										"h-10 hover:bg-base-200 cursor-pointer",
+										row.getIsSelected() && "bg-base-200",
+									)}
+									onClick={(e) => handleItemClick(row.original, e)}
+								>
+									{children}
+								</tr>
+							);
+						})}
+					</tbody>
 				</table>
 			</div>
 		</div>

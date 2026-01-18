@@ -40,7 +40,7 @@ export const updateUserRole = createServerFn({ method: "POST" })
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -84,7 +84,7 @@ export const updateUserInformation = createServerFn({ method: "POST" })
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -115,7 +115,7 @@ export const createUser = createServerFn({ method: "POST" })
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -179,7 +179,7 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 				},
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -271,7 +271,7 @@ export const updatePasswordFromReset = createServerFn({ method: "POST" })
 				},
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}

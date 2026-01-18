@@ -119,6 +119,7 @@ const texts = {
 		"Teilnehmer:in existiert bereits in dieser Kategorie",
 	Participants: "Teilnehmer:innen",
 	Password: "Passwort",
+	"Password reset created": "Passwort-Zurücksetzung erstellt",
 	"Password reset link copied to clipboard":
 		"Zurücksetzungslink in die Zwischenablage kopiert",
 	"Password reset request not found":
@@ -188,6 +189,12 @@ const texts = {
 	"User updated": "Benutzer aktualisiert",
 	"Year of birth": "Geburtsjahr",
 	"Year of birth must be set": "Geburtsjahr muss gesetzt sein",
+	"You do not have permission to access import settings":
+		"Du hast keine Berechtigung, um auf die Importeinstellungen zuzugreifen",
+	"You do not have permission to access user management":
+		"Du hast keine Berechtigung, um auf die Benutzerverwaltung zuzugreifen",
+	"You do not have permission to create appointments":
+		"Du hast keine Berechtigung, um Termine zu erstellen",
 	"You have no appointments": "Du hast keine Termine",
 	"You responded to all appointments": "Du hast auf alle Termine reagiert",
 	"Your appointments": "Deine Termine",

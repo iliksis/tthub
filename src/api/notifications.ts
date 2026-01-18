@@ -260,15 +260,17 @@ export const sendNotification = createServerOnlyFn(
 			url: data.url,
 		});
 
+		const session = await useAppSession();
+
 		const userSettings = await prismaClient.notificationSettings.findMany({
 			include: {
 				subscription: true,
 			},
 			where: {
-				// NOT: {
-				// 	userId: session.data.id,
-				// },
 				changedAppointment: data.scope === "updated" ? true : undefined,
+				NOT: {
+					userId: session.data.id,
+				},
 				newAppointment: data.scope === "new" ? true : undefined,
 			},
 		});

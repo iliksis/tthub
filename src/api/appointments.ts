@@ -67,7 +67,7 @@ export const createAppointment = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -102,7 +102,7 @@ export const getAppointment = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -142,7 +142,7 @@ export const getAppointments = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -187,7 +187,7 @@ export const updateAppointment = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -213,7 +213,7 @@ export const deleteAppointment = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -249,7 +249,7 @@ export const createResponse = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -288,7 +288,7 @@ export const getNextAppointments = createServerFn().handler(async () => {
 			{ status: 200 },
 		);
 	} catch (e) {
-		console.log(e);
+		console.error(e);
 		const error = e as Error;
 		return json<Return>({ message: error.message }, { status: 400 });
 	}
@@ -321,7 +321,7 @@ export const getUserAppointments = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -353,7 +353,7 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -412,7 +412,7 @@ export const getCalendarAppointments = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -469,7 +469,7 @@ export const importHolidays = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -495,7 +495,7 @@ export const publishAppointment = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
@@ -521,7 +521,7 @@ export const restoreAppointment = createServerFn()
 				{ status: 200 },
 			);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 			const error = e as Error;
 			return json<Return>({ message: error.message }, { status: 400 });
 		}

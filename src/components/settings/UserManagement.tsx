@@ -88,7 +88,13 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 				getItemId={(item) => item.id}
 				selectMode="single"
 				columns={[
-					{ key: "name", label: t("Name"), render: (item) => item.name },
+					{
+						key: "name",
+						label: t("Name"),
+						render: (item) => item.name,
+						sortable: true,
+						sortFn: (a, b) => a.name.localeCompare(b.name),
+					},
 					{
 						key: "userName",
 						label: t("User Name"),

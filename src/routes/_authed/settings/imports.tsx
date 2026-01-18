@@ -5,7 +5,22 @@ import { MyTTImport } from "@/components/imports/MyTTImport";
 import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/settings/imports")({
+	beforeLoad: async ({ context }) => {
+		if (
+			!context.user ||
+			(context.user.role !== "ADMIN" && context.user.role !== "EDITOR")
+		) {
+			throw Error("Forbidden");
+		}
+	},
 	component: RouteComponent,
+	errorComponent: () => {
+		return (
+			<div className="alert alert-error">
+				{t("You do not have permission to access import settings")}
+			</div>
+		);
+	},
 	head: () => ({
 		meta: [{ title: t("Imports") }],
 	}),
