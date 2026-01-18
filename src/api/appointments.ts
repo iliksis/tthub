@@ -19,15 +19,15 @@ type ICreateAppointment =
 			shortTitle: string;
 			type: "HOLIDAY";
 			startDate: Date;
-			endDate?: Date;
+			endDate: Date | null;
 	  }
 	| {
 			title: string;
 			shortTitle: string;
 			type: "TOURNAMENT" | "TOURNAMENT_DE";
 			startDate: Date;
-			endDate?: Date;
-			location?: string;
+			endDate: Date | null;
+			location: string | null;
 			status: AppointmentStatus;
 	  };
 export const createAppointment = createServerFn()

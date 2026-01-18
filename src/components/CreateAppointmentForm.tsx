@@ -86,10 +86,11 @@ const defaultFormValues: {
 	title: string;
 	shortTitle: string;
 	startDate: Date;
-	endDate?: Date;
-	location?: string;
+	endDate: Date | null;
+	location: string;
 	status: AppointmentStatus;
 } = {
+	endDate: null,
 	location: "",
 	shortTitle: "",
 	startDate: new Date(),
@@ -140,7 +141,7 @@ const AppointmentEditSection = () => {
 		},
 	});
 
-	if (!state.type) return null;
+	if (!state.tournamentType) return null;
 
 	return (
 		<div>
@@ -206,7 +207,11 @@ const AppointmentEditSection = () => {
 									className="input input-primary w-full"
 									type="datetime-local"
 									name={field.name}
-									value={dateToInputValue(field.state.value)}
+									value={
+										field.state.value.getTime() > 0
+											? dateToInputValue(field.state.value)
+											: ""
+									}
 									onBlur={field.handleBlur}
 									onChange={(e) => field.handleChange(new Date(e.target.value))}
 								/>
@@ -227,11 +232,18 @@ const AppointmentEditSection = () => {
 									type="date"
 									name={field.name}
 									value={
-										field.state.value &&
-										dateToInputValue(field.state.value, false)
+										field.state.value
+											? dateToInputValue(field.state.value, false)
+											: ""
 									}
 									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(new Date(e.target.value))}
+									onChange={(e) => {
+										if (e.target.value === "") {
+											field.handleChange(null);
+											return;
+										}
+										field.handleChange(new Date(e.target.value));
+									}}
 								/>
 							</fieldset>
 						)}
