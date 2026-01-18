@@ -154,7 +154,7 @@ function RouteComponent() {
 			await router.invalidate();
 			notify({ status: "success", title: data.message });
 			await router.navigate({
-				to: "/",
+				to: "..",
 			});
 			return;
 		}

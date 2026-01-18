@@ -39,6 +39,7 @@ const texts = {
 	"Choose a player": "Wähle eine Spieler:in",
 	"Choose a team": "Wähle ein Team",
 	"Choose a type": "Wähle einen Typ",
+	"Choose an appointment": "Wähle einen Termin",
 	"Choose an area": "Wähle eine Region",
 	Clear: "Löschen",
 	Close: "Schließen",

@@ -130,10 +130,20 @@ export const getAppointments = createServerFn()
 						contains: data.location,
 					},
 					OR: [
-						{ title: { contains: data.title ?? "" } },
-						{ shortTitle: { contains: data.title ?? "" } },
-						{ type: AppointmentType.TOURNAMENT },
-						{ type: AppointmentType.TOURNAMENT_DE },
+						{
+							OR: [
+								{ type: AppointmentType.TOURNAMENT },
+								{ type: AppointmentType.TOURNAMENT_DE },
+							],
+							title: { contains: data.title ?? "" },
+						},
+						{
+							OR: [
+								{ type: AppointmentType.TOURNAMENT },
+								{ type: AppointmentType.TOURNAMENT_DE },
+							],
+							shortTitle: { contains: data.title ?? "" },
+						},
 					],
 				},
 			});
