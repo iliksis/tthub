@@ -4,7 +4,6 @@ import { loginAs } from "./helpers";
 test.describe("Dashboard Route - All Roles", () => {
 	test("ADMIN can access dashboard", async ({ page }) => {
 		await loginAs(page, "admin");
-		// Should be authenticated - check for nav element
 		await expect(page.locator("nav")).toBeVisible({ timeout: 10000 });
 		await expect(page.locator("body")).toBeVisible();
 	});

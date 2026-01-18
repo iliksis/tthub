@@ -38,7 +38,6 @@ test.describe("Password Reset Route - Public Access", () => {
 		await context.clearCookies();
 		await page.goto("/password-reset/test-token");
 		await page.waitForLoadState("networkidle");
-		// Page should load without error
 		await expect(page.locator("body")).toBeVisible();
 	});
 });

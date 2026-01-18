@@ -27,7 +27,6 @@ test.describe("Players Route - Access Control", () => {
 		await context.clearCookies();
 		await page.goto("/players");
 		await page.waitForLoadState("networkidle");
-		// Should see login form
 		await expect(page.locator('input[name="userName"]')).toBeVisible();
 	});
 });
@@ -52,6 +51,99 @@ test.describe("Players Route - Data Display", () => {
 		if (count > 0) {
 			await playerLinks.first().click();
 			await expect(page).toHaveURL(/\/players\/.+/);
+		} else {
+			test.skip();
+		}
+	});
+});
+
+test.describe("Players Route - Edit Functionality", () => {
+	test("ADMIN can edit a player", async ({ page }) => {
+		await loginAs(page, "admin");
+		await page.goto("/players");
+		await page.waitForLoadState("networkidle");
+
+		const playerLinks = page.locator("tbody tr");
+		const count = await playerLinks.count();
+
+		if (count > 0) {
+			await playerLinks.first().click();
+			await page.waitForLoadState("networkidle");
+
+			const configButton = page.locator("div svg.lucide-cog");
+			await configButton.first().click();
+
+			const editButton = page.locator(
+				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+			);
+			if ((await editButton.count()) > 0) {
+				await editButton.first().click();
+				await page.waitForTimeout(500);
+
+				const nameInput = page.locator('input[type="text"]').first();
+				if (await nameInput.isVisible()) {
+					const originalValue = await nameInput.inputValue();
+					await nameInput.fill(`${originalValue} Updated`);
+
+					const submitButton = page.locator(
+						'button[type="submit"].btn-primary',
+					);
+					await submitButton.click();
+					await page.waitForTimeout(1000);
+
+					const bodyText = await page.locator("body").textContent();
+					expect(bodyText).toContain("Updated");
+				}
+			} else {
+				test.skip();
+			}
+		} else {
+			test.skip();
+		}
+	});
+
+	test("EDITOR can edit a player", async ({ page }) => {
+		await loginAs(page, "editor");
+		await page.goto("/players");
+		await page.waitForLoadState("networkidle");
+
+		const playerLinks = page.locator("tbody tr");
+		const count = await playerLinks.count();
+
+		if (count > 0) {
+			await playerLinks.first().click();
+			await page.waitForLoadState("networkidle");
+
+			const configButton = page.locator("div svg.lucide-cog");
+			await configButton.first().click();
+
+			const editButton = page.locator(
+				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+			);
+			if ((await editButton.count()) > 0) {
+				await expect(editButton.first()).toBeVisible();
+			} else {
+				test.skip();
+			}
+		} else {
+			test.skip();
+		}
+	});
+
+	test("USER cannot edit a player", async ({ page }) => {
+		await loginAs(page, "user");
+		await page.goto("/players");
+		await page.waitForLoadState("networkidle");
+
+		const playerLinks = page.locator("tbody tr");
+		const count = await playerLinks.count();
+
+		if (count > 0) {
+			await playerLinks.first().click();
+			await page.waitForLoadState("networkidle");
+
+			const configButton = page.locator("div svg.lucide-cog");
+			await expect(configButton).not.toBeVisible();
 		} else {
 			test.skip();
 		}

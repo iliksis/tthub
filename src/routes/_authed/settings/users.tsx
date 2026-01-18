@@ -1,23 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import { fetchUsers } from "@/api/users";
 import { UserManagement } from "@/components/settings/UserManagement";
-import { useIsRole } from "@/lib/session";
 import { t } from "@/lib/text";
 
-const isUserAuthorized = createServerFn({ method: "GET" }).handler(async () => {
-	return await useIsRole("ADMIN");
-});
-
 export const Route = createFileRoute("/_authed/settings/users")({
-	beforeLoad: async () => {
-		const isAuthorized = await isUserAuthorized();
-		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+	beforeLoad: async ({ context }) => {
+		if (!context.user || context.user.role !== "ADMIN") {
+			throw Error("Forbidden");
 		}
 	},
 	component: RouteComponent,
-	errorComponent: () => <div>Error</div>,
+	errorComponent: () => (
+		<div className="alert alert-error">
+			{t("You do not have permission to access user management")}
+		</div>
+	),
 	head: () => ({
 		meta: [{ title: t("User Management") }],
 	}),
