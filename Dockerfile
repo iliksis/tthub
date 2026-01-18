@@ -6,6 +6,9 @@ FROM node:${NODE_VERSION}-slim AS base
 
 LABEL fly_launch_runtime="Node.js/Prisma"
 
+ARG VAPID_PUBLIC_KEY
+ENV VITE_VAPID_PUBLIC_KEY="${VAPID_PUBLIC_KEY}"
+
 # Node.js/Prisma app lives here
 WORKDIR /app
 

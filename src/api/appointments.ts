@@ -19,15 +19,15 @@ type ICreateAppointment =
 			shortTitle: string;
 			type: "HOLIDAY";
 			startDate: Date;
-			endDate?: Date;
+			endDate: Date | null;
 	  }
 	| {
 			title: string;
 			shortTitle: string;
 			type: "TOURNAMENT" | "TOURNAMENT_DE";
 			startDate: Date;
-			endDate?: Date;
-			location?: string;
+			endDate: Date | null;
+			location: string | null;
 			status: AppointmentStatus;
 	  };
 export const createAppointment = createServerFn()
@@ -51,7 +51,10 @@ export const createAppointment = createServerFn()
 				},
 			});
 
-			if (appointment.type === AppointmentType.TOURNAMENT) {
+			if (
+				appointment.type === AppointmentType.TOURNAMENT &&
+				appointment.status === AppointmentStatus.PUBLISHED
+			) {
 				await sendNotification({
 					body: appointment.title,
 					scope: "new",
@@ -130,10 +133,20 @@ export const getAppointments = createServerFn()
 						contains: data.location,
 					},
 					OR: [
-						{ title: { contains: data.title ?? "" } },
-						{ shortTitle: { contains: data.title ?? "" } },
-						{ type: AppointmentType.TOURNAMENT },
-						{ type: AppointmentType.TOURNAMENT_DE },
+						{
+							OR: [
+								{ type: AppointmentType.TOURNAMENT },
+								{ type: AppointmentType.TOURNAMENT_DE },
+							],
+							title: { contains: data.title ?? "" },
+						},
+						{
+							OR: [
+								{ type: AppointmentType.TOURNAMENT },
+								{ type: AppointmentType.TOURNAMENT_DE },
+							],
+							shortTitle: { contains: data.title ?? "" },
+						},
 					],
 				},
 			});
@@ -490,6 +503,16 @@ export const publishAppointment = createServerFn()
 				},
 				where: { id: data.id },
 			});
+			if (appointment.type === AppointmentType.TOURNAMENT) {
+				await sendNotification({
+					body: appointment.title,
+					scope: "new",
+					title: t("New Appointment"),
+					url: formatTanstackRouterPath("/appts/$apptId", {
+						apptId: appointment.id,
+					}),
+				});
+			}
 			return json<Return<Appointment>>(
 				{ data: appointment, message: t("Appointment published") },
 				{ status: 200 },

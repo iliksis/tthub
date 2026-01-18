@@ -127,7 +127,11 @@ export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 									className="input input-primary w-full"
 									type="datetime-local"
 									name={field.name}
-									value={dateToInputValue(field.state.value)}
+									value={
+										field.state.value.getTime() > 0
+											? dateToInputValue(field.state.value)
+											: ""
+									}
 									onBlur={field.handleBlur}
 									onChange={(e) => field.handleChange(new Date(e.target.value))}
 								/>
@@ -148,9 +152,9 @@ export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 									type="date"
 									name={field.name}
 									value={
-										field.state.value
+										field.state.value && field.state.value.getTime() > 0
 											? dateToInputValue(field.state.value, false)
-											: undefined
+											: ""
 									}
 									onBlur={field.handleBlur}
 									onChange={(e) => field.handleChange(new Date(e.target.value))}
