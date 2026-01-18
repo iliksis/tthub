@@ -12,3 +12,7 @@ count.txt
 .vinxi
 
 dev.db
+test.db
+e2e/*.ts
+**/*.test.ts
+**/test/*
