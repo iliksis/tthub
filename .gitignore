@@ -12,3 +12,8 @@ count.txt
 .vinxi
 
 dev.db
+test.db
+coverage
+playwright
+playwright-report
+test-results
