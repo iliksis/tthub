@@ -51,7 +51,10 @@ export const createAppointment = createServerFn()
 				},
 			});
 
-			if (appointment.type === AppointmentType.TOURNAMENT) {
+			if (
+				appointment.type === AppointmentType.TOURNAMENT &&
+				appointment.status === AppointmentStatus.PUBLISHED
+			) {
 				await sendNotification({
 					body: appointment.title,
 					scope: "new",
@@ -500,6 +503,16 @@ export const publishAppointment = createServerFn()
 				},
 				where: { id: data.id },
 			});
+			if (appointment.type === AppointmentType.TOURNAMENT) {
+				await sendNotification({
+					body: appointment.title,
+					scope: "new",
+					title: t("New Appointment"),
+					url: formatTanstackRouterPath("/appts/$apptId", {
+						apptId: appointment.id,
+					}),
+				});
+			}
 			return json<Return<Appointment>>(
 				{ data: appointment, message: t("Appointment published") },
 				{ status: 200 },
