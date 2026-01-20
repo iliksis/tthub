@@ -47,8 +47,9 @@ const AppointmentTypeSelect = () => {
 							type: "SET_TYPE",
 						});
 					}}
+					defaultValue="default"
 				>
-					<option disabled selected>
+					<option key="default" value="default" disabled>
 						{t("Choose a type")}
 					</option>
 					{types.map((t) => (
@@ -66,8 +67,9 @@ const AppointmentTypeSelect = () => {
 								type: "SET_TOURNAMENT_TYPE",
 							});
 						}}
+						value="default"
 					>
-						<option disabled selected>
+						<option key="default" value="default" disabled>
 							{t("Choose an area")}
 						</option>
 						{tournamentAreas.map((t) => (
@@ -82,6 +84,12 @@ const AppointmentTypeSelect = () => {
 	);
 };
 
+const getTodayAtTen = () => {
+	const date = new Date();
+	date.setHours(10, 0, 0, 0);
+	return date;
+};
+
 const defaultFormValues: {
 	title: string;
 	shortTitle: string;
@@ -93,7 +101,7 @@ const defaultFormValues: {
 	endDate: null,
 	location: "",
 	shortTitle: "",
-	startDate: new Date(),
+	startDate: getTodayAtTen(),
 	status: AppointmentStatus.DRAFT,
 	title: "",
 };
