@@ -58,21 +58,6 @@ function App() {
 		<div className="flex flex-col gap-6">
 			<div className="flex flex-col gap-3">
 				<div className="flex flex-row">
-					<h2 className="font-bold flex-1"> {t("Your appointments")}</h2>
-					{userAppointments && (
-						<span className="shrink-0 badge badge-secondary">
-							{userAppointments.length}
-						</span>
-					)}
-				</div>
-				{userAppointments && userAppointments.length > 0 ? (
-					userAppointments.map((a) => <Card key={a.id} appointment={a} />)
-				) : (
-					<div>{t("You have no appointments")}</div>
-				)}
-			</div>
-			<div className="flex flex-col gap-3">
-				<div className="flex flex-row">
 					<h2 className="font-bold flex-1">{t("Upcoming appointments")}</h2>
 					{nextAppointments && (
 						<span className="shrink-0 badge badge-secondary">
@@ -84,6 +69,21 @@ function App() {
 					nextAppointments.map((a) => <Card key={a.id} appointment={a} />)
 				) : (
 					<div> {t("No appointments in the next 4 weeks")}</div>
+				)}
+			</div>
+			<div className="flex flex-col gap-3">
+				<div className="flex flex-row">
+					<h2 className="font-bold flex-1"> {t("Your appointments")}</h2>
+					{userAppointments && (
+						<span className="shrink-0 badge badge-secondary">
+							{userAppointments.length}
+						</span>
+					)}
+				</div>
+				{userAppointments && userAppointments.length > 0 ? (
+					userAppointments.map((a) => <Card key={a.id} appointment={a} />)
+				) : (
+					<div>{t("You have no appointments")}</div>
 				)}
 			</div>
 			<div className="flex flex-col gap-3">
