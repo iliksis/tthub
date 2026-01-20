@@ -116,6 +116,7 @@ export const getAppointments = createServerFn()
 		(d: {
 			title?: string;
 			location?: string;
+			minDate?: Date;
 			withDeleted?: boolean;
 			orderBy?:
 				| Prisma.AppointmentOrderByWithRelationInput
@@ -148,6 +149,9 @@ export const getAppointments = createServerFn()
 							shortTitle: { contains: data.title ?? "" },
 						},
 					],
+					startDate: {
+						gt: data.minDate,
+					},
 				},
 			});
 			return json<Return<typeof appointments>>(

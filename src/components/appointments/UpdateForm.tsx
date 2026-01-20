@@ -3,7 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { updateAppointment } from "@/api/appointments";
 import { useMutation } from "@/hooks/useMutation";
 import type { Appointment } from "@/lib/prisma/client";
-import { AppointmentStatus, AppointmentType } from "@/lib/prisma/enums";
+import { AppointmentType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { dateToInputValue } from "@/lib/utils";
 import { notify } from "../Toast";
@@ -204,32 +204,6 @@ export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 							</form.Field>
 						</div>
 						<div>
-							<form.Field name="status">
-								{(field) => (
-									<fieldset className="fieldset">
-										<label className="label">
-											{t("Publish")}?
-											<input
-												id={field.name}
-												className="checkbox checkbox-primary"
-												type="checkbox"
-												checked={field.state.value !== AppointmentStatus.DRAFT}
-												name={field.name}
-												onBlur={field.handleBlur}
-												onChange={(e) =>
-													field.handleChange(
-														e.target.checked
-															? AppointmentStatus.PUBLISHED
-															: AppointmentStatus.DRAFT,
-													)
-												}
-											/>
-										</label>
-									</fieldset>
-								)}
-							</form.Field>
-						</div>
-						<div>
 							<form.Field name="nextAppointment">
 								{(field) => (
 									<fieldset className="fieldset">
@@ -245,24 +219,24 @@ export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 											<option disabled selected>
 												{t("Choose an appointment")}
 											</option>
-											{appointments
-												.filter((p) => p.id !== appointment.id)
-												.map((p) => (
-													<option
-														key={p.id}
-														value={p.id}
-														className="before:content-[attr(data-before)] before:opacity-60"
-														data-before={new Date(
-															p.startDate,
-														).toLocaleDateString("de-DE", {
+											{appointments.map((p) => (
+												<option
+													key={p.id}
+													value={p.id}
+													disabled={p.id === appointment.id}
+													className="before:content-[attr(data-before)] before:opacity-60"
+													data-before={new Date(p.startDate).toLocaleDateString(
+														"de-DE",
+														{
 															day: "2-digit",
 															month: "2-digit",
 															year: "2-digit",
-														})}
-													>
-														{p.title}
-													</option>
-												))}
+														},
+													)}
+												>
+													{p.title}
+												</option>
+											))}
 										</select>
 									</fieldset>
 								)}

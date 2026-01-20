@@ -40,19 +40,20 @@ import { cn, createColorForUserId, createGoogleMapsLink } from "@/lib/utils";
 export const Route = createFileRoute("/_authed/appts/$apptId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const [apptData, playerData, categoriesData, apptsData] = await Promise.all(
-			[
-				getAppointment({ data: { id: params.apptId } }),
-				getPlayers(),
-				getUniqueCategories(),
-				getAppointments({ data: { orderBy: { startDate: "desc" } } }),
-			],
-		);
+		const apptData = await getAppointment({ data: { id: params.apptId } });
 
 		const res = await apptData.json();
 		if (apptData.status >= 400) {
 			throw new Error(res.message);
 		}
+
+		const [playerData, categoriesData, apptsData] = await Promise.all([
+			getPlayers(),
+			getUniqueCategories(),
+			getAppointments({
+				data: { minDate: res.data?.startDate, orderBy: { startDate: "desc" } },
+			}),
+		]);
 
 		const players = await playerData.json();
 		if (playerData.status >= 400) {
