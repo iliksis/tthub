@@ -101,9 +101,9 @@ export const createColorForUserId = (userId: string) => {
 		}
 	}
 
-	// Ensure lightness is in a safe range (30-55%) for white text readability
+	// Ensure lightness is in a safe range (20-45%) for white text readability
 	// This range works well in both light and dark themes
-	const adjustedL = 0.3 + l * 0.25;
+	const adjustedL = 0.2 + l * 0.25;
 
 	// Convert HSL back to RGB
 	const hslToRgb = (h: number, s: number, l: number) => {

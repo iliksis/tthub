@@ -26,7 +26,7 @@ export function Login() {
 			loginMutation.mutate({
 				data: {
 					password: value.password,
-					userName: value.userName,
+					userName: value.userName.trim(),
 				},
 			});
 		},
