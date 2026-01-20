@@ -14,6 +14,7 @@ const texts = {
 	"Age Group": "Altersklasse",
 	"An Error occurred": "Ein Fehler ist aufgetreten",
 	Apply: "Anwenden",
+	Appointment: "Termin",
 	"Appointment created": "Termin erstellt",
 	"Appointment deleted": "Termin gelöscht",
 	"Appointment found": "Termin gefunden",
