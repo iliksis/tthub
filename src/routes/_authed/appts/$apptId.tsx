@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
 	CalendarDaysIcon,
@@ -21,6 +21,7 @@ import {
 import { getUniqueCategories } from "@/api/placements";
 import { getPlayers } from "@/api/players";
 import { UpdateForm } from "@/components/appointments/UpdateForm";
+import { InternalLink } from "@/components/InternalLink";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Modal } from "@/components/modal/Modal";
 import { ParticipantModal } from "@/components/placement/PlacementModal";
@@ -305,13 +306,12 @@ function RouteComponent() {
 						</Card>
 						<Card title={t("Next Appointment")} gridRows={4}>
 							{appointment.nextAppointment ? (
-								<Link
-									className="link link-hover"
+								<InternalLink
 									to="/appts/$apptId"
 									params={{ apptId: appointment.nextAppointment.id }}
 								>
 									{appointment.nextAppointment.title}
-								</Link>
+								</InternalLink>
 							) : (
 								t("No appointment set")
 							)}

@@ -1,6 +1,5 @@
 import {
 	createFileRoute,
-	Link,
 	useRouteContext,
 	useRouter,
 } from "@tanstack/react-router";
@@ -9,6 +8,7 @@ import { CogIcon, EditIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { deletePlayer, getPlayer, updatePlayer } from "@/api/players";
 import { getTeams } from "@/api/teams";
+import { InternalLink } from "@/components/InternalLink";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlayerForm } from "@/components/players/PlayerForm";
 import { notify } from "@/components/Toast";
@@ -117,13 +117,12 @@ function RouteComponent() {
 				<Card title={t("Team")} gridRows={4}>
 					<p>
 						{player.team ? (
-							<Link
-								className="link link-hover"
+							<InternalLink
 								to="/teams/$teamId"
 								params={{ teamId: player.team.id }}
 							>
 								{player.team.title}
-							</Link>
+							</InternalLink>
 						) : (
 							t("No team set")
 						)}

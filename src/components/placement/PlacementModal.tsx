@@ -1,7 +1,8 @@
-import { Link, useRouteContext, useRouter } from "@tanstack/react-router";
+import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { EditIcon, Plus, Trash2Icon } from "lucide-react";
 import React from "react";
 import { deletePlacement } from "@/api/placements";
+import { InternalLink } from "@/components/InternalLink";
 import { useMutation } from "@/hooks/useMutation";
 import type { Placement, Player } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
@@ -122,13 +123,12 @@ export const ParticipantModal = ({
 								className="flex items-center gap-2"
 							>
 								<div className="flex-1">
-									<Link
-										className="link link-hover"
+									<InternalLink
 										to="/players/$playerId"
 										params={{ playerId: p.player.id }}
 									>
 										{p.player.name}
-									</Link>
+									</InternalLink>
 								</div>
 								<div className="flex-1">
 									<p>{p.placement}</p>
