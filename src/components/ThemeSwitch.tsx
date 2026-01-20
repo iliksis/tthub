@@ -41,5 +41,5 @@ const toggleTheme = createServerFn().handler(async () => {
 
 export const getTheme = createServerFn().handler(async () => {
 	const theme = getCookie("theme");
-	return theme ?? "dark";
+	return (theme ?? "dark") as "light" | "dark";
 });

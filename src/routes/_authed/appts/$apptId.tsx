@@ -35,7 +35,12 @@ import {
 	type ResponseType,
 } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import { cn, createColorForUserId, createGoogleMapsLink } from "@/lib/utils";
+import {
+	cn,
+	createColorForUserId,
+	createGoogleMapsLink,
+	shortenUserName,
+} from "@/lib/utils";
 
 // biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
 export const Route = createFileRoute("/_authed/appts/$apptId")({
@@ -467,7 +472,7 @@ const AvatarGroup = ({ responses }: AvatarGroupProps) => {
 						style={{ backgroundColor: createColorForUserId(r.userId) }}
 					>
 						<span className="text-md light:text-white">
-							{r.user.name.slice(0, 2)}
+							{shortenUserName(r.user.name)}
 						</span>
 					</div>
 				</div>
