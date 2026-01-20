@@ -175,6 +175,7 @@ export const NavigationWrapper = ({
 					</ul>
 					<div className="divider mb-0"></div>
 					<ul className="menu w-full mb-4">
+						<ThemeSwitch />
 						<li>
 							<Link
 								to="/logout"
@@ -185,7 +186,6 @@ export const NavigationWrapper = ({
 								<span className="is-drawer-close:hidden">{t("Logout")}</span>
 							</Link>
 						</li>
-						<ThemeSwitch />
 					</ul>
 				</div>
 			</div>
