@@ -141,7 +141,8 @@ const AppointmentEditSection = () => {
 		},
 	});
 
-	if (!state.tournamentType) return null;
+	if (!state.type || (state.type === "tournament" && !state.tournamentType))
+		return null;
 
 	return (
 		<div>
