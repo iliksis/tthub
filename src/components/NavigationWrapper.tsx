@@ -7,6 +7,7 @@ import {
 	ImportIcon,
 	LogOutIcon,
 	PanelLeftOpenIcon,
+	SearchIcon,
 	Settings2Icon,
 	ShieldIcon,
 	TextAlignJustifyIcon,
@@ -157,6 +158,20 @@ export const NavigationWrapper = ({
 						<PanelLeftOpenIcon className="my-1.5 size-4" />
 					</label>
 					<div className="px-4">{title}</div>
+					<div className="flex-1" />
+					<button
+						type="button"
+						onClick={() => {
+							window.dispatchEvent(
+								new KeyboardEvent("keydown", { key: "k", metaKey: true }),
+							);
+						}}
+						className="btn btn-ghost mx-2 gap-2 normal-case"
+					>
+						<SearchIcon className="size-4" />
+						<span className="hidden sm:inline">{t("Search")}</span>
+						<kbd className="kbd font-medium hidden sm:inline">⌘K</kbd>
+					</button>
 				</nav>
 				{/* Page content here */}
 				<div className="max-w-4xl m-auto p-4 relative">{children}</div>
@@ -175,6 +190,7 @@ export const NavigationWrapper = ({
 					</ul>
 					<div className="divider mb-0"></div>
 					<ul className="menu w-full mb-4">
+						<ThemeSwitch />
 						<li>
 							<Link
 								to="/logout"
@@ -185,7 +201,6 @@ export const NavigationWrapper = ({
 								<span className="is-drawer-close:hidden">{t("Logout")}</span>
 							</Link>
 						</li>
-						<ThemeSwitch />
 					</ul>
 				</div>
 			</div>

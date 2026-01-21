@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
 	CalendarDaysIcon,
@@ -21,6 +21,7 @@ import {
 import { getUniqueCategories } from "@/api/placements";
 import { getPlayers } from "@/api/players";
 import { UpdateForm } from "@/components/appointments/UpdateForm";
+import { InternalLink } from "@/components/InternalLink";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Modal } from "@/components/modal/Modal";
 import { ParticipantModal } from "@/components/placement/PlacementModal";
@@ -34,25 +35,31 @@ import {
 	type ResponseType,
 } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import { cn, createColorForUserId, createGoogleMapsLink } from "@/lib/utils";
+import {
+	cn,
+	createColorForUserId,
+	createGoogleMapsLink,
+	shortenUserName,
+} from "@/lib/utils";
 
 // biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
 export const Route = createFileRoute("/_authed/appts/$apptId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const [apptData, playerData, categoriesData, apptsData] = await Promise.all(
-			[
-				getAppointment({ data: { id: params.apptId } }),
-				getPlayers(),
-				getUniqueCategories(),
-				getAppointments({ data: { orderBy: { startDate: "desc" } } }),
-			],
-		);
+		const apptData = await getAppointment({ data: { id: params.apptId } });
 
 		const res = await apptData.json();
 		if (apptData.status >= 400) {
 			throw new Error(res.message);
 		}
+
+		const [playerData, categoriesData, apptsData] = await Promise.all([
+			getPlayers(),
+			getUniqueCategories(),
+			getAppointments({
+				data: { minDate: res.data?.startDate, orderBy: { startDate: "desc" } },
+			}),
+		]);
 
 		const players = await playerData.json();
 		if (playerData.status >= 400) {
@@ -304,13 +311,12 @@ function RouteComponent() {
 						</Card>
 						<Card title={t("Next Appointment")} gridRows={4}>
 							{appointment.nextAppointment ? (
-								<Link
-									className="link link-hover"
+								<InternalLink
 									to="/appts/$apptId"
 									params={{ apptId: appointment.nextAppointment.id }}
 								>
 									{appointment.nextAppointment.title}
-								</Link>
+								</InternalLink>
 							) : (
 								t("No appointment set")
 							)}
@@ -466,7 +472,7 @@ const AvatarGroup = ({ responses }: AvatarGroupProps) => {
 						style={{ backgroundColor: createColorForUserId(r.userId) }}
 					>
 						<span className="text-md light:text-white">
-							{r.user.name.slice(0, 2)}
+							{shortenUserName(r.user.name)}
 						</span>
 					</div>
 				</div>

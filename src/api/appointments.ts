@@ -111,11 +111,57 @@ export const getAppointment = createServerFn()
 		}
 	});
 
+export const searchAppointments = createServerFn()
+	.inputValidator((d: { query?: string }) => d)
+	.handler(async ({ data }) => {
+		const session = await useAppSession();
+		if (session.data.id === null) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
+		try {
+			const appointments = await prismaClient.appointment.findMany({
+				include: {
+					placements: {
+						distinct: "playerId",
+					},
+				},
+				orderBy: { startDate: "desc" },
+				take: 10,
+				where: {
+					deletedAt: null,
+					NOT: {
+						type: AppointmentType.HOLIDAY,
+					},
+					OR: [
+						{
+							title: { contains: data.query ?? "" },
+						},
+						{
+							shortTitle: { contains: data.query ?? "" },
+						},
+						{
+							location: { contains: data.query ?? "" },
+						},
+					],
+				},
+			});
+			return json<Return<typeof appointments>>(
+				{ data: appointments, message: t("Appointments found") },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
 export const getAppointments = createServerFn()
 	.inputValidator(
 		(d: {
 			title?: string;
 			location?: string;
+			minDate?: Date;
 			withDeleted?: boolean;
 			orderBy?:
 				| Prisma.AppointmentOrderByWithRelationInput
@@ -148,6 +194,9 @@ export const getAppointments = createServerFn()
 							shortTitle: { contains: data.title ?? "" },
 						},
 					],
+					startDate: {
+						gt: data.minDate,
+					},
 				},
 			});
 			return json<Return<typeof appointments>>(
@@ -271,6 +320,7 @@ export const createResponse = createServerFn()
 export const getNextAppointments = createServerFn().handler(async () => {
 	try {
 		const now = new Date();
+		now.setHours(0, 0, 0, 0);
 		const fourWeeks = new Date(now.getTime() + 86400000 * 28);
 		const appointments = await prismaClient.appointment.findMany({
 			include: {
@@ -283,7 +333,7 @@ export const getNextAppointments = createServerFn().handler(async () => {
 				AND: [
 					{
 						startDate: {
-							gt: now,
+							gte: now,
 						},
 					},
 					{
@@ -344,6 +394,8 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 	.inputValidator((d: { userId: string }) => d)
 	.handler(async ({ data }) => {
 		try {
+			const now = new Date();
+			now.setHours(0, 0, 0, 0);
 			const appointments = await prismaClient.appointment.findMany({
 				include: {
 					responses: true,
@@ -356,7 +408,7 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 						},
 					},
 					startDate: {
-						gte: new Date(),
+						gte: now,
 					},
 					type: AppointmentType.TOURNAMENT,
 				},

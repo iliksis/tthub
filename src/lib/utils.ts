@@ -60,18 +60,84 @@ export const createGoogleMapsLink = (location: string) => {
 
 /**
  * Creates a color based on the user's id.
+ * Ensures colors are not too light to maintain readability with white text.
  */
 export const createColorForUserId = (userId: string) => {
 	let hash = 0;
 	for (let i = 0; i < userId.length; i++) {
 		hash = userId.charCodeAt(i) + ((hash << 5) - hash);
 	}
-	let color = "#";
-	for (let i = 0; i < 3; i++) {
-		const value = (hash >> (i * 8)) & 0xff;
-		color += `00${value.toString(16)}`.slice(-2);
+
+	// Generate base RGB values
+	const r = (hash >> 16) & 0xff;
+	const g = (hash >> 8) & 0xff;
+	const b = hash & 0xff;
+
+	// Convert to HSL to adjust lightness
+	const rNorm = r / 255;
+	const gNorm = g / 255;
+	const bNorm = b / 255;
+
+	const max = Math.max(rNorm, gNorm, bNorm);
+	const min = Math.min(rNorm, gNorm, bNorm);
+	const l = (max + min) / 2;
+
+	let h = 0;
+	let s = 0;
+
+	if (max !== min) {
+		const d = max - min;
+		s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+		switch (max) {
+			case rNorm:
+				h = ((gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0)) / 6;
+				break;
+			case gNorm:
+				h = ((bNorm - rNorm) / d + 2) / 6;
+				break;
+			case bNorm:
+				h = ((rNorm - gNorm) / d + 4) / 6;
+				break;
+		}
 	}
-	return color;
+
+	// Ensure lightness is in a safe range (20-45%) for white text readability
+	// This range works well in both light and dark themes
+	const adjustedL = 0.2 + l * 0.25;
+
+	// Convert HSL back to RGB
+	const hslToRgb = (h: number, s: number, l: number) => {
+		const hue2rgb = (p: number, q: number, t: number) => {
+			if (t < 0) t += 1;
+			if (t > 1) t -= 1;
+			if (t < 1 / 6) return p + (q - p) * 6 * t;
+			if (t < 1 / 2) return q;
+			if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+			return p;
+		};
+
+		if (s === 0) {
+			return [l, l, l];
+		}
+
+		const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+		const p = 2 * l - q;
+		return [
+			hue2rgb(p, q, h + 1 / 3),
+			hue2rgb(p, q, h),
+			hue2rgb(p, q, h - 1 / 3),
+		];
+	};
+
+	const [rFinal, gFinal, bFinal] = hslToRgb(h, s, adjustedL);
+
+	// Convert back to hex
+	const toHex = (n: number) =>
+		Math.round(n * 255)
+			.toString(16)
+			.padStart(2, "0");
+
+	return `#${toHex(rFinal)}${toHex(gFinal)}${toHex(bFinal)}`;
 };
 
 /**
@@ -105,4 +171,10 @@ export const calculateAgeGroup = (year: number) => {
 	if (age < 15) return "U15";
 	if (age < 19) return "U19";
 	return t("Adult");
+};
+
+export const shortenUserName = (name: string) => {
+	const parts = name.split(" ");
+	if (parts.length === 1) return parts[0].slice(0, 2);
+	return parts[0][0] + parts[1][0];
 };

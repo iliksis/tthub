@@ -7,6 +7,7 @@ export const t = (key: TextKey | (string & {}), ...params: string[]) =>
 
 const texts = {
 	"{0} Appointments created": "{0} Termine erstellt",
+	"{0} players": "{0} Spieler:innen",
 	Accept: "Annehmen",
 	Accepted: "Angenommen",
 	"Active Subscriptions": "Geräte mit aktivierten Benachrichtigungen",
@@ -14,6 +15,7 @@ const texts = {
 	"Age Group": "Altersklasse",
 	"An Error occurred": "Ein Fehler ist aufgetreten",
 	Apply: "Anwenden",
+	Appointment: "Termin",
 	"Appointment created": "Termin erstellt",
 	"Appointment deleted": "Termin gelöscht",
 	"Appointment found": "Termin gefunden",
@@ -149,6 +151,10 @@ const texts = {
 	"Response created": "Antwort erstellt",
 	"Restore?": "Wiederherstellen?",
 	Role: "Rolle",
+	Search: "Suche",
+	"Search Appointments": "Termine suchen",
+	"Search Players": "Spieler:innen suchen",
+	"Search Teams": "Teams suchen",
 	"Set a password to create your Account":
 		"Passwort festlegen, um Account zu erstellen",
 	Settings: "Einstellungen",
@@ -175,6 +181,9 @@ const texts = {
 	Title: "Titel",
 	Today: "Heute",
 	Tournament: "Turnier",
+	"Type to search or use shortcuts...":
+		"Tippe zum Suchen oder benutze Shortcuts...",
+	"Type to search...": "Tippe zum Suchen...",
 	Unauthorized: "Nicht autorisiert",
 	"Upcoming appointments": "Anstehende Termine",
 	Update: "Aktualisieren",

@@ -1,6 +1,5 @@
 import {
 	createFileRoute,
-	Link,
 	useRouteContext,
 	useRouter,
 } from "@tanstack/react-router";
@@ -9,6 +8,8 @@ import { CogIcon, EditIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { deletePlayer, getPlayer, updatePlayer } from "@/api/players";
 import { getTeams } from "@/api/teams";
+import { DetailsList } from "@/components/DetailsList";
+import { InternalLink } from "@/components/InternalLink";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlayerForm } from "@/components/players/PlayerForm";
 import { notify } from "@/components/Toast";
@@ -117,17 +118,59 @@ function RouteComponent() {
 				<Card title={t("Team")} gridRows={4}>
 					<p>
 						{player.team ? (
-							<Link
-								className="link link-hover"
+							<InternalLink
 								to="/teams/$teamId"
 								params={{ teamId: player.team.id }}
 							>
 								{player.team.title}
-							</Link>
+							</InternalLink>
 						) : (
 							t("No team set")
 						)}
 					</p>
+				</Card>
+				<Card gridRows={4}>
+					<DetailsList
+						items={player.placements}
+						getItemId={(item) => `${item.appointmentId}-${item.category}`}
+						columns={[
+							{
+								key: "date",
+								label: t("Date"),
+								render: (item) =>
+									new Date(item.appointment.startDate).toLocaleDateString(
+										"de-DE",
+										{
+											day: "2-digit",
+											month: "2-digit",
+											year: "2-digit",
+										},
+									),
+							},
+							{
+								key: "title",
+								label: t("Appointment"),
+								render: (item) => item.appointment.title,
+							},
+							{
+								key: "category",
+								label: t("Category"),
+								render: (item) => item.category,
+							},
+							{
+								key: "placement",
+								label: t("Placement"),
+								render: (item) => item.placement,
+							},
+						]}
+						onItemClick={async (item) => {
+							await router.navigate({
+								params: { apptId: item.appointmentId },
+								to: "/appts/$apptId",
+							});
+						}}
+						selectMode="none"
+					/>
 				</Card>
 			</div>
 			{canEdit && (

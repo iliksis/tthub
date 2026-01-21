@@ -60,6 +60,8 @@ export const CreatePlacement = ({
 		form.reset();
 	};
 
+	if (!open) return null;
+
 	return (
 		<Modal
 			open={open}

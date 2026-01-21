@@ -44,7 +44,7 @@ type DetailsListProps<T> = {
 	items: T[];
 	columns: DetailsListColumn<T>[];
 	getItemId: (item: T) => string;
-	onItemClick?: (item: T) => void;
+	onItemClick?: (item: T) => void | Promise<void>;
 	onRenderRow?: (item: T, children: React.ReactNode) => React.ReactNode;
 	commandBarItems?: CommandBarItem<T>[];
 	emptyMessage?: string;
@@ -366,7 +366,7 @@ export function DetailsList<T>({
 								<tr
 									key={row.id}
 									className={cn(
-										"h-10 hover:bg-base-200 cursor-pointer",
+										"h-10 hover:bg-base-300 cursor-pointer",
 										row.getIsSelected() && "bg-base-200",
 									)}
 									onClick={(e) => handleItemClick(row.original, e)}
