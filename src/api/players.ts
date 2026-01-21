@@ -4,6 +4,29 @@ import { useIsRole } from "@/lib/session";
 import { t } from "@/lib/text";
 import type { Return } from "./types";
 
+export const searchPlayers = createServerFn()
+	.inputValidator((d: { query?: string }) => d)
+	.handler(async ({ data }) => {
+		try {
+			const players = await prismaClient.player.findMany({
+				include: { team: true },
+				orderBy: { name: "asc" },
+				take: 10,
+				where: {
+					name: { contains: data.query ?? "" },
+				},
+			});
+			return json<Return<typeof players>>(
+				{ data: players, message: t("Players found") },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
 export const getPlayers = createServerFn({ method: "GET" }).handler(
 	async () => {
 		try {

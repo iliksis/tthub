@@ -4,6 +4,32 @@ import { useIsRole } from "@/lib/session";
 import { t } from "@/lib/text";
 import type { Return } from "./types";
 
+export const searchTeams = createServerFn()
+	.inputValidator((d: { query?: string }) => d)
+	.handler(async ({ data }) => {
+		try {
+			const teams = await prismaClient.team.findMany({
+				include: { _count: { select: { players: true } } },
+				orderBy: { title: "asc" },
+				take: 10,
+				where: {
+					OR: [
+						{ title: { contains: data.query ?? "" } },
+						{ league: { contains: data.query ?? "" } },
+					],
+				},
+			});
+			return json<Return<typeof teams>>(
+				{ data: teams, message: t("Teams found") },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
 export const getTeams = createServerFn({ method: "GET" }).handler(async () => {
 	try {
 		const teams = await prismaClient.team.findMany({

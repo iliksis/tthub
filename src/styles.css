@@ -96,3 +96,30 @@ dialog {
 .fc-daygrid-day {
   @apply text-base-content;
 }
+
+
+
+/*#####################*/
+/* cmdk Dialog Styles */
+/*#####################*/
+[cmdk-overlay] {
+  @apply fixed inset-0 bg-black/50 z-10;
+}
+
+[cmdk-root] {
+	@apply z-20
+}
+
+[cmdk-group-heading] {
+  @apply px-3 py-1.5 text-xs font-medium text-base-content/70 uppercase;
+}
+
+[cmdk-item] {
+  @apply relative flex cursor-default select-none items-center rounded-sm outline-none transition-colors;
+  @apply aria-selected:bg-primary/20 data-[selected=true]:bg-primary/20;
+  @apply data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50;
+}
+
+[cmdk-empty] {
+  @apply py-6 text-center text-sm;
+}

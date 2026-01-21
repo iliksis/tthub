@@ -111,6 +111,51 @@ export const getAppointment = createServerFn()
 		}
 	});
 
+export const searchAppointments = createServerFn()
+	.inputValidator((d: { query?: string }) => d)
+	.handler(async ({ data }) => {
+		const session = await useAppSession();
+		if (session.data.id === null) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
+		try {
+			const appointments = await prismaClient.appointment.findMany({
+				include: {
+					placements: {
+						distinct: "playerId",
+					},
+				},
+				orderBy: { startDate: "desc" },
+				take: 10,
+				where: {
+					deletedAt: null,
+					NOT: {
+						type: AppointmentType.HOLIDAY,
+					},
+					OR: [
+						{
+							title: { contains: data.query ?? "" },
+						},
+						{
+							shortTitle: { contains: data.query ?? "" },
+						},
+						{
+							location: { contains: data.query ?? "" },
+						},
+					],
+				},
+			});
+			return json<Return<typeof appointments>>(
+				{ data: appointments, message: t("Appointments found") },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
 export const getAppointments = createServerFn()
 	.inputValidator(
 		(d: {

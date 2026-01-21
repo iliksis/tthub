@@ -8,8 +8,9 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
-import React from "react";
+import { useEffect } from "react";
 import { Toaster } from "sonner";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { NavigationWrapper } from "@/components/NavigationWrapper";
 import { getTheme } from "@/components/ThemeSwitch";
 import { prismaClient } from "@/lib/db";
@@ -113,7 +114,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 		select: (state) => state.matches.some((m) => m.routeId === "/_authed"),
 	});
 
-	React.useEffect(() => {
+	useEffect(() => {
 		const registerServiceWorker = async () => {
 			if ("serviceWorker" in navigator) {
 				try {
@@ -152,6 +153,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 					{user && isAuthedRoute ? (
 						<>
 							<NavigationWrapper title={title}>{children}</NavigationWrapper>
+							<GlobalSearch />
 							<TanStackDevtools
 								config={{
 									position: "bottom-left",
