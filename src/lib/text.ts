@@ -52,6 +52,7 @@ const texts = {
 	"Copy Password Reset Link": "Zurücksetzungslink kopieren",
 	Country: "Land",
 	Create: "Erstellen",
+	"Create Account": "Account erstellen",
 	"Create appointment": "Termin erstellen",
 	"Create new Invitation": "Neue Einladung erstellen",
 	"Create new link": "Erstelle neuen Link",
@@ -155,6 +156,8 @@ const texts = {
 	"Search Appointments": "Termine suchen",
 	"Search Players": "Spieler:innen suchen",
 	"Search Teams": "Teams suchen",
+	"Select a search type or use shortcuts":
+		"Wähle einen Suchtyp oder benutze Shortcuts",
 	"Set a password to create your Account":
 		"Passwort festlegen, um Account zu erstellen",
 	Settings: "Einstellungen",
@@ -181,8 +184,6 @@ const texts = {
 	Title: "Titel",
 	Today: "Heute",
 	Tournament: "Turnier",
-	"Type to search or use shortcuts...":
-		"Tippe zum Suchen oder benutze Shortcuts...",
 	"Type to search...": "Tippe zum Suchen...",
 	Unauthorized: "Nicht autorisiert",
 	"Upcoming appointments": "Anstehende Termine",
