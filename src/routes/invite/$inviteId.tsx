@@ -155,7 +155,7 @@ function RouteComponent() {
 								className="btn btn-primary mt-4"
 								disabled={!canSubmit || isDefaultValue}
 							>
-								{isSubmitting ? "..." : "Create Account"}
+								{isSubmitting ? "..." : t("Create Account")}
 							</button>
 						)}
 					</form.Subscribe>

@@ -254,7 +254,7 @@ export const GlobalSearch = () => {
 						placeholder={
 							searchType
 								? t("Type to search...")
-								: t("Type to search or use shortcuts...")
+								: t("Select a search type or use shortcuts")
 						}
 					/>
 					{searchType && (
