@@ -98,7 +98,9 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 							</button>
 						</div>
 						<p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-							{t("Use this URL in your calendar app to subscribe to your feed")}
+							{t(
+								"Use this URL in your calendar application to subscribe to your personal calendar feed.",
+							)}
 						</p>
 					</div>
 				)}
@@ -191,7 +193,7 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 											}
 											className="checkbox checkbox-primary"
 										/>
-										{t("Tournament (German)")}
+										{t("Tournament (Germany)")}
 									</label>
 									<label className="label">
 										<input
