@@ -170,6 +170,8 @@ const texts = {
 	Start: "Start",
 	StartDate: "Start",
 	Subdivision: "Region",
+	"Subscription created": "Benachrichtigung erstellt",
+	"Subscription deleted": "Benachrichtigung abgemeldet",
 	"Switch Theme": "Theme wechseln",
 	Team: "Team",
 	"Team created": "Team erstellt",
