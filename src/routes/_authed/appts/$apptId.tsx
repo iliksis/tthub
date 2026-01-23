@@ -461,22 +461,28 @@ type AvatarGroupProps = {
 const AvatarGroup = ({ responses }: AvatarGroupProps) => {
 	return (
 		<div className="-space-x-3">
-			{responses.map((r) => (
-				<div
-					key={r.userId}
-					className="avatar avatar-placeholder tooltip"
-					data-tip={r.user.name}
-				>
+			{responses.map((r) => {
+				const userColor = createColorForUserId(r.userId);
+				return (
 					<div
-						className="bg-neutral w-8 rounded-full border-base-100 border-2"
-						style={{ backgroundColor: createColorForUserId(r.userId) }}
+						key={r.userId}
+						className="avatar avatar-placeholder tooltip"
+						data-tip={r.user.name}
 					>
-						<span className="text-md light:text-white">
-							{shortenUserName(r.user.name)}
-						</span>
+						<div
+							className="bg-neutral w-8 rounded-full border-base-100 border-2"
+							style={{
+								backgroundColor: userColor.backgroundColor,
+								color: userColor.foregroundColor,
+							}}
+						>
+							<span className="text-md font-semibold">
+								{shortenUserName(r.user.name)}
+							</span>
+						</div>
 					</div>
-				</div>
-			))}
+				);
+			})}
 		</div>
 	);
 };

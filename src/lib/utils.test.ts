@@ -141,12 +141,6 @@ describe("createGoogleMapsLink", () => {
 });
 
 describe("createColorForUserId", () => {
-	it("should create a valid hex color", () => {
-		const userId = "user123";
-		const color = createColorForUserId(userId);
-		expect(color).toMatch(/^#[0-9a-f]{6}$/);
-	});
-
 	it("should create consistent colors for same user ID", () => {
 		const userId = "user123";
 		const color1 = createColorForUserId(userId);
