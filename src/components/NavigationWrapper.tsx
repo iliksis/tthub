@@ -59,6 +59,11 @@ const navigationItems: NavigationItem[] = [
 		children: [
 			{ href: "/settings/profile", icon: UserPenIcon, name: t("Profile") },
 			{
+				href: "/settings/feed",
+				icon: CalendarDaysIcon,
+				name: t("Calendar Feed"),
+			},
+			{
 				href: "/settings/imports",
 				icon: ImportIcon,
 				isHidden: (role) => role === "USER",

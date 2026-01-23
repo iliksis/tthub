@@ -72,4 +72,10 @@ END:VCALENDAR`.replace(/\n/g, "\r\n");
 		link.download = `tthub-${now}.ics`;
 		link.click();
 	}
+
+	createIcalString(...events: Appointment[]): string {
+		return Mustache.render(this.template, {
+			appointments: events.map((event) => this._createIcalEvent(event)),
+		});
+	}
 }

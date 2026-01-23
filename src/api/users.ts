@@ -1,10 +1,16 @@
 import { createServerFn, json } from "@tanstack/react-start";
 import { hashPassword, prismaClient } from "@/lib/db";
 import type { User } from "@/lib/prisma/client";
-import type { Role } from "@/lib/prisma/enums";
+import type { AppointmentType, ResponseType, Role } from "@/lib/prisma/enums";
 import { useAppSession, useIsRole, useIsUserOrRole } from "@/lib/session";
 import { t } from "@/lib/text";
 import type { Return } from "./types";
+
+export interface FeedConfig {
+	includeResponseTypes?: ResponseType[];
+	includeDraftStatus?: boolean;
+	includeAppointmentTypes?: AppointmentType[];
+}
 
 export const fetchUsers = createServerFn({ method: "GET" }).handler(
 	async () => {
@@ -222,10 +228,8 @@ export const updatePasswordFromReset = createServerFn({ method: "POST" })
 		(d: { resetId: string; password: string; confirmPassword: string }) => d,
 	)
 	.handler(async ({ data }) => {
+		const session = await useAppSession();
 		try {
-			// biome-ignore lint/correctness/useHookAtTopLevel: not a real hook
-			const session = await useAppSession();
-
 			const passwordReset = await prismaClient.passwordReset.findUnique({
 				where: {
 					id: data.resetId,
@@ -269,6 +273,105 @@ export const updatePasswordFromReset = createServerFn({ method: "POST" })
 				{
 					status: 200,
 				},
+			);
+		} catch (e) {
+			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
+export const getFeedConfig = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const session = await useAppSession();
+		if (!session.data?.id) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
+
+		try {
+			const user = await prismaClient.user.findUnique({
+				select: { feedConfig: true, feedId: true },
+				where: { id: session.data.id },
+			});
+
+			if (!user) {
+				return json<Return>({ message: t("User not found") }, { status: 404 });
+			}
+
+			const config: FeedConfig = {
+				includeAppointmentTypes: user.feedConfig?.includeAppointmentTypes
+					? (user.feedConfig.includeAppointmentTypes.split(
+							",",
+						) as AppointmentType[])
+					: undefined,
+				includeDraftStatus: user.feedConfig?.includeDraftStatus ?? false,
+				includeResponseTypes: user.feedConfig?.includeResponseTypes
+					? (user.feedConfig.includeResponseTypes.split(",") as ResponseType[])
+					: undefined,
+			};
+
+			return json<Return<{ feedId: string; config: FeedConfig }>>(
+				{
+					data: { config, feedId: user.feedId },
+					message: t("Feed config loaded"),
+				},
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	},
+);
+
+export const updateFeedConfig = createServerFn({ method: "POST" })
+	.inputValidator((d: FeedConfig) => d)
+	.handler(async ({ data }) => {
+		const session = await useAppSession();
+		if (!session.data?.id) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
+
+		try {
+			const feedConfig = await prismaClient.feedConfig.upsert({
+				create: {
+					includeAppointmentTypes: data.includeAppointmentTypes?.join(","),
+					includeDraftStatus: data.includeDraftStatus ?? false,
+					includeResponseTypes: data.includeResponseTypes?.join(","),
+					userId: session.data.id,
+				},
+				update: {
+					includeAppointmentTypes: data.includeAppointmentTypes?.join(","),
+					includeDraftStatus: data.includeDraftStatus ?? false,
+					includeResponseTypes: data.includeResponseTypes?.join(","),
+				},
+				where: {
+					userId: session.data.id,
+				},
+			});
+
+			const user = await prismaClient.user.findUnique({
+				select: { feedId: true },
+				where: { id: session.data.id },
+			});
+
+			const config: FeedConfig = {
+				includeAppointmentTypes: feedConfig.includeAppointmentTypes
+					? (feedConfig.includeAppointmentTypes.split(",") as AppointmentType[])
+					: undefined,
+				includeDraftStatus: feedConfig.includeDraftStatus,
+				includeResponseTypes: feedConfig.includeResponseTypes
+					? (feedConfig.includeResponseTypes.split(",") as ResponseType[])
+					: undefined,
+			};
+
+			return json<Return<{ feedId: string; config: FeedConfig }>>(
+				{
+					data: { config, feedId: user?.feedId || "" },
+					message: t("Feed settings updated"),
+				},
+				{ status: 200 },
 			);
 		} catch (e) {
 			console.error(e);

@@ -23,6 +23,11 @@ export * from './enums.ts';
  */
 export type User = Prisma.UserModel
 /**
+ * Model FeedConfig
+ * 
+ */
+export type FeedConfig = Prisma.FeedConfigModel
+/**
  * Model UserInvitation
  * 
  */

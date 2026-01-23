@@ -387,10 +387,6 @@ export type NotificationSettingsUncheckedUpdateManyWithoutSubscriptionNestedInpu
   deleteMany?: Prisma.NotificationSettingsScalarWhereInput | Prisma.NotificationSettingsScalarWhereInput[]
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type NotificationSettingsCreateWithoutUserInput = {
   newAppointment: boolean
   changedAppointment: boolean
