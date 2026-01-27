@@ -14,17 +14,28 @@ model User {
   password             String?
   name                 String
   role                 Role                   @default(USER)
+  feedId               String                 @unique @default(uuid())
   invitation           UserInvitation?
   responses            Response[]
   subscriptions        Subscription[]
   notificationSettings NotificationSettings[]
   passwordReset        PasswordReset?
+  feedConfig           FeedConfig?
 }
 
 enum Role {
   USER
   EDITOR
   ADMIN
+}
+
+model FeedConfig {
+  id                      String           @id @default(uuid())
+  userId                  String           @unique
+  user                    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  includeResponseTypes    String?          // Comma-separated: ACCEPT,MAYBE,DECLINE
+  includeDraftStatus      Boolean          @default(false)
+  includeAppointmentTypes String?          // Comma-separated: TOURNAMENT,TOURNAMENT_DE,HOLIDAY
 }
 
 model UserInvitation {

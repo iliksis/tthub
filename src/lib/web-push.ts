@@ -7,6 +7,7 @@ import {
 	createNotificationSubscription,
 	tryGetSubscription,
 } from "@/api/notifications";
+import { notify } from "@/components/Toast";
 
 const isSupported =
 	typeof Notification !== "undefined" && "permission" in Notification;
@@ -50,7 +51,6 @@ export const useNotificationPermissions = () => {
 		if (isSupported) {
 			const permission = await Notification.requestPermission();
 			const granted = permission === "granted";
-			queryClient.setQueryData(["notification-subscription"], granted);
 
 			if (granted) {
 				const registration = await navigator.serviceWorker.ready;
@@ -65,10 +65,12 @@ export const useNotificationPermissions = () => {
 						subscription: subscription.toJSON(),
 					},
 				});
-
-				if (response.status > 400) {
-					queryClient.setQueryData(["notification-subscription"], false);
+				const result = await response.json();
+				if (response.status < 400) {
+					queryClient.setQueryData(["notification-subscription"], result.data);
 					router.invalidate();
+				} else {
+					notify({ status: "error", title: result.message });
 				}
 			}
 		}

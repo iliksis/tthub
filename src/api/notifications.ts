@@ -110,6 +110,24 @@ export const deleteNotificationSubscription = createServerFn({ method: "POST" })
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 		try {
+			const settings = await prismaClient.notificationSettings.findUnique({
+				where: {
+					userId_subscriptionId: {
+						subscriptionId: data.id,
+						userId: session.data.id,
+					},
+				},
+			});
+			if (settings) {
+				await prismaClient.notificationSettings.delete({
+					where: {
+						userId_subscriptionId: {
+							subscriptionId: data.id,
+							userId: session.data.id,
+						},
+					},
+				});
+			}
 			await prismaClient.subscription.delete({
 				where: {
 					id: data.id,

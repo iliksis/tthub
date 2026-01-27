@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  FeedConfig: 'FeedConfig',
   UserInvitation: 'UserInvitation',
   PasswordReset: 'PasswordReset',
   Appointment: 'Appointment',
@@ -81,10 +82,22 @@ export const UserScalarFieldEnum = {
   userName: 'userName',
   password: 'password',
   name: 'name',
-  role: 'role'
+  role: 'role',
+  feedId: 'feedId'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const FeedConfigScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  includeResponseTypes: 'includeResponseTypes',
+  includeDraftStatus: 'includeDraftStatus',
+  includeAppointmentTypes: 'includeAppointmentTypes'
+} as const
+
+export type FeedConfigScalarFieldEnum = (typeof FeedConfigScalarFieldEnum)[keyof typeof FeedConfigScalarFieldEnum]
 
 
 export const UserInvitationScalarFieldEnum = {

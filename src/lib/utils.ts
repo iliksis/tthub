@@ -58,9 +58,90 @@ export const createGoogleMapsLink = (location: string) => {
 	return `https://www.google.com/maps/search/?api=1&query=${location}`;
 };
 
+const colorNames = [
+	"rosewater",
+	"flamingo",
+	"pink",
+	"mauve",
+	"red",
+	"maroon",
+	"peach",
+	"yellow",
+	"green",
+	"teal",
+	"sky",
+	"sapphire",
+	"blue",
+	"lavender",
+];
+
+const userColors: {
+	[key: (typeof colorNames)[number]]: {
+		backgroundColor: string;
+		foregroundColor: string;
+	};
+} = {
+	blue: {
+		backgroundColor: "var(--catppuccin-color-blue-100)",
+		foregroundColor: "var(--catppuccin-color-blue-900)",
+	},
+	flamingo: {
+		backgroundColor: "var(--catppuccin-color-flamingo-100)",
+		foregroundColor: "var(--catppuccin-color-flamingo-900)",
+	},
+	green: {
+		backgroundColor: "var(--catppuccin-color-green-100)",
+		foregroundColor: "var(--catppuccin-color-green-900)",
+	},
+	lavender: {
+		backgroundColor: "var(--catppuccin-color-lavender-100)",
+		foregroundColor: "var(--catppuccin-color-lavender-900)",
+	},
+	maroon: {
+		backgroundColor: "var(--catppuccin-color-maroon-100)",
+		foregroundColor: "var(--catppuccin-color-maroon-900)",
+	},
+	mauve: {
+		backgroundColor: "var(--catppuccin-color-mauve-100)",
+		foregroundColor: "var(--catppuccin-color-mauve-900)",
+	},
+	peach: {
+		backgroundColor: "var(--catppuccin-color-peach-100)",
+		foregroundColor: "var(--catppuccin-color-peach-900)",
+	},
+	pink: {
+		backgroundColor: "var(--catppuccin-color-pink-100)",
+		foregroundColor: "var(--catppuccin-color-pink-900)",
+	},
+	red: {
+		backgroundColor: "var(--catppuccin-color-red-100)",
+		foregroundColor: "var(--catppuccin-color-red-900)",
+	},
+	rosewater: {
+		backgroundColor: "var(--catppuccin-color-rosewater-100)",
+		foregroundColor: "var(--catppuccin-color-rosewater-900)",
+	},
+	sapphire: {
+		backgroundColor: "var(--catppuccin-color-sapphire-100)",
+		foregroundColor: "var(--catppuccin-color-sapphire-900)",
+	},
+	sky: {
+		backgroundColor: "var(--catppuccin-color-sky-100)",
+		foregroundColor: "var(--catppuccin-color-sky-900)",
+	},
+	teal: {
+		backgroundColor: "var(--catppuccin-color-teal-100)",
+		foregroundColor: "var(--catppuccin-color-teal-900)",
+	},
+	yellow: {
+		backgroundColor: "var(--catppuccin-color-yellow-100)",
+		foregroundColor: "var(--catppuccin-color-yellow-900)",
+	},
+};
+
 /**
  * Creates a color based on the user's id.
- * Ensures colors are not too light to maintain readability with white text.
+ * Picks from a predefined set of catppuccin colors.
  */
 export const createColorForUserId = (userId: string) => {
 	let hash = 0;
@@ -68,76 +149,8 @@ export const createColorForUserId = (userId: string) => {
 		hash = userId.charCodeAt(i) + ((hash << 5) - hash);
 	}
 
-	// Generate base RGB values
-	const r = (hash >> 16) & 0xff;
-	const g = (hash >> 8) & 0xff;
-	const b = hash & 0xff;
-
-	// Convert to HSL to adjust lightness
-	const rNorm = r / 255;
-	const gNorm = g / 255;
-	const bNorm = b / 255;
-
-	const max = Math.max(rNorm, gNorm, bNorm);
-	const min = Math.min(rNorm, gNorm, bNorm);
-	const l = (max + min) / 2;
-
-	let h = 0;
-	let s = 0;
-
-	if (max !== min) {
-		const d = max - min;
-		s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-		switch (max) {
-			case rNorm:
-				h = ((gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0)) / 6;
-				break;
-			case gNorm:
-				h = ((bNorm - rNorm) / d + 2) / 6;
-				break;
-			case bNorm:
-				h = ((rNorm - gNorm) / d + 4) / 6;
-				break;
-		}
-	}
-
-	// Ensure lightness is in a safe range (20-45%) for white text readability
-	// This range works well in both light and dark themes
-	const adjustedL = 0.2 + l * 0.25;
-
-	// Convert HSL back to RGB
-	const hslToRgb = (h: number, s: number, l: number) => {
-		const hue2rgb = (p: number, q: number, t: number) => {
-			if (t < 0) t += 1;
-			if (t > 1) t -= 1;
-			if (t < 1 / 6) return p + (q - p) * 6 * t;
-			if (t < 1 / 2) return q;
-			if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-			return p;
-		};
-
-		if (s === 0) {
-			return [l, l, l];
-		}
-
-		const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-		const p = 2 * l - q;
-		return [
-			hue2rgb(p, q, h + 1 / 3),
-			hue2rgb(p, q, h),
-			hue2rgb(p, q, h - 1 / 3),
-		];
-	};
-
-	const [rFinal, gFinal, bFinal] = hslToRgb(h, s, adjustedL);
-
-	// Convert back to hex
-	const toHex = (n: number) =>
-		Math.round(n * 255)
-			.toString(16)
-			.padStart(2, "0");
-
-	return `#${toHex(rFinal)}${toHex(gFinal)}${toHex(bFinal)}`;
+	const index = Math.abs(hash) % colorNames.length;
+	return userColors[colorNames[index]];
 };
 
 /**

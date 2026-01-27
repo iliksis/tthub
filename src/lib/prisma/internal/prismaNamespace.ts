@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  FeedConfig: 'FeedConfig',
   UserInvitation: 'UserInvitation',
   PasswordReset: 'PasswordReset',
   Appointment: 'Appointment',
@@ -409,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "userInvitation" | "passwordReset" | "appointment" | "response" | "player" | "team" | "placement" | "subscription" | "notificationSettings"
+    modelProps: "user" | "feedConfig" | "userInvitation" | "passwordReset" | "appointment" | "response" | "player" | "team" | "placement" | "subscription" | "notificationSettings"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -484,6 +485,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    FeedConfig: {
+      payload: Prisma.$FeedConfigPayload<ExtArgs>
+      fields: Prisma.FeedConfigFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FeedConfigFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeedConfigPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FeedConfigFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeedConfigPayload>
+        }
+        findFirst: {
+          args: Prisma.FeedConfigFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeedConfigPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FeedConfigFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeedConfigPayload>
+        }
+        findMany: {
+          args: Prisma.FeedConfigFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeedConfigPayload>[]
+        }
+        create: {
+          args: Prisma.FeedConfigCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeedConfigPayload>
+        }
+        createMany: {
+          args: Prisma.FeedConfigCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FeedConfigCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeedConfigPayload>[]
+        }
+        delete: {
+          args: Prisma.FeedConfigDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeedConfigPayload>
+        }
+        update: {
+          args: Prisma.FeedConfigUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeedConfigPayload>
+        }
+        deleteMany: {
+          args: Prisma.FeedConfigDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FeedConfigUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FeedConfigUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeedConfigPayload>[]
+        }
+        upsert: {
+          args: Prisma.FeedConfigUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeedConfigPayload>
+        }
+        aggregate: {
+          args: Prisma.FeedConfigAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFeedConfig>
+        }
+        groupBy: {
+          args: Prisma.FeedConfigGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FeedConfigGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FeedConfigCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FeedConfigCountAggregateOutputType> | number
         }
       }
     }
@@ -1194,10 +1269,22 @@ export const UserScalarFieldEnum = {
   userName: 'userName',
   password: 'password',
   name: 'name',
-  role: 'role'
+  role: 'role',
+  feedId: 'feedId'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const FeedConfigScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  includeResponseTypes: 'includeResponseTypes',
+  includeDraftStatus: 'includeDraftStatus',
+  includeAppointmentTypes: 'includeAppointmentTypes'
+} as const
+
+export type FeedConfigScalarFieldEnum = (typeof FeedConfigScalarFieldEnum)[keyof typeof FeedConfigScalarFieldEnum]
 
 
 export const UserInvitationScalarFieldEnum = {
@@ -1339,6 +1426,13 @@ export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -1370,13 +1464,6 @@ export type EnumResponseTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -1482,6 +1569,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  feedConfig?: Prisma.FeedConfigOmit
   userInvitation?: Prisma.UserInvitationOmit
   passwordReset?: Prisma.PasswordResetOmit
   appointment?: Prisma.AppointmentOmit
