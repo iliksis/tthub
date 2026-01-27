@@ -1,10 +1,10 @@
 import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { UserPlus2Icon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import { createPlayer } from "@/api/players";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
-import { notify } from "../Toast";
 import { PlayerForm } from "./PlayerForm";
 
 export const CreatePlayer = () => {
@@ -26,13 +26,10 @@ export const CreatePlayer = () => {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
-				notify({
-					status: "success",
-					title: data.message,
-				});
+				toast.success(data.message);
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 

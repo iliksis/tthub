@@ -78,6 +78,7 @@ const texts = {
 	Expired: "Abgelaufen",
 	"Feed config loaded": "Feed-Konfiguration geladen",
 	"Feed Settings updated": "Feed-Einstellungen aktualisiert",
+	"Feed settings updated": "Feed-Einstellungen aktualisiert",
 	"Feed URL copied to clipboard": "Feed-URL kopiert",
 	Filters: "Filter",
 	Germany: "Deutschland",

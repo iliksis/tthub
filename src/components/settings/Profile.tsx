@@ -1,11 +1,11 @@
 import { useForm, useStore } from "@tanstack/react-form";
 import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { updateUserInformation } from "@/api/users";
 import { useMutation } from "@/hooks/useMutation";
 import { useAppSession } from "@/lib/session";
 import { t } from "@/lib/text";
-import { notify } from "../Toast";
 
 const updateSession = createServerFn({ method: "POST" })
 	.inputValidator((d: { name: string }) => d)
@@ -28,10 +28,10 @@ export const Profile = () => {
 				await router.invalidate();
 				data.data?.name &&
 					(await updateSession({ data: { name: data.data.name } }));
-				notify({ status: "success", title: data.message });
+				toast.success(data.message);
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 

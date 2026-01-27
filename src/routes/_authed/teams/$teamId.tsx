@@ -6,10 +6,10 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { CogIcon, EditIcon, Trash2Icon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import { deleteTeam, getTeam, updateTeam } from "@/api/teams";
 import { InternalLink } from "@/components/InternalLink";
 import { DeleteModal } from "@/components/modal/DeleteModal";
-import { notify } from "@/components/Toast";
 import { TeamForm } from "@/components/teams/TeamForm";
 import { Card } from "@/components/ValueCard";
 import { useMutation } from "@/hooks/useMutation";
@@ -47,13 +47,10 @@ function RouteComponent() {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
-				notify({
-					status: "success",
-					title: data.message,
-				});
+				toast.success(data.message);
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 
@@ -79,13 +76,13 @@ function RouteComponent() {
 		const data = await res.json();
 		if (res.status < 400 && data) {
 			await router.invalidate();
-			notify({ status: "success", title: data.message });
+			toast.success(data.message);
 			await router.navigate({
 				to: "..",
 			});
 			return;
 		}
-		notify({ status: "error", title: data.message });
+		toast.error(data.message);
 	};
 
 	return (

@@ -1,12 +1,12 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { updateAppointment } from "@/api/appointments";
 import { useMutation } from "@/hooks/useMutation";
 import type { Appointment } from "@/lib/prisma/client";
 import { AppointmentType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { dateToInputValue } from "@/lib/utils";
-import { notify } from "../Toast";
 
 type UpdateFormProps = {
 	appointment: Appointment;
@@ -22,14 +22,14 @@ export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400 && data.data) {
 				await router.invalidate();
-				notify({ status: "success", title: data.message });
+				toast.success(data.message);
 				await router.navigate({
 					params: { apptId: data.data.id },
 					to: "/appts/$apptId",
 				});
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 

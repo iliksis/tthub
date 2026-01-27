@@ -3,12 +3,12 @@ import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Trash2Icon, UserPlusIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import { createUserInvitation } from "@/api/invitations";
 import { createPasswordReset } from "@/api/passwordReset";
 import { deleteUser, updateUserRole } from "@/api/users";
 import { DetailsList } from "@/components/DetailsList";
 import { CreateUserModal } from "@/components/modal/CreateUserModal";
-import { notify } from "@/components/Toast";
 import { useMutation } from "@/hooks/useMutation";
 import type { PasswordReset, User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";
@@ -39,13 +39,10 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
-				notify({
-					status: "success",
-					title: data.message,
-				});
+				toast.success(data.message);
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 
@@ -63,13 +60,10 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
-				notify({
-					status: "success",
-					title: data.message,
-				});
+				toast.success(data.message);
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 
@@ -150,12 +144,9 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 								await navigator.clipboard.writeText(
 									`${window.location.origin}/password-reset/${data.data.id}`,
 								);
-								notify({
-									status: "success",
-									title: t("Password reset created"),
-								});
+								toast.success(t("Password reset created"));
 							} else {
-								notify({ status: "error", title: data.message });
+								toast.error(data.message);
 							}
 						},
 						variant: "secondary",
@@ -182,10 +173,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 										await navigator.clipboard.writeText(
 											`${window.location.origin}/invite/${items[0].invitation?.id}`,
 										);
-										notify({
-											status: "success",
-											title: t("Invitation link copied to clipboard"),
-										});
+										toast.success(t("Invitation link copied to clipboard"));
 									},
 								},
 								{
@@ -197,10 +185,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 										await navigator.clipboard.writeText(
 											`${window.location.origin}/password-reset/${items[0].passwordReset?.id}`,
 										);
-										notify({
-											status: "success",
-											title: t("Password reset link copied to clipboard"),
-										});
+										toast.success(t("Password reset link copied to clipboard"));
 									},
 								},
 							],

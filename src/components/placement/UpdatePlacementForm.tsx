@@ -1,11 +1,11 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { updatePlacement } from "@/api/placements";
 import { useMutation } from "@/hooks/useMutation";
 import type { Placement } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { Modal } from "../modal/Modal";
-import { notify } from "../Toast";
 
 type UpdatePlacementFormProps = {
 	open: boolean;
@@ -28,7 +28,7 @@ export const UpdatePlacementForm = ({
 				onClose();
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 

@@ -3,6 +3,7 @@ import { isServer, useQuery } from "@tanstack/react-query";
 import { useRouter, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Trash2Icon } from "lucide-react";
+import { toast } from "sonner";
 import {
 	deleteNotificationSubscription,
 	getNotificationSettings,
@@ -13,7 +14,6 @@ import { useMutation } from "@/hooks/useMutation";
 import type { Subscription } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { useNotificationPermissions } from "@/lib/web-push";
-import { notify } from "../Toast";
 
 type NotificationsProps = {
 	subscriptions?: Subscription[] | null;
@@ -115,10 +115,10 @@ const Form = ({ subscription }: FormProps) => {
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
 				await query.refetch();
-				notify({ status: "success", title: data.message });
+				toast.success(data.message);
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 
@@ -228,10 +228,10 @@ const ActiveSubscriptions = ({ subscriptions }: ActiveSubscriptionsProps) => {
 		const result = await response.json();
 		if (response.status < 400) {
 			await router.invalidate();
-			notify({ status: "success", title: result.message });
+			toast.success(result.message);
 			return;
 		}
-		notify({ status: "error", title: result.message });
+		toast.error(result.message);
 	};
 
 	if (!subscriptions || subscriptions.length === 0) return null;
