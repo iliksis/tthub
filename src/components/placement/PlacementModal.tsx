@@ -1,13 +1,13 @@
 import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { EditIcon, Plus, Trash2Icon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import { deletePlacement } from "@/api/placements";
 import { InternalLink } from "@/components/InternalLink";
 import { useMutation } from "@/hooks/useMutation";
 import type { Placement, Player } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { Modal } from "../modal/Modal";
-import { notify } from "../Toast";
 import { CreatePlacement } from "./CreatePlacement";
 import { UpdatePlacementForm } from "./UpdatePlacementForm";
 
@@ -77,7 +77,7 @@ export const ParticipantModal = ({
 				await router.invalidate();
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 

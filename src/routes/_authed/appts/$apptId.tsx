@@ -10,6 +10,7 @@ import {
 	Trash2Icon,
 } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import {
 	createResponse,
 	deleteAppointment,
@@ -25,7 +26,6 @@ import { InternalLink } from "@/components/InternalLink";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Modal } from "@/components/modal/Modal";
 import { ParticipantModal } from "@/components/placement/PlacementModal";
-import { notify } from "@/components/Toast";
 import { Card } from "@/components/ValueCard";
 import { IcalGenerator } from "@/lib/ical";
 import type { Response, User } from "@/lib/prisma/client";
@@ -159,13 +159,13 @@ function RouteComponent() {
 		const data = await res.json();
 		if (res.status < 400 && data) {
 			await router.invalidate();
-			notify({ status: "success", title: data.message });
+			toast.success(data.message);
 			await router.navigate({
 				to: "..",
 			});
 			return;
 		}
-		notify({ status: "error", title: data.message });
+		toast.error(data.message);
 	};
 
 	const onResponse = (response: ResponseType) => async () => {
@@ -177,7 +177,7 @@ function RouteComponent() {
 			await router.invalidate();
 			return;
 		}
-		notify({ status: "error", title: data.message });
+		toast.error(data.message);
 	};
 
 	const onPublish = async () => {

@@ -2,10 +2,10 @@ import { useForm, useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { Holiday } from "open-holiday-js";
+import { toast } from "sonner";
 import { importHolidays } from "@/api/appointments";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
-import { notify } from "../Toast";
 
 const validator = (value: { startDate: string; endDate: string }) => {
 	if (value.startDate === "") {
@@ -32,10 +32,10 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
-				notify({ status: "success", title: data.message });
+				toast.success(data.message);
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 

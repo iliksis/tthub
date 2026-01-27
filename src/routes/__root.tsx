@@ -170,7 +170,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 						children
 					)}
 				</QueryClientProvider>
-				<Toaster position="top-center" />
+				<Toaster
+					position="top-center"
+					toastOptions={{
+						style: {
+							background: "var(--color-base-300)",
+						},
+					}}
+					theme={theme}
+				/>
 				<Scripts />
 			</body>
 		</html>

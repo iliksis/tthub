@@ -1,10 +1,10 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { createUser } from "@/api/users";
 import { useMutation } from "@/hooks/useMutation";
 import { Role } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import { notify } from "../Toast";
 import { Modal } from "./Modal";
 
 type NewUser = {
@@ -35,10 +35,10 @@ export const CreateUserModal = ({
 			if (ctx.data?.status < 400) {
 				form.reset();
 				await router.invalidate();
-				notify({ status: "success", title: data.message });
+				toast.success(data.message);
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 

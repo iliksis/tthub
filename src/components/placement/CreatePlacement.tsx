@@ -1,12 +1,12 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { createPlacement } from "@/api/placements";
 import { useMutation } from "@/hooks/useMutation";
 import type { Player } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { calculateAgeGroup } from "@/lib/utils";
 import { Modal } from "../modal/Modal";
-import { notify } from "../Toast";
 
 type CreateCategoryProps = {
 	open: boolean;
@@ -33,7 +33,7 @@ export const CreatePlacement = ({
 				onClose();
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 

@@ -1,10 +1,10 @@
 import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { ShieldPlusIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import { createTeam } from "@/api/teams";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
-import { notify } from "../Toast";
 import { TeamForm } from "./TeamForm";
 
 export const CreateTeam = () => {
@@ -26,13 +26,10 @@ export const CreateTeam = () => {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400) {
 				await router.invalidate();
-				notify({
-					status: "success",
-					title: data.message,
-				});
+				toast.success(data.message);
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 

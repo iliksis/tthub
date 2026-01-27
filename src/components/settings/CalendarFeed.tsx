@@ -1,11 +1,11 @@
 import { useForm } from "@tanstack/react-form";
 import { isServer } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { type FeedConfig, updateFeedConfig } from "@/api/users";
 import { useMutation } from "@/hooks/useMutation";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import { notify } from "../Toast";
 
 type CalendarFeedProps = {
 	feedId?: string;
@@ -19,11 +19,11 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 		onSuccess: async (ctx) => {
 			const data = await ctx.data.json();
 			if (ctx.data?.status < 400) {
-				notify({ status: "success", title: data.message });
+				toast.success(data.message);
 				router.invalidate();
 				return;
 			}
-			notify({ status: "error", title: data.message });
+			toast.error(data.message);
 		},
 	});
 
@@ -43,7 +43,7 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 
 	const handleCopyUrl = () => {
 		navigator.clipboard.writeText(feedUrl);
-		notify({ status: "success", title: t("Feed URL copied to clipboard") });
+		toast.success(t("Feed URL copied to clipboard"));
 	};
 
 	const toggleResponseType = (type: ResponseType, field: any) => {

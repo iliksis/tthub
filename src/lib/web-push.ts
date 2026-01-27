@@ -3,11 +3,11 @@ import { useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import DeviceDetector from "node-device-detector";
 import React from "react";
+import { toast } from "sonner";
 import {
 	createNotificationSubscription,
 	tryGetSubscription,
 } from "@/api/notifications";
-import { notify } from "@/components/Toast";
 
 const isSupported =
 	typeof Notification !== "undefined" && "permission" in Notification;
@@ -70,7 +70,7 @@ export const useNotificationPermissions = () => {
 					queryClient.setQueryData(["notification-subscription"], result.data);
 					router.invalidate();
 				} else {
-					notify({ status: "error", title: result.message });
+					toast.error(result.message);
 				}
 			}
 		}
