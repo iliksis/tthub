@@ -45,25 +45,23 @@ END:VCALENDAR`.replace(/\n/g, "\r\n");
 		const part1 = entry.slice(0, 40);
 		const part2 = entry.slice(40);
 
-		return part1 + "\r\n " + this._formatIcalEntry(part2);
+		return `${part1}\r\n ${this._formatIcalEntry(part2)}`;
 	}
 
 	private _createIcalDate(date: Date) {
 		const year = date.getUTCFullYear();
-		const month = date.getUTCMonth() + 1;
-		const day = date.getUTCDate();
-		const hour = date.getUTCHours();
-		const minute = date.getUTCMinutes();
-		const second = date.getUTCSeconds();
+		const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");
+		const day = date.getUTCDate().toString().padStart(2, "0");
+		const hour = date.getUTCHours().toString().padStart(2, "0");
+		const minute = date.getUTCMinutes().toString().padStart(2, "0");
+		const second = date.getUTCSeconds().toString().padStart(2, "0");
 		return `${year}${month}${day}T${hour}${minute}${second}Z`;
 	}
 
 	createAndDownloadIcalFile(...events: Appointment[]) {
 		const now = Date.now();
-		const rendered = Mustache.render(this.template, {
-			appointments: events.map((event) => this._createIcalEvent(event)),
-		});
-		const file = new Blob([rendered], {
+		const ical = this.createIcalString(...events);
+		const file = new Blob([ical], {
 			type: "text/calendar",
 		});
 		const url = URL.createObjectURL(file);
