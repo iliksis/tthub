@@ -365,6 +365,9 @@ export const getUserAppointments = createServerFn()
 				include: {
 					responses: true,
 				},
+				orderBy: {
+					startDate: "asc",
+				},
 				where: {
 					deletedAt: null,
 					responses: {
@@ -399,6 +402,9 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 			const appointments = await prismaClient.appointment.findMany({
 				include: {
 					responses: true,
+				},
+				orderBy: {
+					startDate: "asc",
 				},
 				where: {
 					deletedAt: null,
