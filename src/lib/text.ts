@@ -8,6 +8,7 @@ export const t = (key: TextKey | (string & {}), ...params: string[]) =>
 const texts = {
 	"{0} Appointments created": "{0} Termine erstellt",
 	"{0} players": "{0} Spieler:innen",
+	"{0} players updated": "{0} Spieler:innen aktualisiert",
 	Accept: "Annehmen",
 	Accepted: "Angenommen",
 	"Active Subscriptions": "Geräte mit aktivierten Benachrichtigungen",
@@ -107,6 +108,7 @@ const texts = {
 	Login: "Anmelden",
 	Logout: "Abmelden",
 	Maybe: "Vielleicht",
+	"MyTischtennis Import": "MyTischtennis Import",
 	Name: "Name",
 	"Name must be at least 2 characters long":
 		"Name muss mindestens 2 Zeichen lang sein",
@@ -152,6 +154,8 @@ const texts = {
 	"Player updated": "Spieler:in aktualisiert",
 	Players: "Spieler:innen",
 	"Players found": "Spieler:innen gefunden",
+	"Players not part of the clubs ranking page (e.g. youth players playing in a different club) won't be updated.":
+		"Spieler:innen, die nicht Teil der Vereinsrangliste sind (z. B. Jugendspieler:innen, die in einem anderen Verein spielen), werden nicht aktualisiert.",
 	"Previous month": "Vorheriger Monat",
 	Profile: "Profil",
 	Publish: "Veröffentlichen",
@@ -194,6 +198,8 @@ const texts = {
 	"Team updated": "Team aktualisiert",
 	Teams: "Teams",
 	"Teams found": "Teams gefunden",
+	"The import is scraping the data from the clubs MyTischtennis ranking page and updates the QTTR of existing players found.":
+		"Der Import durchsucht die Daten der MyTischtennis-Rangliste des Vereins und aktualisiert die QTTR der vorhandenen Spieler:innen.",
 	"The passwords entered do not match":
 		"Die eingegebenen Passwörter stimmen nicht überein",
 	Time: "Zeit",

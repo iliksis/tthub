@@ -1,5 +1,6 @@
 import { createServerFn, json } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
+import { type PlayerData, scrapeMytt } from "@/lib/mytt-scraper";
 import { useIsRole } from "@/lib/session";
 import { t } from "@/lib/text";
 import type { Return } from "./types";
@@ -45,6 +46,44 @@ export const getPlayers = createServerFn({ method: "GET" }).handler(
 		}
 	},
 );
+
+export const importMyttPlayers = createServerFn().handler(async () => {
+	const isAuthorized = await useIsRole("EDITOR");
+	if (!isAuthorized) {
+		return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+	}
+
+	try {
+		const playerData = await scrapeMytt();
+		const result: PlayerData[] = [];
+		for (const data of playerData) {
+			const qttr = parseInt(data.rating);
+			if (Number.isNaN(qttr)) {
+				continue;
+			}
+
+			const player = await prismaClient.player.findFirst({
+				where: { name: data.name },
+			});
+
+			if (player && player.qttr !== qttr) {
+				await prismaClient.player.update({
+					data: { qttr },
+					where: { id: player.id },
+				});
+				result.push(data);
+			}
+		}
+		return json<Return<typeof result>>(
+			{ data: result, message: t("{0} players", result.length.toString()) },
+			{ status: 200 },
+		);
+	} catch (e) {
+		console.error(e);
+		const error = e as Error;
+		return json<Return>({ message: error.message }, { status: 400 });
+	}
+});
 
 export const createPlayer = createServerFn({ method: "POST" })
 	.inputValidator((d: { name: string; year: number; qttr: number }) => d)
