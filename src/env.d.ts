@@ -16,6 +16,8 @@ declare global {
 			readonly VAPID_PRIVATE_KEY: string;
 			readonly MYTT_CLUBNR: string;
 			readonly MYTT_FEDNICKNAME: string;
+			readonly MYTT_BASE_URL: string;
+			readonly API_AUTH_TOKEN: string;
 		}
 	}
 }

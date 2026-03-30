@@ -16,6 +16,7 @@ import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as PasswordResetResetIdRouteImport } from './routes/password-reset/$resetId'
 import { Route as InviteInviteIdRouteImport } from './routes/invite/$inviteId'
 import { Route as FeedFeedIdRouteImport } from './routes/feed/$feedId'
+import { Route as ApiTtrImportRouteImport } from './routes/api/ttr-import'
 import { Route as AuthedCreateRouteImport } from './routes/_authed/create'
 import { Route as AuthedTeamsIndexRouteImport } from './routes/_authed/teams/index'
 import { Route as AuthedPlayersIndexRouteImport } from './routes/_authed/players/index'
@@ -61,6 +62,11 @@ const InviteInviteIdRoute = InviteInviteIdRouteImport.update({
 const FeedFeedIdRoute = FeedFeedIdRouteImport.update({
   id: '/feed/$feedId',
   path: '/feed/$feedId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTtrImportRoute = ApiTtrImportRouteImport.update({
+  id: '/api/ttr-import',
+  path: '/api/ttr-import',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedCreateRoute = AuthedCreateRouteImport.update({
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/logout': typeof LogoutRoute
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/create': typeof AuthedCreateRoute
+  '/api/ttr-import': typeof ApiTtrImportRoute
   '/feed/$feedId': typeof FeedFeedIdRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/password-reset/$resetId': typeof PasswordResetResetIdRoute
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/logout': typeof LogoutRoute
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/create': typeof AuthedCreateRoute
+  '/api/ttr-import': typeof ApiTtrImportRoute
   '/feed/$feedId': typeof FeedFeedIdRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/password-reset/$resetId': typeof PasswordResetResetIdRoute
@@ -170,6 +178,7 @@ export interface FileRoutesById {
   '/logout': typeof LogoutRoute
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/_authed/create': typeof AuthedCreateRoute
+  '/api/ttr-import': typeof ApiTtrImportRoute
   '/feed/$feedId': typeof FeedFeedIdRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/password-reset/$resetId': typeof PasswordResetResetIdRoute
@@ -192,6 +201,7 @@ export interface FileRouteTypes {
     | '/logout'
     | '/sentry-tunnel'
     | '/create'
+    | '/api/ttr-import'
     | '/feed/$feedId'
     | '/invite/$inviteId'
     | '/password-reset/$resetId'
@@ -212,6 +222,7 @@ export interface FileRouteTypes {
     | '/logout'
     | '/sentry-tunnel'
     | '/create'
+    | '/api/ttr-import'
     | '/feed/$feedId'
     | '/invite/$inviteId'
     | '/password-reset/$resetId'
@@ -233,6 +244,7 @@ export interface FileRouteTypes {
     | '/logout'
     | '/sentry-tunnel'
     | '/_authed/create'
+    | '/api/ttr-import'
     | '/feed/$feedId'
     | '/invite/$inviteId'
     | '/password-reset/$resetId'
@@ -254,6 +266,7 @@ export interface RootRouteChildren {
   AuthedRoute: typeof AuthedRouteWithChildren
   LogoutRoute: typeof LogoutRoute
   SentryTunnelRoute: typeof SentryTunnelRoute
+  ApiTtrImportRoute: typeof ApiTtrImportRoute
   FeedFeedIdRoute: typeof FeedFeedIdRoute
   InviteInviteIdRoute: typeof InviteInviteIdRoute
   PasswordResetResetIdRoute: typeof PasswordResetResetIdRoute
@@ -308,6 +321,13 @@ declare module '@tanstack/react-router' {
       path: '/feed/$feedId'
       fullPath: '/feed/$feedId'
       preLoaderRoute: typeof FeedFeedIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ttr-import': {
+      id: '/api/ttr-import'
+      path: '/api/ttr-import'
+      fullPath: '/api/ttr-import'
+      preLoaderRoute: typeof ApiTtrImportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed/create': {
@@ -436,6 +456,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthedRoute: AuthedRouteWithChildren,
   LogoutRoute: LogoutRoute,
   SentryTunnelRoute: SentryTunnelRoute,
+  ApiTtrImportRoute: ApiTtrImportRoute,
   FeedFeedIdRoute: FeedFeedIdRoute,
   InviteInviteIdRoute: InviteInviteIdRoute,
   PasswordResetResetIdRoute: PasswordResetResetIdRoute,

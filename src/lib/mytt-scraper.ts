@@ -27,7 +27,7 @@ export const scrapeMytt = createServerFn().handler(async () => {
 		return playerData;
 	};
 
-	const baseUrl = `https://www.mytischtennis.de/rankings/andro-rangliste?clubnr=${process.env.MYTT_CLUBNR}&fednickname=${process.env.MYTT_FEDNICKNAME}`;
+	const baseUrl = `${process.env.MYTT_BASE_URL}?clubnr=${process.env.MYTT_CLUBNR}&fednickname=${process.env.MYTT_FEDNICKNAME}`;
 	let pageNumber = 1;
 	const playerData: PlayerData[] = [];
 
