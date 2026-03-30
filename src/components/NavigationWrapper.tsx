@@ -1,5 +1,6 @@
 import { Link, useRouteContext } from "@tanstack/react-router";
 import {
+	BarChart3Icon,
 	CalendarDaysIcon,
 	CalendarPlusIcon,
 	CalendarsIcon,
@@ -54,10 +55,17 @@ const navigationItems: NavigationItem[] = [
 		name: t("Appointments"),
 	},
 	{ href: "/players", icon: UsersIcon, name: t("Players") },
+	{ href: "/statistics", icon: BarChart3Icon, name: t("Statistics") },
 	{ href: "/teams", icon: ShieldIcon, name: t("Teams") },
 	{
 		children: [
 			{ href: "/settings/profile", icon: UserPenIcon, name: t("Profile") },
+			{
+				href: "/settings/seasons",
+				icon: BarChart3Icon,
+				isHidden: (role) => role !== "ADMIN",
+				name: t("Seasons"),
+			},
 			{
 				href: "/settings/feed",
 				icon: CalendarDaysIcon,

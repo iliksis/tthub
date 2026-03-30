@@ -18,10 +18,12 @@ import { Route as InviteInviteIdRouteImport } from './routes/invite/$inviteId'
 import { Route as FeedFeedIdRouteImport } from './routes/feed/$feedId'
 import { Route as AuthedCreateRouteImport } from './routes/_authed/create'
 import { Route as AuthedTeamsIndexRouteImport } from './routes/_authed/teams/index'
+import { Route as AuthedStatisticsIndexRouteImport } from './routes/_authed/statistics/index'
 import { Route as AuthedPlayersIndexRouteImport } from './routes/_authed/players/index'
 import { Route as AuthedApptsIndexRouteImport } from './routes/_authed/appts/index'
 import { Route as AuthedTeamsTeamIdRouteImport } from './routes/_authed/teams/$teamId'
 import { Route as AuthedSettingsUsersRouteImport } from './routes/_authed/settings/users'
+import { Route as AuthedSettingsSeasonsRouteImport } from './routes/_authed/settings/seasons'
 import { Route as AuthedSettingsProfileRouteImport } from './routes/_authed/settings/profile'
 import { Route as AuthedSettingsImportsRouteImport } from './routes/_authed/settings/imports'
 import { Route as AuthedSettingsFeedRouteImport } from './routes/_authed/settings/feed'
@@ -73,6 +75,11 @@ const AuthedTeamsIndexRoute = AuthedTeamsIndexRouteImport.update({
   path: '/teams/',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedStatisticsIndexRoute = AuthedStatisticsIndexRouteImport.update({
+  id: '/statistics/',
+  path: '/statistics/',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedPlayersIndexRoute = AuthedPlayersIndexRouteImport.update({
   id: '/players/',
   path: '/players/',
@@ -91,6 +98,11 @@ const AuthedTeamsTeamIdRoute = AuthedTeamsTeamIdRouteImport.update({
 const AuthedSettingsUsersRoute = AuthedSettingsUsersRouteImport.update({
   id: '/settings/users',
   path: '/settings/users',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSettingsSeasonsRoute = AuthedSettingsSeasonsRouteImport.update({
+  id: '/settings/seasons',
+  path: '/settings/seasons',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedSettingsProfileRoute = AuthedSettingsProfileRouteImport.update({
@@ -138,10 +150,12 @@ export interface FileRoutesByFullPath {
   '/settings/feed': typeof AuthedSettingsFeedRoute
   '/settings/imports': typeof AuthedSettingsImportsRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
+  '/settings/seasons': typeof AuthedSettingsSeasonsRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
   '/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/appts': typeof AuthedApptsIndexRoute
   '/players': typeof AuthedPlayersIndexRoute
+  '/statistics': typeof AuthedStatisticsIndexRoute
   '/teams': typeof AuthedTeamsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -158,10 +172,12 @@ export interface FileRoutesByTo {
   '/settings/feed': typeof AuthedSettingsFeedRoute
   '/settings/imports': typeof AuthedSettingsImportsRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
+  '/settings/seasons': typeof AuthedSettingsSeasonsRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
   '/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/appts': typeof AuthedApptsIndexRoute
   '/players': typeof AuthedPlayersIndexRoute
+  '/statistics': typeof AuthedStatisticsIndexRoute
   '/teams': typeof AuthedTeamsIndexRoute
 }
 export interface FileRoutesById {
@@ -180,10 +196,12 @@ export interface FileRoutesById {
   '/_authed/settings/feed': typeof AuthedSettingsFeedRoute
   '/_authed/settings/imports': typeof AuthedSettingsImportsRoute
   '/_authed/settings/profile': typeof AuthedSettingsProfileRoute
+  '/_authed/settings/seasons': typeof AuthedSettingsSeasonsRoute
   '/_authed/settings/users': typeof AuthedSettingsUsersRoute
   '/_authed/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/_authed/appts/': typeof AuthedApptsIndexRoute
   '/_authed/players/': typeof AuthedPlayersIndexRoute
+  '/_authed/statistics/': typeof AuthedStatisticsIndexRoute
   '/_authed/teams/': typeof AuthedTeamsIndexRoute
 }
 export interface FileRouteTypes {
@@ -202,10 +220,12 @@ export interface FileRouteTypes {
     | '/settings/feed'
     | '/settings/imports'
     | '/settings/profile'
+    | '/settings/seasons'
     | '/settings/users'
     | '/teams/$teamId'
     | '/appts'
     | '/players'
+    | '/statistics'
     | '/teams'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -222,10 +242,12 @@ export interface FileRouteTypes {
     | '/settings/feed'
     | '/settings/imports'
     | '/settings/profile'
+    | '/settings/seasons'
     | '/settings/users'
     | '/teams/$teamId'
     | '/appts'
     | '/players'
+    | '/statistics'
     | '/teams'
   id:
     | '__root__'
@@ -243,10 +265,12 @@ export interface FileRouteTypes {
     | '/_authed/settings/feed'
     | '/_authed/settings/imports'
     | '/_authed/settings/profile'
+    | '/_authed/settings/seasons'
     | '/_authed/settings/users'
     | '/_authed/teams/$teamId'
     | '/_authed/appts/'
     | '/_authed/players/'
+    | '/_authed/statistics/'
     | '/_authed/teams/'
   fileRoutesById: FileRoutesById
 }
@@ -324,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedTeamsIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/statistics/': {
+      id: '/_authed/statistics/'
+      path: '/statistics'
+      fullPath: '/statistics'
+      preLoaderRoute: typeof AuthedStatisticsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/players/': {
       id: '/_authed/players/'
       path: '/players'
@@ -350,6 +381,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/users'
       fullPath: '/settings/users'
       preLoaderRoute: typeof AuthedSettingsUsersRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/settings/seasons': {
+      id: '/_authed/settings/seasons'
+      path: '/settings/seasons'
+      fullPath: '/settings/seasons'
+      preLoaderRoute: typeof AuthedSettingsSeasonsRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/settings/profile': {
@@ -406,10 +444,12 @@ interface AuthedRouteChildren {
   AuthedSettingsFeedRoute: typeof AuthedSettingsFeedRoute
   AuthedSettingsImportsRoute: typeof AuthedSettingsImportsRoute
   AuthedSettingsProfileRoute: typeof AuthedSettingsProfileRoute
+  AuthedSettingsSeasonsRoute: typeof AuthedSettingsSeasonsRoute
   AuthedSettingsUsersRoute: typeof AuthedSettingsUsersRoute
   AuthedTeamsTeamIdRoute: typeof AuthedTeamsTeamIdRoute
   AuthedApptsIndexRoute: typeof AuthedApptsIndexRoute
   AuthedPlayersIndexRoute: typeof AuthedPlayersIndexRoute
+  AuthedStatisticsIndexRoute: typeof AuthedStatisticsIndexRoute
   AuthedTeamsIndexRoute: typeof AuthedTeamsIndexRoute
 }
 
@@ -422,10 +462,12 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedSettingsFeedRoute: AuthedSettingsFeedRoute,
   AuthedSettingsImportsRoute: AuthedSettingsImportsRoute,
   AuthedSettingsProfileRoute: AuthedSettingsProfileRoute,
+  AuthedSettingsSeasonsRoute: AuthedSettingsSeasonsRoute,
   AuthedSettingsUsersRoute: AuthedSettingsUsersRoute,
   AuthedTeamsTeamIdRoute: AuthedTeamsTeamIdRoute,
   AuthedApptsIndexRoute: AuthedApptsIndexRoute,
   AuthedPlayersIndexRoute: AuthedPlayersIndexRoute,
+  AuthedStatisticsIndexRoute: AuthedStatisticsIndexRoute,
   AuthedTeamsIndexRoute: AuthedTeamsIndexRoute,
 }
 

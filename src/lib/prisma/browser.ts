@@ -43,6 +43,16 @@ export type PasswordReset = Prisma.PasswordResetModel
  */
 export type Appointment = Prisma.AppointmentModel
 /**
+ * Model Season
+ * 
+ */
+export type Season = Prisma.SeasonModel
+/**
+ * Model SeasonAgeGroupCount
+ * 
+ */
+export type SeasonAgeGroupCount = Prisma.SeasonAgeGroupCountModel
+/**
  * Model Response
  * 
  */

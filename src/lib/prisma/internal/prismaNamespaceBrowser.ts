@@ -56,6 +56,8 @@ export const ModelName = {
   UserInvitation: 'UserInvitation',
   PasswordReset: 'PasswordReset',
   Appointment: 'Appointment',
+  Season: 'Season',
+  SeasonAgeGroupCount: 'SeasonAgeGroupCount',
   Response: 'Response',
   Player: 'Player',
   Team: 'Team',
@@ -134,6 +136,27 @@ export const AppointmentScalarFieldEnum = {
 } as const
 
 export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
+
+
+export const SeasonScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  title: 'title',
+  startDate: 'startDate',
+  endDate: 'endDate'
+} as const
+
+export type SeasonScalarFieldEnum = (typeof SeasonScalarFieldEnum)[keyof typeof SeasonScalarFieldEnum]
+
+
+export const SeasonAgeGroupCountScalarFieldEnum = {
+  seasonId: 'seasonId',
+  ageGroup: 'ageGroup',
+  playerCount: 'playerCount'
+} as const
+
+export type SeasonAgeGroupCountScalarFieldEnum = (typeof SeasonAgeGroupCountScalarFieldEnum)[keyof typeof SeasonAgeGroupCountScalarFieldEnum]
 
 
 export const ResponseScalarFieldEnum = {

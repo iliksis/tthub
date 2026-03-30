@@ -1,5 +1,6 @@
 import { prismaClient } from "../src/lib/db";
 import { hashPassword } from "../src/lib/db";
+import { createSeasonAgeGroupCounts, createSeasonTitle } from "../src/lib/statistics";
 
 async function main() {
 	console.log("🌱 Seeding database...");
@@ -9,6 +10,8 @@ async function main() {
 	await prismaClient.passwordReset.deleteMany();
 	await prismaClient.notificationSettings.deleteMany();
 	await prismaClient.subscription.deleteMany();
+	await prismaClient.seasonAgeGroupCount.deleteMany();
+	await prismaClient.season.deleteMany();
 	await prismaClient.placement.deleteMany();
 	await prismaClient.team.deleteMany();
 	await prismaClient.player.deleteMany();
@@ -64,7 +67,7 @@ async function main() {
 	});
 
 	// Create sample players
-	await prismaClient.player.create({
+	const player1 = await prismaClient.player.create({
 		data: {
 			name: "Max Mustermann",
 			year: 2010,
@@ -73,12 +76,25 @@ async function main() {
 		},
 	});
 
-	await prismaClient.player.create({
+	const player2 = await prismaClient.player.create({
 		data: {
 			name: "Lisa Schmidt",
 			year: 2011,
 			qttr: 1450,
 			teamId: team1.id,
+		},
+	});
+
+	const seasonStart = new Date("2025-09-01T00:00:00");
+	const seasonEnd = new Date("2026-08-31T23:59:59");
+	await prismaClient.season.create({
+		data: {
+			ageGroupCounts: {
+				create: createSeasonAgeGroupCounts([player1, player2], seasonEnd),
+			},
+			endDate: seasonEnd,
+			startDate: seasonStart,
+			title: createSeasonTitle(seasonStart, seasonEnd),
 		},
 	});
 
@@ -99,7 +115,7 @@ async function main() {
 	console.log("   Admin:", { userName: adminUser.userName, password, role: "ADMIN" });
 	console.log("   Editor:", { userName: editorUser.userName, password, role: "EDITOR" });
 	console.log("   User:", { userName: regularUser.userName, password, role: "USER" });
-	console.log("✅ Created 2 teams, 2 players, 1 appointment");
+	console.log("✅ Created 2 teams, 2 players, 1 season, 1 appointment");
 }
 
 main()

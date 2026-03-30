@@ -389,6 +389,8 @@ export const ModelName = {
   UserInvitation: 'UserInvitation',
   PasswordReset: 'PasswordReset',
   Appointment: 'Appointment',
+  Season: 'Season',
+  SeasonAgeGroupCount: 'SeasonAgeGroupCount',
   Response: 'Response',
   Player: 'Player',
   Team: 'Team',
@@ -410,7 +412,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "feedConfig" | "userInvitation" | "passwordReset" | "appointment" | "response" | "player" | "team" | "placement" | "subscription" | "notificationSettings"
+    modelProps: "user" | "feedConfig" | "userInvitation" | "passwordReset" | "appointment" | "season" | "seasonAgeGroupCount" | "response" | "player" | "team" | "placement" | "subscription" | "notificationSettings"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -781,6 +783,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.AppointmentCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.AppointmentCountAggregateOutputType> | number
+        }
+      }
+    }
+    Season: {
+      payload: Prisma.$SeasonPayload<ExtArgs>
+      fields: Prisma.SeasonFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SeasonFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SeasonFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>
+        }
+        findFirst: {
+          args: Prisma.SeasonFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SeasonFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>
+        }
+        findMany: {
+          args: Prisma.SeasonFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>[]
+        }
+        create: {
+          args: Prisma.SeasonCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>
+        }
+        createMany: {
+          args: Prisma.SeasonCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SeasonCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>[]
+        }
+        delete: {
+          args: Prisma.SeasonDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>
+        }
+        update: {
+          args: Prisma.SeasonUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>
+        }
+        deleteMany: {
+          args: Prisma.SeasonDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SeasonUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SeasonUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>[]
+        }
+        upsert: {
+          args: Prisma.SeasonUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>
+        }
+        aggregate: {
+          args: Prisma.SeasonAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSeason>
+        }
+        groupBy: {
+          args: Prisma.SeasonGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeasonGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SeasonCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeasonCountAggregateOutputType> | number
+        }
+      }
+    }
+    SeasonAgeGroupCount: {
+      payload: Prisma.$SeasonAgeGroupCountPayload<ExtArgs>
+      fields: Prisma.SeasonAgeGroupCountFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SeasonAgeGroupCountFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonAgeGroupCountPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SeasonAgeGroupCountFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonAgeGroupCountPayload>
+        }
+        findFirst: {
+          args: Prisma.SeasonAgeGroupCountFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonAgeGroupCountPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SeasonAgeGroupCountFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonAgeGroupCountPayload>
+        }
+        findMany: {
+          args: Prisma.SeasonAgeGroupCountFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonAgeGroupCountPayload>[]
+        }
+        create: {
+          args: Prisma.SeasonAgeGroupCountCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonAgeGroupCountPayload>
+        }
+        createMany: {
+          args: Prisma.SeasonAgeGroupCountCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SeasonAgeGroupCountCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonAgeGroupCountPayload>[]
+        }
+        delete: {
+          args: Prisma.SeasonAgeGroupCountDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonAgeGroupCountPayload>
+        }
+        update: {
+          args: Prisma.SeasonAgeGroupCountUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonAgeGroupCountPayload>
+        }
+        deleteMany: {
+          args: Prisma.SeasonAgeGroupCountDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SeasonAgeGroupCountUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SeasonAgeGroupCountUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonAgeGroupCountPayload>[]
+        }
+        upsert: {
+          args: Prisma.SeasonAgeGroupCountUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonAgeGroupCountPayload>
+        }
+        aggregate: {
+          args: Prisma.SeasonAgeGroupCountAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSeasonAgeGroupCount>
+        }
+        groupBy: {
+          args: Prisma.SeasonAgeGroupCountGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeasonAgeGroupCountGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SeasonAgeGroupCountCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeasonAgeGroupCountCountAggregateOutputType> | number
         }
       }
     }
@@ -1323,6 +1473,27 @@ export const AppointmentScalarFieldEnum = {
 export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
 
 
+export const SeasonScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  title: 'title',
+  startDate: 'startDate',
+  endDate: 'endDate'
+} as const
+
+export type SeasonScalarFieldEnum = (typeof SeasonScalarFieldEnum)[keyof typeof SeasonScalarFieldEnum]
+
+
+export const SeasonAgeGroupCountScalarFieldEnum = {
+  seasonId: 'seasonId',
+  ageGroup: 'ageGroup',
+  playerCount: 'playerCount'
+} as const
+
+export type SeasonAgeGroupCountScalarFieldEnum = (typeof SeasonAgeGroupCountScalarFieldEnum)[keyof typeof SeasonAgeGroupCountScalarFieldEnum]
+
+
 export const ResponseScalarFieldEnum = {
   userId: 'userId',
   appointmentId: 'appointmentId',
@@ -1454,16 +1625,16 @@ export type EnumAppointmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
- * Reference to a field of type 'ResponseType'
+ * Reference to a field of type 'Int'
  */
-export type EnumResponseTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResponseType'>
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
     
 
 
 /**
- * Reference to a field of type 'Int'
+ * Reference to a field of type 'ResponseType'
  */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+export type EnumResponseTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResponseType'>
     
 
 
@@ -1573,6 +1744,8 @@ export type GlobalOmitConfig = {
   userInvitation?: Prisma.UserInvitationOmit
   passwordReset?: Prisma.PasswordResetOmit
   appointment?: Prisma.AppointmentOmit
+  season?: Prisma.SeasonOmit
+  seasonAgeGroupCount?: Prisma.SeasonAgeGroupCountOmit
   response?: Prisma.ResponseOmit
   player?: Prisma.PlayerOmit
   team?: Prisma.TeamOmit

@@ -195,23 +195,6 @@ export type EnumAppointmentStatusNullableWithAggregatesFilter<$PrismaModel = nev
   _max?: Prisma.NestedEnumAppointmentStatusNullableFilter<$PrismaModel>
 }
 
-export type EnumResponseTypeFilter<$PrismaModel = never> = {
-  equals?: $Enums.ResponseType | Prisma.EnumResponseTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.ResponseType[]
-  notIn?: $Enums.ResponseType[]
-  not?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel> | $Enums.ResponseType
-}
-
-export type EnumResponseTypeWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.ResponseType | Prisma.EnumResponseTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.ResponseType[]
-  notIn?: $Enums.ResponseType[]
-  not?: Prisma.NestedEnumResponseTypeWithAggregatesFilter<$PrismaModel> | $Enums.ResponseType
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel>
-}
-
 export type IntFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[]
@@ -237,6 +220,23 @@ export type IntWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedIntFilter<$PrismaModel>
   _max?: Prisma.NestedIntFilter<$PrismaModel>
+}
+
+export type EnumResponseTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.ResponseType | Prisma.EnumResponseTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ResponseType[]
+  notIn?: $Enums.ResponseType[]
+  not?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel> | $Enums.ResponseType
+}
+
+export type EnumResponseTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ResponseType | Prisma.EnumResponseTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ResponseType[]
+  notIn?: $Enums.ResponseType[]
+  not?: Prisma.NestedEnumResponseTypeWithAggregatesFilter<$PrismaModel> | $Enums.ResponseType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel>
 }
 
 export type NestedStringFilter<$PrismaModel = never> = {
@@ -437,23 +437,6 @@ export type NestedEnumAppointmentStatusNullableWithAggregatesFilter<$PrismaModel
   _max?: Prisma.NestedEnumAppointmentStatusNullableFilter<$PrismaModel>
 }
 
-export type NestedEnumResponseTypeFilter<$PrismaModel = never> = {
-  equals?: $Enums.ResponseType | Prisma.EnumResponseTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.ResponseType[]
-  notIn?: $Enums.ResponseType[]
-  not?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel> | $Enums.ResponseType
-}
-
-export type NestedEnumResponseTypeWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.ResponseType | Prisma.EnumResponseTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.ResponseType[]
-  notIn?: $Enums.ResponseType[]
-  not?: Prisma.NestedEnumResponseTypeWithAggregatesFilter<$PrismaModel> | $Enums.ResponseType
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel>
-}
-
 export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[]
@@ -479,6 +462,23 @@ export type NestedFloatFilter<$PrismaModel = never> = {
   gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   not?: Prisma.NestedFloatFilter<$PrismaModel> | number
+}
+
+export type NestedEnumResponseTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.ResponseType | Prisma.EnumResponseTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ResponseType[]
+  notIn?: $Enums.ResponseType[]
+  not?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel> | $Enums.ResponseType
+}
+
+export type NestedEnumResponseTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ResponseType | Prisma.EnumResponseTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ResponseType[]
+  notIn?: $Enums.ResponseType[]
+  not?: Prisma.NestedEnumResponseTypeWithAggregatesFilter<$PrismaModel> | $Enums.ResponseType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumResponseTypeFilter<$PrismaModel>
 }
 
 
