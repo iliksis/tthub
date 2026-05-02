@@ -17,6 +17,7 @@ DTEND:{{end}}
 {{/end}}
 LOCATION:{{&location}}
 SUMMARY:{{&title}}
+DESCRIPTION:{{&description}}
 END:VEVENT
 {{/appointments}}
 END:VCALENDAR`.replace(/\n/g, "\r\n");
@@ -25,11 +26,13 @@ END:VCALENDAR`.replace(/\n/g, "\r\n");
 		const start = this._createIcalDate(new Date(event.startDate));
 		const end = event.endDate
 			? this._createIcalDate(new Date(event.endDate))
-			: undefined;
+			: this._createIcalDate(new Date(event.startDate), 6);
 		const location = this._formatIcalEntry(event.location ?? "");
 		const title = this._formatIcalEntry(event.title);
+		const description = this._createIcalDescription(event.id);
 
 		return {
+			description,
 			end,
 			id: event.id,
 			location,
@@ -48,14 +51,21 @@ END:VCALENDAR`.replace(/\n/g, "\r\n");
 		return `${part1}\r\n ${this._formatIcalEntry(part2)}`;
 	}
 
-	private _createIcalDate(date: Date) {
+	private _createIcalDate(date: Date, additionalHours: number = 0) {
 		const year = date.getUTCFullYear();
 		const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");
 		const day = date.getUTCDate().toString().padStart(2, "0");
-		const hour = date.getUTCHours().toString().padStart(2, "0");
+		const hour = (date.getUTCHours() + additionalHours)
+			.toString()
+			.padStart(2, "0");
 		const minute = date.getUTCMinutes().toString().padStart(2, "0");
 		const second = date.getUTCSeconds().toString().padStart(2, "0");
 		return `${year}${month}${day}T${hour}${minute}${second}Z`;
+	}
+
+	private _createIcalDescription(id: string) {
+		const base = document.location.origin;
+		return `${base}/appts/${id}`;
 	}
 
 	createAndDownloadIcalFile(...events: Appointment[]) {
