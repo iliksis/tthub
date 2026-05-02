@@ -255,15 +255,15 @@ function RouteComponent() {
 						</p>
 					</div>
 				</Card>
-				<Card title={t("Time")} icon={Clock10Icon} gridRows={1}>
-					<p>
-						{new Date(appointment.startDate).toLocaleTimeString("de-DE", {
-							timeStyle: "short",
-						})}
-					</p>
-				</Card>
 				{appointment.type !== AppointmentType.HOLIDAY && (
 					<>
+						<Card title={t("Time")} icon={Clock10Icon} gridRows={1}>
+							<p>
+								{new Date(appointment.startDate).toLocaleTimeString("de-DE", {
+									timeStyle: "short",
+								})}
+							</p>
+						</Card>
 						<Card title={t("Location")} icon={Clock10Icon} gridRows={4}>
 							<p>
 								{appointment.location ? (
