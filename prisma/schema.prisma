@@ -112,6 +112,7 @@ model Player {
 
 model Team {
   id        String   @id @default(nanoid(6))
+  myTTId    String?
   createdAt DateTime @default(now())
   title     String
   league    String?

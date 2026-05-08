@@ -160,6 +160,7 @@ export type PlayerScalarFieldEnum = (typeof PlayerScalarFieldEnum)[keyof typeof 
 
 export const TeamScalarFieldEnum = {
   id: 'id',
+  myTTId: 'myTTId',
   createdAt: 'createdAt',
   title: 'title',
   league: 'league',

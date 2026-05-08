@@ -154,3 +154,23 @@ export const deleteTeam = createServerFn()
 			return json<Return>({ message: error.message }, { status: 400 });
 		}
 	});
+
+export const importPlacements = createServerFn().handler(async () => {
+	const isAuthorized = await useIsRole("ADMIN");
+	if (!isAuthorized) {
+		return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+	}
+
+	try {
+		const teamIds = await prismaClient.team.findMany({
+			select: { myTTId: true },
+		});
+		const ics = fetch(
+			`https://mytischtennis.de/community/exportICSCalendar?teamIds${teamIds.join(",")}`,
+		);
+	} catch (e) {
+		console.error(e);
+		const error = e as Error;
+		return json<Return>({ message: error.message }, { status: 400 });
+	}
+});
