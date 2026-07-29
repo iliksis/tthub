@@ -9,6 +9,7 @@ import { createPasswordReset } from "@/api/passwordReset";
 import { deleteUser, updateUserRole } from "@/api/users";
 import { DetailsList } from "@/components/DetailsList";
 import { CreateUserModal } from "@/components/modal/CreateUserModal";
+import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import type { PasswordReset, User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";
@@ -260,9 +261,8 @@ export const UpdateRoleModal = ({ onClose, user }: UpdateRoleModalProps) => {
 			open={true}
 			onClose={onClose}
 			onRenderActionButton={() => (
-				<button
+				<Button
 					type="submit"
-					className="btn btn-primary"
 					onClick={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
@@ -270,7 +270,7 @@ export const UpdateRoleModal = ({ onClose, user }: UpdateRoleModalProps) => {
 					}}
 				>
 					{t("Update")}
-				</button>
+				</Button>
 			)}
 		>
 			<form

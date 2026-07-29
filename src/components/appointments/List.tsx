@@ -3,6 +3,7 @@ import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { FilterIcon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
+import { Button } from "@/components/ui/button";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { cn, isDayInPast } from "@/lib/utils";
@@ -147,9 +148,8 @@ export const Filters = ({
 	const onRenderActionButton = () => {
 		return (
 			<>
-				<button
+				<Button
 					type="submit"
-					className="btn btn-primary"
 					onClick={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
@@ -157,10 +157,10 @@ export const Filters = ({
 					}}
 				>
 					{t("Apply")}
-				</button>
-				<button
+				</Button>
+				<Button
 					type="button"
-					className="btn btn-accent"
+					variant="secondary"
 					onClick={() => {
 						form.update({
 							defaultValues: {
@@ -173,20 +173,22 @@ export const Filters = ({
 					}}
 				>
 					{t("Clear")}
-				</button>
+				</Button>
 			</>
 		);
 	};
 
 	return (
 		<>
-			<button
-				className="fab btn btn-lg btn-circle"
+			<Button
+				className="fab"
+				variant="secondary"
+				size="icon-lg"
 				type="button"
 				onClick={() => setModal(true)}
 			>
 				<FilterIcon className="size-4" />
-			</button>
+			</Button>
 			<Modal
 				className="modal-bottom"
 				modalBoxClassName="md:max-w-xl md:mx-auto"

@@ -4,6 +4,7 @@ import { useRouter } from "@tanstack/react-router";
 import { Holiday } from "open-holiday-js";
 import { toast } from "sonner";
 import { importHolidays } from "@/api/appointments";
+import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
 
@@ -185,14 +186,13 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 					selector={(state) => [state.canSubmit, state.isSubmitting]}
 				>
 					{([canSubmit, isSubmitting]) => (
-						<button
+						<Button
 							type="button"
-							className="btn btn-primary"
 							disabled={!canSubmit}
 							onClick={form.handleSubmit}
 						>
 							{isSubmitting ? "..." : t("Import")}
-						</button>
+						</Button>
 					)}
 				</form.Subscribe>
 			</form>

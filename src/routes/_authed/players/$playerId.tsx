@@ -13,6 +13,7 @@ import { DetailsList } from "@/components/DetailsList";
 import { InternalLink } from "@/components/InternalLink";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlayerForm } from "@/components/players/PlayerForm";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ValueCard";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
@@ -174,25 +175,29 @@ function RouteComponent() {
 				<>
 					<div className="fab">
 						{/** biome-ignore lint/a11y/useSemanticElements: fixes safari bug */}
-						<div className="btn btn-lg btn-circle" role="button" tabIndex={0}>
-							<CogIcon className="size-4" />
-						</div>
-						<button
-							className="btn btn-lg btn-circle"
+						<Button asChild variant="secondary" size="icon-lg" role="button" tabIndex={0}>
+							<div>
+								<CogIcon className="size-4" />
+							</div>
+						</Button>
+						<Button
+							variant="secondary"
+							size="icon-lg"
 							type="button"
 							title={t("Update player")}
 							onClick={onEdit}
 						>
 							<EditIcon className="size-4" />
-						</button>
-						<button
-							className="btn btn-lg btn-circle"
+						</Button>
+						<Button
+							variant="secondary"
+							size="icon-lg"
 							type="button"
 							title={t("Delete player")}
 							onClick={onOpenDelete}
 						>
 							<Trash2Icon className="size-4" />
-						</button>
+						</Button>
 					</div>
 
 					<PlayerForm

@@ -3,6 +3,7 @@ import { isServer } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { type FeedConfig, updateFeedConfig } from "@/api/users";
+import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
@@ -89,13 +90,9 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 						</div>
 						<div className="flex gap-2">
 							<input type="text" readOnly value={feedUrl} className="input" />
-							<button
-								type="button"
-								onClick={handleCopyUrl}
-								className="btn btn-primary"
-							>
+							<Button type="button" onClick={handleCopyUrl}>
 								{t("Copy")}
-							</button>
+							</Button>
 						</div>
 						<p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
 							{t(
@@ -229,13 +226,9 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 				</div>
 
 				<div className="pt-4">
-					<button
-						type="submit"
-						disabled={updateMutation.status === "pending"}
-						className="btn btn-primary"
-					>
+					<Button type="submit" disabled={updateMutation.status === "pending"}>
 						{updateMutation.status === "pending" ? "..." : t("Update")}
-					</button>
+					</Button>
 				</div>
 			</div>
 		</form>

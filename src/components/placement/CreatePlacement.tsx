@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { createPlacement } from "@/api/placements";
+import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import type { Player } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
@@ -69,9 +70,8 @@ export const CreatePlacement = ({
 			className="modal-bottom"
 			modalBoxClassName="md:max-w-xl md:mx-auto"
 			onRenderActionButton={() => (
-				<button
+				<Button
 					type="submit"
-					className="btn btn-primary"
 					onClick={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
@@ -79,7 +79,7 @@ export const CreatePlacement = ({
 					}}
 				>
 					{t("Create")}
-				</button>
+				</Button>
 			)}
 		>
 			<form className="flex flex-col gap-2" onSubmit={form.handleSubmit}>

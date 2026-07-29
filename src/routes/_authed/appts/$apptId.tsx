@@ -26,6 +26,7 @@ import { InternalLink } from "@/components/InternalLink";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Modal } from "@/components/modal/Modal";
 import { ParticipantModal } from "@/components/placement/PlacementModal";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ValueCard";
 import { IcalGenerator } from "@/lib/ical";
 import type { Response, User } from "@/lib/prisma/client";
@@ -283,13 +284,14 @@ function RouteComponent() {
 						<Card title={t("Participants")} gridRows={2}>
 							<p className="flex flex-row items-center">
 								<span className="flex-1">{uniqueParticipants.size}</span>
-								<button
+								<Button
 									type="button"
-									className="btn btn-link btn-primary shrink h-5"
+									variant="link"
+									className="shrink h-5"
 									onClick={onOpenParticipants}
 								>
 									{t("Show all")}
-								</button>
+								</Button>
 							</p>
 						</Card>
 						<Card title={t("Link")} icon={Clock10Icon} gridRows={2}>
@@ -328,39 +330,45 @@ function RouteComponent() {
 			{appointment.type === AppointmentType.TOURNAMENT && (
 				<>
 					<div className="mt-6 grid grid-cols-3 gap-2">
-						<button
+						<Button
 							type="button"
+							variant="ghost"
 							className={cn(
-								"btn btn-soft btn-success w-auto",
-								isAccepted && "btn-active",
+								"w-auto border border-success/30 text-success hover:bg-success/15 hover:text-success",
+								isAccepted &&
+									"border-success bg-success text-success-foreground hover:bg-success/90 hover:text-success-foreground",
 							)}
 							disabled={isDeleted}
 							onClick={onResponse("ACCEPT")}
 						>
 							{isAccepted ? t("Accepted") : t("Accept")}
-						</button>
-						<button
+						</Button>
+						<Button
 							type="button"
+							variant="ghost"
 							className={cn(
-								"btn btn-soft btn-warning",
-								isMaybe && "btn-active",
+								"border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning",
+								isMaybe &&
+									"border-warning bg-warning text-warning-foreground hover:bg-warning/90 hover:text-warning-foreground",
 							)}
 							disabled={isDeleted}
 							onClick={onResponse("MAYBE")}
 						>
 							{isMaybe ? t("Maybe") : t("Maybe")}
-						</button>
-						<button
+						</Button>
+						<Button
 							type="button"
+							variant="ghost"
 							className={cn(
-								"btn btn-soft btn-error",
-								isDeclined && "btn-active",
+								"border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive",
+								isDeclined &&
+									"border-destructive bg-destructive text-white hover:bg-destructive/90",
 							)}
 							disabled={isDeleted}
 							onClick={onResponse("DECLINE")}
 						>
 							{isDeclined ? t("Declined") : t("Decline")}
-						</button>
+						</Button>
 					</div>
 
 					<div className="mt-2 grid grid-cols-3 gap-2">
@@ -391,35 +399,40 @@ function RouteComponent() {
 
 			<div className="fab">
 				{/** biome-ignore lint/a11y/useSemanticElements: fixes safari bug */}
-				<div className="btn btn-lg btn-circle" role="button" tabIndex={0}>
-					<CogIcon className="size-4" />
-				</div>
-				<button
-					className="btn btn-lg btn-circle"
+				<Button asChild variant="secondary" size="icon-lg" role="button" tabIndex={0}>
+					<div>
+						<CogIcon className="size-4" />
+					</div>
+				</Button>
+				<Button
+					variant="secondary"
+					size="icon-lg"
 					type="button"
 					title={t("Download iCal")}
 					onClick={onDownloadIcal}
 				>
 					<DownloadIcon className="size-4" />
-				</button>
+				</Button>
 				{canEdit && (
 					<>
-						<button
-							className="btn btn-lg btn-circle"
+						<Button
+							variant="secondary"
+							size="icon-lg"
 							type="button"
 							title={t("Edit appointment")}
 							onClick={onEdit}
 						>
 							<EditIcon className="size-4" />
-						</button>
-						<button
-							className="btn btn-lg btn-circle"
+						</Button>
+						<Button
+							variant="secondary"
+							size="icon-lg"
 							type="button"
 							title={t("Delete appointment")}
 							onClick={onOpenDelete}
 						>
 							<Trash2Icon className="size-4" />
-						</button>
+						</Button>
 					</>
 				)}
 			</div>

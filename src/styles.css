@@ -157,6 +157,36 @@
 	--color-holiday: var(--color-red-800);
 }
 
+/*#####################*/
+/* Floating action button cluster (was daisyUI's .fab component) */
+/* Fixed bottom-end stack whose trigger (first [tabindex] child) reveals   */
+/* the rest of the buttons on focus-within (click/tab/hover via a wrapping */
+/* focusable trigger) with a fade + scale transition.                      */
+/*#####################*/
+.fab {
+	@apply pointer-events-none fixed end-4 bottom-4 z-50 flex flex-col-reverse items-end gap-2;
+
+	& > * {
+		@apply pointer-events-auto;
+	}
+
+	& > [tabindex]:first-child {
+		@apply relative transition-[opacity,rotate] duration-200 ease-in-out;
+	}
+
+	&:focus-within > [tabindex]:first-child {
+		@apply pointer-events-none rotate-90 opacity-0;
+	}
+
+	& > :nth-child(n + 2) {
+		@apply invisible scale-80 opacity-0 transition-[opacity,scale,visibility] duration-200 ease-in-out;
+	}
+
+	&:focus-within > :nth-child(n + 2) {
+		@apply visible scale-100 opacity-100;
+	}
+}
+
 dialog {
 	&[open] {
 		animation: open 0.25s forwards;

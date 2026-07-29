@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { createAppointment } from "@/api/appointments";
+import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import { AppointmentStatus } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
@@ -311,13 +312,9 @@ const AppointmentEditSection = () => {
 					selector={(state) => [state.canSubmit, state.isSubmitting]}
 				>
 					{([canSubmit, isSubmitting]) => (
-						<button
-							type="submit"
-							className="btn btn-primary mt-4"
-							disabled={!canSubmit}
-						>
+						<Button type="submit" className="mt-4" disabled={!canSubmit}>
 							{isSubmitting ? "..." : t("Create")}
-						</button>
+						</Button>
 					)}
 				</form.Subscribe>
 			</form>

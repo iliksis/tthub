@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { Button } from "@/components/ui/button";
 import type { Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
@@ -44,9 +45,8 @@ export const PlayerForm = ({
 
 	const onRenderActionButton = () => {
 		return (
-			<button
+			<Button
 				type="submit"
-				className="btn btn-primary"
 				onClick={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
@@ -54,7 +54,7 @@ export const PlayerForm = ({
 				}}
 			>
 				{submitLabel}
-			</button>
+			</Button>
 		);
 	};
 

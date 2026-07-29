@@ -3,6 +3,7 @@ import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { updateUserInformation } from "@/api/users";
+import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import { useAppSession } from "@/lib/session";
 import { t } from "@/lib/text";
@@ -148,13 +149,13 @@ export const Profile = () => {
 					]}
 				>
 					{([canSubmit, isSubmitting, isDefaultValue]) => (
-						<button
+						<Button
 							type="submit"
-							className="btn btn-primary mt-4 w-36"
+							className="mt-4 w-36"
 							disabled={!canSubmit || isDefaultValue}
 						>
 							{isSubmitting ? "..." : t("Update")}
-						</button>
+						</Button>
 					)}
 				</form.Subscribe>
 			</form>

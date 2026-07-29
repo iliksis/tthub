@@ -1,5 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
 import { loginFn } from "@/routes/_authed";
@@ -95,13 +96,9 @@ export function Login() {
 						selector={(state) => [state.canSubmit, state.isSubmitting]}
 					>
 						{([canSubmit, isSubmitting]) => (
-							<button
-								type="submit"
-								className="btn btn-primary mt-2"
-								disabled={!canSubmit}
-							>
+							<Button type="submit" className="mt-2" disabled={!canSubmit}>
 								{isSubmitting ? "..." : t("Login")}
-							</button>
+							</Button>
 						)}
 					</form.Subscribe>
 				</div>

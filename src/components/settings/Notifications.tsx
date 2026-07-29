@@ -10,6 +10,7 @@ import {
 	sendTestNotification,
 	updateNotificationSettings,
 } from "@/api/notifications";
+import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import type { Subscription } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
@@ -38,9 +39,9 @@ export const Notifications = ({ subscriptions }: NotificationsProps) => {
 		<div className="flex flex-col gap-2">
 			<h2 className="mb-2">{t("Notifications")}</h2>
 			{!permissionGranted && (
-				<button type="button" className="btn" onClick={onGrantPermission}>
+				<Button type="button" variant="secondary" onClick={onGrantPermission}>
 					{t("Grant Permission")}
-				</button>
+				</Button>
 			)}
 			{isIOS && !isSupported && !isServer && (
 				<div className="alert alert-soft alert-info">
@@ -60,9 +61,9 @@ export const Notifications = ({ subscriptions }: NotificationsProps) => {
 			<ActiveSubscriptions subscriptions={subscriptions} />
 			{dev && (
 				<div className="flex flex-col gap-2">
-					<button
+					<Button
 						type="button"
-						className="btn"
+						variant="secondary"
 						onClick={async () => {
 							const registration = await navigator.serviceWorker.ready;
 							registration.showNotification("Test Notification", {
@@ -72,16 +73,16 @@ export const Notifications = ({ subscriptions }: NotificationsProps) => {
 						}}
 					>
 						Test Local Notification
-					</button>
-					<button
+					</Button>
+					<Button
 						type="button"
-						className="btn"
+						variant="secondary"
 						onClick={async () => {
 							await sendTestNotification();
 						}}
 					>
 						Test Server Notification
-					</button>
+					</Button>
 				</div>
 			)}
 		</div>
@@ -201,13 +202,13 @@ const Form = ({ subscription }: FormProps) => {
 				]}
 			>
 				{([canSubmit, isSubmitting, isDefaultValue]) => (
-					<button
+					<Button
 						type="submit"
-						className="btn btn-primary mt-4 w-36"
+						className="mt-4 w-36"
 						disabled={!canSubmit || isDefaultValue}
 					>
 						{isSubmitting ? "..." : t("Update")}
-					</button>
+					</Button>
 				)}
 			</form.Subscribe>
 		</form>
@@ -243,14 +244,16 @@ const ActiveSubscriptions = ({ subscriptions }: ActiveSubscriptionsProps) => {
 					<li key={subscription.id} className="list-row">
 						<div></div>
 						<div>{subscription.device}</div>
-						<button
+						<Button
 							type="button"
-							className="btn btn-square btn-error btn-ghost"
+							variant="ghost"
+							size="icon"
+							className="text-destructive hover:text-destructive"
 							title={t("Delete")}
 							onClick={onDelete(subscription)}
 						>
 							<Trash2Icon className="size-4" />
-						</button>
+						</Button>
 					</li>
 				))}
 			</ul>

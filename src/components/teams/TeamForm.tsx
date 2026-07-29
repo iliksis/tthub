@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { Button } from "@/components/ui/button";
 import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
 import { Modal } from "../modal/Modal";
@@ -30,9 +31,8 @@ export const TeamForm = ({
 
 	const onRenderActionButton = () => {
 		return (
-			<button
+			<Button
 				type="submit"
-				className="btn btn-primary"
 				onClick={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
@@ -40,7 +40,7 @@ export const TeamForm = ({
 				}}
 			>
 				{submitLabel}
-			</button>
+			</Button>
 		);
 	};
 

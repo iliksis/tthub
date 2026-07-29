@@ -2,6 +2,7 @@ import { useForm, useStore } from "@tanstack/react-form";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { getInvitation } from "@/api/invitations";
 import { createUserFromInvitation } from "@/api/users";
+import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
 import { isInvitationExpired } from "@/lib/utils";
@@ -150,13 +151,13 @@ function RouteComponent() {
 						]}
 					>
 						{([canSubmit, isSubmitting, isDefaultValue]) => (
-							<button
+							<Button
 								type="submit"
-								className="btn btn-primary mt-4"
+								className="mt-4"
 								disabled={!canSubmit || isDefaultValue}
 							>
 								{isSubmitting ? "..." : t("Create Account")}
-							</button>
+							</Button>
 						)}
 					</form.Subscribe>
 				</div>
