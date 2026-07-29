@@ -9,10 +9,11 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
-import { Toaster } from "sonner";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { NavigationWrapper } from "@/components/NavigationWrapper";
 import { getTheme } from "@/components/ThemeSwitch";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { prismaClient } from "@/lib/db";
 import { useAppSession } from "@/lib/session";
 import appCss from "../styles.css?url";
@@ -149,36 +150,30 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
-				<QueryClientProvider client={queryClient}>
-					{user && isAuthedRoute ? (
-						<>
-							<NavigationWrapper title={title}>{children}</NavigationWrapper>
-							<GlobalSearch />
-							<TanStackDevtools
-								config={{
-									position: "bottom-left",
-								}}
-								plugins={[
-									{
-										name: "Tanstack Router",
-										render: <TanStackRouterDevtoolsPanel />,
-									},
-								]}
-							/>
-						</>
-					) : (
-						children
-					)}
-				</QueryClientProvider>
-				<Toaster
-					position="top-center"
-					toastOptions={{
-						style: {
-							background: "var(--color-base-300)",
-						},
-					}}
-					theme={theme}
-				/>
+				<TooltipProvider>
+					<QueryClientProvider client={queryClient}>
+						{user && isAuthedRoute ? (
+							<>
+								<NavigationWrapper title={title}>{children}</NavigationWrapper>
+								<GlobalSearch />
+								<TanStackDevtools
+									config={{
+										position: "bottom-left",
+									}}
+									plugins={[
+										{
+											name: "Tanstack Router",
+											render: <TanStackRouterDevtoolsPanel />,
+										},
+									]}
+								/>
+							</>
+						) : (
+							children
+						)}
+					</QueryClientProvider>
+					<Toaster position="top-center" theme={theme} />
+				</TooltipProvider>
 				<Scripts />
 			</body>
 		</html>
