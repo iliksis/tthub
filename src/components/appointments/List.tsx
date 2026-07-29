@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TableRow } from "@/components/ui/table";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { cn, isDayInPast } from "@/lib/utils";
@@ -41,9 +42,9 @@ export const List = ({ appointments }: ListProps) => {
 							const isAccepted = userResponse === "ACCEPT";
 							const isDeclined = userResponse === "DECLINE";
 							return isAccepted ? (
-								<div className="status status-success"></div>
+								<div className="size-2 rounded-full bg-success" />
 							) : isDeclined ? (
-								<div className="status status-error"></div>
+								<div className="size-2 rounded-full bg-destructive" />
 							) : null;
 						},
 					},
@@ -99,17 +100,17 @@ export const List = ({ appointments }: ListProps) => {
 					const inPast = isDayInPast(item.startDate);
 					const isDeleted = item.deletedAt !== null;
 					return (
-						<tr
+						<TableRow
 							key={item.id}
 							className={cn(
-								"hover:bg-base-200 hover:cursor-pointer h-10",
+								"h-10 cursor-pointer",
 								inPast && "opacity-65",
-								isDeleted && "text-error",
+								isDeleted && "text-destructive",
 							)}
 							onClick={onClickAppointment(item.id)}
 						>
 							{children}
-						</tr>
+						</TableRow>
 					);
 				}}
 				selectMode="none"
