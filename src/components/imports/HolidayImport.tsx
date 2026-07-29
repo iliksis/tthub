@@ -4,6 +4,7 @@ import { useRouter } from "@tanstack/react-router";
 import { Holiday } from "open-holiday-js";
 import { toast } from "sonner";
 import { importHolidays } from "@/api/appointments";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -187,9 +188,9 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 					</form.Field>
 				</div>
 				{formErrorMap.onSubmit && (
-					<div role="alert" className="alert alert-error alert-soft">
-						{formErrorMap.onSubmit}
-					</div>
+					<Alert variant="destructive">
+						<AlertDescription>{formErrorMap.onSubmit}</AlertDescription>
+					</Alert>
 				)}
 				<form.Subscribe
 					selector={(state) => [state.canSubmit, state.isSubmitting]}

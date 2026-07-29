@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { useMutation } from "@/hooks/useMutation";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
@@ -105,7 +106,7 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 					</div>
 				)}
 
-				<div className="divider"></div>
+				<Separator className="my-4" />
 
 				<div className="space-y-4">
 					<div>

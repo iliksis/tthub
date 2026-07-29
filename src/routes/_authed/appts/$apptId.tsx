@@ -26,7 +26,14 @@ import { InternalLink } from "@/components/InternalLink";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Modal } from "@/components/modal/Modal";
 import { ParticipantModal } from "@/components/placement/PlacementModal";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Card } from "@/components/ValueCard";
 import { IcalGenerator } from "@/lib/ical";
 import type { Response, User } from "@/lib/prisma/client";
@@ -199,8 +206,8 @@ function RouteComponent() {
 	return (
 		<div>
 			{isDeleted ? (
-				<div role="alert" className="alert alert-error alert-soft mb-4">
-					<span>
+				<Alert variant="destructive" className="mb-4">
+					<AlertDescription>
 						{t("Appointment was deleted.")}{" "}
 						{canEdit && (
 							<button
@@ -211,12 +218,12 @@ function RouteComponent() {
 								{t("Restore?")}
 							</button>
 						)}
-					</span>
-				</div>
+					</AlertDescription>
+				</Alert>
 			) : (
 				appointment?.status === AppointmentStatus.DRAFT && (
-					<div role="alert" className="alert alert-warning alert-soft mb-4">
-						<span>
+					<Alert variant="warning" className="mb-4">
+						<AlertDescription>
 							{t("Appointment is still in draft.")}{" "}
 							{canEdit && (
 								<button
@@ -227,8 +234,8 @@ function RouteComponent() {
 									{t("Publish?")}
 								</button>
 							)}
-						</span>
-					</div>
+						</AlertDescription>
+					</Alert>
 				)
 			)}
 			<div className="grid grid-cols-4 gap-2">
@@ -477,23 +484,21 @@ const AvatarGroup = ({ responses }: AvatarGroupProps) => {
 			{responses.map((r) => {
 				const userColor = createColorForUserId(r.userId);
 				return (
-					<div
-						key={r.userId}
-						className="avatar avatar-placeholder tooltip"
-						data-tip={r.user.name}
-					>
-						<div
-							className="bg-neutral w-8 rounded-full border-base-100 border-2"
-							style={{
-								backgroundColor: userColor.backgroundColor,
-								color: userColor.foregroundColor,
-							}}
-						>
-							<span className="text-md font-semibold">
-								{shortenUserName(r.user.name)}
-							</span>
-						</div>
-					</div>
+					<Tooltip key={r.userId}>
+						<TooltipTrigger asChild>
+							<Avatar className="border-2 border-background">
+								<AvatarFallback
+									style={{
+										backgroundColor: userColor.backgroundColor,
+										color: userColor.foregroundColor,
+									}}
+								>
+									{shortenUserName(r.user.name)}
+								</AvatarFallback>
+							</Avatar>
+						</TooltipTrigger>
+						<TooltipContent>{r.user.name}</TooltipContent>
+					</Tooltip>
 				);
 			})}
 		</div>

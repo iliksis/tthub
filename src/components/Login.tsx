@@ -1,5 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,9 +85,9 @@ export function Login() {
 						}}
 					</form.Field>
 					{loginMutation.data?.error && (
-						<div className="alert alert-error alert-soft">
-							{loginMutation.data.message}
-						</div>
+						<Alert variant="destructive">
+							<AlertDescription>{loginMutation.data.message}</AlertDescription>
+						</Alert>
 					)}
 					<form.Subscribe
 						selector={(state) => [state.canSubmit, state.isSubmitting]}

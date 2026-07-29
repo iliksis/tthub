@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { fetchUsers } from "@/api/users";
 import { UserManagement } from "@/components/settings/UserManagement";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/settings/users")({
@@ -11,9 +12,11 @@ export const Route = createFileRoute("/_authed/settings/users")({
 	},
 	component: RouteComponent,
 	errorComponent: () => (
-		<div className="alert alert-error">
-			{t("You do not have permission to access user management")}
-		</div>
+		<Alert variant="destructive">
+			<AlertDescription>
+				{t("You do not have permission to access user management")}
+			</AlertDescription>
+		</Alert>
 	),
 	head: () => ({
 		meta: [{ title: t("User Management") }],

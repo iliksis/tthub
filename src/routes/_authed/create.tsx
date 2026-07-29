@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CreateAppointmentForm } from "@/components/CreateAppointmentForm";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/create")({
@@ -14,9 +15,11 @@ export const Route = createFileRoute("/_authed/create")({
 	component: RouteComponent,
 	errorComponent: () => {
 		return (
-			<div className="alert alert-error">
-				{t("You do not have permission to create appointments")}
-			</div>
+			<Alert variant="destructive">
+				<AlertDescription>
+					{t("You do not have permission to create appointments")}
+				</AlertDescription>
+			</Alert>
 		);
 	},
 	head: () => ({

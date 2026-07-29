@@ -5,6 +5,7 @@ import {
 	getUserAppointmentsWithoutResponses,
 } from "@/api/appointments";
 import { Card } from "@/components/appointments/Card";
+import { Badge } from "@/components/ui/badge";
 import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/")({
@@ -60,9 +61,9 @@ function App() {
 				<div className="flex flex-row">
 					<h2 className="font-bold flex-1">{t("Upcoming appointments")}</h2>
 					{nextAppointments && (
-						<span className="shrink-0 badge badge-secondary">
+						<Badge variant="secondary" className="shrink-0">
 							{nextAppointments.length}
-						</span>
+						</Badge>
 					)}
 				</div>
 				{nextAppointments && nextAppointments.length > 0 ? (
@@ -75,9 +76,9 @@ function App() {
 				<div className="flex flex-row">
 					<h2 className="font-bold flex-1"> {t("Your appointments")}</h2>
 					{userAppointments && (
-						<span className="shrink-0 badge badge-secondary">
+						<Badge variant="secondary" className="shrink-0">
 							{userAppointments.length}
-						</span>
+						</Badge>
 					)}
 				</div>
 				{userAppointments && userAppointments.length > 0 ? (
@@ -90,9 +91,9 @@ function App() {
 				<div className="flex flex-row">
 					<h2 className="font-bold flex-1">{t("Pending appointments")}</h2>
 					{withoutResponses && (
-						<span className="shrink-0 badge badge-secondary">
+						<Badge variant="secondary" className="shrink-0">
 							{withoutResponses.length}
-						</span>
+						</Badge>
 					)}
 				</div>
 				{withoutResponses && withoutResponses.length > 0 ? (

@@ -13,6 +13,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { useMutation } from "@/hooks/useMutation";
 import { AppointmentStatus } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
@@ -37,7 +38,7 @@ export const CreateAppointmentForm = () => {
 	return (
 		<CreateAppointmentProvider>
 			<AppointmentTypeSelect />
-			<div className="divider"></div>
+			<Separator className="my-4" />
 			<AppointmentEditSection />
 		</CreateAppointmentProvider>
 	);

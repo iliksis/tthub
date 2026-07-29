@@ -10,6 +10,7 @@ import {
 	sendTestNotification,
 	updateNotificationSettings,
 } from "@/api/notifications";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -46,16 +47,20 @@ export const Notifications = ({ subscriptions }: NotificationsProps) => {
 				</Button>
 			)}
 			{isIOS && !isSupported && !isServer && (
-				<div className="alert alert-soft alert-info">
-					{t(
-						"On iOS devices, you must add the website to the home screen before notifications will work.",
-					)}
-				</div>
+				<Alert variant="info">
+					<AlertDescription>
+						{t(
+							"On iOS devices, you must add the website to the home screen before notifications will work.",
+						)}
+					</AlertDescription>
+				</Alert>
 			)}
 			{!isSupported && !isServer && (
-				<div className="alert alert-error alert-soft">
-					{t("Notifications are not supported in this browser")}
-				</div>
+				<Alert variant="destructive">
+					<AlertDescription>
+						{t("Notifications are not supported in this browser")}
+					</AlertDescription>
+				</Alert>
 			)}
 			{permissionGranted && subscription && (
 				<Form subscription={subscription} />

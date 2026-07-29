@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAllSubscriptions } from "@/api/notifications";
 import { Notifications } from "@/components/settings/Notifications";
 import { Profile } from "@/components/settings/Profile";
+import { Separator } from "@/components/ui/separator";
 import { t } from "@/lib/text";
 
 const searchSchema = z.object({
@@ -30,7 +31,7 @@ function RouteComponent() {
 	return (
 		<div>
 			<Profile />
-			<div className="divider"></div>
+			<Separator className="my-4" />
 			<Notifications subscriptions={subscriptions} />
 		</div>
 	);
