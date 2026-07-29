@@ -2,14 +2,14 @@
 @import "@catppuccin/tailwindcss/macchiato.css";
 @import 'tw-animate-css';
 
-@plugin "daisyui" {
-	theme: false;
-}
-@plugin "./catppuccinTheme.latte.ts";
-@plugin "./catppuccinTheme.frappe.ts";
-
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant light (&:where(.light, .light *));
+
+@layer base {
+	body {
+		@apply bg-background text-foreground;
+	}
+}
 
 /* Registers the shadcn/ui design tokens as Tailwind utilities (bg-primary, text-foreground, ...),
    inlining straight to the raw HSL variables below so there's no intermediate --color-* variable
@@ -152,7 +152,7 @@
 }
 
 .light {
-	--color-appointment-by: var(--color-success);
+	--color-appointment-by: var(--success);
 	--color-tournament-de: var(--catppuccin-color-lavender-400);
 	--color-holiday: var(--color-red-800);
 }
@@ -207,7 +207,7 @@ dialog {
 /*#####################*/
 /* Resizing */
 .fc {
-  --fc-button-text-color: var(--color-base-content);
+  --fc-button-text-color: hsl(var(--foreground));
 }
 
 .fc-view-harness .fc-view-harness-active {
@@ -237,7 +237,7 @@ dialog {
   @apply !bg-transparent;
 }
 .fc-daygrid-day.fc-day-today .fc-daygrid-day-top {
-  @apply text-accent-content bg-accent rounded-full font-bold;
+  @apply text-accent-foreground bg-accent rounded-full font-bold;
 }
 
 /* Rounding the first and last of the selected dates */
@@ -255,8 +255,8 @@ dialog {
 
 /* Fixing font colors */
 .fc-col-header-cell {
-  @apply text-base-content font-medium;
+  @apply text-foreground font-medium;
 }
 .fc-daygrid-day {
-  @apply text-base-content;
+  @apply text-foreground;
 }

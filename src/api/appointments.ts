@@ -433,15 +433,15 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 const colors = {
 	HOLIDAY: {
 		bg: "var(--catppuccin-color-lavender-400)",
-		text: "var(--color-primary-content)",
+		text: "hsl(var(--primary-foreground))",
 	},
 	TOURNAMENT: {
-		bg: "var(--color-success)",
-		text: "var(--color-success-content)",
+		bg: "hsl(var(--success))",
+		text: "hsl(var(--success-foreground))",
 	},
 	TOURNAMENT_DE: {
 		bg: "var(--catppuccin-color-blue-400)",
-		text: "var(--color-primary-content)",
+		text: "hsl(var(--primary-foreground))",
 	},
 };
 export const getCalendarAppointments = createServerFn()

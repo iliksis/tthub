@@ -49,7 +49,9 @@ const AppointmentTypeSelect = () => {
 
 	return (
 		<fieldset className="flex flex-col gap-1.5">
-			<legend className="fieldset-legend">{t("Appointment type")}</legend>
+			<legend className="text-sm leading-none font-medium">
+				{t("Appointment type")}
+			</legend>
 			<div className="flex gap-2">
 				<Select
 					onValueChange={(value) => {

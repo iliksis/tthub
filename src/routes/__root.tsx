@@ -141,11 +141,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 	}, []);
 
 	return (
-		<html
-			lang="en"
-			data-theme={theme === "dark" ? "macchiato" : "latte"}
-			className={theme}
-		>
+		<html lang="en" className={theme}>
 			<head>
 				<HeadContent />
 			</head>
