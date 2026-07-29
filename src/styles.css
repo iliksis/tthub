@@ -11,10 +11,126 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant light (&:where(.light, .light *));
 
+/* Registers the shadcn/ui design tokens as Tailwind utilities (bg-primary, text-foreground, ...),
+   inlining straight to the raw HSL variables below so there's no intermediate --color-* variable
+   name that could collide with daisyUI's own --color-primary/--color-secondary/--color-accent
+   during the migration. */
+@theme inline {
+	--color-background: hsl(var(--background));
+	--color-foreground: hsl(var(--foreground));
+	--color-card: hsl(var(--card));
+	--color-card-foreground: hsl(var(--card-foreground));
+	--color-popover: hsl(var(--popover));
+	--color-popover-foreground: hsl(var(--popover-foreground));
+	--color-primary: hsl(var(--primary));
+	--color-primary-foreground: hsl(var(--primary-foreground));
+	--color-secondary: hsl(var(--secondary));
+	--color-secondary-foreground: hsl(var(--secondary-foreground));
+	--color-muted: hsl(var(--muted));
+	--color-muted-foreground: hsl(var(--muted-foreground));
+	--color-accent: hsl(var(--accent));
+	--color-accent-foreground: hsl(var(--accent-foreground));
+	--color-destructive: hsl(var(--destructive));
+	--color-destructive-foreground: hsl(var(--destructive-foreground));
+	--color-border: hsl(var(--border));
+	--color-input: hsl(var(--input));
+	--color-ring: hsl(var(--ring));
+	--color-chart-1: hsl(var(--chart-1));
+	--color-chart-2: hsl(var(--chart-2));
+	--color-chart-3: hsl(var(--chart-3));
+	--color-chart-4: hsl(var(--chart-4));
+	--color-chart-5: hsl(var(--chart-5));
+	--color-sidebar: hsl(var(--sidebar));
+	--color-sidebar-foreground: hsl(var(--sidebar-foreground));
+	--color-sidebar-primary: hsl(var(--sidebar-primary));
+	--color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+	--color-sidebar-accent: hsl(var(--sidebar-accent));
+	--color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+	--color-sidebar-border: hsl(var(--sidebar-border));
+	--color-sidebar-ring: hsl(var(--sidebar-ring));
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+}
+
+/*#####################*/
+/* Catppuccin (Latte / Macchiato, Lavender accent) shadcn/ui theme */
+/* https://github.com/catppuccin/shadcn-ui */
+/*#####################*/
+:root {
+	--radius: 0.625rem;
+	--background: 220 23.08% 94.90%;
+	--foreground: 234 16.02% 35.49%;
+	--card: 220 23.08% 94.90%;
+	--card-foreground: 234 16.02% 35.49%;
+	--popover: 220 23.08% 94.90%;
+	--popover-foreground: 234 16.02% 35.49%;
+	--primary: 231 97.20% 71.96%;
+	--primary-foreground: 220 23.08% 94.90%;
+	--secondary: 223 15.91% 82.75%;
+	--secondary-foreground: 234 16.02% 35.49%;
+	--muted: 223 15.91% 82.75%;
+	--muted-foreground: 233 12.80% 41.37%;
+	--accent: 223 15.91% 82.75%;
+	--accent-foreground: 234 16.02% 35.49%;
+	--destructive: 347 86.67% 44.12%;
+	--destructive-foreground: 220 23.08% 94.90%;
+	--border: 225 13.56% 76.86%;
+	--input: 225 13.56% 76.86%;
+	--ring: 234 16.02% 35.49%;
+	--chart-1: 345 57.65% 74.12%;
+	--chart-2: 185 37.25% 70.59%;
+	--chart-3: 219 81.96% 78.43%;
+	--chart-4: 35 61.18% 76.86%;
+	--chart-5: 113 32.94% 73.33%;
+	--sidebar: 218 25.10% 93.73%;
+	--sidebar-foreground: 234 16.02% 35.49%;
+	--sidebar-primary: 231 97.20% 71.96%;
+	--sidebar-primary-foreground: 220 23.08% 94.90%;
+	--sidebar-accent: 220 23.08% 94.90%;
+	--sidebar-accent-foreground: 234 16.02% 35.49%;
+	--sidebar-border: 225 13.56% 76.86%;
+	--sidebar-ring: 225 13.56% 76.86%;
+}
+
 .dark {
 	--color-appointment-by: var(--catppuccin-color-green-400);
 	--color-tournament-de: var(--catppuccin-color-lavender-400);
 	--color-holiday: var(--catppuccin-color-lavender-400);
+
+	--background: 232 23.40% 18.43%;
+	--foreground: 227 68.25% 87.65%;
+	--card: 232 23.40% 18.43%;
+	--card-foreground: 227 68.25% 87.65%;
+	--popover: 232 23.40% 18.43%;
+	--popover-foreground: 227 68.25% 87.65%;
+	--primary: 234 82.28% 84.51%;
+	--primary-foreground: 232 23.40% 18.43%;
+	--secondary: 230 18.80% 26.08%;
+	--secondary-foreground: 227 68.25% 87.65%;
+	--muted: 230 18.80% 26.08%;
+	--muted-foreground: 228 39.22% 80.00%;
+	--accent: 230 18.80% 26.08%;
+	--accent-foreground: 227 68.25% 87.65%;
+	--destructive: 351 73.91% 72.94%;
+	--destructive-foreground: 232 23.40% 18.43%;
+	--border: 231 15.61% 33.92%;
+	--input: 231 15.61% 33.92%;
+	--ring: 227 68.25% 87.65%;
+	--chart-1: 333 20.78% 38.04%;
+	--chart-2: 193 19.61% 38.04%;
+	--chart-3: 224 26.67% 41.18%;
+	--chart-4: 30 8.24% 42.35%;
+	--chart-5: 139 10.98% 38.82%;
+	--sidebar: 234 22.75% 17.25%;
+	--sidebar-foreground: 227 68.25% 87.65%;
+	--sidebar-primary: 234 82.28% 84.51%;
+	--sidebar-primary-foreground: 232 23.40% 18.43%;
+	--sidebar-accent: 232 23.40% 18.43%;
+	--sidebar-accent-foreground: 227 68.25% 87.65%;
+	--sidebar-border: 231 15.61% 33.92%;
+	--sidebar-ring: 231 15.61% 33.92%;
 }
 
 .light {
