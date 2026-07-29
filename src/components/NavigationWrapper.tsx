@@ -6,7 +6,6 @@ import {
 	HouseIcon,
 	ImportIcon,
 	LogOutIcon,
-	PanelLeftOpenIcon,
 	SearchIcon,
 	Settings2Icon,
 	ShieldIcon,
@@ -16,6 +15,24 @@ import {
 	UsersIcon,
 } from "lucide-react";
 import React from "react";
+import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarGroup,
+	SidebarInset,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem,
+	SidebarProvider,
+	SidebarTrigger,
+	useSidebar,
+} from "@/components/ui/sidebar";
 import type { User } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { ThemeSwitch } from "./ThemeSwitch";
@@ -81,6 +98,80 @@ const navigationItems: NavigationItem[] = [
 	},
 ];
 
+const activeLinkClassName =
+	"bg-sidebar-accent text-sidebar-accent-foreground font-medium";
+
+const NavigationItems = () => {
+	const { user } = useRouteContext({ from: "__root__" });
+	const { isMobile, state, setOpen, setOpenMobile } = useSidebar();
+	const isExpanded = isMobile || state === "expanded";
+
+	const closeSidebar = React.useCallback(() => {
+		setOpen(false);
+		setOpenMobile(false);
+	}, [setOpen, setOpenMobile]);
+
+	const renderLeaf = (item: NavigationItem, asSubItem: boolean) => {
+		if (!("href" in item) || !user || item.isHidden?.(user.role ?? "USER")) {
+			return null;
+		}
+
+		const link = (
+			<Link
+				to={item.href}
+				onClick={closeSidebar}
+				activeProps={{ className: activeLinkClassName }}
+				activeOptions={{ exact: true }}
+			>
+				<item.icon />
+				<span>{item.name}</span>
+			</Link>
+		);
+
+		if (asSubItem) {
+			return (
+				<SidebarMenuSubItem key={item.name}>
+					<SidebarMenuSubButton asChild>{link}</SidebarMenuSubButton>
+				</SidebarMenuSubItem>
+			);
+		}
+
+		return (
+			<SidebarMenuItem key={item.name}>
+				<SidebarMenuButton asChild tooltip={item.name}>
+					{link}
+				</SidebarMenuButton>
+			</SidebarMenuItem>
+		);
+	};
+
+	const renderItem = (item: NavigationItem) => {
+		if ("children" in item) {
+			// Collapsed to icons: flatten the group's children into top-level
+			// icon buttons, since nested sub-menus aren't reachable when collapsed.
+			if (!isExpanded) {
+				return item.children?.map((child) => renderLeaf(child, false));
+			}
+
+			return (
+				<SidebarMenuItem key={item.name}>
+					<div className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-sidebar-foreground/70">
+						<item.icon className="size-4" />
+						<span>{item.name}</span>
+					</div>
+					<SidebarMenuSub>
+						{item.children?.map((child) => renderLeaf(child, true))}
+					</SidebarMenuSub>
+				</SidebarMenuItem>
+			);
+		}
+
+		return renderLeaf(item, false);
+	};
+
+	return <SidebarMenu>{navigationItems.map(renderItem)}</SidebarMenu>;
+};
+
 interface NavigationWrapperProps {
 	title?: string;
 }
@@ -89,126 +180,51 @@ export const NavigationWrapper = ({
 	children,
 	title,
 }: React.PropsWithChildren<NavigationWrapperProps>) => {
-	const { user } = useRouteContext({ from: "__root__" });
-	const toggleRef = React.useRef<HTMLInputElement>(null);
-	const closeDrawer = React.useCallback(() => {
-		if (toggleRef.current) {
-			toggleRef.current.checked = false;
-		}
-	}, []);
-
-	const renderLink = React.useCallback(
-		(item: NavigationItem) => {
-			if ("children" in item) {
-				return (
-					<React.Fragment key={item.name}>
-						<li className="is-drawer-open:menu w-full p-0">
-							<details className="is-drawer-close:hidden" open>
-								<summary>
-									<item.icon className="my-1.5 size-4" />
-									<span className="is-drawer-close:hidden">{item.name}</span>
-								</summary>
-								<ul>{item.children?.map(renderLink)}</ul>
-							</details>
-						</li>
-						<ul className="is-drawer-open:hidden">
-							{item.children?.map(renderLink)}
-						</ul>
-					</React.Fragment>
-				);
-			} else if (
-				"href" in item &&
-				user &&
-				!item.isHidden?.(user.role ?? "USER")
-			) {
-				return (
-					<li key={item.name}>
-						<Link
-							className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
-							data-tip={item.name}
-							to={item.href}
-							onClick={closeDrawer}
-							activeProps={{
-								className: "text-accent",
-							}}
-							activeOptions={{ exact: true }}
-						>
-							<item.icon className="my-1.5 size-4" />
-							<span className="is-drawer-close:hidden">{item.name}</span>
-						</Link>
-					</li>
-				);
-			}
-		},
-		[closeDrawer, user],
-	);
-
 	return (
-		<div className="drawer lg:drawer-open">
-			<input
-				ref={toggleRef}
-				id="drawer-toggle"
-				type="checkbox"
-				className="drawer-toggle"
-			/>
-			<div className="drawer-content">
-				{/* Navbar */}
-				<nav className="navbar w-full bg-base-300">
-					<label
-						htmlFor="drawer-toggle"
-						aria-label={t("open sidebar")}
-						className="btn btn-square btn-ghost"
-					>
-						{/* Sidebar toggle icon */}
-						<PanelLeftOpenIcon className="my-1.5 size-4" />
-					</label>
+		<SidebarProvider defaultOpen={false}>
+			<Sidebar collapsible="icon">
+				<SidebarContent>
+					<SidebarGroup>
+						<NavigationItems />
+					</SidebarGroup>
+				</SidebarContent>
+				<SidebarFooter>
+					<SidebarMenu>
+						<ThemeSwitch />
+						<SidebarMenuItem>
+							<SidebarMenuButton asChild tooltip={t("Logout")}>
+								<Link to="/logout">
+									<LogOutIcon />
+									<span>{t("Logout")}</span>
+								</Link>
+							</SidebarMenuButton>
+						</SidebarMenuItem>
+					</SidebarMenu>
+				</SidebarFooter>
+			</Sidebar>
+			<SidebarInset>
+				<nav className="flex h-14 w-full items-center border-b px-4">
+					<SidebarTrigger />
 					<div className="px-4">{title}</div>
 					<div className="flex-1" />
-					<button
+					<Button
 						type="button"
+						variant="ghost"
+						className="mx-2 gap-2"
 						onClick={() => {
 							window.dispatchEvent(
 								new KeyboardEvent("keydown", { key: "k", metaKey: true }),
 							);
 						}}
-						className="btn btn-ghost mx-2 gap-2 normal-case"
 					>
 						<SearchIcon className="size-4" />
 						<span className="hidden sm:inline">{t("Search")}</span>
-						<kbd className="kbd font-medium hidden sm:inline">⌘K</kbd>
-					</button>
+						<Kbd className="hidden sm:inline-flex">⌘K</Kbd>
+					</Button>
 				</nav>
 				{/* Page content here */}
 				<div className="max-w-4xl m-auto p-4 relative">{children}</div>
-			</div>
-
-			<div className="drawer-side is-drawer-close:overflow-visible">
-				<label
-					htmlFor="drawer-toggle"
-					aria-label="close sidebar"
-					className="drawer-overlay"
-				></label>
-				<div className="flex min-h-full flex-col items-start bg-base-200 is-drawer-close:w-14 is-drawer-open:w-64">
-					{/* Sidebar content here */}
-					<ul className="menu w-full grow">
-						{navigationItems.map(renderLink)}
-					</ul>
-					<div className="divider mb-0"></div>
-					<ul className="menu w-full mb-4">
-						<ThemeSwitch />
-						<li>
-							<Link
-								to="/logout"
-								className="is-drawer-close:tooltip is-drawer-close:tooltip-right"
-								data-tip={t("Logout")}
-							>
-								<LogOutIcon className="my-1.5 size-4" />
-								<span className="is-drawer-close:hidden">{t("Logout")}</span>
-							</Link>
-						</li>
-					</ul>
-				</div>
-			</div>
-		</div>
+			</SidebarInset>
+		</SidebarProvider>
 	);
 };
