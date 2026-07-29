@@ -111,7 +111,6 @@ function RouteComponent() {
 			{canEdit && (
 				<>
 					<div className="fab">
-						{/** biome-ignore lint/a11y/useSemanticElements: fixes safari bug */}
 						<Button asChild variant="secondary" size="icon-lg" role="button" tabIndex={0}>
 							<div>
 								<CogIcon className="size-4" />

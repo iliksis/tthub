@@ -1,116 +1,84 @@
-import { SearchIcon } from "lucide-react";
-import React, { useId } from "react";
-import { cn } from "@/lib/utils";
+import React from "react";
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from "@/components/ui/command";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 
 type CommandModalProps = {
 	open?: boolean;
 	onClose?: () => void;
-	className?: string;
 	items?: string[];
 	onSelectItem?: (item: string) => void;
 };
 
 export const CommandModal = ({
 	open,
-	className,
 	onClose,
 	items = [],
 	onSelectItem,
 }: React.PropsWithChildren<CommandModalProps>) => {
-	const id = useId();
-	const dialogProps = open ? { open: true } : {};
-
-	const [selectedIndex, setSelectedIndex] = React.useState(0);
-	const [filteredItems, setFilteredItems] = React.useState<typeof items>(items);
 	const [inputValue, setInputValue] = React.useState("");
 
-	const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setFilteredItems(
-			items.filter((item) =>
-				item.toLowerCase().includes(e.target.value.toLowerCase()),
-			),
-		);
-		setSelectedIndex(0);
-		setInputValue(e.target.value);
-	};
-
-	const nextItem = () => {
-		let nextIndex = selectedIndex + 1;
-		if (nextIndex > filteredItems.length - 1) {
-			nextIndex = 0;
-		}
-		setSelectedIndex(nextIndex);
-	};
-
-	const previousItem = () => {
-		let prevIndex = selectedIndex - 1;
-		if (prevIndex < 0) {
-			prevIndex = filteredItems.length - 1;
-		}
-		setSelectedIndex(prevIndex);
-	};
-
-	const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "ArrowDown") {
-			nextItem();
-		} else if (e.key === "ArrowUp") {
-			previousItem();
-		} else if (e.key === "Enter") {
-			if (filteredItems.length > 0) {
-				const item = filteredItems[selectedIndex];
-				onSelectItem?.(item);
-			} else if (inputValue.length > 0) {
-				onSelectItem?.(inputValue);
-			}
-		}
-	};
-
-	if (!open) return null;
+	const filteredItems = items.filter((item) =>
+		item.toLowerCase().includes(inputValue.toLowerCase()),
+	);
 
 	return (
-		<dialog
-			id={`modal_${id}`}
-			className={cn("modal", className)}
-			onClose={onClose}
-			{...dialogProps}
+		<Dialog
+			open={open ?? false}
+			onOpenChange={(nextOpen) => {
+				if (!nextOpen) onClose?.();
+			}}
 		>
-			<div className="modal-box p-0">
-				<label className="input input-lg input-ghost w-full">
-					<SearchIcon className="size-4 opacity-50" />
-					<input
-						type="search"
+			<DialogHeader className="sr-only">
+				<DialogTitle>Command Palette</DialogTitle>
+				<DialogDescription>Search for an item to select</DialogDescription>
+			</DialogHeader>
+			<DialogContent className="overflow-hidden p-0">
+				<Command shouldFilter={false}>
+					<CommandInput
 						placeholder="Search..."
-						autoFocus={true}
-						onChange={onChange}
-						onKeyDown={onKeyDown}
+						value={inputValue}
+						onValueChange={setInputValue}
+						onKeyDown={(e) => {
+							if (
+								e.key === "Enter" &&
+								filteredItems.length === 0 &&
+								inputValue.length > 0
+							) {
+								onSelectItem?.(inputValue);
+							}
+						}}
 					/>
-				</label>
-				<ul className="list max-h-[300px] overflow-y-auto">
-					{filteredItems.length > 0 ? (
-						filteredItems.map((item, i) => (
-							<div
-								key={item}
-								role="option"
-								tabIndex={0}
-								aria-selected={i === selectedIndex}
-								className="list-row aria-selected:bg-base-content/10 hover:bg-base-content/5 hover:cursor-pointer"
-								onKeyDown={() => onSelectItem?.(item)}
-								onClick={() => onSelectItem?.(item)}
-							>
-								{item}
-							</div>
-						))
-					) : (
-						<li className="list-row">
-							No items found{" "}
-							{inputValue && `- Create '${inputValue}' by pressing Enter`}
-						</li>
-					)}
-				</ul>
-			</div>
-			<form method="dialog" className="modal-backdrop">
-				<button type="submit">close</button>
-			</form>
-		</dialog>
+					<CommandList>
+						{filteredItems.length > 0 ? (
+							<CommandGroup>
+								{filteredItems.map((item) => (
+									<CommandItem key={item} onSelect={() => onSelectItem?.(item)}>
+										{item}
+									</CommandItem>
+								))}
+							</CommandGroup>
+						) : (
+							<CommandEmpty>
+								No items found
+								{inputValue && ` - Create '${inputValue}' by pressing Enter`}
+							</CommandEmpty>
+						)}
+					</CommandList>
+				</Command>
+			</DialogContent>
+		</Dialog>
 	);
 };

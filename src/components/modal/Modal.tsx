@@ -1,4 +1,11 @@
-import { useId } from "react";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogFooter,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +17,7 @@ type ModalProps = {
 	onRenderActionButton?: () => React.ReactNode;
 	closeButtonLabel?: string;
 	closeButtonClassName?: string;
+	title?: string;
 };
 
 export const Modal = ({
@@ -21,36 +29,31 @@ export const Modal = ({
 	onRenderActionButton,
 	closeButtonLabel = t("Close"),
 	closeButtonClassName,
+	title,
 }: React.PropsWithChildren<ModalProps>) => {
-	const id = useId();
-	const dialogProps = open ? { open: true } : {};
-
-	if (!open) return null;
-
 	return (
-		<dialog
-			id={`modal_${id}`}
-			className={cn("modal", className)}
-			onClose={onClose}
-			{...dialogProps}
+		<Dialog
+			open={open ?? false}
+			onOpenChange={(nextOpen) => {
+				if (!nextOpen) onClose?.();
+			}}
 		>
-			<div className={cn("modal-box flex flex-col", modalBoxClassName)}>
+			<DialogContent
+				className={cn("flex flex-col", modalBoxClassName, className)}
+			>
+				<DialogTitle className={title ? undefined : "sr-only"}>
+					{title ?? t("Dialog")}
+				</DialogTitle>
 				<div className="flex-1">{children}</div>
-				<div className="modal-action shrink">
-					<form method="dialog" className="flex gap-2">
-						{onRenderActionButton?.()}
-						<button
-							type="submit"
-							className={cn("btn btn-secondary", closeButtonClassName)}
-						>
+				<DialogFooter>
+					{onRenderActionButton?.()}
+					<DialogClose asChild>
+						<Button variant="secondary" className={closeButtonClassName}>
 							{closeButtonLabel}
-						</button>
-					</form>
-				</div>
-			</div>
-			<form method="dialog" className="modal-backdrop">
-				<button type="submit">close</button>
-			</form>
-		</dialog>
+						</Button>
+					</DialogClose>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 };

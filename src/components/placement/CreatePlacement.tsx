@@ -76,7 +76,6 @@ export const CreatePlacement = ({
 		<Modal
 			open={open}
 			onClose={_onClose}
-			className="modal-bottom"
 			modalBoxClassName="md:max-w-xl md:mx-auto"
 			onRenderActionButton={() => (
 				<Button

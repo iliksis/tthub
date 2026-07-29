@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { t } from "@/lib/text";
 import { Modal } from "./Modal";
 
@@ -18,12 +19,12 @@ export const DeleteModal = ({
 		<Modal
 			open={open}
 			onClose={onClose}
-			className="text-warning-content"
+			className="text-warning-foreground"
 			modalBoxClassName="bg-warning"
 			onRenderActionButton={() => (
-				<button type="button" className="btn btn-error" onClick={onDelete}>
+				<Button type="button" variant="destructive" onClick={onDelete}>
 					{t("Delete")}
-				</button>
+				</Button>
 			)}
 		>
 			<p>{label}</p>

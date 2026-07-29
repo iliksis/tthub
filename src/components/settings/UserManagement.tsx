@@ -264,7 +264,6 @@ export const UpdateRoleModal = ({ onClose, user }: UpdateRoleModalProps) => {
 
 	return (
 		<Modal
-			className="modal-bottom"
 			modalBoxClassName="md:max-w-xl md:mx-auto"
 			open={true}
 			onClose={onClose}

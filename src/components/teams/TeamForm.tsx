@@ -48,7 +48,6 @@ export const TeamForm = ({
 	return (
 		<Modal
 			open={open}
-			className="modal-bottom"
 			modalBoxClassName="md:max-w-xl md:mx-auto"
 			onClose={onClose}
 			onRenderActionButton={onRenderActionButton}

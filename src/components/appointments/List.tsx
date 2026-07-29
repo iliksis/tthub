@@ -193,7 +193,6 @@ export const Filters = ({
 				<FilterIcon className="size-4" />
 			</Button>
 			<Modal
-				className="modal-bottom"
 				modalBoxClassName="md:max-w-xl md:mx-auto"
 				open={modal}
 				onClose={() => setModal(false)}

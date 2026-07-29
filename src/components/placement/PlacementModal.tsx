@@ -4,6 +4,7 @@ import React from "react";
 import { toast } from "sonner";
 import { deletePlacement } from "@/api/placements";
 import { InternalLink } from "@/components/InternalLink";
+import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import type { Placement, Player } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
@@ -96,20 +97,21 @@ export const ParticipantModal = ({
 			<Modal
 				open={open}
 				onClose={onClose}
-				className="modal-end"
 				modalBoxClassName="w-[80vw] max-w-md"
 			>
 				<div className="flex items-center">
 					<h2 className="flex-1">{t("Participants")}</h2>
 					{!canEdit && (
-						<button
+						<Button
 							type="button"
-							className="shrink btn btn-primary btn-square btn-ghost"
+							variant="ghost"
+							size="icon"
+							className="shrink"
 							title={t("Create")}
 							onClick={onCreateCategory}
 						>
 							<Plus className="size-4" />
-						</button>
+						</Button>
 					)}
 				</div>
 				{groupedPlacements.map((group) => (
@@ -135,22 +137,25 @@ export const ParticipantModal = ({
 								</div>
 								{!canEdit && (
 									<>
-										<button
+										<Button
 											type="button"
-											className="btn btn-square btn-ghost"
+											variant="ghost"
+											size="icon"
 											title={t("Edit")}
 											onClick={() => onUpdatePlacement(p)}
 										>
 											<EditIcon className="size-4" />
-										</button>
-										<button
+										</Button>
+										<Button
 											type="button"
-											className="btn btn-square btn-error btn-ghost"
+											variant="ghost"
+											size="icon"
+											className="text-destructive hover:text-destructive"
 											title={t("Delete")}
 											onClick={onDeletePlacement(p)}
 										>
 											<Trash2Icon className="size-4" />
-										</button>
+										</Button>
 									</>
 								)}
 							</div>

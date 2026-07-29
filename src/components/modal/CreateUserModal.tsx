@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { createUser } from "@/api/users";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -66,14 +67,12 @@ export const CreateUserModal = ({
 
 	return (
 		<Modal
-			className="modal-bottom"
 			modalBoxClassName="md:max-w-xl md:mx-auto"
 			open={modalOpen}
 			onClose={onClose}
 			onRenderActionButton={() => (
-				<button
+				<Button
 					type="submit"
-					className="btn btn-primary"
 					onClick={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
@@ -81,7 +80,7 @@ export const CreateUserModal = ({
 					}}
 				>
 					{t("Create")}
-				</button>
+				</Button>
 			)}
 		>
 			<form
