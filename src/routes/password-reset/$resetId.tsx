@@ -75,15 +75,17 @@ function RouteComponent() {
 	return (
 		<div className="w-dvw h-dvh relative">
 			<form
-				className="card w-full max-w-sm bg-base-300 shrink-0 shadow-2xl absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+				className="w-full max-w-sm shrink-0 rounded-xl border bg-card text-card-foreground shadow-2xl absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
 				onSubmit={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
 					form.handleSubmit();
 				}}
 			>
-				<div className="card-body">
-					<h2 className="card-title">{t("Update your password")}</h2>
+				<div className="flex flex-col gap-2 p-6">
+					<h2 className="text-lg font-semibold leading-none">
+						{t("Update your password")}
+					</h2>
 					<fieldset className="flex flex-col gap-1.5">
 						<Label htmlFor="username">{t("User Name")}:</Label>
 						<Input
@@ -124,7 +126,7 @@ function RouteComponent() {
 						)}
 					</form.Field>
 					{formErrorMap.onChange && (
-						<div className="text-error text-xs">{formErrorMap.onChange}</div>
+						<div className="text-destructive text-xs">{formErrorMap.onChange}</div>
 					)}
 					<form.Subscribe
 						selector={(state) => [

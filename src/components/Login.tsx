@@ -39,14 +39,14 @@ export function Login() {
 	return (
 		<div className="w-dvw h-dvh relative">
 			<form
-				className="card w-full max-w-sm bg-base-300 shrink-0 shadow-2xl absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+				className="w-full max-w-sm shrink-0 rounded-xl border bg-card text-card-foreground shadow-2xl absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
 				onSubmit={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
 					form.handleSubmit();
 				}}
 			>
-				<div className="card-body gap-2">
+				<div className="flex flex-col gap-2 p-6">
 					<form.Field name="userName">
 						{(field) => {
 							return (

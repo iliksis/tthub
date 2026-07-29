@@ -132,7 +132,7 @@ export const Profile = () => {
 					</form.Field>
 				</div>
 				{formErrorMap.onChange && (
-					<div className="text-error text-xs">{formErrorMap.onChange}</div>
+					<div className="text-destructive text-xs">{formErrorMap.onChange}</div>
 				)}
 				<form.Subscribe
 					selector={(state) => [

@@ -2,7 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { isServer, useQuery } from "@tanstack/react-query";
 import { useRouter, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Trash2Icon } from "lucide-react";
+import { Loader2Icon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import {
 	deleteNotificationSubscription,
@@ -36,7 +36,7 @@ export const Notifications = ({ subscriptions }: NotificationsProps) => {
 		subscription,
 	} = useNotificationPermissions();
 
-	if (isLoading) return <div className="loading loading-spinner"></div>;
+	if (isLoading) return <Loader2Icon className="size-4 animate-spin" />;
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -252,10 +252,12 @@ const ActiveSubscriptions = ({ subscriptions }: ActiveSubscriptionsProps) => {
 	return (
 		<div className="mt-6">
 			<h3>{t("Active Subscriptions")}</h3>
-			<ul className="list">
+			<ul className="flex flex-col divide-y divide-border">
 				{subscriptions.map((subscription) => (
-					<li key={subscription.id} className="list-row">
-						<div></div>
+					<li
+						key={subscription.id}
+						className="flex items-center justify-between gap-2 py-2"
+					>
 						<div>{subscription.device}</div>
 						<Button
 							type="button"
