@@ -1,12 +1,27 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Command } from "cmdk";
 import { CalendarIcon, UserIcon, UsersIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { searchAppointments } from "@/api/appointments";
 import { searchPlayers } from "@/api/players";
 import { searchTeams } from "@/api/teams";
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from "@/components/ui/command";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Kbd } from "@/components/ui/kbd";
 import { t } from "@/lib/text";
-import { calculateAgeGroup, cn } from "@/lib/utils";
+import { calculateAgeGroup } from "@/lib/utils";
 
 type SearchType = "appointments" | "players" | "teams" | null;
 
@@ -238,104 +253,97 @@ export const GlobalSearch = () => {
 	};
 
 	return (
-		<Command.Dialog
-			open={open}
-			onOpenChange={handleOpenChange}
-			className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl rounded-lg border border-base-300 bg-base-100 shadow-xl"
-			shouldFilter={false}
-		>
-			<div className="flex flex-col border-b border-base-300">
-				<div className="flex items-center gap-2 px-3">
-					<Command.Input
-						ref={inputRef}
-						value={inputValue}
-						onValueChange={handleInputChange}
-						className="flex h-14 flex-1 bg-transparent py-3 text-base outline-none placeholder:text-base-content/50 disabled:cursor-not-allowed disabled:opacity-50"
-						placeholder={
-							searchType
-								? t("Type to search...")
-								: t("Select a search type or use shortcuts")
-						}
-					/>
-					{searchType && (
-						<button
-							type="button"
-							className="kbd kbd-sm ml-2"
-							onClick={handleBackToShortcuts}
-						>
-							ESC
-						</button>
-					)}
-				</div>
-			</div>
-
-			<Command.List className="max-h-96 overflow-y-auto p-2">
-				{!searchType ? (
-					<Command.Group>
-						{shortcuts.map((shortcut) => {
-							const Icon = shortcut.icon;
-							return (
-								<Command.Item
-									key={shortcut.type}
-									value={shortcut.type ?? ""}
-									onSelect={() => handleSelectShortcut(shortcut.type)}
-									className={cn(
-										"flex items-center gap-3 rounded-lg px-3 py-3 cursor-pointer",
-										"aria-selected:bg-primary/20 data-[selected=true]:bg-primary/20",
-										"hover:bg-base-content/5",
-									)}
-								>
-									<Icon className="size-5 opacity-70" />
-									<span className="flex-1 font-medium">{shortcut.label}</span>
-									<kbd className="kbd kbd-sm">{shortcut.shortcut}</kbd>
-								</Command.Item>
-							);
-						})}
-					</Command.Group>
-				) : (
-					<Command.Group
-						heading={shortcuts.find((s) => s.type === searchType)?.label}
-					>
-						{currentItems.length > 0 ? (
-							currentItems.map((item) => (
-								<Command.Item
-									key={item.id}
-									value={item.id}
-									onSelect={() => handleSelectItem(item)}
-									className={cn(
-										"flex items-center gap-3 rounded-lg px-3 py-3 cursor-pointer",
-										"aria-selected:bg-primary/20 data-[selected=true]:bg-primary/20",
-										"hover:bg-base-content/5",
-									)}
-								>
-									<div className="flex-1 min-w-0 flex items-center gap-2">
-										<span className="font-medium">{item.title}</span>
-										{item.subtitle && (
-											<span className="text-sm opacity-70">
-												{item.subtitle}
-											</span>
-										)}
-									</div>
-									{item.location && (
-										<span className="text-sm opacity-70 whitespace-nowrap">
-											{item.location}
-										</span>
-									)}
-									{item.date && (
-										<span className="text-sm opacity-70 whitespace-nowrap">
-											{item.date}
-										</span>
-									)}
-								</Command.Item>
-							))
-						) : (
-							<Command.Empty className="py-6 text-center text-sm opacity-70">
-								{shortcuts.find((s) => s.type === searchType)?.empty}
-							</Command.Empty>
+		<Dialog open={open} onOpenChange={handleOpenChange}>
+			<DialogHeader className="sr-only">
+				<DialogTitle>{t("Search")}</DialogTitle>
+				<DialogDescription>
+					{t("Select a search type or use shortcuts")}
+				</DialogDescription>
+			</DialogHeader>
+			<DialogContent className="max-w-2xl gap-0 overflow-hidden p-0">
+				<Command shouldFilter={false}>
+					<div className="flex items-center gap-2 border-b px-3">
+						<CommandInput
+							ref={inputRef}
+							value={inputValue}
+							onValueChange={handleInputChange}
+							className="h-14 text-base"
+							placeholder={
+								searchType
+									? t("Type to search...")
+									: t("Select a search type or use shortcuts")
+							}
+						/>
+						{searchType && (
+							<button type="button" onClick={handleBackToShortcuts}>
+								<Kbd>ESC</Kbd>
+							</button>
 						)}
-					</Command.Group>
-				)}
-			</Command.List>
-		</Command.Dialog>
+					</div>
+
+					<CommandList className="max-h-96 p-2">
+						{!searchType ? (
+							<CommandGroup>
+								{shortcuts.map((shortcut) => {
+									const Icon = shortcut.icon;
+									return (
+										<CommandItem
+											key={shortcut.type}
+											value={shortcut.type ?? ""}
+											onSelect={() => handleSelectShortcut(shortcut.type)}
+											className="gap-3 rounded-lg px-3 py-3"
+										>
+											<Icon className="size-5 opacity-70" />
+											<span className="flex-1 font-medium">
+												{shortcut.label}
+											</span>
+											<Kbd>{shortcut.shortcut}</Kbd>
+										</CommandItem>
+									);
+								})}
+							</CommandGroup>
+						) : (
+							<CommandGroup
+								heading={shortcuts.find((s) => s.type === searchType)?.label}
+							>
+								{currentItems.length > 0 ? (
+									currentItems.map((item) => (
+										<CommandItem
+											key={item.id}
+											value={item.id}
+											onSelect={() => handleSelectItem(item)}
+											className="gap-3 rounded-lg px-3 py-3"
+										>
+											<div className="flex min-w-0 flex-1 items-center gap-2">
+												<span className="font-medium">{item.title}</span>
+												{item.subtitle && (
+													<span className="text-sm opacity-70">
+														{item.subtitle}
+													</span>
+												)}
+											</div>
+											{item.location && (
+												<span className="whitespace-nowrap text-sm opacity-70">
+													{item.location}
+												</span>
+											)}
+											{item.date && (
+												<span className="whitespace-nowrap text-sm opacity-70">
+													{item.date}
+												</span>
+											)}
+										</CommandItem>
+									))
+								) : (
+									<CommandEmpty>
+										{shortcuts.find((s) => s.type === searchType)?.empty}
+									</CommandEmpty>
+								)}
+							</CommandGroup>
+						)}
+					</CommandList>
+				</Command>
+			</DialogContent>
+		</Dialog>
 	);
 };
