@@ -3,6 +3,15 @@ import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { updateAppointment } from "@/api/appointments";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useMutation } from "@/hooks/useMutation";
 import type { Appointment } from "@/lib/prisma/client";
 import { AppointmentType } from "@/lib/prisma/enums";
@@ -78,13 +87,10 @@ export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 					<form.Field name="title">
 						{(field) => {
 							return (
-								<fieldset className="fieldset">
-									<label className="label" htmlFor={field.name}>
-										{t("Title")}:
-									</label>
-									<input
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Title")}:</Label>
+									<Input
 										id={field.name}
-										className="input input-primary w-full"
 										name={field.name}
 										value={field.state.value}
 										onBlur={field.handleBlur}
@@ -99,13 +105,10 @@ export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 					<form.Field name="shortTitle">
 						{(field) => {
 							return (
-								<fieldset className="fieldset">
-									<label className="label" htmlFor={field.name}>
-										{t("ShortTitle")}:
-									</label>
-									<input
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("ShortTitle")}:</Label>
+									<Input
 										id={field.name}
-										className="input input-primary w-full"
 										name={field.name}
 										value={field.state.value}
 										onBlur={field.handleBlur}
@@ -119,13 +122,10 @@ export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 				<div>
 					<form.Field name="startDate">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("StartDate")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("StartDate")}:</Label>
+								<Input
 									id={field.name}
-									className="input input-primary w-full"
 									type="datetime-local"
 									name={field.name}
 									value={
@@ -143,13 +143,10 @@ export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 				<div>
 					<form.Field name="endDate">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("EndDate")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("EndDate")}:</Label>
+								<Input
 									id={field.name}
-									className="input input-primary w-full"
 									type="date"
 									name={field.name}
 									value={
@@ -169,13 +166,10 @@ export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 						<div>
 							<form.Field name="location">
 								{(field) => (
-									<fieldset className="fieldset">
-										<label className="label" htmlFor={field.name}>
-											{t("Location")}:
-										</label>
-										<input
+									<fieldset className="flex flex-col gap-1.5">
+										<Label htmlFor={field.name}>{t("Location")}:</Label>
+										<Input
 											id={field.name}
-											className="input input-primary w-full"
 											name={field.name}
 											value={field.state.value || undefined}
 											onBlur={field.handleBlur}
@@ -188,13 +182,10 @@ export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 						<div>
 							<form.Field name="link">
 								{(field) => (
-									<fieldset className="fieldset">
-										<label className="label" htmlFor={field.name}>
-											{t("Link")}:
-										</label>
-										<input
+									<fieldset className="flex flex-col gap-1.5">
+										<Label htmlFor={field.name}>{t("Link")}:</Label>
+										<Input
 											id={field.name}
-											className="input input-primary w-full"
 											name={field.name}
 											value={field.state.value || undefined}
 											onBlur={field.handleBlur}
@@ -207,38 +198,39 @@ export const UpdateForm = ({ appointment, appointments }: UpdateFormProps) => {
 						<div>
 							<form.Field name="nextAppointment">
 								{(field) => (
-									<fieldset className="fieldset">
-										<label className="label" htmlFor={field.name}>
-											{t("Next Appointment")}:
-										</label>
-										<select
-											className="select select-primary w-full"
+									<fieldset className="flex flex-col gap-1.5">
+										<Label htmlFor={field.name}>{t("Next Appointment")}:</Label>
+										<Select
 											name={field.name}
-											onBlur={field.handleBlur}
-											onChange={(e) => field.handleChange(e.target.value)}
+											value={field.state.value ?? undefined}
+											onValueChange={(value) => field.handleChange(value)}
+											onOpenChange={(open) => {
+												if (!open) field.handleBlur();
+											}}
 										>
-											<option disabled selected>
-												{t("Choose an appointment")}
-											</option>
-											{appointments.map((p) => (
-												<option
-													key={p.id}
-													value={p.id}
-													disabled={p.id === appointment.id}
-													className="before:content-[attr(data-before)] before:opacity-60"
-													data-before={new Date(p.startDate).toLocaleDateString(
-														"de-DE",
-														{
+											<SelectTrigger id={field.name} className="w-full">
+												<SelectValue placeholder={t("Choose an appointment")} />
+											</SelectTrigger>
+											<SelectContent>
+												{appointments.map((p) => (
+													<SelectItem
+														key={p.id}
+														value={p.id}
+														disabled={p.id === appointment.id}
+														className="before:content-[attr(data-before)] before:opacity-60"
+														data-before={new Date(
+															p.startDate,
+														).toLocaleDateString("de-DE", {
 															day: "2-digit",
 															month: "2-digit",
 															year: "2-digit",
-														},
-													)}
-												>
-													{p.title}
-												</option>
-											))}
-										</select>
+														})}
+													>
+														{p.title}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
 									</fieldset>
 								)}
 							</form.Field>

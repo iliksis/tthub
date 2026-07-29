@@ -2,6 +2,15 @@ import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { createUser } from "@/api/users";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useMutation } from "@/hooks/useMutation";
 import { Role } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
@@ -86,13 +95,10 @@ export const CreateUserModal = ({
 					<form.Field name="name">
 						{(field) => {
 							return (
-								<fieldset className="fieldset">
-									<label className="label" htmlFor={field.name}>
-										{t("Name")}:
-									</label>
-									<input
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Name")}:</Label>
+									<Input
 										id={field.name}
-										className="input input-primary w-full"
 										name={field.name}
 										value={field.state.value}
 										onBlur={field.handleBlur}
@@ -106,13 +112,10 @@ export const CreateUserModal = ({
 				<div>
 					<form.Field name="userName">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("User Name")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("User Name")}:</Label>
+								<Input
 									id={field.name}
-									className="input input-primary w-full"
 									name={field.name}
 									value={field.state.value}
 									onBlur={field.handleBlur}
@@ -125,21 +128,26 @@ export const CreateUserModal = ({
 				<div>
 					<form.Field name="role">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Role")}:
-								</label>
-								<select
-									id={field.name}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value as Role)}
-									className="select select-primary w-full"
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Role")}:</Label>
+								<Select
 									value={field.state.value}
+									onValueChange={(value) => field.handleChange(value as Role)}
+									onOpenChange={(open) => {
+										if (!open) field.handleBlur();
+									}}
 								>
-									{Object.keys(Role).map((role) => (
-										<option key={role}>{role}</option>
-									))}
-								</select>
+									<SelectTrigger id={field.name} className="w-full">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										{Object.keys(Role).map((role) => (
+											<SelectItem key={role} value={role}>
+												{role}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 							</fieldset>
 						)}
 					</form.Field>

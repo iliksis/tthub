@@ -4,6 +4,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { updateUserInformation } from "@/api/users";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import { useAppSession } from "@/lib/session";
 import { t } from "@/lib/text";
@@ -82,13 +84,10 @@ export const Profile = () => {
 				<div>
 					<form.Field name="name">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Name")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Name")}:</Label>
+								<Input
 									id={field.name}
-									className="input input-primary w-full"
 									name={field.name}
 									value={field.state.value}
 									onBlur={field.handleBlur}
@@ -101,13 +100,10 @@ export const Profile = () => {
 				<div>
 					<form.Field name="password">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Password")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Password")}:</Label>
+								<Input
 									id={field.name}
-									className="input input-primary w-full"
 									type="password"
 									name={field.name}
 									value={field.state.value}
@@ -121,13 +117,10 @@ export const Profile = () => {
 				<div>
 					<form.Field name="confirmPassword">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Confirm Password")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Confirm Password")}:</Label>
+								<Input
 									id={field.name}
-									className="input input-primary w-full"
 									type="password"
 									name={field.name}
 									value={field.state.value}

@@ -4,6 +4,9 @@ import { FilterIcon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { cn, isDayInPast } from "@/lib/utils";
@@ -208,13 +211,10 @@ export const Filters = ({
 					<div>
 						<form.Field name="title">
 							{(field) => (
-								<fieldset className="fieldset">
-									<label className="label" htmlFor={field.name}>
-										{t("Title")}:
-									</label>
-									<input
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Title")}:</Label>
+									<Input
 										id={field.name}
-										className="input input-primary w-full"
 										name={field.name}
 										value={field.state.value}
 										onBlur={field.handleBlur}
@@ -227,13 +227,10 @@ export const Filters = ({
 					<div>
 						<form.Field name="location">
 							{(field) => (
-								<fieldset className="fieldset">
-									<label className="label" htmlFor={field.name}>
-										{t("Location")}:
-									</label>
-									<input
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Location")}:</Label>
+									<Input
 										id={field.name}
-										className="input input-primary w-full"
 										name={field.name}
 										value={field.state.value}
 										onBlur={field.handleBlur}
@@ -246,19 +243,19 @@ export const Filters = ({
 					<div>
 						<form.Field name="deleted">
 							{(field) => (
-								<fieldset className="fieldset">
-									<label className="label" htmlFor={field.name}>
-										<input
+								<fieldset className="flex flex-col gap-1.5">
+									<div className="flex items-center gap-2">
+										<Checkbox
 											id={field.name}
-											className="checkbox checkbox-primary"
-											type="checkbox"
 											checked={field.state.value}
 											name={field.name}
 											onBlur={field.handleBlur}
-											onChange={(e) => field.handleChange(e.target.checked)}
+											onCheckedChange={(checked) =>
+												field.handleChange(checked === true)
+											}
 										/>
-										{t("Show deleted?")}
-									</label>
+										<Label htmlFor={field.name}>{t("Show deleted?")}</Label>
+									</div>
 								</fieldset>
 							)}
 						</form.Field>

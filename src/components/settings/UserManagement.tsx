@@ -10,6 +10,14 @@ import { deleteUser, updateUserRole } from "@/api/users";
 import { DetailsList } from "@/components/DetailsList";
 import { CreateUserModal } from "@/components/modal/CreateUserModal";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useMutation } from "@/hooks/useMutation";
 import type { PasswordReset, User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";
@@ -284,21 +292,26 @@ export const UpdateRoleModal = ({ onClose, user }: UpdateRoleModalProps) => {
 					<form.Field name="role">
 						{(field) => {
 							return (
-								<fieldset className="fieldset">
-									<label className="label" htmlFor={field.name}>
-										{t("Role")}:
-									</label>
-									<select
-										className="select select-primary w-full"
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Role")}:</Label>
+									<Select
 										value={field.state.value}
-										onChange={(e) => field.handleChange(e.target.value as Role)}
-										id={field.name}
-										onBlur={field.handleBlur}
+										onValueChange={(value) => field.handleChange(value as Role)}
+										onOpenChange={(open) => {
+											if (!open) field.handleBlur();
+										}}
 									>
-										{Object.keys(Role).map((role) => (
-											<option key={role}>{role}</option>
-										))}
-									</select>
+										<SelectTrigger id={field.name} className="w-full">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											{Object.keys(Role).map((role) => (
+												<SelectItem key={role} value={role}>
+													{role}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 								</fieldset>
 							);
 						}}

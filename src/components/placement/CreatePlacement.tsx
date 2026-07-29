@@ -3,6 +3,15 @@ import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { createPlacement } from "@/api/placements";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useMutation } from "@/hooks/useMutation";
 import type { Player } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
@@ -86,30 +95,32 @@ export const CreatePlacement = ({
 				<div>
 					<form.Field name="player">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Player")}:
-								</label>
-								<select
-									className="select select-primary w-full"
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Player")}:</Label>
+								<Select
 									name={field.name}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
+									value={field.state.value || undefined}
+									onValueChange={(value) => field.handleChange(value)}
+									onOpenChange={(open) => {
+										if (!open) field.handleBlur();
+									}}
 								>
-									<option disabled selected>
-										{t("Choose a player")}
-									</option>
-									{players.map((p) => (
-										<option
-											key={p.id}
-											value={p.id}
-											className="before:content-[attr(data-before)] before:opacity-60"
-											data-before={calculateAgeGroup(p.year)}
-										>
-											{p.name}
-										</option>
-									))}
-								</select>
+									<SelectTrigger id={field.name} className="w-full">
+										<SelectValue placeholder={t("Choose a player")} />
+									</SelectTrigger>
+									<SelectContent>
+										{players.map((p) => (
+											<SelectItem
+												key={p.id}
+												value={p.id}
+												className="before:content-[attr(data-before)] before:opacity-60"
+												data-before={calculateAgeGroup(p.year)}
+											>
+												{p.name}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 							</fieldset>
 						)}
 					</form.Field>
@@ -117,13 +128,10 @@ export const CreatePlacement = ({
 				<div>
 					<form.Field name="category">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Category")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Category")}:</Label>
+								<Input
 									id={field.name}
-									className="input input-primary w-full"
 									list="categories"
 									name={field.name}
 									value={field.state.value}
@@ -142,13 +150,10 @@ export const CreatePlacement = ({
 				<div>
 					<form.Field name="placement">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Placement")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Placement")}:</Label>
+								<Input
 									id={field.name}
-									className="input input-primary w-full"
 									name={field.name}
 									value={field.state.value}
 									onBlur={field.handleBlur}

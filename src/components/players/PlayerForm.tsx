@@ -1,8 +1,16 @@
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import type { Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
-import { cn } from "@/lib/utils";
 import { Modal } from "../modal/Modal";
 
 type PlayerFormProps = {
@@ -85,16 +93,11 @@ export const PlayerForm = ({
 						}}
 					>
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Name")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Name")}:</Label>
+								<Input
 									id={field.name}
-									className={cn(
-										"input w-full",
-										!field.state.meta.isValid ? "input-error" : "input-primary",
-									)}
+									aria-invalid={!field.state.meta.isValid}
 									minLength={2}
 									name={field.name}
 									value={field.state.value}
@@ -102,9 +105,9 @@ export const PlayerForm = ({
 									onChange={(e) => field.handleChange(e.target.value)}
 								/>
 								{!field.state.meta.isValid && (
-									<div className="text-error">
+									<p className="text-sm text-destructive">
 										{field.state.meta.errors.join(", ")}
-									</div>
+									</p>
 								)}
 							</fieldset>
 						)}
@@ -121,16 +124,11 @@ export const PlayerForm = ({
 						}}
 					>
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Year of birth")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Year of birth")}:</Label>
+								<Input
 									id={field.name}
-									className={cn(
-										"input w-full",
-										!field.state.meta.isValid ? "input-error" : "input-primary",
-									)}
+									aria-invalid={!field.state.meta.isValid}
 									type="number"
 									name={field.name}
 									value={field.state.value}
@@ -140,9 +138,9 @@ export const PlayerForm = ({
 									}
 								/>
 								{!field.state.meta.isValid && (
-									<div className="text-error">
+									<p className="text-sm text-destructive">
 										{field.state.meta.errors.join(", ")}
-									</div>
+									</p>
 								)}
 							</fieldset>
 						)}
@@ -159,16 +157,11 @@ export const PlayerForm = ({
 						}}
 					>
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("QTTR")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("QTTR")}:</Label>
+								<Input
 									id={field.name}
-									className={cn(
-										"input w-full",
-										!field.state.meta.isValid ? "input-error" : "input-primary",
-									)}
+									aria-invalid={!field.state.meta.isValid}
 									type="number"
 									name={field.name}
 									value={field.state.value}
@@ -178,9 +171,9 @@ export const PlayerForm = ({
 									}
 								/>
 								{!field.state.meta.isValid && (
-									<div className="text-error">
+									<p className="text-sm text-destructive">
 										{field.state.meta.errors.join(", ")}
-									</div>
+									</p>
 								)}
 							</fieldset>
 						)}
@@ -190,25 +183,27 @@ export const PlayerForm = ({
 					<div>
 						<form.Field name="team">
 							{(field) => (
-								<fieldset className="fieldset">
-									<label className="label" htmlFor={field.name}>
-										{t("Team")}:
-									</label>
-									<select
-										className="select select-primary w-full"
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Team")}:</Label>
+									<Select
 										name={field.name}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
+										value={field.state.value ?? undefined}
+										onValueChange={(value) => field.handleChange(value)}
+										onOpenChange={(open) => {
+											if (!open) field.handleBlur();
+										}}
 									>
-										<option disabled selected>
-											{t("Choose a team")}
-										</option>
-										{teams.map((p) => (
-											<option key={p.id} value={p.id}>
-												{p.title}
-											</option>
-										))}
-									</select>
+										<SelectTrigger id={field.name} className="w-full">
+											<SelectValue placeholder={t("Choose a team")} />
+										</SelectTrigger>
+										<SelectContent>
+											{teams.map((p) => (
+												<SelectItem key={p.id} value={p.id}>
+													{p.title}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 								</fieldset>
 							)}
 						</form.Field>

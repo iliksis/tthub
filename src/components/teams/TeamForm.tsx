@@ -1,7 +1,8 @@
 import { useForm } from "@tanstack/react-form";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { t } from "@/lib/text";
-import { cn } from "@/lib/utils";
 import { Modal } from "../modal/Modal";
 
 type TeamFormProps = {
@@ -63,16 +64,11 @@ export const TeamForm = ({
 				<div>
 					<form.Field name="title">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Title")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Title")}:</Label>
+								<Input
 									id={field.name}
-									className={cn(
-										"input w-full",
-										!field.state.meta.isValid ? "input-error" : "input-primary",
-									)}
+									aria-invalid={!field.state.meta.isValid}
 									minLength={2}
 									name={field.name}
 									value={field.state.value}
@@ -86,16 +82,11 @@ export const TeamForm = ({
 				<div>
 					<form.Field name="league">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("League")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("League")}:</Label>
+								<Input
 									id={field.name}
-									className={cn(
-										"input w-full",
-										!field.state.meta.isValid ? "input-error" : "input-primary",
-									)}
+									aria-invalid={!field.state.meta.isValid}
 									minLength={2}
 									name={field.name}
 									value={field.state.value}

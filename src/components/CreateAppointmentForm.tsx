@@ -3,6 +3,16 @@ import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { createAppointment } from "@/api/appointments";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useMutation } from "@/hooks/useMutation";
 import { AppointmentStatus } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
@@ -37,48 +47,48 @@ const AppointmentTypeSelect = () => {
 	const { state, dispatch } = useCreateAppointmentContext();
 
 	return (
-		<fieldset className="fieldset">
+		<fieldset className="flex flex-col gap-1.5">
 			<legend className="fieldset-legend">{t("Appointment type")}</legend>
 			<div className="flex gap-2">
-				<select
-					className="select select-primary w-1/2"
-					onChange={(e) => {
+				<Select
+					onValueChange={(value) => {
 						dispatch({
-							payload: e.target.value as AppointmentType,
+							payload: value as AppointmentType,
 							type: "SET_TYPE",
 						});
 					}}
-					defaultValue="default"
 				>
-					<option key="default" value="default" disabled>
-						{t("Choose a type")}
-					</option>
-					{types.map((t) => (
-						<option key={t.key} value={t.key}>
-							{t.value}
-						</option>
-					))}
-				</select>
+					<SelectTrigger className="w-1/2">
+						<SelectValue placeholder={t("Choose a type")} />
+					</SelectTrigger>
+					<SelectContent>
+						{types.map((t) => (
+							<SelectItem key={t.key} value={t.key}>
+								{t.value}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 				{state.type === "tournament" && (
-					<select
-						className="select select-primary w-1/2"
-						onChange={(e) => {
+					<Select
+						onValueChange={(value) => {
 							dispatch({
-								payload: e.target.value as TournamentType,
+								payload: value as TournamentType,
 								type: "SET_TOURNAMENT_TYPE",
 							});
 						}}
-						value="default"
 					>
-						<option key="default" value="default" disabled>
-							{t("Choose an area")}
-						</option>
-						{tournamentAreas.map((t) => (
-							<option key={t.key} value={t.key}>
-								{t.value}
-							</option>
-						))}
-					</select>
+						<SelectTrigger className="w-1/2">
+							<SelectValue placeholder={t("Choose an area")} />
+						</SelectTrigger>
+						<SelectContent>
+							{tournamentAreas.map((t) => (
+								<SelectItem key={t.key} value={t.key}>
+									{t.value}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				)}
 			</div>
 		</fieldset>
@@ -167,13 +177,10 @@ const AppointmentEditSection = () => {
 					<form.Field name="title">
 						{(field) => {
 							return (
-								<fieldset className="fieldset">
-									<label className="label" htmlFor={field.name}>
-										{t("Title")}:
-									</label>
-									<input
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Title")}:</Label>
+									<Input
 										id={field.name}
-										className="input input-primary w-full"
 										name={field.name}
 										value={field.state.value}
 										onBlur={field.handleBlur}
@@ -188,13 +195,10 @@ const AppointmentEditSection = () => {
 					<form.Field name="shortTitle">
 						{(field) => {
 							return (
-								<fieldset className="fieldset">
-									<label className="label" htmlFor={field.name}>
-										{t("ShortTitle")}:
-									</label>
-									<input
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("ShortTitle")}:</Label>
+									<Input
 										id={field.name}
-										className="input input-primary w-full"
 										name={field.name}
 										value={field.state.value}
 										onBlur={field.handleBlur}
@@ -208,13 +212,10 @@ const AppointmentEditSection = () => {
 				<div>
 					<form.Field name="startDate">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("StartDate")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("StartDate")}:</Label>
+								<Input
 									id={field.name}
-									className="input input-primary w-full"
 									type="datetime-local"
 									name={field.name}
 									value={
@@ -232,13 +233,10 @@ const AppointmentEditSection = () => {
 				<div>
 					<form.Field name="endDate">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("EndDate")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("EndDate")}:</Label>
+								<Input
 									id={field.name}
-									className="input input-primary w-full"
 									type="date"
 									name={field.name}
 									value={
@@ -264,13 +262,10 @@ const AppointmentEditSection = () => {
 						<div>
 							<form.Field name="location">
 								{(field) => (
-									<fieldset className="fieldset">
-										<label className="label" htmlFor={field.name}>
-											{t("Location")}:
-										</label>
-										<input
+									<fieldset className="flex flex-col gap-1.5">
+										<Label htmlFor={field.name}>{t("Location")}:</Label>
+										<Input
 											id={field.name}
-											className="input input-primary w-full"
 											name={field.name}
 											value={field.state.value}
 											onBlur={field.handleBlur}
@@ -283,25 +278,23 @@ const AppointmentEditSection = () => {
 						<div>
 							<form.Field name="status">
 								{(field) => (
-									<fieldset className="fieldset">
-										<label className="label">
-											{t("Publish")}?
-											<input
+									<fieldset className="flex flex-col gap-1.5">
+										<div className="flex items-center gap-2">
+											<Checkbox
 												id={field.name}
-												className="checkbox checkbox-primary"
-												type="checkbox"
 												checked={field.state.value !== AppointmentStatus.DRAFT}
 												name={field.name}
 												onBlur={field.handleBlur}
-												onChange={(e) =>
+												onCheckedChange={(checked) =>
 													field.handleChange(
-														e.target.checked
+														checked === true
 															? AppointmentStatus.PUBLISHED
 															: AppointmentStatus.DRAFT,
 													)
 												}
 											/>
-										</label>
+											<Label htmlFor={field.name}>{t("Publish")}?</Label>
+										</div>
 									</fieldset>
 								)}
 							</form.Field>

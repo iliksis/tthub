@@ -4,6 +4,9 @@ import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { type FeedConfig, updateFeedConfig } from "@/api/users";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
@@ -89,7 +92,7 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 							{t("Your Feed URL")}
 						</div>
 						<div className="flex gap-2">
-							<input type="text" readOnly value={feedUrl} className="input" />
+							<Input type="text" readOnly value={feedUrl} />
 							<Button type="button" onClick={handleCopyUrl}>
 								{t("Copy")}
 							</Button>
@@ -116,39 +119,44 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 									{t("Response Types")}
 								</div>
 								<div className="space-y-2 flex flex-col gap-2">
-									<label className="label">
-										<input
-											type="checkbox"
+									<div className="flex items-center gap-2">
+										<Checkbox
+											id={`${field.name}-accept`}
 											checked={(field.state.value as ResponseType[]).includes(
 												"ACCEPT",
 											)}
-											onChange={() => toggleResponseType("ACCEPT", field)}
-											className="checkbox checkbox-primary"
+											onCheckedChange={() =>
+												toggleResponseType("ACCEPT", field)
+											}
 										/>
-										{t("Accepted")}
-									</label>
-									<label className="label">
-										<input
-											type="checkbox"
+										<Label htmlFor={`${field.name}-accept`}>
+											{t("Accepted")}
+										</Label>
+									</div>
+									<div className="flex items-center gap-2">
+										<Checkbox
+											id={`${field.name}-maybe`}
 											checked={(field.state.value as ResponseType[]).includes(
 												"MAYBE",
 											)}
-											onChange={() => toggleResponseType("MAYBE", field)}
-											className="checkbox checkbox-primary"
+											onCheckedChange={() => toggleResponseType("MAYBE", field)}
 										/>
-										{t("Maybe")}
-									</label>
-									<label className="label">
-										<input
-											type="checkbox"
+										<Label htmlFor={`${field.name}-maybe`}>{t("Maybe")}</Label>
+									</div>
+									<div className="flex items-center gap-2">
+										<Checkbox
+											id={`${field.name}-decline`}
 											checked={(field.state.value as ResponseType[]).includes(
 												"DECLINE",
 											)}
-											onChange={() => toggleResponseType("DECLINE", field)}
-											className="checkbox checkbox-primary"
+											onCheckedChange={() =>
+												toggleResponseType("DECLINE", field)
+											}
 										/>
-										{t("Declined")}
-									</label>
+										<Label htmlFor={`${field.name}-decline`}>
+											{t("Declined")}
+										</Label>
+									</div>
 								</div>
 								<p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
 									{t(
@@ -166,43 +174,48 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 									{t("Appointment Types")}
 								</div>
 								<div className="space-y-2 flex flex-col gap-2">
-									<label className="label">
-										<input
-											type="checkbox"
+									<div className="flex items-center gap-2">
+										<Checkbox
+											id={`${field.name}-tournament`}
 											checked={(
 												field.state.value as AppointmentType[]
 											).includes("TOURNAMENT")}
-											onChange={() =>
+											onCheckedChange={() =>
 												toggleAppointmentType("TOURNAMENT", field)
 											}
-											className="checkbox checkbox-primary"
 										/>
-										{t("Tournament")}
-									</label>
-									<label className="label">
-										<input
-											type="checkbox"
+										<Label htmlFor={`${field.name}-tournament`}>
+											{t("Tournament")}
+										</Label>
+									</div>
+									<div className="flex items-center gap-2">
+										<Checkbox
+											id={`${field.name}-tournament-de`}
 											checked={(
 												field.state.value as AppointmentType[]
 											).includes("TOURNAMENT_DE")}
-											onChange={() =>
+											onCheckedChange={() =>
 												toggleAppointmentType("TOURNAMENT_DE", field)
 											}
-											className="checkbox checkbox-primary"
 										/>
-										{t("Tournament (Germany)")}
-									</label>
-									<label className="label">
-										<input
-											type="checkbox"
+										<Label htmlFor={`${field.name}-tournament-de`}>
+											{t("Tournament (Germany)")}
+										</Label>
+									</div>
+									<div className="flex items-center gap-2">
+										<Checkbox
+											id={`${field.name}-holiday`}
 											checked={(
 												field.state.value as AppointmentType[]
 											).includes("HOLIDAY")}
-											onChange={() => toggleAppointmentType("HOLIDAY", field)}
-											className="checkbox checkbox-primary"
+											onCheckedChange={() =>
+												toggleAppointmentType("HOLIDAY", field)
+											}
 										/>
-										{t("Holiday")}
-									</label>
+										<Label htmlFor={`${field.name}-holiday`}>
+											{t("Holiday")}
+										</Label>
+									</div>
 								</div>
 							</div>
 						)}
@@ -211,15 +224,18 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 					<form.Field name="includeDraftStatus">
 						{(field) => (
 							<div>
-								<label className="label">
-									<input
-										type="checkbox"
+								<div className="flex items-center gap-2">
+									<Checkbox
+										id={field.name}
 										checked={field.state.value}
-										onChange={(e) => field.handleChange(e.target.checked)}
-										className="checkbox checkbox-primary"
+										onCheckedChange={(checked) =>
+											field.handleChange(checked === true)
+										}
 									/>
-									{t("Include draft appointments")}
-								</label>
+									<Label htmlFor={field.name}>
+										{t("Include draft appointments")}
+									</Label>
+								</div>
 							</div>
 						)}
 					</form.Field>

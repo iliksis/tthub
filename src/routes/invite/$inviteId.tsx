@@ -3,6 +3,8 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { getInvitation } from "@/api/invitations";
 import { createUserFromInvitation } from "@/api/users";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
 import { isInvitationExpired } from "@/lib/utils";
@@ -92,13 +94,10 @@ function RouteComponent() {
 					<h2 className="card-title">
 						{t("Set a password to create your Account")}
 					</h2>
-					<fieldset className="fieldset">
-						<label className="label" htmlFor="username">
-							{t("User Name")}:
-						</label>
-						<input
+					<fieldset className="flex flex-col gap-1.5">
+						<Label htmlFor="username">{t("User Name")}:</Label>
+						<Input
 							id="username"
-							className="input input-primary w-full"
 							name="UserName"
 							disabled={true}
 							value={invitation.user.userName}
@@ -106,14 +105,11 @@ function RouteComponent() {
 					</fieldset>
 					<form.Field name="password">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Password")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Password")}:</Label>
+								<Input
 									id={field.name}
 									type="password"
-									className="input input-primary w-full"
 									name={field.name}
 									value={field.state.value}
 									onBlur={field.handleBlur}
@@ -124,14 +120,11 @@ function RouteComponent() {
 					</form.Field>
 					<form.Field name="confirmPassword">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Confirm Password")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Confirm Password")}:</Label>
+								<Input
 									id={field.name}
 									type="password"
-									className="input input-primary w-full"
 									name={field.name}
 									value={field.state.value}
 									onBlur={field.handleBlur}

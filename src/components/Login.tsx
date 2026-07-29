@@ -1,6 +1,8 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
 import { loginFn } from "@/routes/_authed";
@@ -47,14 +49,11 @@ export function Login() {
 					<form.Field name="userName">
 						{(field) => {
 							return (
-								<fieldset className="fieldset">
+								<fieldset className="flex flex-col gap-1.5">
 									{/* register your input into the hook by invoking the "register" function */}
-									<label className="label" htmlFor={field.name}>
-										{t("User Name")}
-									</label>
-									<input
+									<Label htmlFor={field.name}>{t("User Name")}</Label>
+									<Input
 										id={field.name}
-										className="input input-primary w-full"
 										placeholder={t("User Name")}
 										name={field.name}
 										value={field.state.value}
@@ -68,14 +67,11 @@ export function Login() {
 					<form.Field name="password">
 						{(field) => {
 							return (
-								<fieldset className="fieldset">
+								<fieldset className="flex flex-col gap-1.5">
 									{/* register your input into the hook by invoking the "register" function */}
-									<label className="label" htmlFor={field.name}>
-										{t("Password")}
-									</label>
-									<input
+									<Label htmlFor={field.name}>{t("Password")}</Label>
+									<Input
 										id={field.name}
-										className="input input-primary w-full"
 										type="password"
 										placeholder={t("Password")}
 										name={field.name}

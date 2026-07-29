@@ -3,6 +3,8 @@ import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { updatePlacement } from "@/api/placements";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import type { Placement } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
@@ -79,13 +81,10 @@ export const UpdatePlacementForm = ({
 				<div>
 					<form.Field name="placement">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Placement")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Placement")}:</Label>
+								<Input
 									id={field.name}
-									className="input input-primary w-full"
 									name={field.name}
 									value={field.state.value}
 									onBlur={field.handleBlur}

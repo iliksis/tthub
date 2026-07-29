@@ -11,6 +11,8 @@ import {
 	updateNotificationSettings,
 } from "@/api/notifications";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import type { Subscription } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
@@ -155,42 +157,48 @@ const Form = ({ subscription }: FormProps) => {
 			<div>
 				<form.Field name="newAppointment">
 					{(field) => (
-						<label
-							className="label whitespace-pre-wrap items-start"
-							htmlFor={field.name}
-						>
-							<input
+						<div className="flex items-start gap-2">
+							<Checkbox
 								id={field.name}
-								className="checkbox checkbox-primary"
-								type="checkbox"
 								name={field.name}
 								checked={field.state.value}
 								onBlur={field.handleBlur}
-								onChange={(e) => field.handleChange(e.target.checked)}
+								onCheckedChange={(checked) =>
+									field.handleChange(checked === true)
+								}
 							/>
-							{t("Get a notification when a new appointment is created")}
-						</label>
+							<Label
+								htmlFor={field.name}
+								className="whitespace-pre-wrap items-start"
+							>
+								{t("Get a notification when a new appointment is created")}
+							</Label>
+						</div>
 					)}
 				</form.Field>
 			</div>
 			<div>
 				<form.Field name="changedAppointment">
 					{(field) => (
-						<label
-							className="label whitespace-pre-wrap items-start"
-							htmlFor={field.name}
-						>
-							<input
+						<div className="flex items-start gap-2">
+							<Checkbox
 								id={field.name}
-								className="checkbox checkbox-primary"
-								type="checkbox"
 								name={field.name}
 								checked={field.state.value}
 								onBlur={field.handleBlur}
-								onChange={(e) => field.handleChange(e.target.checked)}
+								onCheckedChange={(checked) =>
+									field.handleChange(checked === true)
+								}
 							/>
-							{t("Get a notification when an accepted appointment was changed")}
-						</label>
+							<Label
+								htmlFor={field.name}
+								className="whitespace-pre-wrap items-start"
+							>
+								{t(
+									"Get a notification when an accepted appointment was changed",
+								)}
+							</Label>
+						</div>
 					)}
 				</form.Field>
 			</div>
