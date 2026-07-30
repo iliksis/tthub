@@ -7,7 +7,10 @@ export const t = (key: TextKey | (string & {}), ...params: string[]) =>
 
 const texts = {
 	"{0} Appointments created": "{0} Termine erstellt",
+	"{0} created this appointment": "{0} hat diesen Termin erstellt",
+	"{0} deleted this appointment": "{0} hat diesen Termin gelöscht",
 	"{0} players": "{0} Spieler:innen",
+	"{0} updated this appointment": "{0} hat diesen Termin aktualisiert",
 	Accept: "Annehmen",
 	Accepted: "Angenommen",
 	"Active Subscriptions": "Geräte mit aktivierten Benachrichtigungen",
@@ -90,6 +93,7 @@ const texts = {
 	"Get a notification when an accepted appointment was changed":
 		"Erhalte eine Benachrichtigung, wenn ein akzeptierter Termin geändert wurde",
 	"Grant Permission": "Benachrichtigunen erlauben",
+	History: "Verlauf",
 	Holiday: "Ferien",
 	Import: "Importieren",
 	"Import Holidays": "Ferien/Feiertage importieren",
@@ -193,6 +197,7 @@ const texts = {
 	ShowAll: "Zeige alle",
 	Start: "Start",
 	StartDate: "Start",
+	Status: "Status",
 	Subdivision: "Region",
 	"Subscribe to your personalized calendar feed to receive appointment updates in your calendar app":
 		"Abonniere deinen personalisierten Kalender-Feed, um Terminaktualisierungen in deiner Kalender-App zu erhalten",
