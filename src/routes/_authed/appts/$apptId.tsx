@@ -299,10 +299,7 @@ function RouteComponent() {
 					</div>
 				)}
 				<div className="mt-4">
-					<TransactionHistory
-						transactions={appointment.transactions}
-						otherAppointments={appointments ?? []}
-					/>
+					<TransactionHistory transactions={appointment.transactions} />
 				</div>
 			</div>
 
@@ -343,10 +340,7 @@ function RouteComponent() {
 							)}
 						/>
 					</div>
-					<TransactionHistory
-						transactions={appointment.transactions}
-						otherAppointments={appointments ?? []}
-					/>
+					<TransactionHistory transactions={appointment.transactions} />
 				</div>
 			</div>
 

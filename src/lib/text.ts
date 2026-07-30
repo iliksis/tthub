@@ -7,10 +7,8 @@ export const t = (key: TextKey | (string & {}), ...params: string[]) =>
 
 const texts = {
 	"{0} Appointments created": "{0} Termine erstellt",
-	"{0} created this appointment": "{0} hat diesen Termin erstellt",
-	"{0} deleted this appointment": "{0} hat diesen Termin gelöscht",
+	"{0} changed": "{0} geändert",
 	"{0} players": "{0} Spieler:innen",
-	"{0} updated this appointment": "{0} hat diesen Termin aktualisiert",
 	Accept: "Annehmen",
 	Accepted: "Angenommen",
 	"Active Subscriptions": "Geräte mit aktivierten Benachrichtigungen",
