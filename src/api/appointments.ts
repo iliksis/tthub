@@ -210,6 +210,34 @@ export const getAppointments = createServerFn()
 		}
 	});
 
+// Click-to-edit saves one field at a time, so a burst of edits to the same
+// appointment would otherwise fire one notification per field. Debounce so
+// only one notification goes out per appointment, ~5s after the last edit.
+const pendingUpdateNotifications = new Map<
+	string,
+	ReturnType<typeof setTimeout>
+>();
+const UPDATE_NOTIFICATION_DEBOUNCE_MS = 5000;
+
+function scheduleAppointmentUpdatedNotification(appointment: Appointment) {
+	const existing = pendingUpdateNotifications.get(appointment.id);
+	if (existing) clearTimeout(existing);
+	pendingUpdateNotifications.set(
+		appointment.id,
+		setTimeout(() => {
+			pendingUpdateNotifications.delete(appointment.id);
+			void sendNotification({
+				body: appointment.title,
+				scope: "updated",
+				title: t("Appointment updated"),
+				url: formatTanstackRouterPath("/appts/$apptId", {
+					apptId: appointment.id,
+				}),
+			});
+		}, UPDATE_NOTIFICATION_DEBOUNCE_MS),
+	);
+}
+
 export const updateAppointment = createServerFn()
 	.inputValidator((d: { id: string; updates: Partial<Appointment> }) => d)
 	.handler(async ({ data }) => {
@@ -234,14 +262,7 @@ export const updateAppointment = createServerFn()
 			});
 
 			if (appointment.type === AppointmentType.TOURNAMENT) {
-				await sendNotification({
-					body: appointment.title,
-					scope: "updated",
-					title: t("Appointment updated"),
-					url: formatTanstackRouterPath("/appts/$apptId", {
-						apptId: appointment.id,
-					}),
-				});
+				scheduleAppointmentUpdatedNotification(appointment);
 			}
 
 			return json<Return<Appointment>>(

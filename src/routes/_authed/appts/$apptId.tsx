@@ -1,11 +1,8 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
-	CalendarDaysIcon,
-	Clock10Icon,
 	CogIcon,
 	DownloadIcon,
-	EditIcon,
 	ExternalLinkIcon,
 	Trash2Icon,
 } from "lucide-react";
@@ -18,13 +15,15 @@ import {
 	getAppointments,
 	publishAppointment,
 	restoreAppointment,
+	updateAppointment,
 } from "@/api/appointments";
 import { getUniqueCategories } from "@/api/placements";
 import { getPlayers } from "@/api/players";
-import { UpdateForm } from "@/components/appointments/UpdateForm";
-import { InternalLink } from "@/components/InternalLink";
+import { EditableDateCard } from "@/components/appointments/editable/EditableDateCard";
+import { EditableHeader } from "@/components/appointments/editable/EditableHeader";
+import { EditableNextAppointmentCard } from "@/components/appointments/editable/EditableNextAppointmentCard";
+import { EditableTextCard } from "@/components/appointments/editable/EditableTextCard";
 import { DeleteModal } from "@/components/modal/DeleteModal";
-import { Modal } from "@/components/modal/Modal";
 import { ParticipantModal } from "@/components/placement/PlacementModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -36,7 +35,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Card } from "@/components/ValueCard";
 import { IcalGenerator } from "@/lib/ical";
-import type { Response, User } from "@/lib/prisma/client";
+import type { Appointment, Response, User } from "@/lib/prisma/client";
 import {
 	AppointmentStatus,
 	AppointmentType,
@@ -104,7 +103,6 @@ function RouteComponent() {
 	const { user } = Route.useRouteContext();
 	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
 
-	const [isEditing, setIsEditing] = React.useState(false);
 	const [isDeleting, setIsDeleting] = React.useState(false);
 	const [isParticipantsModalOpen, setIsParticipantsModalOpen] =
 		React.useState(false);
@@ -113,6 +111,7 @@ function RouteComponent() {
 	const createResponseServerFn = useServerFn(createResponse);
 	const publish = useServerFn(publishAppointment);
 	const restore = useServerFn(restoreAppointment);
+	const updateAppointmentServerFn = useServerFn(updateAppointment);
 
 	const { appointment, players, categories, appointments } =
 		Route.useLoaderData();
@@ -138,13 +137,6 @@ function RouteComponent() {
 	const uniqueParticipants = new Set(
 		appointment.placements.map((p) => p.playerId),
 	);
-
-	const onEdit = () => {
-		setIsEditing(true);
-	};
-	const onStopEditing = () => {
-		setIsEditing(false);
-	};
 
 	const onOpenDelete = () => {
 		setIsDeleting(true);
@@ -203,8 +195,23 @@ function RouteComponent() {
 		icalGenerator.createAndDownloadIcalFile(appointment);
 	};
 
+	const onSaveField = async (updates: Partial<Appointment>) => {
+		const res = await updateAppointmentServerFn({
+			data: { id: appointment.id, updates },
+		});
+		const data = await res.json();
+		if (res.status < 400 && data) {
+			await router.invalidate();
+			toast.success(data.message);
+			return true;
+		}
+		toast.error(data.message);
+		return false;
+	};
+
 	const mainContentProps = {
 		appointment,
+		canEdit,
 		isAccepted,
 		isDeclined,
 		isDeleted,
@@ -212,6 +219,8 @@ function RouteComponent() {
 		isMultipleDays,
 		onOpenParticipants,
 		onResponse,
+		onSaveField,
+		otherAppointments: appointments ?? [],
 		uniqueParticipants,
 	};
 
@@ -230,21 +239,15 @@ function RouteComponent() {
 					{t("Download iCal")}
 				</Button>
 				{canEdit && (
-					<>
-						<Button variant="outline" size="sm" onClick={onEdit}>
-							<EditIcon className="size-4" />
-							{t("Edit appointment")}
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-							onClick={onOpenDelete}
-						>
-							<Trash2Icon className="size-4" />
-							{t("Delete appointment")}
-						</Button>
-					</>
+					<Button
+						variant="outline"
+						size="sm"
+						className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+						onClick={onOpenDelete}
+					>
+						<Trash2Icon className="size-4" />
+						{t("Delete appointment")}
+					</Button>
 				)}
 			</div>
 
@@ -358,39 +361,17 @@ function RouteComponent() {
 					<DownloadIcon className="size-4" />
 				</Button>
 				{canEdit && (
-					<>
-						<Button
-							variant="secondary"
-							size="icon-lg"
-							type="button"
-							title={t("Edit appointment")}
-							onClick={onEdit}
-						>
-							<EditIcon className="size-4" />
-						</Button>
-						<Button
-							variant="secondary"
-							size="icon-lg"
-							type="button"
-							title={t("Delete appointment")}
-							onClick={onOpenDelete}
-						>
-							<Trash2Icon className="size-4" />
-						</Button>
-					</>
+					<Button
+						variant="secondary"
+						size="icon-lg"
+						type="button"
+						title={t("Delete appointment")}
+						onClick={onOpenDelete}
+					>
+						<Trash2Icon className="size-4" />
+					</Button>
 				)}
 			</div>
-
-			<Modal
-				modalBoxClassName="md:max-w-xl md:mx-auto"
-				open={isEditing}
-				onClose={onStopEditing}
-			>
-				<UpdateForm
-					appointment={appointment}
-					appointments={appointments ?? []}
-				/>
-			</Modal>
 
 			<DeleteModal
 				label={t("Are you sure you want to delete this appointment?")}
@@ -421,8 +402,11 @@ type AppointmentMainContentProps = {
 	isDeclined: boolean;
 	isMaybe: boolean;
 	isDeleted: boolean;
+	canEdit: boolean;
 	onOpenParticipants: () => void;
 	onResponse: (response: ResponseType) => () => Promise<void>;
+	onSaveField: (updates: Partial<Appointment>) => Promise<boolean>;
+	otherAppointments: Appointment[];
 };
 const AppointmentMainContent = ({
 	appointment,
@@ -432,48 +416,39 @@ const AppointmentMainContent = ({
 	isDeclined,
 	isMaybe,
 	isDeleted,
+	canEdit,
 	onOpenParticipants,
 	onResponse,
+	onSaveField,
+	otherAppointments,
 }: AppointmentMainContentProps) => {
 	return (
 		<>
 			<div className="grid grid-cols-4 gap-2">
-				<h1 className="col-span-4 mb-2 font-bold">{appointment.title}</h1>
-				<Card title={t("Date")} icon={CalendarDaysIcon} gridRows={3}>
-					<div className="flex flex-row">
-						<p>
-							{new Date(appointment.startDate).toLocaleDateString("de-DE", {
-								day: "2-digit",
-								month: "short",
-								year: "numeric",
-							})}
-
-							{isMultipleDays && appointment.endDate && (
-								<>
-									{" "}
-									-{" "}
-									{new Date(appointment.endDate).toLocaleDateString("de-DE", {
-										day: "2-digit",
-										month: "short",
-										year: "numeric",
-									})}
-								</>
-							)}
-						</p>
-					</div>
-				</Card>
-				<Card title={t("Time")} icon={Clock10Icon} gridRows={1}>
-					<p>
-						{new Date(appointment.startDate).toLocaleTimeString("de-DE", {
-							timeStyle: "short",
-						})}
-					</p>
-				</Card>
+				<EditableHeader
+					title={appointment.title}
+					shortTitle={appointment.shortTitle}
+					canEdit={canEdit}
+					onSave={(v) => onSaveField(v)}
+					className="col-span-4 mb-2"
+				/>
+				<EditableDateCard
+					startDate={new Date(appointment.startDate)}
+					endDate={appointment.endDate ? new Date(appointment.endDate) : null}
+					isMultipleDays={isMultipleDays}
+					canEdit={canEdit}
+					onSave={(v) => onSaveField(v)}
+				/>
 				{appointment.type !== AppointmentType.HOLIDAY && (
 					<>
-						<Card title={t("Location")} icon={Clock10Icon} gridRows={4}>
-							<p>
-								{appointment.location ? (
+						<EditableTextCard
+							title={t("Location")}
+							gridRows={4}
+							canEdit={canEdit}
+							value={appointment.location ?? ""}
+							placeholder={t("No location set")}
+							displayValue={
+								appointment.location ? (
 									<a
 										href={createGoogleMapsLink(appointment.location)}
 										target="_blank"
@@ -482,11 +457,10 @@ const AppointmentMainContent = ({
 										{appointment.location}
 										<ExternalLinkIcon className="size-4 inline-block ml-2 self-center" />
 									</a>
-								) : (
-									t("No location set")
-								)}
-							</p>
-						</Card>
+								) : undefined
+							}
+							onSave={(v) => onSaveField({ location: v })}
+						/>
 						<Card title={t("Participants")} gridRows={2}>
 							<p className="flex flex-row items-center">
 								<span className="flex-1">{uniqueParticipants.size}</span>
@@ -500,9 +474,14 @@ const AppointmentMainContent = ({
 								</Button>
 							</p>
 						</Card>
-						<Card title={t("Link")} icon={Clock10Icon} gridRows={2}>
-							<p>
-								{appointment.link ? (
+						<EditableTextCard
+							title={t("Link")}
+							gridRows={2}
+							canEdit={canEdit}
+							value={appointment.link ?? ""}
+							placeholder={t("No link set")}
+							displayValue={
+								appointment.link ? (
 									<a
 										href={appointment.link}
 										title={appointment.link}
@@ -512,23 +491,18 @@ const AppointmentMainContent = ({
 										<ExternalLinkIcon className="size-4 mr-2 self-center shrink-0" />
 										{appointment.link}
 									</a>
-								) : (
-									t("No link set")
-								)}
-							</p>
-						</Card>
-						<Card title={t("Next Appointment")} gridRows={4}>
-							{appointment.nextAppointment ? (
-								<InternalLink
-									to="/appts/$apptId"
-									params={{ apptId: appointment.nextAppointment.id }}
-								>
-									{appointment.nextAppointment.title}
-								</InternalLink>
-							) : (
-								t("No appointment set")
-							)}
-						</Card>
+								) : undefined
+							}
+							onSave={(v) => onSaveField({ link: v })}
+						/>
+						<EditableNextAppointmentCard
+							appointmentId={appointment.id}
+							nextAppointmentId={appointment.nextAppointmentId}
+							nextAppointment={appointment.nextAppointment}
+							otherAppointments={otherAppointments}
+							canEdit={canEdit}
+							onSave={(id) => onSaveField({ nextAppointmentId: id })}
+						/>
 					</>
 				)}
 			</div>

@@ -51,11 +51,7 @@ export const Card = ({ appointment }: CardProps) => {
 						isAccepted ? "success" : isDeclined ? "destructive" : "warning"
 					}
 				>
-					{isAccepted
-						? t("Accepted")
-						: isDeclined
-							? t("Declined")
-							: t("Maybe")}
+					{isAccepted ? t("Accepted") : isDeclined ? t("Declined") : t("Maybe")}
 				</Badge>
 			</div>
 		</Link>
