@@ -85,6 +85,11 @@ export type Team = Prisma.TeamModel
  */
 export type Placement = Prisma.PlacementModel
 /**
+ * Model Transaction
+ * 
+ */
+export type Transaction = Prisma.TransactionModel
+/**
  * Model Subscription
  * 
  */
