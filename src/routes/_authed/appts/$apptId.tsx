@@ -203,8 +203,51 @@ function RouteComponent() {
 		icalGenerator.createAndDownloadIcalFile(appointment);
 	};
 
+	const mainContentProps = {
+		appointment,
+		isAccepted,
+		isDeclined,
+		isDeleted,
+		isMaybe,
+		isMultipleDays,
+		onOpenParticipants,
+		onResponse,
+		uniqueParticipants,
+	};
+
 	return (
 		<div>
+			{/* Desktop toolbar */}
+			<div className="mb-4 hidden items-center gap-2 lg:flex">
+				<span className="text-muted-foreground text-sm">
+					{t("Appointments")} /
+				</span>
+				<span className="flex-1 font-semibold text-[15px]">
+					{appointment.title}
+				</span>
+				<Button variant="outline" size="sm" onClick={onDownloadIcal}>
+					<DownloadIcon className="size-4" />
+					{t("Download iCal")}
+				</Button>
+				{canEdit && (
+					<>
+						<Button variant="outline" size="sm" onClick={onEdit}>
+							<EditIcon className="size-4" />
+							{t("Edit appointment")}
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+							onClick={onOpenDelete}
+						>
+							<Trash2Icon className="size-4" />
+							{t("Delete appointment")}
+						</Button>
+					</>
+				)}
+			</div>
+
 			{isDeleted ? (
 				<Alert variant="destructive" className="mb-4">
 					<AlertDescription>
@@ -238,6 +281,162 @@ function RouteComponent() {
 					</Alert>
 				)
 			)}
+
+			{/* Mobile / tablet: single column */}
+			<div className="lg:hidden">
+				<AppointmentMainContent {...mainContentProps} />
+				{appointment.location && (
+					<div className="mt-4 hidden md:block lg:hidden">
+						<iframe
+							src={`https://maps.google.com/maps?hl=de&t=&z=14&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
+							className="h-96 w-full"
+							title="Google Maps"
+						></iframe>
+					</div>
+				)}
+			</div>
+
+			{/* Desktop: two columns */}
+			<div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
+				<div className="min-w-0">
+					<AppointmentMainContent {...mainContentProps} />
+				</div>
+				<div className="flex min-w-0 flex-col gap-4">
+					{appointment.location ? (
+						<iframe
+							src={`https://maps.google.com/maps?hl=de&t=&z=14&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
+							className="h-72 w-full rounded-lg border border-border/40"
+							title="Google Maps"
+						></iframe>
+					) : (
+						<div className="flex h-72 items-center justify-center rounded-lg border border-border/40 text-muted-foreground text-sm">
+							{t("No location set")}
+						</div>
+					)}
+					<div className="rounded-lg bg-card p-4">
+						<div className="mb-3 flex items-center justify-between">
+							<span className="font-bold text-sm">
+								{t("Participants")} · {uniqueParticipants.size}
+							</span>
+							<Button
+								type="button"
+								variant="link"
+								className="h-5"
+								onClick={onOpenParticipants}
+							>
+								{t("Show all")}
+							</Button>
+						</div>
+						<AvatarGroup
+							responses={appointment.responses.filter(
+								(r) => r.responseType === "ACCEPT",
+							)}
+						/>
+					</div>
+				</div>
+			</div>
+
+			<div className="fab lg:hidden">
+				<Button
+					asChild
+					variant="secondary"
+					size="icon-lg"
+					role="button"
+					tabIndex={0}
+				>
+					<div>
+						<CogIcon className="size-4" />
+					</div>
+				</Button>
+				<Button
+					variant="secondary"
+					size="icon-lg"
+					type="button"
+					title={t("Download iCal")}
+					onClick={onDownloadIcal}
+				>
+					<DownloadIcon className="size-4" />
+				</Button>
+				{canEdit && (
+					<>
+						<Button
+							variant="secondary"
+							size="icon-lg"
+							type="button"
+							title={t("Edit appointment")}
+							onClick={onEdit}
+						>
+							<EditIcon className="size-4" />
+						</Button>
+						<Button
+							variant="secondary"
+							size="icon-lg"
+							type="button"
+							title={t("Delete appointment")}
+							onClick={onOpenDelete}
+						>
+							<Trash2Icon className="size-4" />
+						</Button>
+					</>
+				)}
+			</div>
+
+			<Modal
+				modalBoxClassName="md:max-w-xl md:mx-auto"
+				open={isEditing}
+				onClose={onStopEditing}
+			>
+				<UpdateForm
+					appointment={appointment}
+					appointments={appointments ?? []}
+				/>
+			</Modal>
+
+			<DeleteModal
+				label={t("Are you sure you want to delete this appointment?")}
+				open={isDeleting}
+				onClose={onStopDeleting}
+				onDelete={onDelete}
+			/>
+
+			<ParticipantModal
+				open={isParticipantsModalOpen}
+				onClose={onCloseParticipants}
+				placements={appointment.placements}
+				players={players ?? []}
+				appointmentId={appointment.id}
+				categories={categories ?? []}
+			/>
+		</div>
+	);
+}
+
+type AppointmentMainContentProps = {
+	appointment: NonNullable<
+		ReturnType<typeof Route.useLoaderData>["appointment"]
+	>;
+	isMultipleDays: boolean;
+	uniqueParticipants: Set<string>;
+	isAccepted: boolean;
+	isDeclined: boolean;
+	isMaybe: boolean;
+	isDeleted: boolean;
+	onOpenParticipants: () => void;
+	onResponse: (response: ResponseType) => () => Promise<void>;
+};
+const AppointmentMainContent = ({
+	appointment,
+	isMultipleDays,
+	uniqueParticipants,
+	isAccepted,
+	isDeclined,
+	isMaybe,
+	isDeleted,
+	onOpenParticipants,
+	onResponse,
+}: AppointmentMainContentProps) => {
+	return (
+		<>
 			<div className="grid grid-cols-4 gap-2">
 				<h1 className="col-span-4 mb-2 font-bold">{appointment.title}</h1>
 				<Card title={t("Date")} icon={CalendarDaysIcon} gridRows={3}>
@@ -393,85 +592,9 @@ function RouteComponent() {
 					</div>
 				</>
 			)}
-
-			{appointment.location && (
-				<div className="mt-4 hidden md:block">
-					<iframe
-						src={`https://maps.google.com/maps?hl=de&t=&z=14&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
-						className="w-full h-96"
-						title="Google Maps"
-					></iframe>
-				</div>
-			)}
-
-			<div className="fab">
-				<Button asChild variant="secondary" size="icon-lg" role="button" tabIndex={0}>
-					<div>
-						<CogIcon className="size-4" />
-					</div>
-				</Button>
-				<Button
-					variant="secondary"
-					size="icon-lg"
-					type="button"
-					title={t("Download iCal")}
-					onClick={onDownloadIcal}
-				>
-					<DownloadIcon className="size-4" />
-				</Button>
-				{canEdit && (
-					<>
-						<Button
-							variant="secondary"
-							size="icon-lg"
-							type="button"
-							title={t("Edit appointment")}
-							onClick={onEdit}
-						>
-							<EditIcon className="size-4" />
-						</Button>
-						<Button
-							variant="secondary"
-							size="icon-lg"
-							type="button"
-							title={t("Delete appointment")}
-							onClick={onOpenDelete}
-						>
-							<Trash2Icon className="size-4" />
-						</Button>
-					</>
-				)}
-			</div>
-
-			<Modal
-				modalBoxClassName="md:max-w-xl md:mx-auto"
-				open={isEditing}
-				onClose={onStopEditing}
-			>
-				<UpdateForm
-					appointment={appointment}
-					appointments={appointments ?? []}
-				/>
-			</Modal>
-
-			<DeleteModal
-				label={t("Are you sure you want to delete this appointment?")}
-				open={isDeleting}
-				onClose={onStopDeleting}
-				onDelete={onDelete}
-			/>
-
-			<ParticipantModal
-				open={isParticipantsModalOpen}
-				onClose={onCloseParticipants}
-				placements={appointment.placements}
-				players={players ?? []}
-				appointmentId={appointment.id}
-				categories={categories ?? []}
-			/>
-		</div>
+		</>
 	);
-}
+};
 
 type AvatarGroupProps = {
 	responses: (Response & { user: User })[];

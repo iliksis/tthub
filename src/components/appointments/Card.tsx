@@ -28,9 +28,9 @@ export const Card = ({ appointment }: CardProps) => {
 		<Link
 			to="/appts/$apptId"
 			params={{ apptId: appointment.id }}
-			className="flex flex-row items-center gap-3.5 rounded-xl border bg-card p-4 text-card-foreground shadow-sm"
+			className="flex flex-row items-center gap-3.5 rounded-xl bg-card p-4 text-card-foreground shadow-sm"
 		>
-			<div className="size-12 flex flex-col items-center justify-center shrink-0 bg-muted border rounded-lg">
+			<div className="size-12 flex flex-col items-center justify-center shrink-0 bg-muted rounded-lg">
 				<span className="uppercase text-xs">{month}</span>
 				<span className="font-bold">{day}</span>
 			</div>

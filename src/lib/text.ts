@@ -48,6 +48,7 @@ const texts = {
 	"Choose an area": "Wähle eine Region",
 	Clear: "Löschen",
 	Close: "Schließen",
+	"Club at a glance": "Verein auf einen Blick",
 	Configuration: "Konfiguration",
 	"Confirm Password": "Passwort bestätigen",
 	Copy: "Kopieren",
@@ -100,6 +101,9 @@ const texts = {
 		"Einladungslink in die Zwischenablage kopiert",
 	"Invitation not found": "Einladung nicht gefunden",
 	League: "Liga",
+	"League table": "Tabelle",
+	"League table and fixtures are not available yet.":
+		"Tabelle und Spielplan sind noch nicht verfügbar.",
 	"Leave all unchecked to include all appointments regardless of response":
 		"Alle deaktiviert lassen, um alle Termine unabhängig von der Antwort einzuschließen",
 	Link: "Link",
@@ -108,6 +112,7 @@ const texts = {
 	Login: "Anmelden",
 	Logout: "Abmelden",
 	Maybe: "Vielleicht",
+	"More appointments": "Weitere Termine",
 	Name: "Name",
 	"Name must be at least 2 characters long":
 		"Name muss mindestens 2 Zeichen lang sein",
@@ -125,11 +130,13 @@ const texts = {
 	"No team set": "Gehört keinem Team an",
 	"No teams found": "Keine Teams gefunden",
 	"Not authenticated": "Nicht authentifiziert",
+	"Not available yet": "Noch nicht verfügbar",
 	Notifications: "Benachrichtigungen",
 	"Notifications are not supported in this browser":
 		"Benachrichtigungen werden in diesem Browser nicht unterstützt",
 	"On iOS devices, you must add the website to the home screen before notifications will work.":
 		"Auf iOS-Geräten muss die Website zur Startseite hinzufügt werden, bevor Benachrichtigungen funktionieren.",
+	"Open appointment": "Termin öffnen",
 	"open sidebar": "Sidebar öffnen",
 	"Participant already exists in this category":
 		"Teilnehmer:in existiert bereits in dieser Kategorie",
@@ -171,6 +178,7 @@ const texts = {
 	"Search Teams": "Teams suchen",
 	"Select a search type or use shortcuts":
 		"Wähle einen Suchtyp oder benutze Shortcuts",
+	Selected: "Ausgewählt",
 	"Set a password to create your Account":
 		"Passwort festlegen, um Account zu erstellen",
 	Settings: "Einstellungen",
@@ -202,6 +210,7 @@ const texts = {
 	Today: "Heute",
 	Tournament: "Turnier",
 	"Tournament (Germany)": "Turnier (Deutschland)",
+	Tournaments: "Turniere",
 	"Type to search...": "Tippe zum Suchen...",
 	Unauthorized: "Nicht autorisiert",
 	"Upcoming appointments": "Anstehende Termine",

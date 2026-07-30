@@ -11,12 +11,80 @@ import { TableRow } from "@/components/ui/table";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { cn, isDayInPast } from "@/lib/utils";
-import { DetailsList } from "../DetailsList";
+import { DetailsList, type DetailsListColumn } from "../DetailsList";
 import { Modal } from "../modal/Modal";
 
 type ListProps = {
 	appointments: (Appointment & { responses: Response[] })[];
 };
+
+export const getAppointmentColumns = (
+	userId: string | undefined,
+): DetailsListColumn<Appointment & { responses: Response[] }>[] => [
+	{
+		key: "status",
+		label: "",
+		render: (item) => {
+			const userResponse =
+				item.responses?.find((r) => r.userId === userId)?.responseType ??
+				"MAYBE";
+			const isAccepted = userResponse === "ACCEPT";
+			const isDeclined = userResponse === "DECLINE";
+			return isAccepted ? (
+				<div className="size-2 rounded-full bg-success" />
+			) : isDeclined ? (
+				<div className="size-2 rounded-full bg-destructive" />
+			) : null;
+		},
+	},
+	{
+		key: "title",
+		label: t("Title"),
+		render: (item) => item.shortTitle,
+		sortable: true,
+		sortFn: (a, b) => a.shortTitle.localeCompare(b.shortTitle),
+	},
+	{
+		key: "date",
+		label: t("Date"),
+		render: (item) => {
+			const isMultipleDays =
+				item.endDate !== null
+					? new Date(item.startDate).getDate() !==
+						new Date(item.endDate).getDate()
+					: false;
+
+			return (
+				<>
+					{new Date(item.startDate).toLocaleDateString("de-DE", {
+						day: "2-digit",
+						month: "2-digit",
+						year: "2-digit",
+					})}{" "}
+					{isMultipleDays && item.endDate && (
+						<>
+							{" "}
+							-{" "}
+							{new Date(item.endDate).toLocaleDateString("de-DE", {
+								day: "2-digit",
+								month: "2-digit",
+								year: "2-digit",
+							})}
+						</>
+					)}
+				</>
+			);
+		},
+		sortable: true,
+		sortFn: (a, b) =>
+			new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+	},
+	{
+		key: "location",
+		label: t("Location"),
+		render: (item) => item.location,
+	},
+];
 
 export const List = ({ appointments }: ListProps) => {
 	const { user } = useRouteContext({ from: "__root__" });
@@ -31,71 +99,7 @@ export const List = ({ appointments }: ListProps) => {
 			<DetailsList
 				items={appointments}
 				getItemId={(item) => item.id}
-				columns={[
-					{
-						key: "status",
-						label: "",
-						render: (item) => {
-							const userResponse =
-								item.responses?.find((r) => r.userId === user?.id)
-									?.responseType ?? "MAYBE";
-							const isAccepted = userResponse === "ACCEPT";
-							const isDeclined = userResponse === "DECLINE";
-							return isAccepted ? (
-								<div className="size-2 rounded-full bg-success" />
-							) : isDeclined ? (
-								<div className="size-2 rounded-full bg-destructive" />
-							) : null;
-						},
-					},
-					{
-						key: "title",
-						label: t("Title"),
-						render: (item) => item.shortTitle,
-						sortable: true,
-						sortFn: (a, b) => a.shortTitle.localeCompare(b.shortTitle),
-					},
-					{
-						key: "date",
-						label: t("Date"),
-						render: (item) => {
-							const isMultipleDays =
-								item.endDate !== null
-									? new Date(item.startDate).getDate() !==
-										new Date(item.endDate).getDate()
-									: false;
-
-							return (
-								<>
-									{new Date(item.startDate).toLocaleDateString("de-DE", {
-										day: "2-digit",
-										month: "2-digit",
-										year: "2-digit",
-									})}{" "}
-									{isMultipleDays && item.endDate && (
-										<>
-											{" "}
-											-{" "}
-											{new Date(item.endDate).toLocaleDateString("de-DE", {
-												day: "2-digit",
-												month: "2-digit",
-												year: "2-digit",
-											})}
-										</>
-									)}
-								</>
-							);
-						},
-						sortable: true,
-						sortFn: (a, b) =>
-							new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-					},
-					{
-						key: "location",
-						label: t("Location"),
-						render: (item) => item.location,
-					},
-				]}
+				columns={getAppointmentColumns(user?.id)}
 				onRenderRow={(item, children) => {
 					const inPast = isDayInPast(item.startDate);
 					const isDeleted = item.deletedAt !== null;
@@ -125,14 +129,13 @@ export const filterSchema = z.object({
 	title: z.string().optional(),
 });
 type FiltersProps = z.infer<typeof filterSchema>;
-export const Filters = ({
+
+const useAppointmentFilterForm = ({
 	deleted = false,
 	title = "",
 	location = "",
 }: FiltersProps) => {
 	const router = useRouter();
-
-	const [modal, setModal] = React.useState(false);
 
 	const form = useForm({
 		defaultValues: {
@@ -149,6 +152,100 @@ export const Filters = ({
 		},
 	});
 
+	const onClear = () => {
+		form.update({
+			defaultValues: {
+				deleted: false,
+				location: "",
+				title: "",
+			},
+		});
+		router.navigate({ replace: true, search: {}, to: "." });
+	};
+
+	return { form, onClear };
+};
+
+export const InlineFilters = (props: FiltersProps) => {
+	const { form, onClear } = useAppointmentFilterForm(props);
+
+	return (
+		<form
+			className="flex flex-wrap items-center gap-3"
+			onSubmit={(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				form.handleSubmit();
+			}}
+		>
+			<form.Field name="title">
+				{(field) => (
+					<Input
+						className="w-56"
+						placeholder={t("Title")}
+						id={field.name}
+						name={field.name}
+						value={field.state.value}
+						onBlur={field.handleBlur}
+						onChange={(e) => field.handleChange(e.target.value)}
+					/>
+				)}
+			</form.Field>
+			<form.Field name="location">
+				{(field) => (
+					<Input
+						className="w-48"
+						placeholder={t("Location")}
+						id={field.name}
+						name={field.name}
+						value={field.state.value}
+						onBlur={field.handleBlur}
+						onChange={(e) => field.handleChange(e.target.value)}
+					/>
+				)}
+			</form.Field>
+			<form.Field name="deleted">
+				{(field) => (
+					<label
+						htmlFor={field.name}
+						className="flex items-center gap-2 text-sm text-muted-foreground"
+					>
+						<Checkbox
+							id={field.name}
+							checked={field.state.value}
+							name={field.name}
+							onBlur={field.handleBlur}
+							onCheckedChange={(checked) =>
+								field.handleChange(checked === true)
+							}
+						/>
+						{t("Show deleted?")}
+					</label>
+				)}
+			</form.Field>
+			<Button
+				type="submit"
+				size="sm"
+				onClick={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					form.handleSubmit();
+				}}
+			>
+				{t("Apply")}
+			</Button>
+			<Button type="button" size="sm" variant="secondary" onClick={onClear}>
+				{t("Clear")}
+			</Button>
+		</form>
+	);
+};
+
+export const Filters = (props: FiltersProps) => {
+	const { form, onClear } = useAppointmentFilterForm(props);
+
+	const [modal, setModal] = React.useState(false);
+
 	const onRenderActionButton = () => {
 		return (
 			<>
@@ -162,20 +259,7 @@ export const Filters = ({
 				>
 					{t("Apply")}
 				</Button>
-				<Button
-					type="button"
-					variant="secondary"
-					onClick={() => {
-						form.update({
-							defaultValues: {
-								deleted: false,
-								location: "",
-								title: "",
-							},
-						});
-						router.navigate({ replace: true, search: {}, to: "." });
-					}}
-				>
+				<Button type="button" variant="secondary" onClick={onClear}>
 					{t("Clear")}
 				</Button>
 			</>
@@ -185,7 +269,7 @@ export const Filters = ({
 	return (
 		<>
 			<Button
-				className="fab"
+				className="fab lg:hidden"
 				variant="secondary"
 				size="icon-lg"
 				type="button"

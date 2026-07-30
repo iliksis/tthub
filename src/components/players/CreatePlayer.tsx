@@ -39,13 +39,23 @@ export const CreatePlayer = () => {
 	return (
 		<>
 			<Button
-				className="fab"
+				className="fab lg:hidden"
 				variant="secondary"
 				size="icon-lg"
 				type="button"
 				onClick={onOpenCreate}
 			>
 				<UserPlus2Icon className="size-4" />
+			</Button>
+			<Button
+				className="hidden lg:flex"
+				variant="default"
+				size="sm"
+				type="button"
+				onClick={onOpenCreate}
+			>
+				<UserPlus2Icon className="size-4" />
+				{t("Player")}
 			</Button>
 			<PlayerForm
 				open={isCreating}

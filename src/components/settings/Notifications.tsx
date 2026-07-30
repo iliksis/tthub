@@ -252,7 +252,7 @@ const ActiveSubscriptions = ({ subscriptions }: ActiveSubscriptionsProps) => {
 	return (
 		<div className="mt-6">
 			<h3>{t("Active Subscriptions")}</h3>
-			<ul className="flex flex-col divide-y divide-border">
+			<ul className="flex flex-col divide-y divide-border/40">
 				{subscriptions.map((subscription) => (
 					<li
 						key={subscription.id}

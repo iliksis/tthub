@@ -203,7 +203,7 @@ export const NavigationWrapper = ({
 				</SidebarFooter>
 			</Sidebar>
 			<SidebarInset>
-				<nav className="flex h-14 w-full items-center border-b px-4">
+				<nav className="flex h-14 w-full items-center border-b border-border/40 px-4">
 					<SidebarTrigger />
 					<div className="px-4">{title}</div>
 					<div className="flex-1" />
@@ -223,7 +223,7 @@ export const NavigationWrapper = ({
 					</Button>
 				</nav>
 				{/* Page content here */}
-				<div className="max-w-4xl m-auto p-4 relative">{children}</div>
+				<div className="max-w-7xl lg:max-w-none p-4 relative">{children}</div>
 			</SidebarInset>
 		</SidebarProvider>
 	);

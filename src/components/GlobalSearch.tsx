@@ -262,7 +262,7 @@ export const GlobalSearch = () => {
 			</DialogHeader>
 			<DialogContent className="max-w-2xl gap-0 overflow-hidden p-0">
 				<Command shouldFilter={false}>
-					<div className="flex items-center gap-2 border-b px-3">
+					<div className="flex items-center gap-2 border-b border-border/40 px-3">
 						<CommandInput
 							ref={inputRef}
 							value={inputValue}
