@@ -23,6 +23,7 @@ import { EditableDateCard } from "@/components/appointments/editable/EditableDat
 import { EditableHeader } from "@/components/appointments/editable/EditableHeader";
 import { EditableNextAppointmentCard } from "@/components/appointments/editable/EditableNextAppointmentCard";
 import { EditableTextCard } from "@/components/appointments/editable/EditableTextCard";
+import { TransactionHistory } from "@/components/appointments/TransactionHistory";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { ParticipantModal } from "@/components/placement/PlacementModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -297,6 +298,12 @@ function RouteComponent() {
 						></iframe>
 					</div>
 				)}
+				<div className="mt-4">
+					<TransactionHistory
+						transactions={appointment.transactions}
+						otherAppointments={appointments ?? []}
+					/>
+				</div>
 			</div>
 
 			{/* Desktop: two columns */}
@@ -336,6 +343,10 @@ function RouteComponent() {
 							)}
 						/>
 					</div>
+					<TransactionHistory
+						transactions={appointment.transactions}
+						otherAppointments={appointments ?? []}
+					/>
 				</div>
 			</div>
 
