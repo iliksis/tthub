@@ -1,8 +1,17 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { Transaction, User } from "@/lib/prisma/client";
 import { TransactionType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import { createColorForUserId, shortenUserName } from "@/lib/utils";
+import {
+	createColorForUserId,
+	formatRelativeTime,
+	shortenUserName,
+} from "@/lib/utils";
 
 type TransactionChanges = Record<string, { old: unknown; new: unknown }>;
 
@@ -102,10 +111,17 @@ export const TransactionHistory = ({
 								<p>{entry.header}</p>
 								<p className="text-muted-foreground text-xs">
 									{entry.user.name} ·{" "}
-									{new Date(entry.createdAt).toLocaleString(
-										"de-DE",
-										dateTimeFormat,
-									)}
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<span>{formatRelativeTime(entry.createdAt)}</span>
+										</TooltipTrigger>
+										<TooltipContent>
+											{new Date(entry.createdAt).toLocaleString(
+												"de-DE",
+												dateTimeFormat,
+											)}
+										</TooltipContent>
+									</Tooltip>
 								</p>
 							</div>
 						</li>
