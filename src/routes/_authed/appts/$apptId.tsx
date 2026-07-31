@@ -32,6 +32,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Sheet,
+	SheetClose,
+	SheetContent,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
 import { IcalGenerator } from "@/lib/ical";
 import type { Appointment } from "@/lib/prisma/client";
 import {
@@ -124,7 +133,7 @@ function RouteComponent() {
 	const [isDeleting, setIsDeleting] = React.useState(false);
 	const [isParticipantsModalOpen, setIsParticipantsModalOpen] =
 		React.useState(false);
-	const [isEditing, setIsEditing] = React.useState(false);
+	const [isEditSheetOpen, setIsEditSheetOpen] = React.useState(false);
 	const [draft, setDraft] = React.useState<EditableDraft>({
 		endDate: null,
 		link: "",
@@ -236,12 +245,12 @@ function RouteComponent() {
 			startDate: new Date(appointment.startDate),
 			title: appointment.title,
 		});
-		setIsEditing(true);
+		setIsEditSheetOpen(true);
 	};
-	const onCancelEdit = () => setIsEditing(false);
-	const onSaveEdit = async () => {
+	const onSaveEdit = async (e: React.FormEvent) => {
+		e.preventDefault();
 		const ok = await onSaveField(draft);
-		if (ok) setIsEditing(false);
+		if (ok) setIsEditSheetOpen(false);
 	};
 
 	return (
@@ -311,34 +320,12 @@ function RouteComponent() {
 											</Badge>
 										)}
 									</div>
-									{isEditing ? (
-										<div className="flex flex-col gap-1.5">
-											<Input
-												autoFocus
-												value={draft.title}
-												onChange={(e) =>
-													setDraft({ ...draft, title: e.target.value })
-												}
-												className="font-bold text-2xl"
-											/>
-											<Input
-												value={draft.shortTitle}
-												onChange={(e) =>
-													setDraft({ ...draft, shortTitle: e.target.value })
-												}
-												className="text-sm"
-											/>
-										</div>
-									) : (
-										<div>
-											<h1 className="font-bold text-2xl">
-												{appointment.title}
-											</h1>
-											<p className="text-muted-foreground text-sm">
-												{appointment.shortTitle}
-											</p>
-										</div>
-									)}
+									<div>
+										<h1 className="font-bold text-2xl">{appointment.title}</h1>
+										<p className="text-muted-foreground text-sm">
+											{appointment.shortTitle}
+										</p>
+									</div>
 								</div>
 							</div>
 
@@ -352,63 +339,24 @@ function RouteComponent() {
 									<div className="mb-1 text-muted-foreground text-xs uppercase">
 										{t("Start")}
 									</div>
-									{isEditing ? (
-										<Input
-											type="datetime-local"
-											value={dateToInputValue(draft.startDate)}
-											onChange={(e) =>
-												setDraft({
-													...draft,
-													startDate: new Date(e.target.value),
-												})
-											}
-										/>
-									) : (
-										<div>{formatDateTime(appointment.startDate)}</div>
-									)}
+									<div>{formatDateTime(appointment.startDate)}</div>
 								</div>
 								<div>
 									<div className="mb-1 text-muted-foreground text-xs uppercase">
 										{t("End")}
 									</div>
-									{isEditing ? (
-										<Input
-											type="date"
-											value={
-												draft.endDate
-													? dateToInputValue(draft.endDate, false)
-													: ""
-											}
-											onChange={(e) =>
-												setDraft({
-													...draft,
-													endDate: e.target.value
-														? new Date(e.target.value)
-														: null,
-												})
-											}
-										/>
-									) : (
-										<div>
-											{appointment.endDate
-												? formatDateTime(appointment.endDate)
-												: "—"}
-										</div>
-									)}
+									<div>
+										{appointment.endDate
+											? formatDateTime(appointment.endDate)
+											: "—"}
+									</div>
 								</div>
 								{!isHoliday && (
 									<div>
 										<div className="mb-1 text-muted-foreground text-xs uppercase">
 											{t("Location")}
 										</div>
-										{isEditing ? (
-											<Input
-												value={draft.location}
-												onChange={(e) =>
-													setDraft({ ...draft, location: e.target.value })
-												}
-											/>
-										) : appointment.location ? (
+										{appointment.location ? (
 											<a
 												href={createGoogleMapsLink(appointment.location)}
 												target="_blank"
@@ -442,14 +390,7 @@ function RouteComponent() {
 									<div className="mb-1 text-muted-foreground text-xs uppercase">
 										{t("Link")}
 									</div>
-									{isEditing ? (
-										<Input
-											value={draft.link}
-											onChange={(e) =>
-												setDraft({ ...draft, link: e.target.value })
-											}
-										/>
-									) : appointment.link ? (
+									{appointment.link ? (
 										<a
 											href={appointment.link}
 											target="_blank"
@@ -491,39 +432,26 @@ function RouteComponent() {
 
 				<div className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-6">
 					<div className="flex shrink-0 flex-wrap justify-end gap-2">
-						{isEditing ? (
-							<>
-								<Button variant="outline" size="sm" onClick={onCancelEdit}>
-									{t("Cancel")}
-								</Button>
-								<Button size="sm" onClick={onSaveEdit}>
-									{t("Save")}
-								</Button>
-							</>
-						) : (
-							<>
-								<Button variant="outline" size="sm" onClick={onDownloadIcal}>
-									<DownloadIcon className="size-4" />
-									{t("Download iCal")}
-								</Button>
-								{canEdit && (
-									<Button variant="outline" size="sm" onClick={onStartEdit}>
-										{t("Edit")}
-									</Button>
-								)}
-								{canEdit && (
-									<Button
-										variant="outline"
-										size="sm"
-										className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-										disabled={isDeleted}
-										onClick={onOpenDelete}
-									>
-										<Trash2Icon className="size-4" />
-										{t("Cancel")}
-									</Button>
-								)}
-							</>
+						<Button variant="outline" size="sm" onClick={onDownloadIcal}>
+							<DownloadIcon className="size-4" />
+							{t("Download iCal")}
+						</Button>
+						{canEdit && (
+							<Button variant="outline" size="sm" onClick={onStartEdit}>
+								{t("Edit")}
+							</Button>
+						)}
+						{canEdit && (
+							<Button
+								variant="outline"
+								size="sm"
+								className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+								disabled={isDeleted}
+								onClick={onOpenDelete}
+							>
+								<Trash2Icon className="size-4" />
+								{t("Cancel")}
+							</Button>
 						)}
 					</div>
 					<RecordInfoPanel
@@ -561,6 +489,103 @@ function RouteComponent() {
 				appointmentId={appointment.id}
 				categories={categories ?? []}
 			/>
+
+			<Sheet open={isEditSheetOpen} onOpenChange={setIsEditSheetOpen}>
+				<SheetContent className="w-full sm:max-w-md">
+					<SheetHeader>
+						<SheetTitle>{t("Edit appointment")}</SheetTitle>
+					</SheetHeader>
+					<form
+						id="edit-appointment"
+						className="flex flex-1 flex-col gap-4 overflow-y-auto px-4"
+						onSubmit={onSaveEdit}
+					>
+						<fieldset className="flex flex-col gap-1.5">
+							<Label htmlFor="title">{t("Title")}</Label>
+							<Input
+								id="title"
+								autoFocus
+								value={draft.title}
+								onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+							/>
+						</fieldset>
+						<fieldset className="flex flex-col gap-1.5">
+							<Label htmlFor="shortTitle">{t("ShortTitle")}</Label>
+							<Input
+								id="shortTitle"
+								value={draft.shortTitle}
+								onChange={(e) =>
+									setDraft({ ...draft, shortTitle: e.target.value })
+								}
+							/>
+						</fieldset>
+						<fieldset className="flex flex-col gap-1.5">
+							<Label htmlFor="startDate">{t("StartDate")}</Label>
+							<Input
+								id="startDate"
+								type="datetime-local"
+								value={dateToInputValue(draft.startDate)}
+								onChange={(e) =>
+									setDraft({
+										...draft,
+										startDate: new Date(e.target.value),
+									})
+								}
+							/>
+						</fieldset>
+						<fieldset className="flex flex-col gap-1.5">
+							<Label htmlFor="endDate">{t("EndDate")}</Label>
+							<Input
+								id="endDate"
+								type="date"
+								value={
+									draft.endDate ? dateToInputValue(draft.endDate, false) : ""
+								}
+								onChange={(e) =>
+									setDraft({
+										...draft,
+										endDate: e.target.value ? new Date(e.target.value) : null,
+									})
+								}
+							/>
+						</fieldset>
+						{!isHoliday && (
+							<>
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor="location">{t("Location")}</Label>
+									<Input
+										id="location"
+										value={draft.location}
+										onChange={(e) =>
+											setDraft({ ...draft, location: e.target.value })
+										}
+									/>
+								</fieldset>
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor="link">{t("Link")}</Label>
+									<Input
+										id="link"
+										value={draft.link}
+										onChange={(e) =>
+											setDraft({ ...draft, link: e.target.value })
+										}
+									/>
+								</fieldset>
+							</>
+						)}
+					</form>
+					<SheetFooter>
+						<div className="flex justify-end gap-2">
+							<SheetClose asChild>
+								<Button variant="secondary">{t("Cancel")}</Button>
+							</SheetClose>
+							<Button type="submit" form="edit-appointment">
+								{t("Save")}
+							</Button>
+						</div>
+					</SheetFooter>
+				</SheetContent>
+			</Sheet>
 		</div>
 	);
 }

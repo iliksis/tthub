@@ -57,11 +57,13 @@ const buildEntries = (
 			});
 		} else {
 			const changes = transaction.changes as TransactionChanges | null;
-			for (const field of Object.keys(changes ?? {})) {
+			const fields = Object.keys(changes ?? {});
+			if (fields.length > 0) {
+				const labels = fields.map((field) => fieldLabels[field] ?? field);
 				entries.push({
 					createdAt: transaction.createdAt,
-					header: t("{0} changed", fieldLabels[field] ?? field),
-					key: `${transaction.id}-${field}`,
+					header: t("{0} changed", labels.join(", ")),
+					key: transaction.id,
 					user: transaction.user,
 				});
 			}
