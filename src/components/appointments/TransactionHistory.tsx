@@ -7,27 +7,15 @@ import {
 import type { Transaction, User } from "@/lib/prisma/client";
 import { TransactionType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
+import { fieldLabels, type TransactionChanges } from "@/lib/transactionLabels";
 import {
 	createColorForUserId,
 	formatRelativeTime,
 	shortenUserName,
 } from "@/lib/utils";
 
-type TransactionChanges = Record<string, { old: unknown; new: unknown }>;
-
 type TransactionHistoryProps = {
 	transactions: (Transaction & { user: User })[];
-};
-
-const fieldLabels: Record<string, string> = {
-	endDate: t("EndDate"),
-	link: t("Link"),
-	location: t("Location"),
-	nextAppointmentId: t("Next Appointment"),
-	shortTitle: t("ShortTitle"),
-	startDate: t("StartDate"),
-	status: t("Status"),
-	title: t("Title"),
 };
 
 const dateTimeFormat: Intl.DateTimeFormatOptions = {

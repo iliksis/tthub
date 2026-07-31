@@ -26,6 +26,7 @@ import { Route as AuthedSettingsProfileRouteImport } from './routes/_authed/sett
 import { Route as AuthedSettingsImportsRouteImport } from './routes/_authed/settings/imports'
 import { Route as AuthedSettingsFeedRouteImport } from './routes/_authed/settings/feed'
 import { Route as AuthedPlayersPlayerIdRouteImport } from './routes/_authed/players/$playerId'
+import { Route as AuthedApptsJournalRouteImport } from './routes/_authed/appts/journal'
 import { Route as AuthedApptsCalendarRouteImport } from './routes/_authed/appts/calendar'
 import { Route as AuthedApptsApptIdRouteImport } from './routes/_authed/appts/$apptId'
 
@@ -113,6 +114,11 @@ const AuthedPlayersPlayerIdRoute = AuthedPlayersPlayerIdRouteImport.update({
   path: '/players/$playerId',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedApptsJournalRoute = AuthedApptsJournalRouteImport.update({
+  id: '/appts/journal',
+  path: '/appts/journal',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedApptsCalendarRoute = AuthedApptsCalendarRouteImport.update({
   id: '/appts/calendar',
   path: '/appts/calendar',
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
   '/appts/$apptId': typeof AuthedApptsApptIdRoute
   '/appts/calendar': typeof AuthedApptsCalendarRoute
+  '/appts/journal': typeof AuthedApptsJournalRoute
   '/players/$playerId': typeof AuthedPlayersPlayerIdRoute
   '/settings/feed': typeof AuthedSettingsFeedRoute
   '/settings/imports': typeof AuthedSettingsImportsRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthedIndexRoute
   '/appts/$apptId': typeof AuthedApptsApptIdRoute
   '/appts/calendar': typeof AuthedApptsCalendarRoute
+  '/appts/journal': typeof AuthedApptsJournalRoute
   '/players/$playerId': typeof AuthedPlayersPlayerIdRoute
   '/settings/feed': typeof AuthedSettingsFeedRoute
   '/settings/imports': typeof AuthedSettingsImportsRoute
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/_authed/': typeof AuthedIndexRoute
   '/_authed/appts/$apptId': typeof AuthedApptsApptIdRoute
   '/_authed/appts/calendar': typeof AuthedApptsCalendarRoute
+  '/_authed/appts/journal': typeof AuthedApptsJournalRoute
   '/_authed/players/$playerId': typeof AuthedPlayersPlayerIdRoute
   '/_authed/settings/feed': typeof AuthedSettingsFeedRoute
   '/_authed/settings/imports': typeof AuthedSettingsImportsRoute
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/'
     | '/appts/$apptId'
     | '/appts/calendar'
+    | '/appts/journal'
     | '/players/$playerId'
     | '/settings/feed'
     | '/settings/imports'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/'
     | '/appts/$apptId'
     | '/appts/calendar'
+    | '/appts/journal'
     | '/players/$playerId'
     | '/settings/feed'
     | '/settings/imports'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/_authed/'
     | '/_authed/appts/$apptId'
     | '/_authed/appts/calendar'
+    | '/_authed/appts/journal'
     | '/_authed/players/$playerId'
     | '/_authed/settings/feed'
     | '/_authed/settings/imports'
@@ -380,6 +392,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedPlayersPlayerIdRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/appts/journal': {
+      id: '/_authed/appts/journal'
+      path: '/appts/journal'
+      fullPath: '/appts/journal'
+      preLoaderRoute: typeof AuthedApptsJournalRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/appts/calendar': {
       id: '/_authed/appts/calendar'
       path: '/appts/calendar'
@@ -402,6 +421,7 @@ interface AuthedRouteChildren {
   AuthedIndexRoute: typeof AuthedIndexRoute
   AuthedApptsApptIdRoute: typeof AuthedApptsApptIdRoute
   AuthedApptsCalendarRoute: typeof AuthedApptsCalendarRoute
+  AuthedApptsJournalRoute: typeof AuthedApptsJournalRoute
   AuthedPlayersPlayerIdRoute: typeof AuthedPlayersPlayerIdRoute
   AuthedSettingsFeedRoute: typeof AuthedSettingsFeedRoute
   AuthedSettingsImportsRoute: typeof AuthedSettingsImportsRoute
@@ -418,6 +438,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedIndexRoute: AuthedIndexRoute,
   AuthedApptsApptIdRoute: AuthedApptsApptIdRoute,
   AuthedApptsCalendarRoute: AuthedApptsCalendarRoute,
+  AuthedApptsJournalRoute: AuthedApptsJournalRoute,
   AuthedPlayersPlayerIdRoute: AuthedPlayersPlayerIdRoute,
   AuthedSettingsFeedRoute: AuthedSettingsFeedRoute,
   AuthedSettingsImportsRoute: AuthedSettingsImportsRoute,

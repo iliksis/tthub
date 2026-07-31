@@ -177,6 +177,26 @@ export const searchAppointments = createServerFn()
 		}
 	});
 
+export const getAllTransactions = createServerFn().handler(async () => {
+	try {
+		const transactions = await prismaClient.transaction.findMany({
+			include: {
+				appointment: true,
+				user: true,
+			},
+			orderBy: { createdAt: "desc" },
+		});
+		return json<Return<typeof transactions>>(
+			{ data: transactions, message: t("Transactions found") },
+			{ status: 200 },
+		);
+	} catch (e) {
+		console.error(e);
+		const error = e as Error;
+		return json<Return>({ message: error.message }, { status: 400 });
+	}
+});
+
 export const getAppointments = createServerFn()
 	.inputValidator(
 		(d: {
