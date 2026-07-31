@@ -255,13 +255,6 @@ function RouteComponent() {
 
 	return (
 		<div>
-			<div className="mb-4 flex items-center gap-2">
-				<span className="text-muted-foreground text-sm">
-					{t("Appointments")} /
-				</span>
-				<span className="font-semibold text-[15px]">{appointment.title}</span>
-			</div>
-
 			{isDeleted && (
 				<Alert variant="destructive" className="mb-4">
 					<AlertDescription>
