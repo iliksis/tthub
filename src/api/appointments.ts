@@ -637,16 +637,38 @@ export const publishAppointment = createServerFn()
 	.inputValidator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
+		const { data: session } = await useAppSession();
 		if (!isAuthorized) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
+		if (!session.id) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
-			const appointment = await prismaClient.appointment.update({
-				data: {
-					status: AppointmentStatus.PUBLISHED,
-				},
-				where: { id: data.id },
+			const appointment = await prismaClient.$transaction(async (tx) => {
+				const before = await tx.appointment.findUniqueOrThrow({
+					where: { id: data.id },
+				});
+				const appointment = await tx.appointment.update({
+					data: {
+						status: AppointmentStatus.PUBLISHED,
+					},
+					where: { id: data.id },
+				});
+				if (before.status !== appointment.status) {
+					await tx.transaction.create({
+						data: {
+							appointmentId: appointment.id,
+							changes: {
+								status: { new: appointment.status, old: before.status },
+							} as Prisma.InputJsonValue,
+							type: TransactionType.UPDATE,
+							userId: session.id as string,
+						},
+					});
+				}
+				return appointment;
 			});
 			if (appointment.type === AppointmentType.TOURNAMENT) {
 				await sendNotification({
@@ -673,16 +695,38 @@ export const unpublishAppointment = createServerFn()
 	.inputValidator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
+		const { data: session } = await useAppSession();
 		if (!isAuthorized) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
+		if (!session.id) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
-			const appointment = await prismaClient.appointment.update({
-				data: {
-					status: AppointmentStatus.DRAFT,
-				},
-				where: { id: data.id },
+			const appointment = await prismaClient.$transaction(async (tx) => {
+				const before = await tx.appointment.findUniqueOrThrow({
+					where: { id: data.id },
+				});
+				const appointment = await tx.appointment.update({
+					data: {
+						status: AppointmentStatus.DRAFT,
+					},
+					where: { id: data.id },
+				});
+				if (before.status !== appointment.status) {
+					await tx.transaction.create({
+						data: {
+							appointmentId: appointment.id,
+							changes: {
+								status: { new: appointment.status, old: before.status },
+							} as Prisma.InputJsonValue,
+							type: TransactionType.UPDATE,
+							userId: session.id as string,
+						},
+					});
+				}
+				return appointment;
 			});
 			return json<Return<Appointment>>(
 				{ data: appointment, message: t("Appointment unpublished") },
