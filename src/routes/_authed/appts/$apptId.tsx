@@ -1,6 +1,11 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { DownloadIcon, ExternalLinkIcon, Trash2Icon } from "lucide-react";
+import {
+	DownloadIcon,
+	ExternalLinkIcon,
+	RefreshCwIcon,
+	Trash2Icon,
+} from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import {
@@ -10,6 +15,7 @@ import {
 	getAppointments,
 	publishAppointment,
 	restoreAppointment,
+	unpublishAppointment,
 	updateAppointment,
 } from "@/api/appointments";
 import { getUniqueCategories } from "@/api/placements";
@@ -131,6 +137,7 @@ function RouteComponent() {
 	const deleteAppointmentServerFn = useServerFn(deleteAppointment);
 	const createResponseServerFn = useServerFn(createResponse);
 	const publish = useServerFn(publishAppointment);
+	const unpublish = useServerFn(unpublishAppointment);
 	const restore = useServerFn(restoreAppointment);
 	const updateAppointmentServerFn = useServerFn(updateAppointment);
 
@@ -142,6 +149,7 @@ function RouteComponent() {
 
 	const isDeleted = appointment.deletedAt !== null;
 	const isHoliday = appointment.type === AppointmentType.HOLIDAY;
+	const isPublished = appointment.status === AppointmentStatus.PUBLISHED;
 
 	const onOpenDelete = () => {
 		setIsDeleting(true);
@@ -187,6 +195,11 @@ function RouteComponent() {
 
 	const onPublish = async () => {
 		await publish({ data: { id: appointment.id } });
+		await router.invalidate();
+	};
+
+	const onUnpublish = async () => {
+		await unpublish({ data: { id: appointment.id } });
 		await router.invalidate();
 	};
 
@@ -267,17 +280,34 @@ function RouteComponent() {
 										<Badge variant="outline">
 											{typeLabel(appointment.type)}
 										</Badge>
-										{!isHoliday && (
-											<Badge
-												variant={
-													appointment.status === AppointmentStatus.PUBLISHED
-														? "success"
-														: "warning"
+										{!isHoliday && canEdit && (
+											<button
+												type="button"
+												onClick={isPublished ? onUnpublish : onPublish}
+												className="group rounded-full"
+												aria-label={
+													isPublished
+														? t("Unpublish appointment")
+														: t("Publish appointment")
 												}
 											>
-												{appointment.status === AppointmentStatus.PUBLISHED
-													? t("Published")
-													: t("Draft")}
+												<Badge
+													variant={isPublished ? "success" : "warning"}
+													className={cn(
+														"cursor-pointer gap-1 transition-shadow",
+														isPublished
+															? "group-hover:ring-2 group-hover:ring-success/40"
+															: "group-hover:ring-2 group-hover:ring-warning/40",
+													)}
+												>
+													{isPublished ? t("Published") : t("Draft")}
+													<RefreshCwIcon className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
+												</Badge>
+											</button>
+										)}
+										{!isHoliday && !canEdit && (
+											<Badge variant={isPublished ? "success" : "warning"}>
+												{isPublished ? t("Published") : t("Draft")}
 											</Badge>
 										)}
 									</div>

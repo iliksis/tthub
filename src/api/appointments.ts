@@ -669,6 +669,32 @@ export const publishAppointment = createServerFn()
 		}
 	});
 
+export const unpublishAppointment = createServerFn()
+	.inputValidator((d: { id: string }) => d)
+	.handler(async ({ data }) => {
+		const isAuthorized = await useIsRole("EDITOR");
+		if (!isAuthorized) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
+
+		try {
+			const appointment = await prismaClient.appointment.update({
+				data: {
+					status: AppointmentStatus.DRAFT,
+				},
+				where: { id: data.id },
+			});
+			return json<Return<Appointment>>(
+				{ data: appointment, message: t("Appointment unpublished") },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
 export const restoreAppointment = createServerFn()
 	.inputValidator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
