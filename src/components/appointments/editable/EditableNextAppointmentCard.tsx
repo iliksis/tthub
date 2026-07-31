@@ -1,4 +1,6 @@
+import { PencilIcon, XIcon } from "lucide-react";
 import { InternalLink } from "@/components/InternalLink";
+import { Button } from "@/components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -8,7 +10,6 @@ import {
 } from "@/components/ui/select";
 import type { Appointment } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
-import { EditableCardChrome } from "./EditableCardChrome";
 import { useInlineEditable } from "./useInlineEditable";
 
 type EditableNextAppointmentCardProps = {
@@ -16,52 +17,31 @@ type EditableNextAppointmentCardProps = {
 	nextAppointmentId: string | null;
 	nextAppointment: { id: string; title: string } | null;
 	otherAppointments: Appointment[];
-	gridRows?: 1 | 2 | 3 | 4;
 	canEdit: boolean;
 	onSave: (nextAppointmentId: string) => Promise<boolean>;
 };
 
+/** Lightweight "Next Appointment: …" row — no card chrome, sits inline in the main content. */
 export function EditableNextAppointmentCard({
 	appointmentId,
 	nextAppointmentId,
 	nextAppointment,
 	otherAppointments,
-	gridRows = 4,
 	canEdit,
 	onSave,
 }: EditableNextAppointmentCardProps) {
-	const { editing, isSaving, start, cancel, commit } = useInlineEditable<
-		string | null
-	>({
+	const { editing, start, cancel, commit } = useInlineEditable<string | null>({
 		canEdit,
 		onSave: (v) => onSave(v ?? ""),
 		value: nextAppointmentId,
 	});
 
-	return (
-		<EditableCardChrome
-			title={t("Next Appointment")}
-			gridRows={gridRows}
-			canEdit={canEdit}
-			editing={editing}
-			isSaving={isSaving}
-			autoCommitting
-			onStartEdit={start}
-			onCommit={commit}
-			onCancel={cancel}
-			renderRead={() =>
-				nextAppointment ? (
-					<InternalLink
-						to="/appts/$apptId"
-						params={{ apptId: nextAppointment.id }}
-					>
-						{nextAppointment.title}
-					</InternalLink>
-				) : (
-					t("No appointment set")
-				)
-			}
-			renderEdit={() => (
+	if (editing) {
+		return (
+			<div className="flex items-center gap-2 border-border/60 border-t pt-4 text-sm">
+				<span className="shrink-0 text-muted-foreground">
+					{t("Next Appointment")}:
+				</span>
 				<Select
 					value={nextAppointmentId ?? undefined}
 					onValueChange={(v) => commit(v)}
@@ -87,7 +67,45 @@ export function EditableNextAppointmentCard({
 						))}
 					</SelectContent>
 				</Select>
+				<Button
+					type="button"
+					variant="ghost"
+					size="icon-xs"
+					aria-label={t("Cancel")}
+					onClick={cancel}
+				>
+					<XIcon className="size-3.5" />
+				</Button>
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex items-center gap-2 border-border/60 border-t pt-4 text-sm">
+			<span className="text-muted-foreground">{t("Next Appointment")}:</span>
+			{nextAppointment ? (
+				<InternalLink
+					to="/appts/$apptId"
+					params={{ apptId: nextAppointment.id }}
+					className="text-primary"
+				>
+					{nextAppointment.title} →
+				</InternalLink>
+			) : (
+				<span className="text-muted-foreground">{t("No appointment set")}</span>
 			)}
-		/>
+			{canEdit && (
+				<Button
+					type="button"
+					variant="ghost"
+					size="icon-xs"
+					className="text-muted-foreground"
+					aria-label={t("Edit")}
+					onClick={start}
+				>
+					<PencilIcon className="size-3.5" />
+				</Button>
+			)}
+		</div>
 	);
 }

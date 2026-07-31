@@ -40,6 +40,41 @@ export const dateToInputValue = (date: Date, withSeconds = true) => {
 	return isoString.split("T")[0];
 };
 
+const relativeTimeFormat = new Intl.RelativeTimeFormat("de-DE", {
+	numeric: "auto",
+});
+
+/**
+ * Formats a date as a relative time string (e.g. "vor 5 Minuten", "gestern").
+ */
+export const formatRelativeTime = (date: Date | string) => {
+	const target = new Date(date);
+	const diffSeconds = Math.round((target.getTime() - Date.now()) / 1000);
+	const diffMinutes = Math.round(diffSeconds / 60);
+	const diffHours = Math.round(diffMinutes / 60);
+	const diffDays = Math.round(diffHours / 24);
+
+	if (Math.abs(diffSeconds) < 60) {
+		return relativeTimeFormat.format(diffSeconds, "second");
+	}
+	if (Math.abs(diffMinutes) < 60) {
+		return relativeTimeFormat.format(diffMinutes, "minute");
+	}
+	if (Math.abs(diffHours) < 24) {
+		return relativeTimeFormat.format(diffHours, "hour");
+	}
+	if (Math.abs(diffDays) < 7) {
+		return relativeTimeFormat.format(diffDays, "day");
+	}
+	if (Math.abs(diffDays) < 30) {
+		return relativeTimeFormat.format(Math.round(diffDays / 7), "week");
+	}
+	if (Math.abs(diffDays) < 365) {
+		return relativeTimeFormat.format(Math.round(diffDays / 30), "month");
+	}
+	return relativeTimeFormat.format(Math.round(diffDays / 365), "year");
+};
+
 /**
  * Checks if a date is in the past.
  */

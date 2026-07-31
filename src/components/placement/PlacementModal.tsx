@@ -6,6 +6,7 @@ import { deletePlacement } from "@/api/placements";
 import { InternalLink } from "@/components/InternalLink";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
+import { groupPlacementsByCategory } from "@/lib/placements";
 import type { Placement, Player } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { Modal } from "../modal/Modal";
@@ -36,25 +37,10 @@ export const ParticipantModal = ({
 	const [showCreate, setShowCreate] = React.useState(false);
 	const [showUpdate, setShowUpdate] = React.useState<Placement | undefined>();
 
-	const groupedPlacements = React.useMemo(() => {
-		const grouped = placements.reduce(
-			(acc, placement) => {
-				const category = acc.find((c) => c.category === placement.category);
-				if (category) {
-					category.placements.push(placement);
-				} else {
-					acc.push({
-						category: placement.category,
-						placements: [placement],
-					});
-				}
-				return acc;
-			},
-			[] as { category: string; placements: typeof placements }[],
-		);
-
-		return grouped.sort((a, b) => a.category.localeCompare(b.category));
-	}, [placements]);
+	const groupedPlacements = React.useMemo(
+		() => groupPlacementsByCategory(placements),
+		[placements],
+	);
 
 	const onCreateCategory = () => {
 		setShowCreate(true);

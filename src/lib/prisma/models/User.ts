@@ -196,6 +196,7 @@ export type UserWhereInput = {
   notificationSettings?: Prisma.NotificationSettingsListRelationFilter
   passwordReset?: Prisma.XOR<Prisma.PasswordResetNullableScalarRelationFilter, Prisma.PasswordResetWhereInput> | null
   feedConfig?: Prisma.XOR<Prisma.FeedConfigNullableScalarRelationFilter, Prisma.FeedConfigWhereInput> | null
+  transactions?: Prisma.TransactionListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -211,6 +212,7 @@ export type UserOrderByWithRelationInput = {
   notificationSettings?: Prisma.NotificationSettingsOrderByRelationAggregateInput
   passwordReset?: Prisma.PasswordResetOrderByWithRelationInput
   feedConfig?: Prisma.FeedConfigOrderByWithRelationInput
+  transactions?: Prisma.TransactionOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -229,6 +231,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   notificationSettings?: Prisma.NotificationSettingsListRelationFilter
   passwordReset?: Prisma.XOR<Prisma.PasswordResetNullableScalarRelationFilter, Prisma.PasswordResetWhereInput> | null
   feedConfig?: Prisma.XOR<Prisma.FeedConfigNullableScalarRelationFilter, Prisma.FeedConfigWhereInput> | null
+  transactions?: Prisma.TransactionListRelationFilter
 }, "id" | "userName" | "feedId">
 
 export type UserOrderByWithAggregationInput = {
@@ -268,6 +271,7 @@ export type UserCreateInput = {
   notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -283,6 +287,7 @@ export type UserUncheckedCreateInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -298,6 +303,7 @@ export type UserUpdateInput = {
   notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -313,6 +319,7 @@ export type UserUncheckedUpdateInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUncheckedUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -442,6 +449,20 @@ export type UserUpdateOneRequiredWithoutResponsesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutResponsesInput, Prisma.UserUpdateWithoutResponsesInput>, Prisma.UserUncheckedUpdateWithoutResponsesInput>
 }
 
+export type UserCreateNestedOneWithoutTransactionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTransactionsInput, Prisma.UserUncheckedCreateWithoutTransactionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTransactionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutTransactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTransactionsInput, Prisma.UserUncheckedCreateWithoutTransactionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTransactionsInput
+  upsert?: Prisma.UserUpsertWithoutTransactionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTransactionsInput, Prisma.UserUpdateWithoutTransactionsInput>, Prisma.UserUncheckedUpdateWithoutTransactionsInput>
+}
+
 export type UserCreateNestedOneWithoutSubscriptionsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutSubscriptionsInput, Prisma.UserUncheckedCreateWithoutSubscriptionsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutSubscriptionsInput
@@ -482,6 +503,7 @@ export type UserCreateWithoutFeedConfigInput = {
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutFeedConfigInput = {
@@ -496,6 +518,7 @@ export type UserUncheckedCreateWithoutFeedConfigInput = {
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutFeedConfigInput = {
@@ -526,6 +549,7 @@ export type UserUpdateWithoutFeedConfigInput = {
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFeedConfigInput = {
@@ -540,6 +564,7 @@ export type UserUncheckedUpdateWithoutFeedConfigInput = {
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutInvitationInput = {
@@ -554,6 +579,7 @@ export type UserCreateWithoutInvitationInput = {
   notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutInvitationInput = {
@@ -568,6 +594,7 @@ export type UserUncheckedCreateWithoutInvitationInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutInvitationInput = {
@@ -598,6 +625,7 @@ export type UserUpdateWithoutInvitationInput = {
   notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutInvitationInput = {
@@ -612,6 +640,7 @@ export type UserUncheckedUpdateWithoutInvitationInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUncheckedUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPasswordResetInput = {
@@ -626,6 +655,7 @@ export type UserCreateWithoutPasswordResetInput = {
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
   feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPasswordResetInput = {
@@ -640,6 +670,7 @@ export type UserUncheckedCreateWithoutPasswordResetInput = {
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
   feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPasswordResetInput = {
@@ -670,6 +701,7 @@ export type UserUpdateWithoutPasswordResetInput = {
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPasswordResetInput = {
@@ -684,6 +716,7 @@ export type UserUncheckedUpdateWithoutPasswordResetInput = {
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUncheckedUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutResponsesInput = {
@@ -698,6 +731,7 @@ export type UserCreateWithoutResponsesInput = {
   notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutResponsesInput = {
@@ -712,6 +746,7 @@ export type UserUncheckedCreateWithoutResponsesInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutResponsesInput = {
@@ -742,6 +777,7 @@ export type UserUpdateWithoutResponsesInput = {
   notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutResponsesInput = {
@@ -752,6 +788,83 @@ export type UserUncheckedUpdateWithoutResponsesInput = {
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   feedId?: Prisma.StringFieldUpdateOperationsInput | string
   invitation?: Prisma.UserInvitationUncheckedUpdateOneWithoutUserNestedInput
+  subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
+  passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
+  feedConfig?: Prisma.FeedConfigUncheckedUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutTransactionsInput = {
+  id?: string
+  userName: string
+  password?: string | null
+  name: string
+  role?: $Enums.Role
+  feedId?: string
+  invitation?: Prisma.UserInvitationCreateNestedOneWithoutUserInput
+  responses?: Prisma.ResponseCreateNestedManyWithoutUserInput
+  subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
+  passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
+  feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutTransactionsInput = {
+  id?: string
+  userName: string
+  password?: string | null
+  name: string
+  role?: $Enums.Role
+  feedId?: string
+  invitation?: Prisma.UserInvitationUncheckedCreateNestedOneWithoutUserInput
+  responses?: Prisma.ResponseUncheckedCreateNestedManyWithoutUserInput
+  subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
+  notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
+  passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
+  feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutTransactionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTransactionsInput, Prisma.UserUncheckedCreateWithoutTransactionsInput>
+}
+
+export type UserUpsertWithoutTransactionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTransactionsInput, Prisma.UserUncheckedUpdateWithoutTransactionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTransactionsInput, Prisma.UserUncheckedCreateWithoutTransactionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTransactionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTransactionsInput, Prisma.UserUncheckedUpdateWithoutTransactionsInput>
+}
+
+export type UserUpdateWithoutTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userName?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  feedId?: Prisma.StringFieldUpdateOperationsInput | string
+  invitation?: Prisma.UserInvitationUpdateOneWithoutUserNestedInput
+  responses?: Prisma.ResponseUpdateManyWithoutUserNestedInput
+  subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
+  notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
+  passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
+  feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userName?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  feedId?: Prisma.StringFieldUpdateOperationsInput | string
+  invitation?: Prisma.UserInvitationUncheckedUpdateOneWithoutUserNestedInput
+  responses?: Prisma.ResponseUncheckedUpdateManyWithoutUserNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
@@ -770,6 +883,7 @@ export type UserCreateWithoutSubscriptionsInput = {
   notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSubscriptionsInput = {
@@ -784,6 +898,7 @@ export type UserUncheckedCreateWithoutSubscriptionsInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSubscriptionsInput = {
@@ -814,6 +929,7 @@ export type UserUpdateWithoutSubscriptionsInput = {
   notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubscriptionsInput = {
@@ -828,6 +944,7 @@ export type UserUncheckedUpdateWithoutSubscriptionsInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUncheckedUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutNotificationSettingsInput = {
@@ -842,6 +959,7 @@ export type UserCreateWithoutNotificationSettingsInput = {
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNotificationSettingsInput = {
@@ -856,6 +974,7 @@ export type UserUncheckedCreateWithoutNotificationSettingsInput = {
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNotificationSettingsInput = {
@@ -886,6 +1005,7 @@ export type UserUpdateWithoutNotificationSettingsInput = {
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationSettingsInput = {
@@ -900,6 +1020,7 @@ export type UserUncheckedUpdateWithoutNotificationSettingsInput = {
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUncheckedUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -911,12 +1032,14 @@ export type UserCountOutputType = {
   responses: number
   subscriptions: number
   notificationSettings: number
+  transactions: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   responses?: boolean | UserCountOutputTypeCountResponsesArgs
   subscriptions?: boolean | UserCountOutputTypeCountSubscriptionsArgs
   notificationSettings?: boolean | UserCountOutputTypeCountNotificationSettingsArgs
+  transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
 }
 
 /**
@@ -950,6 +1073,13 @@ export type UserCountOutputTypeCountNotificationSettingsArgs<ExtArgs extends run
   where?: Prisma.NotificationSettingsWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TransactionWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -964,6 +1094,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   notificationSettings?: boolean | Prisma.User$notificationSettingsArgs<ExtArgs>
   passwordReset?: boolean | Prisma.User$passwordResetArgs<ExtArgs>
   feedConfig?: boolean | Prisma.User$feedConfigArgs<ExtArgs>
+  transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1002,6 +1133,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   notificationSettings?: boolean | Prisma.User$notificationSettingsArgs<ExtArgs>
   passwordReset?: boolean | Prisma.User$passwordResetArgs<ExtArgs>
   feedConfig?: boolean | Prisma.User$feedConfigArgs<ExtArgs>
+  transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1016,6 +1148,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     notificationSettings: Prisma.$NotificationSettingsPayload<ExtArgs>[]
     passwordReset: Prisma.$PasswordResetPayload<ExtArgs> | null
     feedConfig: Prisma.$FeedConfigPayload<ExtArgs> | null
+    transactions: Prisma.$TransactionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1424,6 +1557,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   notificationSettings<T extends Prisma.User$notificationSettingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationSettingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationSettingsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   passwordReset<T extends Prisma.User$passwordResetArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$passwordResetArgs<ExtArgs>>): Prisma.Prisma__PasswordResetClient<runtime.Types.Result.GetResult<Prisma.$PasswordResetPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   feedConfig<T extends Prisma.User$feedConfigArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$feedConfigArgs<ExtArgs>>): Prisma.Prisma__FeedConfigClient<runtime.Types.Result.GetResult<Prisma.$FeedConfigPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  transactions<T extends Prisma.User$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1971,6 +2105,30 @@ export type User$feedConfigArgs<ExtArgs extends runtime.Types.Extensions.Interna
    */
   include?: Prisma.FeedConfigInclude<ExtArgs> | null
   where?: Prisma.FeedConfigWhereInput
+}
+
+/**
+ * User.transactions
+ */
+export type User$transactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Transaction
+   */
+  select?: Prisma.TransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Transaction
+   */
+  omit?: Prisma.TransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionInclude<ExtArgs> | null
+  where?: Prisma.TransactionWhereInput
+  orderBy?: Prisma.TransactionOrderByWithRelationInput | Prisma.TransactionOrderByWithRelationInput[]
+  cursor?: Prisma.TransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TransactionScalarFieldEnum | Prisma.TransactionScalarFieldEnum[]
 }
 
 /**

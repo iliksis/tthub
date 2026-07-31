@@ -3,6 +3,7 @@ import {
 	CalendarDaysIcon,
 	CalendarPlusIcon,
 	CalendarsIcon,
+	HistoryIcon,
 	HouseIcon,
 	ImportIcon,
 	LogOutIcon,
@@ -65,6 +66,11 @@ const navigationItems: NavigationItem[] = [
 				icon: CalendarPlusIcon,
 				isHidden: (role) => role === "USER",
 				name: t("Create"),
+			},
+			{
+				href: "/appts/journal",
+				icon: HistoryIcon,
+				name: t("Journal"),
 			},
 		],
 		icon: CalendarsIcon,
@@ -223,7 +229,7 @@ export const NavigationWrapper = ({
 					</Button>
 				</nav>
 				{/* Page content here */}
-				<div className="max-w-7xl lg:max-w-none p-4 relative">{children}</div>
+				<div className="lg:max-w-none mx-11 p-4 relative">{children}</div>
 			</SidebarInset>
 		</SidebarProvider>
 	);

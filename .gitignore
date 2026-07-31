@@ -17,3 +17,5 @@ coverage
 playwright
 playwright-report
 test-results
+
+.rtk

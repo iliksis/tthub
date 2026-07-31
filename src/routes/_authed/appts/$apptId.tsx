@@ -1,9 +1,9 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
-	CogIcon,
 	DownloadIcon,
 	ExternalLinkIcon,
+	RefreshCwIcon,
 	Trash2Icon,
 } from "lucide-react";
 import React from "react";
@@ -15,39 +15,41 @@ import {
 	getAppointments,
 	publishAppointment,
 	restoreAppointment,
+	unpublishAppointment,
 	updateAppointment,
 } from "@/api/appointments";
 import { getUniqueCategories } from "@/api/placements";
 import { getPlayers } from "@/api/players";
-import { EditableDateCard } from "@/components/appointments/editable/EditableDateCard";
-import { EditableHeader } from "@/components/appointments/editable/EditableHeader";
 import { EditableNextAppointmentCard } from "@/components/appointments/editable/EditableNextAppointmentCard";
-import { EditableTextCard } from "@/components/appointments/editable/EditableTextCard";
+import { RecordInfoPanel } from "@/components/appointments/RecordInfoPanel";
+import { ResponsesPanel } from "@/components/appointments/ResponsesPanel";
+import { TransactionHistory } from "@/components/appointments/TransactionHistory";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { ParticipantModal } from "@/components/placement/PlacementModal";
+import { PlacementsPanel } from "@/components/placement/PlacementsPanel";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Card } from "@/components/ValueCard";
+	Sheet,
+	SheetClose,
+	SheetContent,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
 import { IcalGenerator } from "@/lib/ical";
-import type { Appointment, Response, User } from "@/lib/prisma/client";
+import type { Appointment } from "@/lib/prisma/client";
 import {
 	AppointmentStatus,
 	AppointmentType,
 	type ResponseType,
 } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import {
-	cn,
-	createColorForUserId,
-	createGoogleMapsLink,
-	shortenUserName,
-} from "@/lib/utils";
+import { cn, createGoogleMapsLink, dateToInputValue } from "@/lib/utils";
 
 // biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
 export const Route = createFileRoute("/_authed/appts/$apptId")({
@@ -99,6 +101,31 @@ export const Route = createFileRoute("/_authed/appts/$apptId")({
 	}),
 });
 
+function typeLabel(type: string) {
+	if (type === AppointmentType.HOLIDAY) return t("Holiday");
+	if (type === AppointmentType.TOURNAMENT_DE) return t("Tournament (Germany)");
+	return t("Tournament");
+}
+
+function formatDateTime(date: Date | string) {
+	return new Date(date).toLocaleString("de-DE", {
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		month: "short",
+		weekday: "short",
+	});
+}
+
+type EditableDraft = {
+	title: string;
+	shortTitle: string;
+	location: string;
+	link: string;
+	startDate: Date;
+	endDate: Date | null;
+};
+
 function RouteComponent() {
 	const { user } = Route.useRouteContext();
 	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
@@ -106,10 +133,20 @@ function RouteComponent() {
 	const [isDeleting, setIsDeleting] = React.useState(false);
 	const [isParticipantsModalOpen, setIsParticipantsModalOpen] =
 		React.useState(false);
+	const [isEditSheetOpen, setIsEditSheetOpen] = React.useState(false);
+	const [draft, setDraft] = React.useState<EditableDraft>({
+		endDate: null,
+		link: "",
+		location: "",
+		shortTitle: "",
+		startDate: new Date(),
+		title: "",
+	});
 
 	const deleteAppointmentServerFn = useServerFn(deleteAppointment);
 	const createResponseServerFn = useServerFn(createResponse);
 	const publish = useServerFn(publishAppointment);
+	const unpublish = useServerFn(unpublishAppointment);
 	const restore = useServerFn(restoreAppointment);
 	const updateAppointmentServerFn = useServerFn(updateAppointment);
 
@@ -119,24 +156,9 @@ function RouteComponent() {
 
 	if (!appointment) return <div>{t("Appointment not found.")}</div>;
 
-	const userResponse =
-		appointment.responses?.find((r) => r.userId === user?.id)?.responseType ??
-		"MAYBE";
-	const isAccepted = userResponse === "ACCEPT";
-	const isDeclined = userResponse === "DECLINE";
-	const isMaybe = userResponse === "MAYBE";
-
-	const isMultipleDays =
-		appointment.endDate !== null
-			? new Date(appointment.startDate).getDate() !==
-				new Date(appointment.endDate).getDate()
-			: false;
-
 	const isDeleted = appointment.deletedAt !== null;
-
-	const uniqueParticipants = new Set(
-		appointment.placements.map((p) => p.playerId),
-	);
+	const isHoliday = appointment.type === AppointmentType.HOLIDAY;
+	const isPublished = appointment.status === AppointmentStatus.PUBLISHED;
 
 	const onOpenDelete = () => {
 		setIsDeleting(true);
@@ -185,6 +207,11 @@ function RouteComponent() {
 		await router.invalidate();
 	};
 
+	const onUnpublish = async () => {
+		await unpublish({ data: { id: appointment.id } });
+		await router.invalidate();
+	};
+
 	const onRestore = async () => {
 		await restore({ data: { id: appointment.id } });
 		await router.invalidate();
@@ -209,49 +236,26 @@ function RouteComponent() {
 		return false;
 	};
 
-	const mainContentProps = {
-		appointment,
-		canEdit,
-		isAccepted,
-		isDeclined,
-		isDeleted,
-		isMaybe,
-		isMultipleDays,
-		onOpenParticipants,
-		onResponse,
-		onSaveField,
-		otherAppointments: appointments ?? [],
-		uniqueParticipants,
+	const onStartEdit = () => {
+		setDraft({
+			endDate: appointment.endDate ? new Date(appointment.endDate) : null,
+			link: appointment.link ?? "",
+			location: appointment.location ?? "",
+			shortTitle: appointment.shortTitle,
+			startDate: new Date(appointment.startDate),
+			title: appointment.title,
+		});
+		setIsEditSheetOpen(true);
+	};
+	const onSaveEdit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		const ok = await onSaveField(draft);
+		if (ok) setIsEditSheetOpen(false);
 	};
 
 	return (
 		<div>
-			{/* Desktop toolbar */}
-			<div className="mb-4 hidden items-center gap-2 lg:flex">
-				<span className="text-muted-foreground text-sm">
-					{t("Appointments")} /
-				</span>
-				<span className="flex-1 font-semibold text-[15px]">
-					{appointment.title}
-				</span>
-				<Button variant="outline" size="sm" onClick={onDownloadIcal}>
-					<DownloadIcon className="size-4" />
-					{t("Download iCal")}
-				</Button>
-				{canEdit && (
-					<Button
-						variant="outline"
-						size="sm"
-						className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-						onClick={onOpenDelete}
-					>
-						<Trash2Icon className="size-4" />
-						{t("Delete appointment")}
-					</Button>
-				)}
-			</div>
-
-			{isDeleted ? (
+			{isDeleted && (
 				<Alert variant="destructive" className="mb-4">
 					<AlertDescription>
 						{t("Appointment was deleted.")}{" "}
@@ -266,111 +270,201 @@ function RouteComponent() {
 						)}
 					</AlertDescription>
 				</Alert>
-			) : (
-				appointment?.status === AppointmentStatus.DRAFT && (
-					<Alert variant="warning" className="mb-4">
-						<AlertDescription>
-							{t("Appointment is still in draft.")}{" "}
-							{canEdit && (
-								<button
-									type="button"
-									className="underline hover:cursor-pointer"
-									onClick={onPublish}
-								>
-									{t("Publish?")}
-								</button>
-							)}
-						</AlertDescription>
-					</Alert>
-				)
 			)}
 
-			{/* Mobile / tablet: single column */}
-			<div className="lg:hidden">
-				<AppointmentMainContent {...mainContentProps} />
-				{appointment.location && (
-					<div className="mt-4 hidden md:block lg:hidden">
-						<iframe
-							src={`https://maps.google.com/maps?hl=de&t=&z=14&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
-							className="h-96 w-full"
-							title="Google Maps"
-						></iframe>
-					</div>
-				)}
-			</div>
+			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+				<div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
+					<Card>
+						<CardContent>
+							<div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+								<div className="min-w-0">
+									<div className="mb-2 flex items-center gap-2">
+										<Badge variant="outline">
+											{typeLabel(appointment.type)}
+										</Badge>
+										{!isHoliday && canEdit && (
+											<button
+												type="button"
+												onClick={isPublished ? onUnpublish : onPublish}
+												className="group rounded-full"
+												aria-label={
+													isPublished
+														? t("Unpublish appointment")
+														: t("Publish appointment")
+												}
+											>
+												<Badge
+													variant={isPublished ? "success" : "warning"}
+													className={cn(
+														"cursor-pointer gap-1 transition-shadow",
+														isPublished
+															? "group-hover:ring-2 group-hover:ring-success/40"
+															: "group-hover:ring-2 group-hover:ring-warning/40",
+													)}
+												>
+													{isPublished ? t("Published") : t("Draft")}
+													<RefreshCwIcon className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
+												</Badge>
+											</button>
+										)}
+										{!isHoliday && !canEdit && (
+											<Badge variant={isPublished ? "success" : "warning"}>
+												{isPublished ? t("Published") : t("Draft")}
+											</Badge>
+										)}
+									</div>
+									<div>
+										<h1 className="font-bold text-2xl">{appointment.title}</h1>
+										<p className="text-muted-foreground text-sm">
+											{appointment.shortTitle}
+										</p>
+									</div>
+								</div>
+							</div>
 
-			{/* Desktop: two columns */}
-			<div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
-				<div className="min-w-0">
-					<AppointmentMainContent {...mainContentProps} />
-				</div>
-				<div className="flex min-w-0 flex-col gap-4">
-					{appointment.location ? (
-						<iframe
-							src={`https://maps.google.com/maps?hl=de&t=&z=14&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
-							className="h-72 w-full rounded-lg border border-border/40"
-							title="Google Maps"
-						></iframe>
-					) : (
-						<div className="flex h-72 items-center justify-center rounded-lg border border-border/40 text-muted-foreground text-sm">
-							{t("No location set")}
-						</div>
-					)}
-					<div className="rounded-lg bg-card p-4">
-						<div className="mb-3 flex items-center justify-between">
-							<span className="font-bold text-sm">
-								{t("Participants")} · {uniqueParticipants.size}
-							</span>
-							<Button
-								type="button"
-								variant="link"
-								className="h-5"
-								onClick={onOpenParticipants}
+							<div
+								className={cn(
+									"mb-6 grid grid-cols-1 items-start gap-4 border-border/60 border-t pt-4",
+									isHoliday ? "sm:grid-cols-2" : "sm:grid-cols-3",
+								)}
 							>
-								{t("Show all")}
-							</Button>
-						</div>
-						<AvatarGroup
-							responses={appointment.responses.filter(
-								(r) => r.responseType === "ACCEPT",
-							)}
-						/>
-					</div>
-				</div>
-			</div>
+								<div>
+									<div className="mb-1 text-muted-foreground text-xs uppercase">
+										{t("Start")}
+									</div>
+									<div>{formatDateTime(appointment.startDate)}</div>
+								</div>
+								<div>
+									<div className="mb-1 text-muted-foreground text-xs uppercase">
+										{t("End")}
+									</div>
+									<div>
+										{appointment.endDate
+											? formatDateTime(appointment.endDate)
+											: "—"}
+									</div>
+								</div>
+								{!isHoliday && (
+									<div>
+										<div className="mb-1 text-muted-foreground text-xs uppercase">
+											{t("Location")}
+										</div>
+										{appointment.location ? (
+											<a
+												href={createGoogleMapsLink(appointment.location)}
+												target="_blank"
+												rel="noreferrer"
+												className="flex items-center gap-1 hover:underline"
+											>
+												{appointment.location}
+												<ExternalLinkIcon className="size-3.5" />
+											</a>
+										) : (
+											<span className="text-muted-foreground">
+												{t("No location set")}
+											</span>
+										)}
+									</div>
+								)}
+							</div>
 
-			<div className="fab lg:hidden">
-				<Button
-					asChild
-					variant="secondary"
-					size="icon-lg"
-					role="button"
-					tabIndex={0}
-				>
-					<div>
-						<CogIcon className="size-4" />
+							{!isHoliday && appointment.location && (
+								<div className="mb-6">
+									<iframe
+										src={`https://maps.google.com/maps?hl=de&t=&z=14&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
+										className="h-64 w-full rounded-lg border border-border/40"
+										title="Google Maps"
+									/>
+								</div>
+							)}
+
+							{!isHoliday && (
+								<div className="mb-6">
+									<div className="mb-1 text-muted-foreground text-xs uppercase">
+										{t("Link")}
+									</div>
+									{appointment.link ? (
+										<a
+											href={appointment.link}
+											target="_blank"
+											rel="noreferrer"
+											className="flex items-center gap-1 text-primary hover:underline"
+										>
+											<ExternalLinkIcon className="size-3.5" />
+											{t("Join")}
+										</a>
+									) : (
+										<span className="text-muted-foreground">
+											{t("No link set")}
+										</span>
+									)}
+								</div>
+							)}
+
+							{!isHoliday && (
+								<EditableNextAppointmentCard
+									appointmentId={appointment.id}
+									nextAppointmentId={appointment.nextAppointmentId}
+									nextAppointment={appointment.nextAppointment}
+									otherAppointments={appointments ?? []}
+									canEdit={canEdit}
+									onSave={(id) => onSaveField({ nextAppointmentId: id })}
+								/>
+							)}
+						</CardContent>
+					</Card>
+
+					{!isHoliday && (
+						<PlacementsPanel
+							placements={appointment.placements}
+							canEdit={canEdit}
+							onManage={onOpenParticipants}
+						/>
+					)}
+				</div>
+
+				<div className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-6">
+					<div className="flex shrink-0 flex-wrap justify-end gap-2">
+						<Button variant="outline" size="sm" onClick={onDownloadIcal}>
+							<DownloadIcon className="size-4" />
+							{t("Download iCal")}
+						</Button>
+						{canEdit && (
+							<Button variant="outline" size="sm" onClick={onStartEdit}>
+								{t("Edit")}
+							</Button>
+						)}
+						{canEdit && (
+							<Button
+								variant="outline"
+								size="sm"
+								className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+								disabled={isDeleted}
+								onClick={onOpenDelete}
+							>
+								<Trash2Icon className="size-4" />
+								{t("Cancel")}
+							</Button>
+						)}
 					</div>
-				</Button>
-				<Button
-					variant="secondary"
-					size="icon-lg"
-					type="button"
-					title={t("Download iCal")}
-					onClick={onDownloadIcal}
-				>
-					<DownloadIcon className="size-4" />
-				</Button>
-				{canEdit && (
-					<Button
-						variant="secondary"
-						size="icon-lg"
-						type="button"
-						title={t("Delete appointment")}
-						onClick={onOpenDelete}
-					>
-						<Trash2Icon className="size-4" />
-					</Button>
-				)}
+					<RecordInfoPanel
+						createdAt={new Date(appointment.createdAt)}
+						lastUpdated={
+							appointment.transactions[0]
+								? new Date(appointment.transactions[0].createdAt)
+								: new Date(appointment.createdAt)
+						}
+					/>
+					{appointment.type === AppointmentType.TOURNAMENT && (
+						<ResponsesPanel
+							responses={appointment.responses}
+							currentUserId={user?.id}
+							isDeleted={isDeleted}
+							onResponse={onResponse}
+						/>
+					)}
+					<TransactionHistory transactions={appointment.transactions} />
+				</div>
 			</div>
 
 			<DeleteModal
@@ -388,214 +482,103 @@ function RouteComponent() {
 				appointmentId={appointment.id}
 				categories={categories ?? []}
 			/>
+
+			<Sheet open={isEditSheetOpen} onOpenChange={setIsEditSheetOpen}>
+				<SheetContent className="w-full sm:max-w-md">
+					<SheetHeader>
+						<SheetTitle>{t("Edit appointment")}</SheetTitle>
+					</SheetHeader>
+					<form
+						id="edit-appointment"
+						className="flex flex-1 flex-col gap-4 overflow-y-auto px-4"
+						onSubmit={onSaveEdit}
+					>
+						<fieldset className="flex flex-col gap-1.5">
+							<Label htmlFor="title">{t("Title")}</Label>
+							<Input
+								id="title"
+								autoFocus
+								value={draft.title}
+								onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+							/>
+						</fieldset>
+						<fieldset className="flex flex-col gap-1.5">
+							<Label htmlFor="shortTitle">{t("ShortTitle")}</Label>
+							<Input
+								id="shortTitle"
+								value={draft.shortTitle}
+								onChange={(e) =>
+									setDraft({ ...draft, shortTitle: e.target.value })
+								}
+							/>
+						</fieldset>
+						<fieldset className="flex flex-col gap-1.5">
+							<Label htmlFor="startDate">{t("StartDate")}</Label>
+							<Input
+								id="startDate"
+								type="datetime-local"
+								value={dateToInputValue(draft.startDate)}
+								onChange={(e) =>
+									setDraft({
+										...draft,
+										startDate: new Date(e.target.value),
+									})
+								}
+							/>
+						</fieldset>
+						<fieldset className="flex flex-col gap-1.5">
+							<Label htmlFor="endDate">{t("EndDate")}</Label>
+							<Input
+								id="endDate"
+								type="date"
+								value={
+									draft.endDate ? dateToInputValue(draft.endDate, false) : ""
+								}
+								onChange={(e) =>
+									setDraft({
+										...draft,
+										endDate: e.target.value ? new Date(e.target.value) : null,
+									})
+								}
+							/>
+						</fieldset>
+						{!isHoliday && (
+							<>
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor="location">{t("Location")}</Label>
+									<Input
+										id="location"
+										value={draft.location}
+										onChange={(e) =>
+											setDraft({ ...draft, location: e.target.value })
+										}
+									/>
+								</fieldset>
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor="link">{t("Link")}</Label>
+									<Input
+										id="link"
+										value={draft.link}
+										onChange={(e) =>
+											setDraft({ ...draft, link: e.target.value })
+										}
+									/>
+								</fieldset>
+							</>
+						)}
+					</form>
+					<SheetFooter>
+						<div className="flex justify-end gap-2">
+							<SheetClose asChild>
+								<Button variant="secondary">{t("Cancel")}</Button>
+							</SheetClose>
+							<Button type="submit" form="edit-appointment">
+								{t("Save")}
+							</Button>
+						</div>
+					</SheetFooter>
+				</SheetContent>
+			</Sheet>
 		</div>
 	);
 }
-
-type AppointmentMainContentProps = {
-	appointment: NonNullable<
-		ReturnType<typeof Route.useLoaderData>["appointment"]
-	>;
-	isMultipleDays: boolean;
-	uniqueParticipants: Set<string>;
-	isAccepted: boolean;
-	isDeclined: boolean;
-	isMaybe: boolean;
-	isDeleted: boolean;
-	canEdit: boolean;
-	onOpenParticipants: () => void;
-	onResponse: (response: ResponseType) => () => Promise<void>;
-	onSaveField: (updates: Partial<Appointment>) => Promise<boolean>;
-	otherAppointments: Appointment[];
-};
-const AppointmentMainContent = ({
-	appointment,
-	isMultipleDays,
-	uniqueParticipants,
-	isAccepted,
-	isDeclined,
-	isMaybe,
-	isDeleted,
-	canEdit,
-	onOpenParticipants,
-	onResponse,
-	onSaveField,
-	otherAppointments,
-}: AppointmentMainContentProps) => {
-	return (
-		<>
-			<div className="grid grid-cols-4 gap-2">
-				<EditableHeader
-					title={appointment.title}
-					shortTitle={appointment.shortTitle}
-					canEdit={canEdit}
-					onSave={(v) => onSaveField(v)}
-					className="col-span-4 mb-2"
-				/>
-				<EditableDateCard
-					startDate={new Date(appointment.startDate)}
-					endDate={appointment.endDate ? new Date(appointment.endDate) : null}
-					isMultipleDays={isMultipleDays}
-					canEdit={canEdit}
-					onSave={(v) => onSaveField(v)}
-				/>
-				{appointment.type !== AppointmentType.HOLIDAY && (
-					<>
-						<EditableTextCard
-							title={t("Location")}
-							gridRows={4}
-							canEdit={canEdit}
-							value={appointment.location ?? ""}
-							placeholder={t("No location set")}
-							displayValue={
-								appointment.location ? (
-									<a
-										href={createGoogleMapsLink(appointment.location)}
-										target="_blank"
-										className="flex"
-									>
-										{appointment.location}
-										<ExternalLinkIcon className="size-4 inline-block ml-2 self-center" />
-									</a>
-								) : undefined
-							}
-							onSave={(v) => onSaveField({ location: v })}
-						/>
-						<Card title={t("Participants")} gridRows={2}>
-							<p className="flex flex-row items-center">
-								<span className="flex-1">{uniqueParticipants.size}</span>
-								<Button
-									type="button"
-									variant="link"
-									className="shrink h-5"
-									onClick={onOpenParticipants}
-								>
-									{t("Show all")}
-								</Button>
-							</p>
-						</Card>
-						<EditableTextCard
-							title={t("Link")}
-							gridRows={2}
-							canEdit={canEdit}
-							value={appointment.link ?? ""}
-							placeholder={t("No link set")}
-							displayValue={
-								appointment.link ? (
-									<a
-										href={appointment.link}
-										title={appointment.link}
-										target="_blank"
-										className="flex flex-nowrap text-nowrap overflow-hidden"
-									>
-										<ExternalLinkIcon className="size-4 mr-2 self-center shrink-0" />
-										{appointment.link}
-									</a>
-								) : undefined
-							}
-							onSave={(v) => onSaveField({ link: v })}
-						/>
-						<EditableNextAppointmentCard
-							appointmentId={appointment.id}
-							nextAppointmentId={appointment.nextAppointmentId}
-							nextAppointment={appointment.nextAppointment}
-							otherAppointments={otherAppointments}
-							canEdit={canEdit}
-							onSave={(id) => onSaveField({ nextAppointmentId: id })}
-						/>
-					</>
-				)}
-			</div>
-			{/*User response*/}
-			{appointment.type === AppointmentType.TOURNAMENT && (
-				<>
-					<div className="mt-6 grid grid-cols-3 gap-2">
-						<Button
-							type="button"
-							variant="ghost"
-							className={cn(
-								"w-auto border border-success/30 text-success hover:bg-success/15 hover:text-success",
-								isAccepted &&
-									"border-success bg-success text-success-foreground hover:bg-success/90 hover:text-success-foreground",
-							)}
-							disabled={isDeleted}
-							onClick={onResponse("ACCEPT")}
-						>
-							{isAccepted ? t("Accepted") : t("Accept")}
-						</Button>
-						<Button
-							type="button"
-							variant="ghost"
-							className={cn(
-								"border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning",
-								isMaybe &&
-									"border-warning bg-warning text-warning-foreground hover:bg-warning/90 hover:text-warning-foreground",
-							)}
-							disabled={isDeleted}
-							onClick={onResponse("MAYBE")}
-						>
-							{isMaybe ? t("Maybe") : t("Maybe")}
-						</Button>
-						<Button
-							type="button"
-							variant="ghost"
-							className={cn(
-								"border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive",
-								isDeclined &&
-									"border-destructive bg-destructive text-white hover:bg-destructive/90",
-							)}
-							disabled={isDeleted}
-							onClick={onResponse("DECLINE")}
-						>
-							{isDeclined ? t("Declined") : t("Decline")}
-						</Button>
-					</div>
-
-					<div className="mt-2 grid grid-cols-3 gap-2">
-						<AvatarGroup
-							responses={appointment.responses.filter(
-								(r) => r.responseType === "ACCEPT",
-							)}
-						/>
-						<div></div>
-						<AvatarGroup
-							responses={appointment.responses.filter(
-								(r) => r.responseType === "DECLINE",
-							)}
-						/>
-					</div>
-				</>
-			)}
-		</>
-	);
-};
-
-type AvatarGroupProps = {
-	responses: (Response & { user: User })[];
-};
-const AvatarGroup = ({ responses }: AvatarGroupProps) => {
-	return (
-		<div className="-space-x-3">
-			{responses.map((r) => {
-				const userColor = createColorForUserId(r.userId);
-				return (
-					<Tooltip key={r.userId}>
-						<TooltipTrigger asChild>
-							<Avatar className="border-2 border-background">
-								<AvatarFallback
-									style={{
-										backgroundColor: userColor.backgroundColor,
-										color: userColor.foregroundColor,
-									}}
-								>
-									{shortenUserName(r.user.name)}
-								</AvatarFallback>
-							</Avatar>
-						</TooltipTrigger>
-						<TooltipContent>{r.user.name}</TooltipContent>
-					</Tooltip>
-				);
-			})}
-		</div>
-	);
-};
