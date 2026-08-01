@@ -125,6 +125,8 @@ const texts = {
 		"Alle deaktiviert lassen, um alle Termine unabhängig von der Antwort einzuschließen",
 	Link: "Link",
 	List: "Liste",
+	"Load {0} more ({1} remaining)": "{0} weitere laden ({1} verbleibend)",
+	"Loading…": "Lädt…",
 	Location: "Ort",
 	Login: "Anmelden",
 	Logout: "Abmelden",
@@ -267,6 +269,7 @@ const texts = {
 		"Du hast keine Berechtigung, um Termine zu erstellen",
 	"You have no appointments": "Du hast keine Termine",
 	"You responded to all appointments": "Du hast auf alle Termine reagiert",
+	"You've reached the end — {0} events": "Das war's — {0} Ereignisse",
 	"Your appointments": "Deine Termine",
 	"Your Feed URL": "Deine Feed-URL",
 };

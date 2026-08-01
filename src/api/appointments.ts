@@ -177,25 +177,64 @@ export const searchAppointments = createServerFn()
 		}
 	});
 
-export const getAllTransactions = createServerFn().handler(async () => {
-	try {
-		const transactions = await prismaClient.transaction.findMany({
-			include: {
-				appointment: true,
-				user: true,
-			},
-			orderBy: { createdAt: "desc" },
-		});
-		return json<Return<typeof transactions>>(
-			{ data: transactions, message: t("Transactions found") },
-			{ status: 200 },
-		);
-	} catch (e) {
-		console.error(e);
-		const error = e as Error;
-		return json<Return>({ message: error.message }, { status: 400 });
-	}
-});
+export const getTransactionsPage = createServerFn()
+	.inputValidator(
+		(d: {
+			skip: number;
+			take: number;
+			type?: TransactionType;
+			query?: string;
+		}) => d,
+	)
+	.handler(async ({ data }) => {
+		try {
+			const where: Prisma.TransactionWhereInput = {
+				type: data.type,
+				...(data.query
+					? {
+							OR: [
+								{ appointment: { title: { contains: data.query } } },
+								{ appointment: { shortTitle: { contains: data.query } } },
+								{ user: { name: { contains: data.query } } },
+							],
+						}
+					: {}),
+			};
+			// matchedTotal drives "N remaining"/pagination, grandTotal is the
+			// unfiltered count used for the "N of TOTAL events" summary.
+			const [transactions, matchedTotal, grandTotal] = await Promise.all([
+				prismaClient.transaction.findMany({
+					include: {
+						appointment: true,
+						user: true,
+					},
+					orderBy: { createdAt: "desc" },
+					skip: data.skip,
+					take: data.take,
+					where,
+				}),
+				prismaClient.transaction.count({ where }),
+				prismaClient.transaction.count(),
+			]);
+			return json<
+				Return<{
+					transactions: typeof transactions;
+					matchedTotal: number;
+					grandTotal: number;
+				}>
+			>(
+				{
+					data: { grandTotal, matchedTotal, transactions },
+					message: t("Transactions found"),
+				},
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
 
 export const getAppointments = createServerFn()
 	.inputValidator(

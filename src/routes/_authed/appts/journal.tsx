@@ -1,10 +1,18 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	useRouter,
+	useRouterState,
+} from "@tanstack/react-router";
+import { Loader2Icon } from "lucide-react";
 import React from "react";
-import { getAllTransactions } from "@/api/appointments";
+import { z } from "zod";
+import { getTransactionsPage } from "@/api/appointments";
 import { TransactionDetail } from "@/components/appointments/TransactionDetail";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
 	Select,
@@ -14,6 +22,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { TableRow } from "@/components/ui/table";
+import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import type { Appointment, Transaction, User } from "@/lib/prisma/client";
 import { TransactionType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
@@ -29,19 +38,38 @@ import {
 	shortenUserName,
 } from "@/lib/utils";
 
+const BATCH_SIZE = 25;
+
+const journalSearchSchema = z.object({
+	query: z.string().optional(),
+	skip: z.number().int().nonnegative().optional(),
+	type: z.enum(["CREATE", "UPDATE", "DELETE"]).optional(),
+});
+
+// biome-ignore assist/source/useSortedKeys: validateSearch and loaderDeps need to be before loader
 export const Route = createFileRoute("/_authed/appts/journal")({
 	component: RouteComponent,
-	head: () => ({
-		meta: [{ title: t("Transaction Journal") }],
-	}),
-	loader: async () => {
-		const res = await getAllTransactions();
+	validateSearch: journalSearchSchema,
+	loaderDeps: ({ search }) => ({ ...search }),
+	loader: async ({ deps }) => {
+		const skip = deps.skip ?? 0;
+		const res = await getTransactionsPage({
+			data: { query: deps.query, skip, take: BATCH_SIZE, type: deps.type },
+		});
 		const response = await res.json();
 		if (res.status < 400) {
-			return { transactions: response.data ?? [] };
+			const data = response.data ?? {
+				grandTotal: 0,
+				matchedTotal: 0,
+				transactions: [],
+			};
+			return { ...data, skip };
 		}
 		throw new Error(response.message);
 	},
+	head: () => ({
+		meta: [{ title: t("Transaction Journal") }],
+	}),
 });
 
 type TransactionWithRelations = Transaction & {
@@ -133,28 +161,78 @@ const getTransactionColumns =
 	];
 
 function RouteComponent() {
-	const { transactions } = Route.useLoaderData();
-	const [query, setQuery] = React.useState("");
-	const [type, setType] = React.useState<TransactionType | "ALL">("ALL");
+	const {
+		transactions: batch,
+		matchedTotal,
+		grandTotal,
+		skip,
+	} = Route.useLoaderData();
+	const search = Route.useSearch();
+	const router = useRouter();
+	const isNavigating = useRouterState({ select: (s) => s.isLoading });
+	const prefersReducedMotion = usePrefersReducedMotion();
+
+	const [queryInput, setQueryInput] = React.useState(search.query ?? "");
 	const [selectedId, setSelectedId] = React.useState<string | null>(null);
 
-	const filtered = React.useMemo(() => {
-		const q = query.trim().toLowerCase();
-		let items = transactions.filter((item) =>
-			type === "ALL" ? true : item.type === type,
-		);
-		if (q) {
-			items = items.filter(
-				(item) =>
-					item.appointment.title.toLowerCase().includes(q) ||
-					item.appointment.shortTitle.toLowerCase().includes(q) ||
-					item.user.name.toLowerCase().includes(q),
-			);
-		}
-		return items;
-	}, [transactions, query, type]);
+	// The loader only ever fetches one batch (skip/take), never the whole
+	// list again — so the previously loaded rows are kept in state and the
+	// new batch is appended to them, unless the filters changed (or this is
+	// the first page), in which case it replaces them outright. Comparing
+	// against state (not a ref) during render is the React-sanctioned way to
+	// reset/derive state when an input changes without a useEffect round-trip.
+	const filterKey = `${search.query ?? ""}|${search.type ?? ""}`;
+	const [items, setItems] = React.useState(batch);
+	const [appliedLoad, setAppliedLoad] = React.useState({ filterKey, skip });
+	const [newIds, setNewIds] = React.useState<ReadonlySet<string>>(new Set());
+	if (appliedLoad.filterKey !== filterKey || appliedLoad.skip !== skip) {
+		const isFreshView = skip === 0 || appliedLoad.filterKey !== filterKey;
+		setAppliedLoad({ filterKey, skip });
+		setItems((prev) => (isFreshView ? batch : [...prev, ...batch]));
+		setNewIds(isFreshView ? new Set() : new Set(batch.map((t) => t.id)));
+	}
 
-	const selected = filtered.find((item) => item.id === selectedId) ?? null;
+	// Debounced so typing doesn't fire a loader request per keystroke; the
+	// input itself still updates instantly for a responsive feel.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: only re-runs when the local input changes; search.query/type/router are read, not resynced on
+	React.useEffect(() => {
+		const timeout = setTimeout(() => {
+			if (queryInput !== (search.query ?? "")) {
+				router.navigate({
+					replace: true,
+					search: { query: queryInput || undefined, type: search.type },
+					to: ".",
+				});
+			}
+		}, 300);
+		return () => clearTimeout(timeout);
+	}, [queryInput]);
+
+	const onTypeChange = (value: TransactionType | "ALL") => {
+		router.navigate({
+			replace: true,
+			search: {
+				query: search.query,
+				type: value === "ALL" ? undefined : value,
+			},
+			to: ".",
+		});
+	};
+
+	const onLoadMore = () => {
+		router.navigate({
+			replace: true,
+			search: {
+				query: search.query,
+				skip: items.length,
+				type: search.type,
+			},
+			to: ".",
+		});
+	};
+
+	const selected = items.find((item) => item.id === selectedId) ?? null;
+	const remaining = matchedTotal - items.length;
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -163,8 +241,8 @@ function RouteComponent() {
 				<p className="text-muted-foreground text-sm">
 					{t(
 						"{0} of {1} events",
-						filtered.length.toString(),
-						transactions.length.toString(),
+						matchedTotal.toString(),
+						grandTotal.toString(),
 					)}
 				</p>
 			</div>
@@ -172,13 +250,13 @@ function RouteComponent() {
 			<div className="flex flex-wrap items-center gap-2">
 				<Input
 					placeholder={t("Search appointment or person...")}
-					value={query}
-					onChange={(e) => setQuery(e.target.value)}
+					value={queryInput}
+					onChange={(e) => setQueryInput(e.target.value)}
 					className="w-64"
 				/>
 				<Select
-					value={type}
-					onValueChange={(v) => setType(v as TransactionType | "ALL")}
+					value={search.type ?? "ALL"}
+					onValueChange={(v) => onTypeChange(v as TransactionType | "ALL")}
 				>
 					<SelectTrigger size="sm" className="w-40">
 						<SelectValue />
@@ -196,27 +274,62 @@ function RouteComponent() {
 			{/* Table and detail rail are siblings in the same row, so they start
 			    flush with each other instead of the rail trailing the header. */}
 			<div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-				<div className="min-w-0 overflow-x-auto rounded-lg bg-card">
+				<div className="flex min-w-0 flex-col gap-3 overflow-x-auto rounded-lg bg-card p-3">
 					<DetailsList
-						items={filtered}
+						items={items}
 						getItemId={(item) => item.id}
 						columns={getTransactionColumns()}
-						onRenderRow={(item, children) => (
-							<TableRow
-								key={item.id}
-								className={cn(
-									"h-11 cursor-pointer",
-									item.id === selectedId && "bg-muted",
-								)}
-								onClick={() =>
-									setSelectedId(item.id === selectedId ? null : item.id)
-								}
-							>
-								{children}
-							</TableRow>
-						)}
+						onRenderRow={(item, children) => {
+							const isNew = !prefersReducedMotion && newIds.has(item.id);
+							return (
+								<TableRow
+									key={item.id}
+									className={cn(
+										"h-11 cursor-pointer",
+										item.id === selectedId && "bg-muted",
+										isNew &&
+											"fade-in slide-in-from-top-1 animate-in duration-200 ease-out",
+									)}
+									onClick={() =>
+										setSelectedId(item.id === selectedId ? null : item.id)
+									}
+								>
+									{children}
+								</TableRow>
+							);
+						}}
 						selectMode="none"
 					/>
+
+					{items.length > 0 &&
+						(remaining > 0 ? (
+							<div className="flex justify-center border-border/60 border-t pt-3">
+								<Button
+									variant="outline"
+									className="w-full"
+									disabled={isNavigating}
+									onClick={onLoadMore}
+								>
+									{isNavigating && <Loader2Icon className="animate-spin" />}
+									{isNavigating
+										? t("Loading…")
+										: t(
+												"Load {0} more ({1} remaining)",
+												Math.min(BATCH_SIZE, remaining).toString(),
+												remaining.toString(),
+											)}
+								</Button>
+							</div>
+						) : (
+							<div className="flex justify-center border-border/60 border-t pt-3">
+								<span className="text-muted-foreground text-xs">
+									{t(
+										"You've reached the end — {0} events",
+										matchedTotal.toString(),
+									)}
+								</span>
+							</div>
+						))}
 				</div>
 				<div className="lg:sticky lg:top-6 lg:h-fit">
 					{selected ? (
