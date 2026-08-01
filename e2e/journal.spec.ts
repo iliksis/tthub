@@ -135,16 +135,13 @@ test.describe("Transaction Journal Route - Pagination", () => {
 		const loadMoreButton = page.getByRole("button", { name: /weitere laden/ });
 		await expect(loadMoreButton).toBeVisible();
 
-		const rowsBefore = await page.locator("tbody tr").count();
+		const rowLocator = page.locator('[data-testid="journal-row"]');
+		const rowsBefore = await rowLocator.count();
 		await loadMoreButton.click();
 
-		await expect
-			.poll(() => page.locator("tbody tr").count())
-			.toBeGreaterThan(rowsBefore);
+		await expect.poll(() => rowLocator.count()).toBeGreaterThan(rowsBefore);
 		// The rows that were already loaded must still be there, appended to
 		// rather than replaced by, the new batch.
-		expect(await page.locator("tbody tr").count()).toBeGreaterThanOrEqual(
-			rowsBefore + 1,
-		);
+		expect(await rowLocator.count()).toBeGreaterThanOrEqual(rowsBefore + 1);
 	});
 });

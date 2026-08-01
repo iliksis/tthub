@@ -109,13 +109,12 @@ const activeLinkClassName =
 
 const NavigationItems = () => {
 	const { user } = useRouteContext({ from: "__root__" });
-	const { isMobile, state, setOpen, setOpenMobile } = useSidebar();
+	const { isMobile, state, setOpenMobile } = useSidebar();
 	const isExpanded = isMobile || state === "expanded";
 
 	const closeSidebar = React.useCallback(() => {
-		setOpen(false);
 		setOpenMobile(false);
-	}, [setOpen, setOpenMobile]);
+	}, [setOpenMobile]);
 
 	const renderLeaf = (item: NavigationItem, asSubItem: boolean) => {
 		if (!("href" in item) || !user || item.isHidden?.(user.role ?? "USER")) {
@@ -187,8 +186,8 @@ export const NavigationWrapper = ({
 	title,
 }: React.PropsWithChildren<NavigationWrapperProps>) => {
 	return (
-		<SidebarProvider defaultOpen={false}>
-			<Sidebar collapsible="icon">
+		<SidebarProvider defaultOpen={true}>
+			<Sidebar>
 				<SidebarContent>
 					<SidebarGroup>
 						<NavigationItems />
@@ -210,7 +209,7 @@ export const NavigationWrapper = ({
 			</Sidebar>
 			<SidebarInset>
 				<nav className="flex h-14 w-full items-center border-b border-border/40 px-4">
-					<SidebarTrigger />
+					<SidebarTrigger className="lg:hidden" />
 					<div className="px-4">{title}</div>
 					<div className="flex-1" />
 					<Button
@@ -229,7 +228,7 @@ export const NavigationWrapper = ({
 					</Button>
 				</nav>
 				{/* Page content here */}
-				<div className="lg:max-w-none mx-11 p-4 relative">{children}</div>
+				<div className="lg:mx-4 mx-0 p-4 relative">{children}</div>
 			</SidebarInset>
 		</SidebarProvider>
 	);

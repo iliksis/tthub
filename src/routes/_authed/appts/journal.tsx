@@ -8,6 +8,7 @@ import { Loader2Icon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
 import { getTransactionsPage } from "@/api/appointments";
+import { JournalMobileRow } from "@/components/appointments/JournalMobileRow";
 import { TransactionDetail } from "@/components/appointments/TransactionDetail";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -21,7 +22,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { TableRow } from "@/components/ui/table";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import type { Appointment, Transaction, User } from "@/lib/prisma/client";
 import { TransactionType } from "@/lib/prisma/enums";
@@ -171,9 +174,36 @@ function RouteComponent() {
 	const router = useRouter();
 	const isNavigating = useRouterState({ select: (s) => s.isLoading });
 	const prefersReducedMotion = usePrefersReducedMotion();
+	const isMobile = useIsMobile();
 
 	const [queryInput, setQueryInput] = React.useState(search.query ?? "");
 	const [selectedId, setSelectedId] = React.useState<string | null>(null);
+
+	// Drag-to-dismiss for the mobile sheet's handle: follows the pointer 1:1
+	// while dragging, then either snaps back or closes depending on how far
+	// past the threshold the sheet was pulled.
+	const dragStartY = React.useRef<number | null>(null);
+	const [dragOffset, setDragOffset] = React.useState(0);
+	const [isDragging, setIsDragging] = React.useState(false);
+	const DISMISS_THRESHOLD = 96;
+
+	const onHandlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+		e.currentTarget.setPointerCapture(e.pointerId);
+		dragStartY.current = e.clientY;
+		setIsDragging(true);
+	};
+
+	const onHandlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+		if (dragStartY.current === null) return;
+		setDragOffset(Math.max(0, e.clientY - dragStartY.current));
+	};
+
+	const onHandlePointerEnd = () => {
+		dragStartY.current = null;
+		setIsDragging(false);
+		if (dragOffset > DISMISS_THRESHOLD) setSelectedId(null);
+		setDragOffset(0);
+	};
 
 	// The loader only ever fetches one batch (skip/take), never the whole
 	// list again — so the previously loaded rows are kept in state and the
@@ -271,9 +301,32 @@ function RouteComponent() {
 				</Select>
 			</div>
 
+			{/* Mobile layout: stacked card rows + a bottom-sheet detail view. */}
+			<div className="lg:hidden">
+				{items.length === 0 ? (
+					<div className="py-8 text-center text-muted-foreground">
+						{t("No items found")}
+					</div>
+				) : (
+					<div className="flex flex-col rounded-lg bg-card">
+						{items.map((item) => (
+							<JournalMobileRow
+								key={item.id}
+								transaction={item}
+								isSelected={item.id === selectedId}
+								isNew={!prefersReducedMotion && newIds.has(item.id)}
+								onClick={() =>
+									setSelectedId(item.id === selectedId ? null : item.id)
+								}
+							/>
+						))}
+					</div>
+				)}
+			</div>
+
 			{/* Table and detail rail are siblings in the same row, so they start
 			    flush with each other instead of the rail trailing the header. */}
-			<div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+			<div className="hidden gap-4 lg:grid lg:grid-cols-[1fr_360px]">
 				<div className="flex min-w-0 flex-col gap-3 overflow-x-auto rounded-lg bg-card p-3">
 					<DetailsList
 						items={items}
@@ -284,6 +337,7 @@ function RouteComponent() {
 							return (
 								<TableRow
 									key={item.id}
+									data-testid="journal-row"
 									className={cn(
 										"h-11 cursor-pointer",
 										item.id === selectedId && "bg-muted",
@@ -300,36 +354,6 @@ function RouteComponent() {
 						}}
 						selectMode="none"
 					/>
-
-					{items.length > 0 &&
-						(remaining > 0 ? (
-							<div className="flex justify-center border-border/60 border-t pt-3">
-								<Button
-									variant="outline"
-									className="w-full"
-									disabled={isNavigating}
-									onClick={onLoadMore}
-								>
-									{isNavigating && <Loader2Icon className="animate-spin" />}
-									{isNavigating
-										? t("Loading…")
-										: t(
-												"Load {0} more ({1} remaining)",
-												Math.min(BATCH_SIZE, remaining).toString(),
-												remaining.toString(),
-											)}
-								</Button>
-							</div>
-						) : (
-							<div className="flex justify-center border-border/60 border-t pt-3">
-								<span className="text-muted-foreground text-xs">
-									{t(
-										"You've reached the end — {0} events",
-										matchedTotal.toString(),
-									)}
-								</span>
-							</div>
-						))}
 				</div>
 				<div className="lg:sticky lg:top-6 lg:h-fit">
 					{selected ? (
@@ -343,6 +367,98 @@ function RouteComponent() {
 					)}
 				</div>
 			</div>
+
+			<JournalLoadMoreFooter
+				items={items}
+				remaining={remaining}
+				matchedTotal={matchedTotal}
+				isNavigating={isNavigating}
+				onLoadMore={onLoadMore}
+			/>
+
+			<Sheet
+				open={!!selected && isMobile}
+				onOpenChange={(open) => !open && setSelectedId(null)}
+			>
+				<SheetContent
+					side="bottom"
+					showCloseButton={false}
+					className="max-h-[85vh] overflow-y-auto rounded-t-2xl border-t-0 duration-300 lg:hidden"
+					style={
+						dragOffset > 0
+							? {
+									transform: `translateY(${dragOffset}px)`,
+									transitionDuration:
+										isDragging || prefersReducedMotion ? "0ms" : undefined,
+								}
+							: undefined
+					}
+				>
+					<SheetTitle className="sr-only">{t("Record info")}</SheetTitle>
+					<div
+						className="flex shrink-0 cursor-grab touch-none justify-center pt-2 pb-1 active:cursor-grabbing"
+						onPointerDown={onHandlePointerDown}
+						onPointerMove={onHandlePointerMove}
+						onPointerUp={onHandlePointerEnd}
+						onPointerCancel={onHandlePointerEnd}
+					>
+						<div className="h-1.5 w-9 rounded-full bg-muted-foreground/30" />
+					</div>
+					{selected && (
+						<div className="px-4 pb-6">
+							<TransactionDetail transaction={selected} />
+						</div>
+					)}
+				</SheetContent>
+			</Sheet>
+		</div>
+	);
+}
+
+type JournalLoadMoreFooterProps = {
+	items: TransactionWithRelations[];
+	remaining: number;
+	matchedTotal: number;
+	isNavigating: boolean;
+	onLoadMore: () => void;
+};
+
+function JournalLoadMoreFooter({
+	items,
+	remaining,
+	matchedTotal,
+	isNavigating,
+	onLoadMore,
+}: JournalLoadMoreFooterProps) {
+	if (items.length === 0) return null;
+
+	if (remaining > 0) {
+		return (
+			<div className="flex justify-center border-border/60 border-t pt-3">
+				<Button
+					variant="outline"
+					className="w-full"
+					disabled={isNavigating}
+					onClick={onLoadMore}
+				>
+					{isNavigating && <Loader2Icon className="animate-spin" />}
+					{isNavigating
+						? t("Loading…")
+						: t(
+								"Load {0} more ({1} remaining)",
+								Math.min(BATCH_SIZE, remaining).toString(),
+								remaining.toString(),
+							)}
+				</Button>
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex justify-center border-border/60 border-t pt-3">
+			<span className="text-muted-foreground text-xs">
+				{t("You've reached the end — {0} events", matchedTotal.toString())}
+			</span>
 		</div>
 	);
 }
