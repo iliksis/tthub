@@ -34,6 +34,7 @@ export type DetailsListColumn<T> = {
 	label: string;
 	render: (item: T) => React.ReactNode;
 	minWidth?: string;
+	align?: "left" | "right" | "center";
 	sortable?: boolean;
 	sortFn?: (a: T, b: T) => number;
 };
@@ -137,7 +138,9 @@ export function DetailsList<T>({
 				enableSorting: column.sortable ?? false,
 				header: column.label,
 				id: column.key,
-				minSize: column.minWidth ? Number.parseInt(column.minWidth) : undefined,
+				minSize: column.minWidth
+					? Number.parseInt(column.minWidth, 10)
+					: undefined,
 				sortingFn: column.sortFn
 					? // biome-ignore lint/style/noNonNullAssertion: Cannot be null here
 						(rowA, rowB) => column.sortFn!(rowA.original, rowB.original)
@@ -279,43 +282,56 @@ export function DetailsList<T>({
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow key={headerGroup.id} className="hover:bg-transparent">
-							{headerGroup.headers.map((header) => (
-								<TableHead
-									key={header.id}
-									style={{
-										minWidth: header.column.columnDef.minSize,
-										width:
-											header.column.id === "select"
-												? header.column.getSize()
-												: undefined,
-									}}
-									className={cn(
-										header.column.getCanSort() &&
-											"cursor-pointer select-none",
-									)}
-									onClick={header.column.getToggleSortingHandler()}
-								>
-									{header.isPlaceholder ? null : (
-										<div className="flex items-center gap-1">
-											{flexRender(
-												header.column.columnDef.header,
-												header.getContext(),
-											)}
-											{header.column.getCanSort() && (
-												<span className="inline-flex flex-col">
-													{header.column.getIsSorted() === "asc" ? (
-														<ChevronUp className="size-4" />
-													) : header.column.getIsSorted() === "desc" ? (
-														<ChevronDown className="size-4" />
-													) : (
-														<ChevronsDownUp className="size-4" />
-													)}
-												</span>
-											)}
-										</div>
-									)}
-								</TableHead>
-							))}
+							{headerGroup.headers.map((header) => {
+								const align = columns.find(
+									(c) => c.key === header.column.id,
+								)?.align;
+								return (
+									<TableHead
+										key={header.id}
+										style={{
+											minWidth: header.column.columnDef.minSize,
+											width:
+												header.column.id === "select"
+													? header.column.getSize()
+													: undefined,
+										}}
+										className={cn(
+											header.column.getCanSort() &&
+												"cursor-pointer select-none",
+											align === "right" && "text-right",
+											align === "center" && "text-center",
+										)}
+										onClick={header.column.getToggleSortingHandler()}
+									>
+										{header.isPlaceholder ? null : (
+											<div
+												className={cn(
+													"flex items-center gap-1",
+													align === "right" && "justify-end",
+													align === "center" && "justify-center",
+												)}
+											>
+												{flexRender(
+													header.column.columnDef.header,
+													header.getContext(),
+												)}
+												{header.column.getCanSort() && (
+													<span className="inline-flex flex-col">
+														{header.column.getIsSorted() === "asc" ? (
+															<ChevronUp className="size-4" />
+														) : header.column.getIsSorted() === "desc" ? (
+															<ChevronDown className="size-4" />
+														) : (
+															<ChevronsDownUp className="size-4" />
+														)}
+													</span>
+												)}
+											</div>
+										)}
+									</TableHead>
+								);
+							})}
 						</TableRow>
 					))}
 				</TableHeader>
@@ -323,11 +339,25 @@ export function DetailsList<T>({
 					{table.getRowModel().rows.map((row) => {
 						const children = (
 							<>
-								{row.getVisibleCells().map((cell) => (
-									<TableCell key={cell.id}>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
-									</TableCell>
-								))}
+								{row.getVisibleCells().map((cell) => {
+									const align = columns.find(
+										(c) => c.key === cell.column.id,
+									)?.align;
+									return (
+										<TableCell
+											key={cell.id}
+											className={cn(
+												align === "right" && "text-right",
+												align === "center" && "text-center",
+											)}
+										>
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext(),
+											)}
+										</TableCell>
+									);
+								})}
 							</>
 						);
 

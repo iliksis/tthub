@@ -3,12 +3,14 @@ import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { FilterIcon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TableRow } from "@/components/ui/table";
 import type { Appointment, Response } from "@/lib/prisma/client";
+import { AppointmentType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { cn, isDayInPast } from "@/lib/utils";
 import { DetailsList, type DetailsListColumn } from "../DetailsList";
@@ -18,30 +20,40 @@ type ListProps = {
 	appointments: (Appointment & { responses: Response[] })[];
 };
 
+const getUserResponse = (
+	item: Appointment & { responses: Response[] },
+	userId: string | undefined,
+) => item.responses?.find((r) => r.userId === userId)?.responseType ?? "MAYBE";
+
 export const getAppointmentColumns = (
 	userId: string | undefined,
+	{ includeResponseColumn = false, sortable = true } = {},
 ): DetailsListColumn<Appointment & { responses: Response[] }>[] => [
-	{
-		key: "status",
-		label: "",
-		render: (item) => {
-			const userResponse =
-				item.responses?.find((r) => r.userId === userId)?.responseType ??
-				"MAYBE";
-			const isAccepted = userResponse === "ACCEPT";
-			const isDeclined = userResponse === "DECLINE";
-			return isAccepted ? (
-				<div className="size-2 rounded-full bg-success" />
-			) : isDeclined ? (
-				<div className="size-2 rounded-full bg-destructive" />
-			) : null;
-		},
-	},
+	// The response column already conveys status, so the leading dot is only
+	// needed when that column isn't present (the mobile list).
+	...(includeResponseColumn
+		? []
+		: [
+				{
+					key: "status",
+					label: "",
+					render: (item: Appointment & { responses: Response[] }) => {
+						const userResponse = getUserResponse(item, userId);
+						const isAccepted = userResponse === "ACCEPT";
+						const isDeclined = userResponse === "DECLINE";
+						return isAccepted ? (
+							<div className="size-2 rounded-full bg-success" />
+						) : isDeclined ? (
+							<div className="size-2 rounded-full bg-destructive" />
+						) : null;
+					},
+				},
+			]),
 	{
 		key: "title",
 		label: t("Title"),
 		render: (item) => item.shortTitle,
-		sortable: true,
+		sortable,
 		sortFn: (a, b) => a.shortTitle.localeCompare(b.shortTitle),
 	},
 	{
@@ -75,7 +87,7 @@ export const getAppointmentColumns = (
 				</>
 			);
 		},
-		sortable: true,
+		sortable,
 		sortFn: (a, b) =>
 			new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
 	},
@@ -84,6 +96,38 @@ export const getAppointmentColumns = (
 		label: t("Location"),
 		render: (item) => item.location,
 	},
+	...(includeResponseColumn
+		? [
+				{
+					align: "right" as const,
+					key: "response",
+					label: "",
+					render: (item: Appointment & { responses: Response[] }) => {
+						if (item.type === AppointmentType.HOLIDAY) return null;
+						const userResponse = getUserResponse(item, userId);
+						const isAccepted = userResponse === "ACCEPT";
+						const isDeclined = userResponse === "DECLINE";
+						return (
+							<Badge
+								variant={
+									isAccepted
+										? "success"
+										: isDeclined
+											? "destructive"
+											: "warning"
+								}
+							>
+								{isAccepted
+									? t("Accepted")
+									: isDeclined
+										? t("Declined")
+										: t("Maybe")}
+							</Badge>
+						);
+					},
+				},
+			]
+		: []),
 ];
 
 export const List = ({ appointments }: ListProps) => {

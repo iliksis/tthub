@@ -5,7 +5,12 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarPlusIcon } from "lucide-react";
+import {
+	CalendarDaysIcon,
+	CalendarPlusIcon,
+	ChevronDownIcon,
+	MapPinIcon,
+} from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { createResponse, getAppointments } from "@/api/appointments";
@@ -17,9 +22,15 @@ import {
 	List,
 } from "@/components/appointments/List";
 import { DetailsList } from "@/components/DetailsList";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TableRow } from "@/components/ui/table";
+import { TableCell, TableRow } from "@/components/ui/table";
 import type { Appointment, Response } from "@/lib/prisma/client";
+import {
+	AppointmentStatus,
+	AppointmentType,
+	ResponseType,
+} from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { cn, isDayInPast } from "@/lib/utils";
 
@@ -99,6 +110,29 @@ function RouteComponent() {
 
 type AppointmentWithResponses = Appointment & { responses: Response[] };
 
+function typeLabel(type: string) {
+	if (type === AppointmentType.HOLIDAY) return t("Holiday");
+	if (type === AppointmentType.TOURNAMENT_DE) return t("Tournament (Germany)");
+	return t("Tournament");
+}
+
+function formatDateTime(date: Date | string) {
+	return new Date(date).toLocaleString("de-DE", {
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		month: "short",
+		weekday: "short",
+	});
+}
+
+function monthLabel(date: Date | string) {
+	return new Date(date).toLocaleDateString("de-DE", {
+		month: "long",
+		year: "numeric",
+	});
+}
+
 const AppointmentSplitView = ({
 	appointments,
 }: {
@@ -110,13 +144,32 @@ const AppointmentSplitView = ({
 	const [selectedId, setSelectedId] = React.useState<string | undefined>(
 		appointments[0]?.id,
 	);
+	const [collapsedMonths, setCollapsedMonths] = React.useState<Set<string>>(
+		() => new Set(),
+	);
+
+	const toggleMonth = (label: string) => {
+		setCollapsedMonths((prev) => {
+			const next = new Set(prev);
+			if (next.has(label)) next.delete(label);
+			else next.add(label);
+			return next;
+		});
+	};
 
 	const selected = appointments.find((a) => a.id === selectedId);
+	const isHoliday = selected?.type === AppointmentType.HOLIDAY;
+	const isPublished = selected?.status === AppointmentStatus.PUBLISHED;
+	const myResponse = selected?.responses.find((r) => r.userId === user?.id);
+	const isMultipleDays =
+		selected?.endDate != null &&
+		new Date(selected.startDate).toDateString() !==
+			new Date(selected.endDate).toDateString();
 
-	const onAccept = async () => {
+	const onRespond = (response: ResponseType) => async () => {
 		if (!selected) return;
 		const res = await createResponseServerFn({
-			data: { appointmentId: selected.id, response: "ACCEPT" },
+			data: { appointmentId: selected.id, response },
 		});
 		const data = await res.json();
 		if (res.status < 400 && data) {
@@ -134,29 +187,72 @@ const AppointmentSplitView = ({
 		);
 	}
 
+	// Sorting is disabled here (unlike the mobile list) because rows are
+	// grouped into month sections that assume the loader's chronological
+	// order; a user-driven column sort would desync the group headers from
+	// the visible row order.
+	const columns = getAppointmentColumns(user?.id, {
+		includeResponseColumn: true,
+		sortable: false,
+	});
+
 	return (
-		<div className="grid grid-cols-[1fr_360px] gap-4">
+		<div className="grid grid-cols-[1fr_360px] items-start gap-4">
 			<div className="min-w-0 overflow-x-auto rounded-lg bg-card">
 				<DetailsList
 					items={appointments}
 					getItemId={(item) => item.id}
-					columns={getAppointmentColumns(user?.id)}
+					columns={columns}
 					onRenderRow={(item, children) => {
 						const inPast = isDayInPast(item.startDate);
 						const isDeleted = item.deletedAt !== null;
+						const index = appointments.findIndex((a) => a.id === item.id);
+						const previous = appointments[index - 1];
+						const label = monthLabel(item.startDate);
+						const showMonthHeader =
+							index === 0 || label !== monthLabel(previous.startDate);
+						const isCollapsed = collapsedMonths.has(label);
+
 						return (
-							<TableRow
-								key={item.id}
-								className={cn(
-									"h-10 cursor-pointer",
-									item.id === selectedId && "bg-muted",
-									inPast && "opacity-65",
-									isDeleted && "text-destructive",
+							<React.Fragment key={item.id}>
+								{showMonthHeader && (
+									<TableRow
+										className="cursor-pointer hover:bg-transparent"
+										onClick={() => toggleMonth(label)}
+									>
+										<TableCell
+											colSpan={columns.length}
+											className="bg-muted/40 py-1.5 text-muted-foreground text-xs uppercase tracking-wide"
+										>
+											<span className="flex items-center gap-1.5 select-none">
+												<ChevronDownIcon
+													className={cn(
+														"size-3.5 transition-transform duration-200 ease-out",
+														isCollapsed && "-rotate-90",
+													)}
+												/>
+												{label}
+											</span>
+										</TableCell>
+									</TableRow>
 								)}
-								onClick={() => setSelectedId(item.id)}
-							>
-								{children}
-							</TableRow>
+								{/* `collapse` (visibility: collapse) hides the row without
+								    re-triggering the table's column-width calculation, unlike
+								    unmounting it or `display: none`, which would let the
+								    remaining visible rows resize the columns. */}
+								<TableRow
+									className={cn(
+										"h-10 cursor-pointer",
+										item.id === selectedId && "bg-muted",
+										inPast && "opacity-65",
+										isDeleted && "text-destructive",
+										isCollapsed && "collapse",
+									)}
+									onClick={() => setSelectedId(item.id)}
+								>
+									{children}
+								</TableRow>
+							</React.Fragment>
 						);
 					}}
 					selectMode="none"
@@ -165,44 +261,80 @@ const AppointmentSplitView = ({
 			<div className="min-w-0 rounded-lg bg-card p-5">
 				{selected ? (
 					<>
-						<div className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">
-							{t("Selected")}
+						<div className="mb-3 flex items-center gap-2">
+							<Badge variant="outline">{typeLabel(selected.type)}</Badge>
+							{!isHoliday && (
+								<Badge variant={isPublished ? "success" : "warning"}>
+									{isPublished ? t("Published") : t("Draft")}
+								</Badge>
+							)}
 						</div>
 						<h3 className="mb-4 font-bold text-lg leading-snug">
 							{selected.title}
 						</h3>
 						<div className="flex flex-col gap-2 text-sm">
-							<div className="text-muted-foreground">
-								{new Date(selected.startDate).toLocaleDateString("de-DE", {
-									day: "2-digit",
-									month: "short",
-									year: "numeric",
-								})}{" "}
-								·{" "}
-								{new Date(selected.startDate).toLocaleTimeString("de-DE", {
-									timeStyle: "short",
-								})}
+							<div className="flex items-center gap-1.5 text-muted-foreground">
+								<CalendarDaysIcon className="size-3.5 shrink-0" />
+								{formatDateTime(selected.startDate)}
+								{isMultipleDays && selected.endDate && (
+									<> – {formatDateTime(selected.endDate)}</>
+								)}
 							</div>
 							{selected.location && (
-								<div className="text-muted-foreground">{selected.location}</div>
+								<div className="flex items-center gap-1.5 text-muted-foreground">
+									<MapPinIcon className="size-3.5 shrink-0" />
+									{selected.location}
+								</div>
 							)}
 						</div>
-						<div className="mt-5 flex gap-2">
-							<Button
-								type="button"
-								variant="ghost"
-								size="sm"
-								className="border border-success/30 text-success hover:bg-success/15 hover:text-success"
-								onClick={onAccept}
-							>
-								{t("Accept")}
-							</Button>
-							<Button asChild variant="outline" size="sm">
-								<Link to="/appts/$apptId" params={{ apptId: selected.id }}>
-									{t("Open appointment")}
-								</Link>
-							</Button>
-						</div>
+						{!isHoliday && (
+							<div className="mt-4 flex gap-2">
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									className={cn(
+										"flex-1 border border-success/30 text-success hover:bg-success/15 hover:text-success",
+										myResponse?.responseType === ResponseType.ACCEPT &&
+											"border-success bg-success text-success-foreground hover:bg-success/90 hover:text-success-foreground",
+									)}
+									onClick={onRespond(ResponseType.ACCEPT)}
+								>
+									{t("Accept")}
+								</Button>
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									className={cn(
+										"flex-1 border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning",
+										myResponse?.responseType === ResponseType.MAYBE &&
+											"border-warning bg-warning text-warning-foreground hover:bg-warning/90 hover:text-warning-foreground",
+									)}
+									onClick={onRespond(ResponseType.MAYBE)}
+								>
+									{t("Maybe")}
+								</Button>
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									className={cn(
+										"flex-1 border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive",
+										myResponse?.responseType === ResponseType.DECLINE &&
+											"border-destructive bg-destructive text-white hover:bg-destructive/90",
+									)}
+									onClick={onRespond(ResponseType.DECLINE)}
+								>
+									{t("Decline")}
+								</Button>
+							</div>
+						)}
+						<Button asChild variant="outline" size="sm" className="mt-2 w-full">
+							<Link to="/appts/$apptId" params={{ apptId: selected.id }}>
+								{t("Open appointment")}
+							</Link>
+						</Button>
 					</>
 				) : (
 					<div className="text-muted-foreground text-sm">
