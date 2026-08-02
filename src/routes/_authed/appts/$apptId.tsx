@@ -1,8 +1,10 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
+	ChevronDownIcon,
 	DownloadIcon,
 	ExternalLinkIcon,
+	PencilIcon,
 	RefreshCwIcon,
 	Trash2Icon,
 } from "lucide-react";
@@ -31,6 +33,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -46,7 +53,7 @@ import type { Appointment } from "@/lib/prisma/client";
 import {
 	AppointmentStatus,
 	AppointmentType,
-	type ResponseType,
+	ResponseType,
 } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { cn, createGoogleMapsLink, dateToInputValue } from "@/lib/utils";
@@ -159,6 +166,9 @@ function RouteComponent() {
 	const isDeleted = appointment.deletedAt !== null;
 	const isHoliday = appointment.type === AppointmentType.HOLIDAY;
 	const isPublished = appointment.status === AppointmentStatus.PUBLISHED;
+	const isTournament = appointment.type === AppointmentType.TOURNAMENT;
+	const myResponse = appointment.responses.find((r) => r.userId === user?.id);
+	const showMobileDock = isTournament;
 
 	const onOpenDelete = () => {
 		setIsDeleting(true);
@@ -272,7 +282,250 @@ function RouteComponent() {
 				</Alert>
 			)}
 
-			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+			{/* Mobile layout: single scrolling column with RSVP/edit pinned to a
+			    persistent bottom dock, so the most frequent actions never
+			    require scrolling back to the top. */}
+			<div className="lg:hidden">
+				<div
+					className={cn(
+						"flex flex-col gap-4",
+						showMobileDock ? "pb-24" : "pb-4",
+					)}
+				>
+					<div className="flex items-start justify-between gap-3">
+						<div className="flex items-center gap-2">
+							<Badge variant="outline">{typeLabel(appointment.type)}</Badge>
+							{!isHoliday && canEdit && (
+								<button
+									type="button"
+									onClick={isPublished ? onUnpublish : onPublish}
+									className="group rounded-full"
+									aria-label={
+										isPublished
+											? t("Unpublish appointment")
+											: t("Publish appointment")
+									}
+								>
+									<Badge
+										variant={isPublished ? "success" : "warning"}
+										className={cn(
+											"cursor-pointer gap-1 transition-shadow transition-width",
+											isPublished
+												? "group-hover:ring-2 group-hover:ring-success/40"
+												: "group-hover:ring-2 group-hover:ring-warning/40",
+										)}
+									>
+										{isPublished ? t("Published") : t("Draft")}
+										<RefreshCwIcon className="size-0 opacity-0 transition-opacity group-hover:size-3 group-hover:opacity-100" />
+									</Badge>
+								</button>
+							)}
+							{!isHoliday && !canEdit && (
+								<Badge variant={isPublished ? "success" : "warning"}>
+									{isPublished ? t("Published") : t("Draft")}
+								</Badge>
+							)}
+						</div>
+						<div className="flex shrink-0 gap-1">
+							<Button
+								variant="ghost"
+								size="icon"
+								className="size-8"
+								onClick={onDownloadIcal}
+							>
+								<DownloadIcon className="size-4" />
+							</Button>
+							{canEdit && (
+								<Button
+									variant="ghost"
+									size="icon"
+									className="size-8"
+									onClick={onStartEdit}
+								>
+									<PencilIcon className="size-4" />
+								</Button>
+							)}
+							{canEdit && (
+								<Button
+									variant="ghost"
+									size="icon"
+									className="size-8 text-destructive hover:text-destructive"
+									disabled={isDeleted}
+									onClick={onOpenDelete}
+								>
+									<Trash2Icon className="size-4" />
+								</Button>
+							)}
+						</div>
+					</div>
+
+					<div>
+						<h1 className="font-bold text-xl leading-tight">
+							{appointment.title}
+						</h1>
+						<p className="text-muted-foreground text-sm">
+							{appointment.shortTitle}
+						</p>
+					</div>
+
+					<div className="grid grid-cols-2 gap-4 rounded-lg bg-card p-4 text-sm">
+						<div>
+							<div className="mb-1 text-muted-foreground text-xs uppercase">
+								{t("Start")}
+							</div>
+							<div>{formatDateTime(appointment.startDate)}</div>
+						</div>
+						<div>
+							<div className="mb-1 text-muted-foreground text-xs uppercase">
+								{t("End")}
+							</div>
+							<div>
+								{appointment.endDate
+									? formatDateTime(appointment.endDate)
+									: "—"}
+							</div>
+						</div>
+						{!isHoliday && (
+							<div className="col-span-2">
+								<div className="mb-1 text-muted-foreground text-xs uppercase">
+									{t("Location")}
+								</div>
+								{appointment.location ? (
+									<a
+										href={createGoogleMapsLink(appointment.location)}
+										target="_blank"
+										rel="noreferrer"
+										className="flex items-center gap-1 hover:underline"
+									>
+										{appointment.location}
+										<ExternalLinkIcon className="size-3.5" />
+									</a>
+								) : (
+									<span className="text-muted-foreground">
+										{t("No location set")}
+									</span>
+								)}
+							</div>
+						)}
+					</div>
+
+					{!isHoliday && appointment.location && (
+						<iframe
+							src={`https://maps.google.com/maps?hl=de&t=&z=14&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
+							className="h-48 w-full rounded-lg border border-border/40"
+							title="Google Maps"
+						/>
+					)}
+
+					{!isHoliday && appointment.link && (
+						<a
+							href={appointment.link}
+							target="_blank"
+							rel="noreferrer"
+							className="flex items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-3 font-medium text-primary text-sm hover:bg-primary/15"
+						>
+							<ExternalLinkIcon className="size-4" />
+							{t("Join")}
+						</a>
+					)}
+
+					{!isHoliday && (
+						<EditableNextAppointmentCard
+							appointmentId={appointment.id}
+							nextAppointmentId={appointment.nextAppointmentId}
+							nextAppointment={appointment.nextAppointment}
+							otherAppointments={appointments ?? []}
+							canEdit={canEdit}
+							onSave={(id) => onSaveField({ nextAppointmentId: id })}
+						/>
+					)}
+
+					{!isHoliday && (
+						<PlacementsPanel
+							placements={appointment.placements}
+							canEdit={canEdit}
+							onManage={onOpenParticipants}
+						/>
+					)}
+
+					{isTournament && (
+						<ResponsesPanel
+							responses={appointment.responses}
+							currentUserId={user?.id}
+							isDeleted={isDeleted}
+							onResponse={onResponse}
+							showActions={false}
+						/>
+					)}
+
+					<Collapsible className="rounded-lg bg-card">
+						<CollapsibleTrigger className="group flex w-full items-center justify-between p-4 text-left">
+							<span className="font-bold text-sm">{t("More details")}</span>
+							<ChevronDownIcon className="size-4 text-muted-foreground transition-transform duration-200 ease-out group-data-[state=open]:rotate-180" />
+						</CollapsibleTrigger>
+						<CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+							<div className="flex flex-col gap-4 px-4 pb-4">
+								<RecordInfoPanel
+									createdAt={new Date(appointment.createdAt)}
+									lastUpdated={
+										appointment.transactions[0]
+											? new Date(appointment.transactions[0].createdAt)
+											: new Date(appointment.createdAt)
+									}
+								/>
+								<TransactionHistory transactions={appointment.transactions} />
+							</div>
+						</CollapsibleContent>
+					</Collapsible>
+				</div>
+
+				{showMobileDock && (
+					<div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-2 border-border/60 border-t bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm">
+						<Button
+							variant="ghost"
+							className={cn(
+								"flex-1 border border-success/30 text-success hover:bg-success/15 hover:text-success",
+								myResponse?.responseType === ResponseType.ACCEPT &&
+									"border-success bg-success text-success-foreground hover:bg-success/90 hover:text-success-foreground",
+							)}
+							disabled={isDeleted}
+							onClick={onResponse(ResponseType.ACCEPT)}
+						>
+							{myResponse?.responseType === ResponseType.ACCEPT
+								? t("Accepted")
+								: t("Accept")}
+						</Button>
+						<Button
+							variant="ghost"
+							className={cn(
+								"flex-1 border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning",
+								myResponse?.responseType === ResponseType.MAYBE &&
+									"border-warning bg-warning text-warning-foreground hover:bg-warning/90 hover:text-warning-foreground",
+							)}
+							disabled={isDeleted}
+							onClick={onResponse(ResponseType.MAYBE)}
+						>
+							{t("Maybe")}
+						</Button>
+						<Button
+							variant="ghost"
+							className={cn(
+								"flex-1 border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive",
+								myResponse?.responseType === ResponseType.DECLINE &&
+									"border-destructive bg-destructive text-white hover:bg-destructive/90",
+							)}
+							disabled={isDeleted}
+							onClick={onResponse(ResponseType.DECLINE)}
+						>
+							{myResponse?.responseType === ResponseType.DECLINE
+								? t("Declined")
+								: t("Decline")}
+						</Button>
+					</div>
+				)}
+			</div>
+
+			<div className="hidden gap-6 lg:grid lg:grid-cols-3 lg:items-start">
 				<div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
 					<Card>
 						<CardContent>

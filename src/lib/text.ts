@@ -132,6 +132,7 @@ const texts = {
 	Logout: "Abmelden",
 	Maybe: "Vielleicht",
 	"More appointments": "Weitere Termine",
+	"More details": "Weitere Details",
 	Name: "Name",
 	"Name must be at least 2 characters long":
 		"Name muss mindestens 2 Zeichen lang sein",
