@@ -9,13 +9,26 @@ import { useServerFn } from "@tanstack/react-start";
 import {
 	CalendarDaysIcon,
 	CalendarPlusIcon,
+	CheckCircle2Icon,
 	ChevronDownIcon,
+	CopyIcon,
+	EyeOffIcon,
 	Loader2Icon,
 	MapPinIcon,
+	RotateCcwIcon,
+	Trash2Icon,
 } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
-import { createResponse, getAppointmentsPage } from "@/api/appointments";
+import {
+	createAppointment,
+	createResponse,
+	deleteAppointment,
+	getAppointmentsPage,
+	publishAppointment,
+	restoreAppointment,
+	unpublishAppointment,
+} from "@/api/appointments";
 import {
 	Filters,
 	filterSchema,
@@ -26,6 +39,7 @@ import {
 import { DetailsList } from "@/components/DetailsList";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { TableCell, TableRow } from "@/components/ui/table";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import {
@@ -188,6 +202,7 @@ function RouteComponent() {
 				</div>
 				<AppointmentSplitView
 					appointments={items}
+					onAppointmentsChange={setItems}
 					footer={
 						<AppointmentLoadMoreFooter
 							items={items}
@@ -251,18 +266,41 @@ function AppointmentLoadMoreFooter({
 	);
 }
 
+const isBulkEligible = (appointment: AppointmentWithResponses) =>
+	appointment.deletedAt === null &&
+	appointment.type !== AppointmentType.HOLIDAY;
+
+type SplitViewBulkAction = {
+	key: string;
+	label: string;
+	icon: React.ReactNode;
+	destructive?: boolean;
+	isDisabled: boolean;
+	onClick: () => void;
+};
+
 const AppointmentSplitView = ({
 	appointments,
+	onAppointmentsChange,
 	footer,
 }: {
 	appointments: AppointmentWithResponses[];
+	onAppointmentsChange: React.Dispatch<
+		React.SetStateAction<AppointmentWithResponses[]>
+	>;
 	footer: React.ReactNode;
 }) => {
 	const { user } = useRouteContext({ from: "__root__" });
 	const router = useRouter();
+	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
 	const createResponseServerFn = useServerFn(createResponse);
-	const [selectedId, setSelectedId] = React.useState<string | undefined>(
-		appointments[0]?.id,
+	const publishAppointmentServerFn = useServerFn(publishAppointment);
+	const unpublishAppointmentServerFn = useServerFn(unpublishAppointment);
+	const deleteAppointmentServerFn = useServerFn(deleteAppointment);
+	const restoreAppointmentServerFn = useServerFn(restoreAppointment);
+	const createAppointmentServerFn = useServerFn(createAppointment);
+	const [selectedIds, setSelectedIds] = React.useState<Set<string>>(
+		() => new Set(appointments[0] ? [appointments[0].id] : []),
 	);
 	const [collapsedMonths, setCollapsedMonths] = React.useState<Set<string>>(
 		() => new Set(),
@@ -277,26 +315,232 @@ const AppointmentSplitView = ({
 		});
 	};
 
-	const selected = appointments.find((a) => a.id === selectedId);
-	const isHoliday = selected?.type === AppointmentType.HOLIDAY;
-	const isPublished = selected?.status === AppointmentStatus.PUBLISHED;
-	const myResponse = selected?.responses.find((r) => r.userId === user?.id);
-	const isMultipleDays =
-		selected?.endDate != null &&
-		new Date(selected.startDate).toDateString() !==
-			new Date(selected.endDate).toDateString();
+	const toggleSelected = (id: string) => {
+		setSelectedIds((prev) => {
+			const next = new Set(prev);
+			if (next.has(id)) next.delete(id);
+			else next.add(id);
+			return next;
+		});
+	};
+
+	const selectedAppointments = appointments.filter((a) =>
+		selectedIds.has(a.id),
+	);
+	const single =
+		selectedAppointments.length === 1 ? selectedAppointments[0] : undefined;
+	const myResponse = single?.responses.find((r) => r.userId === user?.id);
 
 	const onRespond = (response: ResponseType) => async () => {
-		if (!selected) return;
+		if (!single) return;
+		const userId = user?.id;
+		if (!userId) return;
 		const res = await createResponseServerFn({
-			data: { appointmentId: selected.id, response },
+			data: { appointmentId: single.id, response },
 		});
 		const data = await res.json();
 		if (res.status < 400 && data) {
+			const appointmentId = single.id;
+			onAppointmentsChange((prev) =>
+				prev.map((a) =>
+					a.id === appointmentId
+						? {
+								...a,
+								responses: [
+									...a.responses.filter((r) => r.userId !== userId),
+									{ appointmentId, responseType: response, userId },
+								],
+							}
+						: a,
+				),
+			);
 			await router.invalidate();
 			return;
 		}
 		toast.error(data.message);
+	};
+
+	// `router.invalidate()` alone doesn't refresh this page's `items` state —
+	// the parent only resyncs from loader data when the filters or `skip`
+	// change (see the comment in RouteComponent), which an invalidate-only
+	// refresh never does. So each bulk action also patches `items` directly
+	// for instant feedback; invalidate() still runs afterwards to keep the
+	// loader cache consistent for the next real navigation.
+	const runBulkAction = async (
+		calls: Promise<globalThis.Response>[],
+		successMessage: string,
+		applyLocalUpdate: () => void,
+	) => {
+		try {
+			const results = await Promise.all(calls);
+			if (results.every((res) => res.status < 400)) {
+				applyLocalUpdate();
+				toast.success(successMessage);
+			} else {
+				toast.error(t("An Error occurred"));
+			}
+			await router.invalidate();
+		} catch {
+			toast.error(t("An Error occurred"));
+		}
+	};
+
+	// Available to every user, not just editors/admins — responding to a
+	// batch of appointments is a personal action, not a management one.
+	const onBulkRespond = (response: ResponseType) => {
+		const targets = selectedAppointments.filter(
+			(a) => a.type !== AppointmentType.HOLIDAY,
+		);
+		const userId = user?.id;
+		if (targets.length === 0 || !userId) return;
+		return runBulkAction(
+			targets.map((a) =>
+				createResponseServerFn({
+					data: { appointmentId: a.id, response },
+				}),
+			),
+			t("{0} appointments answered", targets.length.toString()),
+			() => {
+				const ids = new Set(targets.map((a) => a.id));
+				onAppointmentsChange((prev) =>
+					prev.map((a) =>
+						ids.has(a.id)
+							? {
+									...a,
+									responses: [
+										...a.responses.filter((r) => r.userId !== userId),
+										{ appointmentId: a.id, responseType: response, userId },
+									],
+								}
+							: a,
+					),
+				);
+			},
+		);
+	};
+
+	const onPublish = (items: AppointmentWithResponses[]) => {
+		const targets = items.filter(
+			(a) => isBulkEligible(a) && a.status !== AppointmentStatus.PUBLISHED,
+		);
+		if (targets.length === 0) return;
+		const ids = new Set(targets.map((a) => a.id));
+		return runBulkAction(
+			targets.map((a) => publishAppointmentServerFn({ data: { id: a.id } })),
+			t("{0} appointments published", targets.length.toString()),
+			() =>
+				onAppointmentsChange((prev) =>
+					prev.map((a) =>
+						ids.has(a.id) ? { ...a, status: AppointmentStatus.PUBLISHED } : a,
+					),
+				),
+		);
+	};
+
+	const onUnpublish = (items: AppointmentWithResponses[]) => {
+		const targets = items.filter(
+			(a) => isBulkEligible(a) && a.status === AppointmentStatus.PUBLISHED,
+		);
+		if (targets.length === 0) return;
+		const ids = new Set(targets.map((a) => a.id));
+		return runBulkAction(
+			targets.map((a) => unpublishAppointmentServerFn({ data: { id: a.id } })),
+			t("{0} appointments unpublished", targets.length.toString()),
+			() =>
+				onAppointmentsChange((prev) =>
+					prev.map((a) =>
+						ids.has(a.id) ? { ...a, status: AppointmentStatus.DRAFT } : a,
+					),
+				),
+		);
+	};
+
+	const onDuplicate = async (items: AppointmentWithResponses[]) => {
+		if (items.length === 0) return;
+		try {
+			const results = await Promise.all(
+				items.map((a) => {
+					const shortTitle = `${a.shortTitle} (Kopie)`;
+					const title = `${a.title} (Kopie)`;
+					if (a.type === AppointmentType.HOLIDAY) {
+						return createAppointmentServerFn({
+							data: {
+								endDate: a.endDate,
+								shortTitle,
+								startDate: a.startDate,
+								title,
+								type: AppointmentType.HOLIDAY,
+							},
+						});
+					}
+					return createAppointmentServerFn({
+						data: {
+							endDate: a.endDate,
+							location: a.location,
+							shortTitle,
+							startDate: a.startDate,
+							status: AppointmentStatus.DRAFT,
+							title,
+							type: a.type,
+						},
+					});
+				}),
+			);
+			const bodies = await Promise.all(results.map((res) => res.json()));
+			const created: AppointmentWithResponses[] = bodies
+				.filter((body) => body.data)
+				.map((body) => ({
+					...(body.data as Appointment),
+					responses: [] as Response[],
+				}));
+			if (created.length > 0) {
+				onAppointmentsChange((prev) =>
+					[...prev, ...created].sort(
+						(a, b) =>
+							new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+					),
+				);
+			}
+			if (created.length === items.length) {
+				toast.success(
+					t("{0} appointments duplicated", items.length.toString()),
+				);
+			} else {
+				toast.error(t("An Error occurred"));
+			}
+			await router.invalidate();
+		} catch {
+			toast.error(t("An Error occurred"));
+		}
+	};
+
+	const onRestore = (items: AppointmentWithResponses[]) => {
+		const targets = items.filter((a) => a.deletedAt !== null);
+		if (targets.length === 0) return;
+		const ids = new Set(targets.map((a) => a.id));
+		return runBulkAction(
+			targets.map((a) => restoreAppointmentServerFn({ data: { id: a.id } })),
+			t("{0} appointments restored", targets.length.toString()),
+			() =>
+				onAppointmentsChange((prev) =>
+					prev.map((a) => (ids.has(a.id) ? { ...a, deletedAt: null } : a)),
+				),
+		);
+	};
+
+	const onDelete = (items: AppointmentWithResponses[]) => {
+		const targets = items.filter((a) => a.deletedAt === null);
+		if (targets.length === 0) return;
+		const ids = new Set(targets.map((a) => a.id));
+		const now = new Date();
+		return runBulkAction(
+			targets.map((a) => deleteAppointmentServerFn({ data: { id: a.id } })),
+			t("{0} appointments deleted", targets.length.toString()),
+			() =>
+				onAppointmentsChange((prev) =>
+					prev.map((a) => (ids.has(a.id) ? { ...a, deletedAt: now } : a)),
+				),
+		);
 	};
 
 	if (appointments.length === 0) {
@@ -311,10 +555,73 @@ const AppointmentSplitView = ({
 	// grouped into month sections that assume the loader's chronological
 	// order; a user-driven column sort would desync the group headers from
 	// the visible row order.
-	const columns = getAppointmentColumns(user?.id, {
+	const dataColumns = getAppointmentColumns(user?.id, {
 		includeResponseColumn: true,
 		sortable: false,
 	});
+	const columns = [
+		{
+			key: "select",
+			label: "",
+			minWidth: "40px",
+			render: (item: AppointmentWithResponses) => (
+				<Checkbox
+					checked={selectedIds.has(item.id)}
+					onCheckedChange={() => toggleSelected(item.id)}
+					onClick={(e) => e.stopPropagation()}
+					aria-label={item.shortTitle}
+				/>
+			),
+		},
+		...dataColumns,
+	];
+
+	const hasRespondableSelection = selectedAppointments.some(
+		(a) => a.type !== AppointmentType.HOLIDAY,
+	);
+
+	const bulkActions: SplitViewBulkAction[] = [
+		{
+			icon: <CheckCircle2Icon className="size-4" />,
+			isDisabled: !selectedAppointments.some(
+				(a) => isBulkEligible(a) && a.status !== AppointmentStatus.PUBLISHED,
+			),
+			key: "publish",
+			label: t("Publish"),
+			onClick: () => onPublish(selectedAppointments),
+		},
+		{
+			icon: <EyeOffIcon className="size-4" />,
+			isDisabled: !selectedAppointments.some(
+				(a) => isBulkEligible(a) && a.status === AppointmentStatus.PUBLISHED,
+			),
+			key: "unpublish",
+			label: t("Unpublish"),
+			onClick: () => onUnpublish(selectedAppointments),
+		},
+		{
+			icon: <CopyIcon className="size-4" />,
+			isDisabled: selectedAppointments.length === 0,
+			key: "duplicate",
+			label: t("Duplicate"),
+			onClick: () => onDuplicate(selectedAppointments),
+		},
+		{
+			icon: <RotateCcwIcon className="size-4" />,
+			isDisabled: !selectedAppointments.some((a) => a.deletedAt !== null),
+			key: "restore",
+			label: t("Restore"),
+			onClick: () => onRestore(selectedAppointments),
+		},
+		{
+			destructive: true,
+			icon: <Trash2Icon className="size-4" />,
+			isDisabled: !selectedAppointments.some((a) => a.deletedAt === null),
+			key: "delete",
+			label: t("Delete"),
+			onClick: () => onDelete(selectedAppointments),
+		},
+	];
 
 	return (
 		<div className="grid grid-cols-[1fr_360px] items-start gap-4">
@@ -364,12 +671,12 @@ const AppointmentSplitView = ({
 									<TableRow
 										className={cn(
 											"h-10 cursor-pointer",
-											item.id === selectedId && "bg-muted",
+											selectedIds.has(item.id) && "bg-muted",
 											inPast && "opacity-65",
 											isDeleted && "text-destructive",
 											isCollapsed && "collapse",
 										)}
-										onClick={() => setSelectedId(item.id)}
+										onClick={() => toggleSelected(item.id)}
 									>
 										{children}
 									</TableRow>
@@ -382,89 +689,213 @@ const AppointmentSplitView = ({
 				{footer}
 			</div>
 			<div className="min-w-0 rounded-lg bg-card p-5">
-				{selected ? (
-					<>
-						<div className="mb-3 flex items-center gap-2">
-							<Badge variant="outline">{typeLabel(selected.type)}</Badge>
-							{!isHoliday && (
-								<Badge variant={isPublished ? "success" : "warning"}>
-									{isPublished ? t("Published") : t("Draft")}
-								</Badge>
-							)}
+				{selectedIds.size === 0 ? (
+					<div className="text-muted-foreground text-sm">
+						{t("Select a row to see details")}
+					</div>
+				) : (
+					<div className="flex flex-col gap-3">
+						<div className="flex items-center justify-between">
+							<span className="font-semibold text-sm">
+								{single
+									? t("1 appointment selected")
+									: t("{0} appointments selected", selectedIds.size.toString())}
+							</span>
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								onClick={() => setSelectedIds(new Set())}
+							>
+								{t("Clear selection")}
+							</Button>
 						</div>
-						<h3 className="mb-4 font-bold text-lg leading-snug">
-							{selected.title}
-						</h3>
-						<div className="flex flex-col gap-2 text-sm">
-							<div className="flex items-center gap-1.5 text-muted-foreground">
-								<CalendarDaysIcon className="size-3.5 shrink-0" />
-								{formatDateTime(selected.startDate)}
-								{isMultipleDays && selected.endDate && (
-									<> – {formatDateTime(selected.endDate)}</>
-								)}
-							</div>
-							{selected.location && (
-								<div className="flex items-center gap-1.5 text-muted-foreground">
-									<MapPinIcon className="size-3.5 shrink-0" />
-									{selected.location}
+						{single ? (
+							<AppointmentDetailContent
+								appointment={single}
+								myResponse={myResponse}
+								onRespond={onRespond}
+							/>
+						) : (
+							<>
+								<div className="flex max-h-48 flex-col overflow-y-auto rounded-md border p-1">
+									{selectedAppointments.map((a) => (
+										<div
+											key={a.id}
+											className="flex items-center gap-2 rounded-md px-1.5 py-1"
+										>
+											<span
+												className={cn(
+													"size-1.5 shrink-0 rounded-full",
+													a.type === AppointmentType.HOLIDAY
+														? "bg-muted-foreground"
+														: a.status === AppointmentStatus.PUBLISHED
+															? "bg-success"
+															: "bg-warning",
+												)}
+											/>
+											<span className="min-w-0 flex-1 truncate text-sm">
+												{a.shortTitle}
+											</span>
+											<span className="shrink-0 text-muted-foreground text-xs">
+												{new Date(a.startDate).toLocaleDateString("de-DE", {
+													day: "2-digit",
+													month: "2-digit",
+												})}
+											</span>
+										</div>
+									))}
 								</div>
-							)}
-						</div>
-						{!isHoliday && (
-							<div className="mt-4 flex gap-2">
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									className={cn(
-										"flex-1 border border-success/30 text-success hover:bg-success/15 hover:text-success",
-										myResponse?.responseType === ResponseType.ACCEPT &&
-											"border-success bg-success text-success-foreground hover:bg-success/90 hover:text-success-foreground",
-									)}
-									onClick={onRespond(ResponseType.ACCEPT)}
-								>
-									{t("Accept")}
-								</Button>
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									className={cn(
-										"flex-1 border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning",
-										myResponse?.responseType === ResponseType.MAYBE &&
-											"border-warning bg-warning text-warning-foreground hover:bg-warning/90 hover:text-warning-foreground",
-									)}
-									onClick={onRespond(ResponseType.MAYBE)}
-								>
-									{t("Maybe")}
-								</Button>
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									className={cn(
-										"flex-1 border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive",
-										myResponse?.responseType === ResponseType.DECLINE &&
-											"border-destructive bg-destructive text-white hover:bg-destructive/90",
-									)}
-									onClick={onRespond(ResponseType.DECLINE)}
-								>
-									{t("Decline")}
-								</Button>
+								<div className="flex gap-2">
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										className="flex-1 border border-success/30 text-success hover:bg-success/15 hover:text-success"
+										disabled={!hasRespondableSelection}
+										onClick={() => onBulkRespond(ResponseType.ACCEPT)}
+									>
+										{t("Accept")}
+									</Button>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										className="flex-1 border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning"
+										disabled={!hasRespondableSelection}
+										onClick={() => onBulkRespond(ResponseType.MAYBE)}
+									>
+										{t("Maybe")}
+									</Button>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										className="flex-1 border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive"
+										disabled={!hasRespondableSelection}
+										onClick={() => onBulkRespond(ResponseType.DECLINE)}
+									>
+										{t("Decline")}
+									</Button>
+								</div>
+							</>
+						)}
+						{canEdit && (
+							<div className="flex flex-col gap-2">
+								{bulkActions.map((action) => (
+									<Button
+										key={action.key}
+										type="button"
+										variant={action.destructive ? "destructive" : "outline"}
+										className="justify-start"
+										disabled={action.isDisabled}
+										onClick={action.onClick}
+									>
+										{action.icon}
+										{action.label}
+									</Button>
+								))}
 							</div>
 						)}
-						<Button asChild variant="outline" size="sm" className="mt-2 w-full">
-							<Link to="/appts/$apptId" params={{ apptId: selected.id }}>
-								{t("Open appointment")}
-							</Link>
-						</Button>
-					</>
-				) : (
-					<div className="text-muted-foreground text-sm">
-						{t("No appointments found")}
 					</div>
 				)}
 			</div>
 		</div>
 	);
 };
+
+function AppointmentDetailContent({
+	appointment,
+	myResponse,
+	onRespond,
+}: {
+	appointment: AppointmentWithResponses;
+	myResponse: Response | undefined;
+	onRespond: (response: ResponseType) => () => Promise<void>;
+}) {
+	const isHoliday = appointment.type === AppointmentType.HOLIDAY;
+	const isPublished = appointment.status === AppointmentStatus.PUBLISHED;
+	const isMultipleDays =
+		appointment.endDate != null &&
+		new Date(appointment.startDate).toDateString() !==
+			new Date(appointment.endDate).toDateString();
+
+	return (
+		<>
+			<div className="mb-3 flex items-center gap-2">
+				<Badge variant="outline">{typeLabel(appointment.type)}</Badge>
+				{!isHoliday && (
+					<Badge variant={isPublished ? "success" : "warning"}>
+						{isPublished ? t("Published") : t("Draft")}
+					</Badge>
+				)}
+			</div>
+			<h3 className="mb-4 font-bold text-lg leading-snug">
+				{appointment.title}
+			</h3>
+			<div className="flex flex-col gap-2 text-sm">
+				<div className="flex items-center gap-1.5 text-muted-foreground">
+					<CalendarDaysIcon className="size-3.5 shrink-0" />
+					{formatDateTime(appointment.startDate)}
+					{isMultipleDays && appointment.endDate && (
+						<> – {formatDateTime(appointment.endDate)}</>
+					)}
+				</div>
+				{appointment.location && (
+					<div className="flex items-center gap-1.5 text-muted-foreground">
+						<MapPinIcon className="size-3.5 shrink-0" />
+						{appointment.location}
+					</div>
+				)}
+			</div>
+			{!isHoliday && (
+				<div className="mt-4 flex gap-2">
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className={cn(
+							"flex-1 border border-success/30 text-success hover:bg-success/15 hover:text-success",
+							myResponse?.responseType === ResponseType.ACCEPT &&
+								"border-success bg-success text-success-foreground hover:bg-success/90 hover:text-success-foreground",
+						)}
+						onClick={onRespond(ResponseType.ACCEPT)}
+					>
+						{t("Accept")}
+					</Button>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className={cn(
+							"flex-1 border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning",
+							myResponse?.responseType === ResponseType.MAYBE &&
+								"border-warning bg-warning text-warning-foreground hover:bg-warning/90 hover:text-warning-foreground",
+						)}
+						onClick={onRespond(ResponseType.MAYBE)}
+					>
+						{t("Maybe")}
+					</Button>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className={cn(
+							"flex-1 border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive",
+							myResponse?.responseType === ResponseType.DECLINE &&
+								"border-destructive bg-destructive text-white hover:bg-destructive/90",
+						)}
+						onClick={onRespond(ResponseType.DECLINE)}
+					>
+						{t("Decline")}
+					</Button>
+				</div>
+			)}
+			<Button asChild variant="outline" size="sm" className="mt-2 w-full">
+				<Link to="/appts/$apptId" params={{ apptId: appointment.id }}>
+					{t("Open appointment")}
+				</Link>
+			</Button>
+		</>
+	);
+}

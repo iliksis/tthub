@@ -206,3 +206,167 @@ test.describe("Appointments - Edit Functionality", () => {
 		}
 	});
 });
+
+test.describe("Appointments - Multi-select and bulk actions", () => {
+	// The multi-select split view only renders at the `lg` breakpoint — force
+	// a desktop viewport so these tests behave the same on every project,
+	// including the mobile ones.
+	test.use({ viewport: { height: 900, width: 1440 } });
+
+	test("ADMIN, EDITOR and USER all see selection checkboxes", async ({
+		page,
+	}) => {
+		for (const role of ["admin", "editor", "user"] as const) {
+			await loginAs(page, role);
+			await page.goto("/appts");
+			await page.waitForLoadState("networkidle");
+			await expect(
+				page.getByRole("checkbox", { name: "Training" }),
+			).toBeVisible();
+		}
+	});
+
+	test("selecting exactly one appointment shows its details; selecting a second one hides them", async ({
+		page,
+	}) => {
+		await loginAs(page, "admin");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		const rowCheckboxes = page.locator("table").getByRole("checkbox");
+		const count = await rowCheckboxes.count();
+		if (count < 2) {
+			test.skip();
+			return;
+		}
+
+		// One row is preselected by default, so the detail heading is already visible.
+		await expect(page.getByRole("heading", { level: 3 })).toBeVisible();
+
+		await rowCheckboxes.nth(1).click();
+		await expect(page.getByText(/Termine ausgewählt/)).toBeVisible();
+		await expect(page.getByRole("heading", { level: 3 })).not.toBeVisible();
+
+		await page.getByRole("button", { name: "Auswahl aufheben" }).click();
+		await expect(
+			page.getByText("Zeile auswählen, um Details zu sehen"),
+		).toBeVisible();
+	});
+
+	test("USER can bulk respond but cannot see management actions", async ({
+		page,
+	}) => {
+		await loginAs(page, "user");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		const rowCheckboxes = page.locator("table").getByRole("checkbox");
+		const count = await rowCheckboxes.count();
+		if (count < 2) {
+			test.skip();
+			return;
+		}
+		await rowCheckboxes.nth(1).click();
+
+		await expect(page.getByRole("button", { name: "Annehmen" })).toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Vielleicht" }),
+		).toBeVisible();
+		await expect(page.getByRole("button", { name: "Ablehnen" })).toBeVisible();
+
+		await expect(
+			page.getByRole("button", { name: "Veröffentlichen" }),
+		).not.toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Duplizieren" }),
+		).not.toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Löschen" }),
+		).not.toBeVisible();
+	});
+
+	test("EDITOR sees both bulk respond and management actions", async ({
+		page,
+	}) => {
+		await loginAs(page, "editor");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		const rowCheckboxes = page.locator("table").getByRole("checkbox");
+		const count = await rowCheckboxes.count();
+		if (count < 2) {
+			test.skip();
+			return;
+		}
+		await rowCheckboxes.nth(1).click();
+
+		await expect(page.getByRole("button", { name: "Annehmen" })).toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Veröffentlichen" }),
+		).toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Duplizieren" }),
+		).toBeVisible();
+	});
+
+	test("USER bulk-responding to multiple appointments succeeds", async ({
+		page,
+	}) => {
+		await loginAs(page, "user");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		const rowCheckboxes = page.locator("table").getByRole("checkbox");
+		const count = await rowCheckboxes.count();
+		if (count < 2) {
+			test.skip();
+			return;
+		}
+		await rowCheckboxes.nth(1).click();
+
+		await page.getByRole("button", { name: "Vielleicht" }).click();
+		await expect(page.getByText(/Termine beantwortet/)).toBeVisible();
+	});
+
+	test("EDITOR duplicating an appointment shows the copy immediately", async ({
+		page,
+	}) => {
+		await loginAs(page, "editor");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		const duplicateButton = page.getByRole("button", { name: "Duplizieren" });
+		if (!(await duplicateButton.isVisible())) {
+			test.skip();
+			return;
+		}
+		await duplicateButton.click();
+
+		await expect(page.getByText(/Termine dupliziert/)).toBeVisible();
+		await expect(page.getByText("(Kopie)").first()).toBeVisible();
+	});
+
+	test("ADMIN can delete and then restore an appointment", async ({ page }) => {
+		await loginAs(page, "admin");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		const deleteButton = page.getByRole("button", { name: "Löschen" });
+		if (
+			!(await deleteButton.isVisible()) ||
+			!(await deleteButton.isEnabled())
+		) {
+			test.skip();
+			return;
+		}
+		await deleteButton.click();
+		await expect(page.getByText(/Termine gelöscht/)).toBeVisible();
+
+		const restoreButton = page.getByRole("button", {
+			name: "Wiederherstellen",
+		});
+		await expect(restoreButton).toBeEnabled();
+		await restoreButton.click();
+		await expect(page.getByText(/Termine wiederhergestellt/)).toBeVisible();
+	});
+});

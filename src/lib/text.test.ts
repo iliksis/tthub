@@ -40,4 +40,32 @@ describe("t (translation function)", () => {
 		const result = t("{0} Appointments created", "10");
 		expect(result).toBe("10 Termine erstellt");
 	});
+
+	it("should translate bulk appointment action labels", () => {
+		expect(t("Publish")).toBe("Veröffentlichen");
+		expect(t("Unpublish")).toBe("Zurückziehen");
+		expect(t("Duplicate")).toBe("Duplizieren");
+		expect(t("Restore")).toBe("Wiederherstellen");
+		expect(t("Clear selection")).toBe("Auswahl aufheben");
+	});
+
+	it("should format bulk appointment action result messages", () => {
+		expect(t("{0} appointments published", "3")).toBe(
+			"3 Termine veröffentlicht",
+		);
+		expect(t("{0} appointments unpublished", "2")).toBe(
+			"2 Termine zurückgezogen",
+		);
+		expect(t("{0} appointments duplicated", "1")).toBe("1 Termine dupliziert");
+		expect(t("{0} appointments restored", "4")).toBe(
+			"4 Termine wiederhergestellt",
+		);
+		expect(t("{0} appointments deleted", "5")).toBe("5 Termine gelöscht");
+		expect(t("{0} appointments answered", "2")).toBe("2 Termine beantwortet");
+	});
+
+	it("should format the selection count, with a singular form for one", () => {
+		expect(t("1 appointment selected")).toBe("1 Termin ausgewählt");
+		expect(t("{0} appointments selected", "3")).toBe("3 Termine ausgewählt");
+	});
 });
