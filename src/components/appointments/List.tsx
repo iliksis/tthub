@@ -8,6 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { TableRow } from "@/components/ui/table";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import { AppointmentType } from "@/lib/prisma/enums";
@@ -168,29 +175,67 @@ export const List = ({ appointments }: ListProps) => {
 };
 
 export const filterSchema = z.object({
+	dateFrom: z.string().optional(),
+	dateTo: z.string().optional(),
 	deleted: z.boolean().optional(),
-	location: z.string().optional(),
-	title: z.string().optional(),
+	query: z.string().optional(),
+	response: z.enum(["ACCEPT", "MAYBE", "DECLINE", "NONE"]).optional(),
+	skip: z.number().int().nonnegative().optional(),
+	type: z.enum(["TOURNAMENT", "TOURNAMENT_DE", "HOLIDAY"]).optional(),
 });
 type FiltersProps = z.infer<typeof filterSchema>;
 
+const typeOptions: { value: string; label: string }[] = [
+	{ label: t("All types"), value: "ALL" },
+	{ label: t("Tournament"), value: AppointmentType.TOURNAMENT },
+	{ label: t("Tournament (Germany)"), value: AppointmentType.TOURNAMENT_DE },
+	{ label: t("Holiday"), value: AppointmentType.HOLIDAY },
+];
+
+const responseOptions: { value: string; label: string }[] = [
+	{ label: t("All responses"), value: "ALL" },
+	{ label: t("Accepted"), value: "ACCEPT" },
+	{ label: t("Maybe"), value: "MAYBE" },
+	{ label: t("Declined"), value: "DECLINE" },
+	{ label: t("No response"), value: "NONE" },
+];
+
 const useAppointmentFilterForm = ({
+	dateFrom = "",
+	dateTo = "",
 	deleted = false,
-	title = "",
-	location = "",
+	query = "",
+	response,
+	type,
 }: FiltersProps) => {
 	const router = useRouter();
 
 	const form = useForm({
 		defaultValues: {
+			dateFrom,
+			dateTo,
 			deleted,
-			location,
-			title,
+			query,
+			response: response ?? "ALL",
+			type: type ?? "ALL",
 		},
 		onSubmit: async ({ value }) => {
 			await router.navigate({
 				replace: true,
-				search: { ...value },
+				search: {
+					dateFrom: value.dateFrom || undefined,
+					dateTo: value.dateTo || undefined,
+					deleted: value.deleted,
+					query: value.query || undefined,
+					response:
+						value.response === "ALL"
+							? undefined
+							: (value.response as FiltersProps["response"]),
+					type:
+						value.type === "ALL"
+							? undefined
+							: (value.type as FiltersProps["type"]),
+				},
 				to: ".",
 			});
 		},
@@ -199,9 +244,12 @@ const useAppointmentFilterForm = ({
 	const onClear = () => {
 		form.update({
 			defaultValues: {
+				dateFrom: "",
+				dateTo: "",
 				deleted: false,
-				location: "",
-				title: "",
+				query: "",
+				response: "ALL",
+				type: "ALL",
 			},
 		});
 		router.navigate({ replace: true, search: {}, to: "." });
@@ -210,78 +258,129 @@ const useAppointmentFilterForm = ({
 	return { form, onClear };
 };
 
+// Unlike the mobile modal (which batches edits behind an explicit Apply),
+// this bar applies every change immediately — text search is debounced so
+// typing doesn't fire a navigation per keystroke, everything else (selects,
+// dates, the checkbox) navigates on change.
 export const InlineFilters = (props: FiltersProps) => {
-	const { form, onClear } = useAppointmentFilterForm(props);
+	const router = useRouter();
+	const [queryInput, setQueryInput] = React.useState(props.query ?? "");
+
+	const navigate = React.useCallback(
+		(next: Partial<FiltersProps>) => {
+			router.navigate({
+				replace: true,
+				search: { ...props, ...next, skip: undefined },
+				to: ".",
+			});
+		},
+		[router, props],
+	);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: only re-runs when the local input changes; navigate/props.query are read, not resynced on
+	React.useEffect(() => {
+		const timeout = setTimeout(() => {
+			if (queryInput !== (props.query ?? "")) {
+				navigate({ query: queryInput || undefined });
+			}
+		}, 300);
+		return () => clearTimeout(timeout);
+	}, [queryInput]);
+
+	const hasActiveFilters =
+		!!props.query ||
+		!!props.type ||
+		!!props.response ||
+		!!props.dateFrom ||
+		!!props.dateTo ||
+		!!props.deleted;
+
+	const onClear = () => {
+		setQueryInput("");
+		router.navigate({ replace: true, search: {}, to: "." });
+	};
 
 	return (
-		<form
-			className="flex flex-wrap items-center gap-3"
-			onSubmit={(e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				form.handleSubmit();
-			}}
-		>
-			<form.Field name="title">
-				{(field) => (
-					<Input
-						className="w-56"
-						placeholder={t("Title")}
-						id={field.name}
-						name={field.name}
-						value={field.state.value}
-						onBlur={field.handleBlur}
-						onChange={(e) => field.handleChange(e.target.value)}
-					/>
-				)}
-			</form.Field>
-			<form.Field name="location">
-				{(field) => (
-					<Input
-						className="w-48"
-						placeholder={t("Location")}
-						id={field.name}
-						name={field.name}
-						value={field.state.value}
-						onBlur={field.handleBlur}
-						onChange={(e) => field.handleChange(e.target.value)}
-					/>
-				)}
-			</form.Field>
-			<form.Field name="deleted">
-				{(field) => (
-					<label
-						htmlFor={field.name}
-						className="flex items-center gap-2 text-sm text-muted-foreground"
-					>
-						<Checkbox
-							id={field.name}
-							checked={field.state.value}
-							name={field.name}
-							onBlur={field.handleBlur}
-							onCheckedChange={(checked) =>
-								field.handleChange(checked === true)
-							}
-						/>
-						{t("Show deleted?")}
-					</label>
-				)}
-			</form.Field>
-			<Button
-				type="submit"
-				size="sm"
-				onClick={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
-					form.handleSubmit();
-				}}
+		<div className="flex flex-wrap items-center gap-3">
+			<Input
+				className="w-56"
+				placeholder={t("Search appointment or person...")}
+				value={queryInput}
+				onChange={(e) => setQueryInput(e.target.value)}
+			/>
+			<Select
+				value={props.type ?? "ALL"}
+				onValueChange={(v) =>
+					navigate({
+						type: v === "ALL" ? undefined : (v as FiltersProps["type"]),
+					})
+				}
 			>
-				{t("Apply")}
-			</Button>
-			<Button type="button" size="sm" variant="secondary" onClick={onClear}>
-				{t("Clear")}
-			</Button>
-		</form>
+				<SelectTrigger size="sm" className="w-40">
+					<SelectValue />
+				</SelectTrigger>
+				<SelectContent>
+					{typeOptions.map((option) => (
+						<SelectItem key={option.value} value={option.value}>
+							{option.label}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+			<Select
+				value={props.response ?? "ALL"}
+				onValueChange={(v) =>
+					navigate({
+						response: v === "ALL" ? undefined : (v as FiltersProps["response"]),
+					})
+				}
+			>
+				<SelectTrigger size="sm" className="w-40">
+					<SelectValue />
+				</SelectTrigger>
+				<SelectContent>
+					{responseOptions.map((option) => (
+						<SelectItem key={option.value} value={option.value}>
+							{option.label}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+			<div className="flex items-center gap-2">
+				<Label className="text-muted-foreground text-xs">{t("From")}</Label>
+				<Input
+					type="date"
+					className="w-36"
+					value={props.dateFrom ?? ""}
+					onChange={(e) => navigate({ dateFrom: e.target.value || undefined })}
+				/>
+				<Label className="text-muted-foreground text-xs">{t("To")}</Label>
+				<Input
+					type="date"
+					className="w-36"
+					value={props.dateTo ?? ""}
+					onChange={(e) => navigate({ dateTo: e.target.value || undefined })}
+				/>
+			</div>
+			<label
+				htmlFor="inline-filters-deleted"
+				className="flex items-center gap-2 text-sm text-muted-foreground"
+			>
+				<Checkbox
+					id="inline-filters-deleted"
+					checked={props.deleted ?? false}
+					onCheckedChange={(checked) =>
+						navigate({ deleted: checked === true ? true : undefined })
+					}
+				/>
+				{t("Show deleted?")}
+			</label>
+			{hasActiveFilters && (
+				<Button type="button" size="sm" variant="secondary" onClick={onClear}>
+					{t("Clear")}
+				</Button>
+			)}
+		</div>
 	);
 };
 
@@ -328,7 +427,7 @@ export const Filters = (props: FiltersProps) => {
 				onRenderActionButton={onRenderActionButton}
 			>
 				<form
-					className="flex flex-col gap-2"
+					className="flex flex-col gap-3"
 					onSubmit={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
@@ -337,10 +436,12 @@ export const Filters = (props: FiltersProps) => {
 				>
 					<h2>{t("Filters")}</h2>
 					<div>
-						<form.Field name="title">
+						<form.Field name="query">
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("Title")}:</Label>
+									<Label htmlFor={field.name}>
+										{t("Search appointment or person...")}
+									</Label>
 									<Input
 										id={field.name}
 										name={field.name}
@@ -352,14 +453,76 @@ export const Filters = (props: FiltersProps) => {
 							)}
 						</form.Field>
 					</div>
-					<div>
-						<form.Field name="location">
+					<div className="grid grid-cols-2 gap-3">
+						<form.Field name="type">
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("Location")}:</Label>
+									<Label htmlFor={field.name}>{t("Appointment type")}</Label>
+									<Select
+										value={field.state.value}
+										onValueChange={(v) => field.handleChange(v)}
+									>
+										<SelectTrigger id={field.name} className="w-full">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											{typeOptions.map((option) => (
+												<SelectItem key={option.value} value={option.value}>
+													{option.label}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</fieldset>
+							)}
+						</form.Field>
+						<form.Field name="response">
+							{(field) => (
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Response")}</Label>
+									<Select
+										value={field.state.value}
+										onValueChange={(v) => field.handleChange(v)}
+									>
+										<SelectTrigger id={field.name} className="w-full">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											{responseOptions.map((option) => (
+												<SelectItem key={option.value} value={option.value}>
+													{option.label}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+					<div className="grid grid-cols-2 gap-3">
+						<form.Field name="dateFrom">
+							{(field) => (
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("From")}</Label>
 									<Input
 										id={field.name}
 										name={field.name}
+										type="date"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+								</fieldset>
+							)}
+						</form.Field>
+						<form.Field name="dateTo">
+							{(field) => (
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("To")}</Label>
+									<Input
+										id={field.name}
+										name={field.name}
+										type="date"
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onChange={(e) => field.handleChange(e.target.value)}

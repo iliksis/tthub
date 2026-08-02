@@ -290,6 +290,81 @@ export const getAppointments = createServerFn()
 		}
 	});
 
+export const getAppointmentsPage = createServerFn()
+	.inputValidator(
+		(d: {
+			query?: string;
+			type?: AppointmentType;
+			response?: ResponseType | "NONE";
+			dateFrom?: Date;
+			dateTo?: Date;
+			withDeleted?: boolean;
+			skip: number;
+			take: number;
+		}) => d,
+	)
+	.handler(async ({ data }) => {
+		const session = await useAppSession();
+		if (!session.data.id) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
+		const userId = session.data.id;
+
+		try {
+			const where: Prisma.AppointmentWhereInput = {
+				deletedAt: data.withDeleted ? undefined : null,
+				OR: [
+					{ title: { contains: data.query ?? "" } },
+					{ shortTitle: { contains: data.query ?? "" } },
+					{ location: { contains: data.query ?? "" } },
+				],
+				responses:
+					data.response === "NONE"
+						? { none: { userId } }
+						: data.response
+							? { some: { responseType: data.response, userId } }
+							: undefined,
+				startDate: {
+					gte: data.dateFrom,
+					lte: data.dateTo,
+				},
+				type: data.type,
+			};
+
+			const [appointments, matchedTotal, grandTotal] = await Promise.all([
+				prismaClient.appointment.findMany({
+					include: { responses: true },
+					orderBy: { startDate: "desc" },
+					skip: data.skip,
+					take: data.take,
+					where,
+				}),
+				prismaClient.appointment.count({ where }),
+				prismaClient.appointment.count({
+					where: { deletedAt: data.withDeleted ? undefined : null },
+				}),
+			]);
+
+			return json<
+				Return<{
+					appointments: typeof appointments;
+					matchedTotal: number;
+					grandTotal: number;
+				}>
+			>(
+				{
+					data: { appointments, grandTotal, matchedTotal },
+					message: t("Appointments found"),
+				},
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
 // Click-to-edit saves one field at a time, so a burst of edits to the same
 // appointment would otherwise fire one notification per field. Debounce so
 // only one notification goes out per appointment, ~5s after the last edit.

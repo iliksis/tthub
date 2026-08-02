@@ -3,17 +3,19 @@ import {
 	Link,
 	useRouteContext,
 	useRouter,
+	useRouterState,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
 	CalendarDaysIcon,
 	CalendarPlusIcon,
 	ChevronDownIcon,
+	Loader2Icon,
 	MapPinIcon,
 } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
-import { createResponse, getAppointments } from "@/api/appointments";
+import { createResponse, getAppointmentsPage } from "@/api/appointments";
 import {
 	Filters,
 	filterSchema,
@@ -34,23 +36,35 @@ import {
 import { t } from "@/lib/text";
 import { cn, isDayInPast } from "@/lib/utils";
 
+const BATCH_SIZE = 25;
+
 // biome-ignore assist/source/useSortedKeys: validateSearch and loaderDeps need to be before loader
 export const Route = createFileRoute("/_authed/appts/")({
 	component: RouteComponent,
 	validateSearch: filterSchema,
 	loaderDeps: ({ search }) => ({ ...search }),
-	loader: async ({ deps: { deleted, title, location } }) => {
-		const data = await getAppointments({
+	loader: async ({ deps }) => {
+		const skip = deps.skip ?? 0;
+		const res = await getAppointmentsPage({
 			data: {
-				location,
-				orderBy: { startDate: "desc" },
-				title,
-				withDeleted: deleted,
+				dateFrom: deps.dateFrom ? new Date(deps.dateFrom) : undefined,
+				dateTo: deps.dateTo ? new Date(deps.dateTo) : undefined,
+				query: deps.query,
+				response: deps.response,
+				skip,
+				take: BATCH_SIZE,
+				type: deps.type,
+				withDeleted: deps.deleted,
 			},
 		});
-		const response = await data.json();
-		if (data.status < 400) {
-			return { appointments: response.data };
+		const response = await res.json();
+		if (res.status < 400) {
+			const data = response.data ?? {
+				appointments: [],
+				grandTotal: 0,
+				matchedTotal: 0,
+			};
+			return { ...data, skip };
 		}
 		throw new Error(response.message);
 	},
@@ -58,55 +72,6 @@ export const Route = createFileRoute("/_authed/appts/")({
 		meta: [{ title: t("Appointments") }],
 	}),
 });
-
-function RouteComponent() {
-	const { appointments } = Route.useLoaderData();
-	const search = Route.useSearch();
-	const { user } = useRouteContext({ from: "__root__" });
-	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
-
-	if (!appointments) return <div>{t("An Error occurred")}</div>;
-
-	return (
-		<>
-			{/* Mobile / tablet layout */}
-			<div className="lg:hidden">
-				<Filters {...search} />
-				<List appointments={appointments} />
-			</div>
-
-			{/* Desktop layout: master-detail + inline filters */}
-			<div className="hidden lg:flex lg:flex-col lg:gap-4">
-				<div className="flex items-center gap-3">
-					<h1 className="font-bold text-lg flex-1">{t("Appointments")}</h1>
-					<div className="flex overflow-hidden rounded-md border text-sm">
-						<span className="bg-primary px-3 py-1.5 font-medium text-primary-foreground">
-							{t("List")}
-						</span>
-						<Link
-							to="/appts/calendar"
-							className="px-3 py-1.5 text-muted-foreground hover:bg-accent"
-						>
-							{t("Calendar")}
-						</Link>
-					</div>
-					{canEdit && (
-						<Button asChild>
-							<Link to="/create">
-								<CalendarPlusIcon className="size-4" />
-								{t("Create appointment")}
-							</Link>
-						</Button>
-					)}
-				</div>
-				<div className="rounded-lg bg-card p-3">
-					<InlineFilters {...search} />
-				</div>
-				<AppointmentSplitView appointments={appointments} />
-			</div>
-		</>
-	);
-}
 
 type AppointmentWithResponses = Appointment & { responses: Response[] };
 
@@ -133,10 +98,165 @@ function monthLabel(date: Date | string) {
 	});
 }
 
+function RouteComponent() {
+	const {
+		appointments: batch,
+		matchedTotal,
+		grandTotal,
+		skip,
+	} = Route.useLoaderData();
+	const search = Route.useSearch();
+	const router = useRouter();
+	const isNavigating = useRouterState({ select: (s) => s.isLoading });
+	const { user } = useRouteContext({ from: "__root__" });
+	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
+
+	// The loader only ever fetches one batch (skip/take), never the whole list
+	// again — so previously loaded rows are kept in state and the new batch is
+	// appended to them, unless the filters changed (or this is the first
+	// page), in which case it replaces them outright. Comparing against state
+	// (not a ref) during render is the React-sanctioned way to reset/derive
+	// state when an input changes without a useEffect round-trip.
+	const filterKey = JSON.stringify({ ...search, skip: undefined });
+	const [items, setItems] = React.useState<AppointmentWithResponses[]>(batch);
+	const [appliedLoad, setAppliedLoad] = React.useState({ filterKey, skip });
+	if (appliedLoad.filterKey !== filterKey || appliedLoad.skip !== skip) {
+		const isFreshView = skip === 0 || appliedLoad.filterKey !== filterKey;
+		setAppliedLoad({ filterKey, skip });
+		setItems((prev) => (isFreshView ? batch : [...prev, ...batch]));
+	}
+
+	const remaining = matchedTotal - items.length;
+	const onLoadMore = () => {
+		router.navigate({
+			replace: true,
+			search: { ...search, skip: items.length },
+			to: ".",
+		});
+	};
+
+	return (
+		<>
+			{/* Mobile / tablet layout */}
+			<div className="lg:hidden">
+				<Filters {...search} />
+				<List appointments={items} />
+				<AppointmentLoadMoreFooter
+					items={items}
+					remaining={remaining}
+					matchedTotal={matchedTotal}
+					isNavigating={isNavigating}
+					onLoadMore={onLoadMore}
+				/>
+			</div>
+
+			{/* Desktop layout: master-detail + inline filters */}
+			<div className="hidden lg:flex lg:flex-col lg:gap-4">
+				<div className="flex items-center gap-3">
+					<div className="flex flex-1 items-baseline gap-2">
+						<h1 className="font-bold text-lg">{t("Appointments")}</h1>
+						<p className="text-muted-foreground text-sm">
+							{t(
+								"{0} of {1} events",
+								matchedTotal.toString(),
+								grandTotal.toString(),
+							)}
+						</p>
+					</div>
+					<div className="flex overflow-hidden rounded-md border text-sm">
+						<span className="bg-primary px-3 py-1.5 font-medium text-primary-foreground">
+							{t("List")}
+						</span>
+						<Link
+							to="/appts/calendar"
+							className="px-3 py-1.5 text-muted-foreground hover:bg-accent"
+						>
+							{t("Calendar")}
+						</Link>
+					</div>
+					{canEdit && (
+						<Button asChild>
+							<Link to="/create">
+								<CalendarPlusIcon className="size-4" />
+								{t("Create appointment")}
+							</Link>
+						</Button>
+					)}
+				</div>
+				<div className="rounded-lg bg-card p-3">
+					<InlineFilters {...search} />
+				</div>
+				<AppointmentSplitView
+					appointments={items}
+					footer={
+						<AppointmentLoadMoreFooter
+							items={items}
+							remaining={remaining}
+							matchedTotal={matchedTotal}
+							isNavigating={isNavigating}
+							onLoadMore={onLoadMore}
+						/>
+					}
+				/>
+			</div>
+		</>
+	);
+}
+
+type AppointmentLoadMoreFooterProps = {
+	items: AppointmentWithResponses[];
+	remaining: number;
+	matchedTotal: number;
+	isNavigating: boolean;
+	onLoadMore: () => void;
+};
+
+function AppointmentLoadMoreFooter({
+	items,
+	remaining,
+	matchedTotal,
+	isNavigating,
+	onLoadMore,
+}: AppointmentLoadMoreFooterProps) {
+	if (items.length === 0) return null;
+
+	if (remaining > 0) {
+		return (
+			<div className="flex justify-center border-border/60 border-t pt-3">
+				<Button
+					variant="outline"
+					className="w-full"
+					disabled={isNavigating}
+					onClick={onLoadMore}
+				>
+					{isNavigating && <Loader2Icon className="animate-spin" />}
+					{isNavigating
+						? t("Loading…")
+						: t(
+								"Load {0} more ({1} remaining)",
+								Math.min(BATCH_SIZE, remaining).toString(),
+								remaining.toString(),
+							)}
+				</Button>
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex justify-center border-border/60 border-t pt-3">
+			<span className="text-muted-foreground text-xs">
+				{t("You've reached the end — {0} events", matchedTotal.toString())}
+			</span>
+		</div>
+	);
+}
+
 const AppointmentSplitView = ({
 	appointments,
+	footer,
 }: {
 	appointments: AppointmentWithResponses[];
+	footer: React.ReactNode;
 }) => {
 	const { user } = useRouteContext({ from: "__root__" });
 	const router = useRouter();
@@ -198,65 +318,68 @@ const AppointmentSplitView = ({
 
 	return (
 		<div className="grid grid-cols-[1fr_360px] items-start gap-4">
-			<div className="min-w-0 overflow-x-auto rounded-lg bg-card">
-				<DetailsList
-					items={appointments}
-					getItemId={(item) => item.id}
-					columns={columns}
-					onRenderRow={(item, children) => {
-						const inPast = isDayInPast(item.startDate);
-						const isDeleted = item.deletedAt !== null;
-						const index = appointments.findIndex((a) => a.id === item.id);
-						const previous = appointments[index - 1];
-						const label = monthLabel(item.startDate);
-						const showMonthHeader =
-							index === 0 || label !== monthLabel(previous.startDate);
-						const isCollapsed = collapsedMonths.has(label);
+			<div className="flex min-w-0 flex-col gap-3">
+				<div className="min-w-0 overflow-x-auto rounded-lg bg-card">
+					<DetailsList
+						items={appointments}
+						getItemId={(item) => item.id}
+						columns={columns}
+						onRenderRow={(item, children) => {
+							const inPast = isDayInPast(item.startDate);
+							const isDeleted = item.deletedAt !== null;
+							const index = appointments.findIndex((a) => a.id === item.id);
+							const previous = appointments[index - 1];
+							const label = monthLabel(item.startDate);
+							const showMonthHeader =
+								index === 0 || label !== monthLabel(previous.startDate);
+							const isCollapsed = collapsedMonths.has(label);
 
-						return (
-							<React.Fragment key={item.id}>
-								{showMonthHeader && (
-									<TableRow
-										className="cursor-pointer hover:bg-transparent"
-										onClick={() => toggleMonth(label)}
-									>
-										<TableCell
-											colSpan={columns.length}
-											className="bg-muted/40 py-1.5 text-muted-foreground text-xs uppercase tracking-wide"
+							return (
+								<React.Fragment key={item.id}>
+									{showMonthHeader && (
+										<TableRow
+											className="cursor-pointer hover:bg-transparent"
+											onClick={() => toggleMonth(label)}
 										>
-											<span className="flex items-center gap-1.5 select-none">
-												<ChevronDownIcon
-													className={cn(
-														"size-3.5 transition-transform duration-200 ease-out",
-														isCollapsed && "-rotate-90",
-													)}
-												/>
-												{label}
-											</span>
-										</TableCell>
-									</TableRow>
-								)}
-								{/* `collapse` (visibility: collapse) hides the row without
+											<TableCell
+												colSpan={columns.length}
+												className="bg-muted/40 py-1.5 text-muted-foreground text-xs uppercase tracking-wide"
+											>
+												<span className="flex items-center gap-1.5 select-none">
+													<ChevronDownIcon
+														className={cn(
+															"size-3.5 transition-transform duration-200 ease-out",
+															isCollapsed && "-rotate-90",
+														)}
+													/>
+													{label}
+												</span>
+											</TableCell>
+										</TableRow>
+									)}
+									{/* `collapse` (visibility: collapse) hides the row without
 								    re-triggering the table's column-width calculation, unlike
 								    unmounting it or `display: none`, which would let the
 								    remaining visible rows resize the columns. */}
-								<TableRow
-									className={cn(
-										"h-10 cursor-pointer",
-										item.id === selectedId && "bg-muted",
-										inPast && "opacity-65",
-										isDeleted && "text-destructive",
-										isCollapsed && "collapse",
-									)}
-									onClick={() => setSelectedId(item.id)}
-								>
-									{children}
-								</TableRow>
-							</React.Fragment>
-						);
-					}}
-					selectMode="none"
-				/>
+									<TableRow
+										className={cn(
+											"h-10 cursor-pointer",
+											item.id === selectedId && "bg-muted",
+											inPast && "opacity-65",
+											isDeleted && "text-destructive",
+											isCollapsed && "collapse",
+										)}
+										onClick={() => setSelectedId(item.id)}
+									>
+										{children}
+									</TableRow>
+								</React.Fragment>
+							);
+						}}
+						selectMode="none"
+					/>
+				</div>
+				{footer}
 			</div>
 			<div className="min-w-0 rounded-lg bg-card p-5">
 				{selected ? (
