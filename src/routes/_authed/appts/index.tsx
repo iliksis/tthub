@@ -30,11 +30,11 @@ import {
 	unpublishAppointment,
 } from "@/api/appointments";
 import {
-	Filters,
 	filterSchema,
 	getAppointmentColumns,
 	InlineFilters,
 	List,
+	MobileFilters,
 } from "@/components/appointments/List";
 import { DetailsList } from "@/components/DetailsList";
 import { Badge } from "@/components/ui/badge";
@@ -152,8 +152,8 @@ function RouteComponent() {
 	return (
 		<>
 			{/* Mobile / tablet layout */}
-			<div className="lg:hidden">
-				<Filters {...search} />
+			<div className="flex flex-col gap-3 lg:hidden">
+				<MobileFilters {...search} />
 				<List appointments={items} />
 				<AppointmentLoadMoreFooter
 					items={items}

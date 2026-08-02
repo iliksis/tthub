@@ -1,6 +1,5 @@
-import { useForm } from "@tanstack/react-form";
-import { useRouteContext, useRouter } from "@tanstack/react-router";
-import { FilterIcon } from "lucide-react";
+import { Link, useRouteContext, useRouter } from "@tanstack/react-router";
+import { SlidersHorizontalIcon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
@@ -15,16 +14,18 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { TableRow } from "@/components/ui/table";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import { AppointmentType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { cn, isDayInPast } from "@/lib/utils";
-import { DetailsList, type DetailsListColumn } from "../DetailsList";
-import { Modal } from "../modal/Modal";
+import type { DetailsListColumn } from "../DetailsList";
+
+type AppointmentWithResponses = Appointment & { responses: Response[] };
 
 type ListProps = {
-	appointments: (Appointment & { responses: Response[] })[];
+	appointments: AppointmentWithResponses[];
 };
 
 const getUserResponse = (
@@ -137,39 +138,108 @@ export const getAppointmentColumns = (
 		: []),
 ];
 
+function formatDateTime(date: Date | string) {
+	return new Date(date).toLocaleString("de-DE", {
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		month: "short",
+		weekday: "short",
+	});
+}
+
+function monthLabel(date: Date | string) {
+	return new Date(date).toLocaleDateString("de-DE", {
+		month: "long",
+		year: "numeric",
+	});
+}
+
+type MonthGroup = { label: string; items: AppointmentWithResponses[] };
+
+function groupByMonth(items: AppointmentWithResponses[]): MonthGroup[] {
+	const groups: MonthGroup[] = [];
+	for (const item of items) {
+		const label = monthLabel(item.startDate);
+		const last = groups.at(-1);
+		if (last && last.label === label) last.items.push(item);
+		else groups.push({ items: [item], label });
+	}
+	return groups;
+}
+
+// Mobile list: a joined row per appointment grouped by month, styled after
+// the journal page's mobile row list. Tapping a row navigates straight to
+// the appointment — there's no selection step to pass through first.
 export const List = ({ appointments }: ListProps) => {
 	const { user } = useRouteContext({ from: "__root__" });
-	const router = useRouter();
 
-	const onClickAppointment = (id: string) => async () => {
-		await router.navigate({ params: { apptId: id }, to: "/appts/$apptId" });
-	};
+	if (appointments.length === 0) {
+		return (
+			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
+				{t("No appointments found")}
+			</div>
+		);
+	}
 
 	return (
-		<div className="overflow-x-auto">
-			<DetailsList
-				items={appointments}
-				getItemId={(item) => item.id}
-				columns={getAppointmentColumns(user?.id)}
-				onRenderRow={(item, children) => {
-					const inPast = isDayInPast(item.startDate);
-					const isDeleted = item.deletedAt !== null;
-					return (
-						<TableRow
-							key={item.id}
-							className={cn(
-								"h-10 cursor-pointer",
-								inPast && "opacity-65",
-								isDeleted && "text-destructive",
-							)}
-							onClick={onClickAppointment(item.id)}
-						>
-							{children}
-						</TableRow>
-					);
-				}}
-				selectMode="none"
-			/>
+		<div className="flex flex-col gap-4">
+			{groupByMonth(appointments).map((group) => (
+				<div key={group.label} className="flex flex-col">
+					<div className="px-1 pb-1.5 text-muted-foreground text-xs uppercase tracking-wide">
+						{group.label}
+					</div>
+					<div className="flex flex-col rounded-lg bg-card">
+						{group.items.map((item) => {
+							const inPast = isDayInPast(item.startDate);
+							const isDeleted = item.deletedAt !== null;
+							const userResponse = getUserResponse(item, user?.id);
+							const isAccepted = userResponse === "ACCEPT";
+							const isDeclined = userResponse === "DECLINE";
+							return (
+								<Link
+									key={item.id}
+									to="/appts/$apptId"
+									params={{ apptId: item.id }}
+									className={cn(
+										"flex w-full items-center justify-between gap-3 border-border/60 border-b py-3.5 px-3 text-left first:rounded-t-lg last:border-b-0 last:rounded-b-lg",
+										inPast && "opacity-65",
+										isDeleted && "text-destructive",
+									)}
+								>
+									<div className="min-w-0 flex-1">
+										<div className="truncate font-medium text-sm">
+											{item.shortTitle}
+										</div>
+										<div className="truncate text-muted-foreground text-xs">
+											{formatDateTime(item.startDate)}
+											{item.location && ` · ${item.location}`}
+										</div>
+									</div>
+									{item.type !== AppointmentType.HOLIDAY && (
+										<Badge
+											variant={
+												isAccepted
+													? "success"
+													: isDeclined
+														? "destructive"
+														: "warning"
+											}
+											className="shrink-0"
+										>
+											{isAccepted
+												? t("Accepted")
+												: isDeclined
+													? t("Declined")
+													: t("Maybe")}
+										</Badge>
+									)}
+								</Link>
+							);
+						})}
+					</div>
+				</div>
+			))}
 		</div>
 	);
 };
@@ -200,69 +270,10 @@ const responseOptions: { value: string; label: string }[] = [
 	{ label: t("No response"), value: "NONE" },
 ];
 
-const useAppointmentFilterForm = ({
-	dateFrom = "",
-	dateTo = "",
-	deleted = false,
-	query = "",
-	response,
-	type,
-}: FiltersProps) => {
-	const router = useRouter();
-
-	const form = useForm({
-		defaultValues: {
-			dateFrom,
-			dateTo,
-			deleted,
-			query,
-			response: response ?? "ALL",
-			type: type ?? "ALL",
-		},
-		onSubmit: async ({ value }) => {
-			await router.navigate({
-				replace: true,
-				search: {
-					dateFrom: value.dateFrom || undefined,
-					dateTo: value.dateTo || undefined,
-					deleted: value.deleted,
-					query: value.query || undefined,
-					response:
-						value.response === "ALL"
-							? undefined
-							: (value.response as FiltersProps["response"]),
-					type:
-						value.type === "ALL"
-							? undefined
-							: (value.type as FiltersProps["type"]),
-				},
-				to: ".",
-			});
-		},
-	});
-
-	const onClear = () => {
-		form.update({
-			defaultValues: {
-				dateFrom: "",
-				dateTo: "",
-				deleted: false,
-				query: "",
-				response: "ALL",
-				type: "ALL",
-			},
-		});
-		router.navigate({ replace: true, search: {}, to: "." });
-	};
-
-	return { form, onClear };
-};
-
-// Unlike the mobile modal (which batches edits behind an explicit Apply),
-// this bar applies every change immediately — text search is debounced so
-// typing doesn't fire a navigation per keystroke, everything else (selects,
-// dates, the checkbox) navigates on change.
-export const InlineFilters = (props: FiltersProps) => {
+// Shared by InlineFilters (desktop) and MobileFilters (mobile) — every field
+// applies immediately; text search is debounced so typing doesn't fire a
+// navigation per keystroke, everything else navigates on change.
+const useAppointmentLiveFilters = (props: FiltersProps) => {
 	const router = useRouter();
 	const [queryInput, setQueryInput] = React.useState(props.query ?? "");
 
@@ -299,6 +310,13 @@ export const InlineFilters = (props: FiltersProps) => {
 		setQueryInput("");
 		router.navigate({ replace: true, search: {}, to: "." });
 	};
+
+	return { hasActiveFilters, navigate, onClear, queryInput, setQueryInput };
+};
+
+export const InlineFilters = (props: FiltersProps) => {
+	const { hasActiveFilters, navigate, onClear, queryInput, setQueryInput } =
+		useAppointmentLiveFilters(props);
 
 	return (
 		<div className="flex flex-wrap items-center gap-3">
@@ -384,175 +402,209 @@ export const InlineFilters = (props: FiltersProps) => {
 	);
 };
 
-export const Filters = (props: FiltersProps) => {
-	const { form, onClear } = useAppointmentFilterForm(props);
+// Mobile: a search bar that's always visible and filters as you type, plus
+// a secondary sheet for the fields people reach for less often (type,
+// response, date range, show deleted). Both apply immediately — no
+// batching behind an Apply button.
+export const MobileFilters = (props: FiltersProps) => {
+	const { navigate, queryInput, setQueryInput } =
+		useAppointmentLiveFilters(props);
+	const [sheetOpen, setSheetOpen] = React.useState(false);
+	const secondaryActive =
+		!!props.type ||
+		!!props.response ||
+		!!props.dateFrom ||
+		!!props.dateTo ||
+		!!props.deleted;
 
-	const [modal, setModal] = React.useState(false);
+	const clearSecondary = () =>
+		navigate({
+			dateFrom: undefined,
+			dateTo: undefined,
+			deleted: undefined,
+			response: undefined,
+			type: undefined,
+		});
 
-	const onRenderActionButton = () => {
-		return (
-			<>
-				<Button
-					type="submit"
-					onClick={(e) => {
-						e.preventDefault();
-						e.stopPropagation();
-						form.handleSubmit();
-					}}
-				>
-					{t("Apply")}
-				</Button>
-				<Button type="button" variant="secondary" onClick={onClear}>
-					{t("Clear")}
-				</Button>
-			</>
-		);
+	// Drag-to-dismiss for the sheet's handle, same as the journal page's
+	// mobile sheet: follows the pointer 1:1 while dragging, then either snaps
+	// back or closes depending on how far past the threshold it was pulled.
+	const prefersReducedMotion = usePrefersReducedMotion();
+	const dragStartY = React.useRef<number | null>(null);
+	const [dragOffset, setDragOffset] = React.useState(0);
+	const [isDragging, setIsDragging] = React.useState(false);
+	const DISMISS_THRESHOLD = 96;
+
+	const onHandlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+		e.currentTarget.setPointerCapture(e.pointerId);
+		dragStartY.current = e.clientY;
+		setIsDragging(true);
+	};
+
+	const onHandlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+		if (dragStartY.current === null) return;
+		setDragOffset(Math.max(0, e.clientY - dragStartY.current));
+	};
+
+	const onHandlePointerEnd = () => {
+		dragStartY.current = null;
+		setIsDragging(false);
+		if (dragOffset > DISMISS_THRESHOLD) setSheetOpen(false);
+		setDragOffset(0);
 	};
 
 	return (
-		<>
-			<Button
-				className="fab lg:hidden"
-				variant="secondary"
-				size="icon-lg"
-				type="button"
-				onClick={() => setModal(true)}
-			>
-				<FilterIcon className="size-4" />
-			</Button>
-			<Modal
-				modalBoxClassName="md:max-w-xl md:mx-auto"
-				open={modal}
-				onClose={() => setModal(false)}
-				onRenderActionButton={onRenderActionButton}
-			>
-				<form
-					className="flex flex-col gap-3"
-					onSubmit={(e) => {
-						e.preventDefault();
-						e.stopPropagation();
-						form.handleSubmit();
-					}}
+		<div className="flex flex-col gap-1.5">
+			<div className="flex items-center gap-2">
+				<Input
+					placeholder={t("Search appointment or person...")}
+					value={queryInput}
+					onChange={(e) => setQueryInput(e.target.value)}
+					className="flex-1"
+				/>
+				<Button
+					type="button"
+					variant="outline"
+					size="icon"
+					className="relative shrink-0"
+					onClick={() => setSheetOpen(true)}
 				>
-					<h2>{t("Filters")}</h2>
-					<div>
-						<form.Field name="query">
-							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>
-										{t("Search appointment or person...")}
-									</Label>
-									<Input
-										id={field.name}
-										name={field.name}
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-								</fieldset>
-							)}
-						</form.Field>
+					<SlidersHorizontalIcon className="size-4" />
+					{secondaryActive && (
+						<span className="absolute top-0.5 right-0.5 size-2 rounded-full bg-primary" />
+					)}
+				</Button>
+			</div>
+			{secondaryActive && (
+				<button
+					type="button"
+					onClick={clearSecondary}
+					className="self-start text-muted-foreground text-xs underline underline-offset-2"
+				>
+					{t("Clear")}
+				</button>
+			)}
+			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+				<SheetContent
+					side="bottom"
+					showCloseButton={false}
+					className="max-h-[85vh] overflow-y-auto rounded-t-2xl border-t-0 duration-300 lg:hidden"
+					style={
+						dragOffset > 0
+							? {
+									transform: `translateY(${dragOffset}px)`,
+									transitionDuration:
+										isDragging || prefersReducedMotion ? "0ms" : undefined,
+								}
+							: undefined
+					}
+				>
+					<SheetTitle className="sr-only">{t("Filters")}</SheetTitle>
+					<div
+						className="flex shrink-0 cursor-grab touch-none justify-center pt-2 pb-1 active:cursor-grabbing"
+						onPointerDown={onHandlePointerDown}
+						onPointerMove={onHandlePointerMove}
+						onPointerUp={onHandlePointerEnd}
+						onPointerCancel={onHandlePointerEnd}
+					>
+						<div className="h-1.5 w-9 rounded-full bg-muted-foreground/30" />
 					</div>
-					<div className="grid grid-cols-2 gap-3">
-						<form.Field name="type">
-							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("Appointment type")}</Label>
-									<Select
-										value={field.state.value}
-										onValueChange={(v) => field.handleChange(v)}
+					<div className="flex flex-col gap-4 px-4 pb-6">
+						<div className="grid grid-cols-2 gap-3">
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor="mobile-filters-type">
+									{t("Appointment type")}
+								</Label>
+								<Select
+									value={props.type ?? "ALL"}
+									onValueChange={(v) =>
+										navigate({
+											type:
+												v === "ALL" ? undefined : (v as FiltersProps["type"]),
+										})
+									}
+								>
+									<SelectTrigger id="mobile-filters-type" className="w-full">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										{typeOptions.map((option) => (
+											<SelectItem key={option.value} value={option.value}>
+												{option.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</fieldset>
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor="mobile-filters-response">{t("Response")}</Label>
+								<Select
+									value={props.response ?? "ALL"}
+									onValueChange={(v) =>
+										navigate({
+											response:
+												v === "ALL"
+													? undefined
+													: (v as FiltersProps["response"]),
+										})
+									}
+								>
+									<SelectTrigger
+										id="mobile-filters-response"
+										className="w-full"
 									>
-										<SelectTrigger id={field.name} className="w-full">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											{typeOptions.map((option) => (
-												<SelectItem key={option.value} value={option.value}>
-													{option.label}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</fieldset>
-							)}
-						</form.Field>
-						<form.Field name="response">
-							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("Response")}</Label>
-									<Select
-										value={field.state.value}
-										onValueChange={(v) => field.handleChange(v)}
-									>
-										<SelectTrigger id={field.name} className="w-full">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											{responseOptions.map((option) => (
-												<SelectItem key={option.value} value={option.value}>
-													{option.label}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</fieldset>
-							)}
-						</form.Field>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										{responseOptions.map((option) => (
+											<SelectItem key={option.value} value={option.value}>
+												{option.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</fieldset>
+						</div>
+						<div className="grid grid-cols-2 gap-3">
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor="mobile-filters-from">{t("From")}</Label>
+								<Input
+									id="mobile-filters-from"
+									type="date"
+									value={props.dateFrom ?? ""}
+									onChange={(e) =>
+										navigate({ dateFrom: e.target.value || undefined })
+									}
+								/>
+							</fieldset>
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor="mobile-filters-to">{t("To")}</Label>
+								<Input
+									id="mobile-filters-to"
+									type="date"
+									value={props.dateTo ?? ""}
+									onChange={(e) =>
+										navigate({ dateTo: e.target.value || undefined })
+									}
+								/>
+							</fieldset>
+						</div>
+						<label
+							htmlFor="mobile-filters-deleted"
+							className="flex items-center gap-2 text-sm text-muted-foreground"
+						>
+							<Checkbox
+								id="mobile-filters-deleted"
+								checked={props.deleted ?? false}
+								onCheckedChange={(checked) =>
+									navigate({ deleted: checked === true ? true : undefined })
+								}
+							/>
+							{t("Show deleted?")}
+						</label>
 					</div>
-					<div className="grid grid-cols-2 gap-3">
-						<form.Field name="dateFrom">
-							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("From")}</Label>
-									<Input
-										id={field.name}
-										name={field.name}
-										type="date"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-								</fieldset>
-							)}
-						</form.Field>
-						<form.Field name="dateTo">
-							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("To")}</Label>
-									<Input
-										id={field.name}
-										name={field.name}
-										type="date"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-								</fieldset>
-							)}
-						</form.Field>
-					</div>
-					<div>
-						<form.Field name="deleted">
-							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
-									<div className="flex items-center gap-2">
-										<Checkbox
-											id={field.name}
-											checked={field.state.value}
-											name={field.name}
-											onBlur={field.handleBlur}
-											onCheckedChange={(checked) =>
-												field.handleChange(checked === true)
-											}
-										/>
-										<Label htmlFor={field.name}>{t("Show deleted?")}</Label>
-									</div>
-								</fieldset>
-							)}
-						</form.Field>
-					</div>
-				</form>
-			</Modal>
-		</>
+				</SheetContent>
+			</Sheet>
+		</div>
 	);
 };

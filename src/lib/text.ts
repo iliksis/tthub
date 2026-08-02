@@ -65,7 +65,7 @@ const texts = {
 	"Choose a type": "Wähle einen Typ",
 	"Choose an appointment": "Wähle einen Termin",
 	"Choose an area": "Wähle eine Region",
-	Clear: "Löschen",
+	Clear: "Zurücksetzen",
 	"Clear selection": "Auswahl aufheben",
 	Close: "Schließen",
 	"Club at a glance": "Verein auf einen Blick",
