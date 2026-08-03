@@ -20,11 +20,13 @@ import {
 } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import {
 	createAppointment,
 	createResponse,
 	deleteAppointment,
 	getAppointmentsPage,
+	getCalendarAppointments,
 	publishAppointment,
 	restoreAppointment,
 	unpublishAppointment,
@@ -36,11 +38,15 @@ import {
 	List,
 	MobileFilters,
 } from "@/components/appointments/List";
+import type { CalendarAppointment } from "@/components/calendar/MonthCalendar";
+import { MonthCalendar } from "@/components/calendar/MonthCalendar";
 import { DetailsList } from "@/components/DetailsList";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { buildMonthGrid } from "@/lib/calendarGrid";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import {
 	AppointmentStatus,
@@ -52,10 +58,50 @@ import { cn, isDayInPast } from "@/lib/utils";
 
 const BATCH_SIZE = 25;
 
+const searchSchema = filterSchema.extend({
+	month: z.number().int().min(0).max(11).optional(),
+	view: z.enum(["list", "calendar"]).optional(),
+	year: z.number().int().optional(),
+});
+
+type CalendarLoaderData = {
+	appointments: CalendarAppointment[];
+	monthIndex: number;
+	year: number;
+};
+
+async function loadCalendarData(
+	month: number | undefined,
+	year: number | undefined,
+): Promise<CalendarLoaderData> {
+	const today = new Date();
+	const resolvedYear = year ?? today.getFullYear();
+	const monthIndex = month ?? today.getMonth();
+	const weeks = buildMonthGrid(resolvedYear, monthIndex, today);
+	const start = weeks[0][0].fullDate;
+	const lastCell = weeks.at(-1)?.at(-1);
+	const end = new Date(lastCell?.fullDate ?? start);
+	end.setDate(end.getDate() + 1);
+
+	const res = await getCalendarAppointments({ data: { end, start } });
+	const response = await res.json();
+	if (res.status < 400) {
+		const appointments: CalendarAppointment[] = (response.data ?? []).map(
+			(a) => ({
+				...a,
+				end: new Date(a.end),
+				start: new Date(a.start),
+			}),
+		);
+		return { appointments, monthIndex, year: resolvedYear };
+	}
+	throw new Error(response.message);
+}
+
 // biome-ignore assist/source/useSortedKeys: validateSearch and loaderDeps need to be before loader
 export const Route = createFileRoute("/_authed/appts/")({
 	component: RouteComponent,
-	validateSearch: filterSchema,
+	validateSearch: searchSchema,
 	loaderDeps: ({ search }) => ({ ...search }),
 	loader: async ({ deps }) => {
 		const skip = deps.skip ?? 0;
@@ -78,9 +124,22 @@ export const Route = createFileRoute("/_authed/appts/")({
 				grandTotal: 0,
 				matchedTotal: 0,
 			};
-			return { ...data, skip };
+			const calendar =
+				deps.view === "calendar"
+					? await loadCalendarData(deps.month, deps.year)
+					: null;
+			return { ...data, calendar, skip };
 		}
 		throw new Error(response.message);
+	},
+	errorComponent: () => {
+		return (
+			<Alert variant="destructive">
+				<AlertDescription>
+					{t("Appointments could not be loaded")}
+				</AlertDescription>
+			</Alert>
+		);
 	},
 	head: () => ({
 		meta: [{ title: t("Appointments") }],
@@ -118,12 +177,27 @@ function RouteComponent() {
 		matchedTotal,
 		grandTotal,
 		skip,
+		calendar,
 	} = Route.useLoaderData();
 	const search = Route.useSearch();
 	const router = useRouter();
 	const isNavigating = useRouterState({ select: (s) => s.isLoading });
 	const { user } = useRouteContext({ from: "__root__" });
 	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
+	const isCalendarView = search.view === "calendar";
+
+	const navigateToMonth = (target: Date) => {
+		router.navigate({
+			replace: true,
+			search: (prev) => ({
+				...prev,
+				month: target.getMonth(),
+				view: "calendar",
+				year: target.getFullYear(),
+			}),
+			to: ".",
+		});
+	};
 
 	// The loader only ever fetches one batch (skip/take), never the whole list
 	// again — so previously loaded rows are kept in state and the new batch is
@@ -131,7 +205,16 @@ function RouteComponent() {
 	// page), in which case it replaces them outright. Comparing against state
 	// (not a ref) during render is the React-sanctioned way to reset/derive
 	// state when an input changes without a useEffect round-trip.
-	const filterKey = JSON.stringify({ ...search, skip: undefined });
+	// `view`/`month`/`year` don't affect the list query, so they're excluded
+	// here — otherwise switching to Calendar and back (or paging months)
+	// would look like a filter change and reset the accumulated `items`.
+	const filterKey = JSON.stringify({
+		...search,
+		month: undefined,
+		skip: undefined,
+		view: undefined,
+		year: undefined,
+	});
 	const [items, setItems] = React.useState<AppointmentWithResponses[]>(batch);
 	const [appliedLoad, setAppliedLoad] = React.useState({ filterKey, skip });
 	if (appliedLoad.filterKey !== filterKey || appliedLoad.skip !== skip) {
@@ -164,26 +247,48 @@ function RouteComponent() {
 				/>
 			</div>
 
-			{/* Desktop layout: master-detail + inline filters */}
-			<div className="hidden lg:flex lg:flex-col lg:gap-4">
+			{/* Desktop layout: master-detail + inline filters, or calendar */}
+			<div
+				className={cn(
+					"hidden lg:flex lg:flex-col lg:gap-4",
+					isNavigating && "pointer-events-none opacity-60",
+				)}
+			>
 				<div className="flex items-center gap-3">
 					<div className="flex flex-1 items-baseline gap-2">
 						<h1 className="font-bold text-lg">{t("Appointments")}</h1>
-						<p className="text-muted-foreground text-sm">
-							{t(
-								"{0} of {1} events",
-								matchedTotal.toString(),
-								grandTotal.toString(),
-							)}
-						</p>
+						{!isCalendarView && (
+							<p className="text-muted-foreground text-sm">
+								{t(
+									"{0} of {1} events",
+									matchedTotal.toString(),
+									grandTotal.toString(),
+								)}
+							</p>
+						)}
 					</div>
 					<div className="flex overflow-hidden rounded-md border text-sm">
-						<span className="bg-primary px-3 py-1.5 font-medium text-primary-foreground">
-							{t("List")}
-						</span>
 						<Link
-							to="/appts/calendar"
-							className="px-3 py-1.5 text-muted-foreground hover:bg-accent"
+							to="."
+							search={(prev) => ({ ...prev, view: "list" })}
+							className={cn(
+								"px-3 py-1.5 font-medium",
+								isCalendarView
+									? "text-muted-foreground hover:bg-accent"
+									: "bg-primary text-primary-foreground",
+							)}
+						>
+							{t("List")}
+						</Link>
+						<Link
+							to="."
+							search={(prev) => ({ ...prev, view: "calendar" })}
+							className={cn(
+								"px-3 py-1.5 font-medium",
+								isCalendarView
+									? "bg-primary text-primary-foreground"
+									: "text-muted-foreground hover:bg-accent",
+							)}
 						>
 							{t("Calendar")}
 						</Link>
@@ -197,22 +302,45 @@ function RouteComponent() {
 						</Button>
 					)}
 				</div>
-				<div className="rounded-lg bg-card p-3">
-					<InlineFilters {...search} />
-				</div>
-				<AppointmentSplitView
-					appointments={items}
-					onAppointmentsChange={setItems}
-					footer={
-						<AppointmentLoadMoreFooter
-							items={items}
-							remaining={remaining}
-							matchedTotal={matchedTotal}
-							isNavigating={isNavigating}
-							onLoadMore={onLoadMore}
+				{isCalendarView ? (
+					calendar && (
+						<MonthCalendar
+							appointments={calendar.appointments}
+							year={calendar.year}
+							monthIndex={calendar.monthIndex}
+							onPrevMonth={() =>
+								navigateToMonth(
+									new Date(calendar.year, calendar.monthIndex - 1, 1),
+								)
+							}
+							onNextMonth={() =>
+								navigateToMonth(
+									new Date(calendar.year, calendar.monthIndex + 1, 1),
+								)
+							}
+							onToday={() => navigateToMonth(new Date())}
 						/>
-					}
-				/>
+					)
+				) : (
+					<>
+						<div className="rounded-lg bg-card p-3">
+							<InlineFilters {...search} />
+						</div>
+						<AppointmentSplitView
+							appointments={items}
+							onAppointmentsChange={setItems}
+							footer={
+								<AppointmentLoadMoreFooter
+									items={items}
+									remaining={remaining}
+									matchedTotal={matchedTotal}
+									isNavigating={isNavigating}
+									onLoadMore={onLoadMore}
+								/>
+							}
+						/>
+					</>
+				)}
 			</div>
 		</>
 	);

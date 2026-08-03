@@ -35,21 +35,21 @@ test.describe("Appointments Calendar Route", () => {
 	test("ADMIN can access calendar view", async ({ page }) => {
 		await loginAs(page, "admin");
 		await page.goto("/appts/calendar");
-		await expect(page).toHaveURL("/appts/calendar");
+		await expect(page).toHaveURL("/appts?view=calendar");
 		await expect(page.locator("body")).toBeVisible();
 	});
 
 	test("EDITOR can access calendar view", async ({ page }) => {
 		await loginAs(page, "editor");
 		await page.goto("/appts/calendar");
-		await expect(page).toHaveURL("/appts/calendar");
+		await expect(page).toHaveURL("/appts?view=calendar");
 		await expect(page.locator("body")).toBeVisible();
 	});
 
 	test("USER can access calendar view", async ({ page }) => {
 		await loginAs(page, "user");
 		await page.goto("/appts/calendar");
-		await expect(page).toHaveURL("/appts/calendar");
+		await expect(page).toHaveURL("/appts?view=calendar");
 		await expect(page.locator("body")).toBeVisible();
 	});
 });
@@ -92,10 +92,8 @@ test.describe("Appointments - Data Display", () => {
 		await page.goto("/appts");
 		await page.waitForLoadState("networkidle");
 
-		// Find links to specific appointments (not the calendar link)
-		const apptLinks = page.locator(
-			'a[href^="/appts/"]:not([href="/appts/calendar"])',
-		);
+		// Find links to specific appointments (not the list/calendar view toggle)
+		const apptLinks = page.locator('a[href^="/appts/"]:not([href*="view="])');
 		const count = await apptLinks.count();
 
 		if (count > 0) {

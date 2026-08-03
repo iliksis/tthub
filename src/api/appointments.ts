@@ -651,53 +651,29 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 		}
 	});
 
-const colors = {
-	HOLIDAY: {
-		bg: "var(--catppuccin-color-lavender-400)",
-		text: "hsl(var(--primary-foreground))",
-	},
-	TOURNAMENT: {
-		bg: "hsl(var(--success))",
-		text: "hsl(var(--success-foreground))",
-	},
-	TOURNAMENT_DE: {
-		bg: "var(--catppuccin-color-blue-400)",
-		text: "hsl(var(--primary-foreground))",
-	},
-};
 export const getCalendarAppointments = createServerFn()
 	.inputValidator((d: { start: Date; end: Date }) => d)
 	.handler(async ({ data }) => {
 		try {
+			const start = new Date(data.start);
+			const end = new Date(data.end);
 			const appointments = await prismaClient.appointment.findMany({
-				include: {
-					responses: true,
-				},
 				where: {
 					deletedAt: null,
-					startDate: {
-						gte: new Date(data.start),
-						lt: new Date(data.end),
-					},
+					OR: [
+						{ endDate: { gte: start } },
+						{ endDate: null, startDate: { gte: start } },
+					],
+					startDate: { lt: end },
 				},
 			});
 			const calAppointments = appointments.map((a) => ({
-				color: colors[a.type].bg,
-				end:
-					a.endDate ??
-					new Date(
-						a.startDate.getFullYear(),
-						a.startDate.getMonth(),
-						a.startDate.getDate(),
-						17,
-					),
-				extendedProps: {
-					shortTitle: a.shortTitle,
-				},
+				end: a.endDate ?? a.startDate,
 				id: a.id,
+				shortTitle: a.shortTitle,
 				start: a.startDate,
-				textColor: colors[a.type].text,
-				title: a.shortTitle,
+				title: a.title,
+				type: a.type,
 			}));
 			return json<Return<typeof calAppointments>>(
 				{ data: calAppointments, message: t("Appointments found") },

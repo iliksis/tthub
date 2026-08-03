@@ -10,7 +10,6 @@ import {
 	SearchIcon,
 	Settings2Icon,
 	ShieldIcon,
-	TextAlignJustifyIcon,
 	UserCogIcon,
 	UserPenIcon,
 	UsersIcon,
@@ -42,6 +41,7 @@ type NavigationItem =
 	| {
 			name: string;
 			href: string;
+			search?: Record<string, unknown>;
 			icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 			isHidden?: (role: User["role"]) => boolean;
 	  }
@@ -55,11 +55,10 @@ const navigationItems: NavigationItem[] = [
 	{ href: "/", icon: HouseIcon, name: t("Dashboard") },
 	{
 		children: [
-			{ href: "/appts", icon: TextAlignJustifyIcon, name: t("List") },
 			{
-				href: "/appts/calendar",
+				href: "/appts",
 				icon: CalendarDaysIcon,
-				name: t("Calendar"),
+				name: t("Overview"),
 			},
 			{
 				href: "/create",
@@ -124,9 +123,10 @@ const NavigationItems = () => {
 		const link = (
 			<Link
 				to={item.href}
+				search={item.search}
 				onClick={closeSidebar}
 				activeProps={{ className: activeLinkClassName }}
-				activeOptions={{ exact: true }}
+				activeOptions={{ exact: true, includeSearch: !!item.search }}
 			>
 				<item.icon />
 				<span>{item.name}</span>

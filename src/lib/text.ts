@@ -17,6 +17,7 @@ const texts = {
 	"{0} changed": "{0} geändert",
 	"{0} fields changed": "{0} Felder geändert",
 	"{0} invited": "{0} eingeladen",
+	"{0} more": "{0} weitere",
 	"{0} of {1} events": "{0} von {1} Ereignissen",
 	"{0} players": "{0} Spieler:innen",
 	"1 appointment selected": "1 Termin ausgewählt",
@@ -46,6 +47,7 @@ const texts = {
 	"Appointment updated": "Termin aktualisiert",
 	"Appointment was deleted.": "Termin wurde gelöscht.",
 	Appointments: "Termine",
+	"Appointments could not be loaded": "Termine konnten nicht geladen werden",
 	"Are you sure you want to delete this appointment?":
 		"Bist du sicher, dass du diesen Termin löschen möchtest?",
 	"Are you sure you want to delete this player?":
@@ -171,6 +173,7 @@ const texts = {
 	"On iOS devices, you must add the website to the home screen before notifications will work.":
 		"Auf iOS-Geräten muss die Website zur Startseite hinzufügt werden, bevor Benachrichtigungen funktionieren.",
 	"Open appointment": "Termin öffnen",
+	Overview: "Übersicht",
 	"open sidebar": "Sidebar öffnen",
 	"Participant already exists in this category":
 		"Teilnehmer:in existiert bereits in dieser Kategorie",
