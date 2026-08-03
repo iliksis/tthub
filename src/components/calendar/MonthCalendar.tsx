@@ -38,7 +38,7 @@ const ROW_TEMPLATE = [
 	...Array(MAX_VISIBLE_LANES + 1).fill(LANE_ROW),
 ].join(" ");
 
-const categoryStyle: Record<
+export const categoryStyle: Record<
 	AppointmentType,
 	{ gradient: string; solidText: string; dot: string }
 > = {

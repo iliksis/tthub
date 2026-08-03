@@ -57,6 +57,16 @@ const coversDay = (event: DayRangeEvent, day: Date) => {
 	);
 };
 
+export const isSameDay = (a: Date, b: Date) =>
+	startOfDay(a).getTime() === startOfDay(b).getTime();
+
+// Every event covering a single day — the day-detail counterpart to
+// `eventsForWeek`.
+export const eventsOnDay = <T extends DayRangeEvent>(
+	day: Date,
+	events: T[],
+): T[] => events.filter((event) => coversDay(event, day));
+
 // Returns every event that overlaps any day in `week` (day-level
 // comparison), including events that only touch the week's leading/trailing
 // padding days.

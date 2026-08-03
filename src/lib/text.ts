@@ -257,6 +257,7 @@ const texts = {
 	Title: "Titel",
 	To: "Bis",
 	Today: "Heute",
+	Tomorrow: "Morgen",
 	Tournament: "Turnier",
 	"Tournament (Germany)": "Turnier (Deutschland)",
 	Tournaments: "Turniere",

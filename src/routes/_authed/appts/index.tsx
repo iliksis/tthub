@@ -13,6 +13,7 @@ import {
 	ChevronDownIcon,
 	CopyIcon,
 	EyeOffIcon,
+	ListIcon,
 	Loader2Icon,
 	MapPinIcon,
 	RotateCcwIcon,
@@ -38,6 +39,7 @@ import {
 	List,
 	MobileFilters,
 } from "@/components/appointments/List";
+import { MobileCalendar } from "@/components/calendar/MobileCalendar";
 import type { CalendarAppointment } from "@/components/calendar/MonthCalendar";
 import { MonthCalendar } from "@/components/calendar/MonthCalendar";
 import { DetailsList } from "@/components/DetailsList";
@@ -235,17 +237,72 @@ function RouteComponent() {
 	return (
 		<>
 			{/* Mobile / tablet layout */}
-			<div className="flex flex-col gap-3 lg:hidden">
-				<MobileFilters {...search} />
-				<List appointments={items} />
-				<AppointmentLoadMoreFooter
-					items={items}
-					remaining={remaining}
-					matchedTotal={matchedTotal}
-					isNavigating={isNavigating}
-					onLoadMore={onLoadMore}
-				/>
+			<div className="flex flex-col gap-3 pb-16 lg:hidden">
+				{isCalendarView ? (
+					calendar && (
+						<MobileCalendar
+							appointments={calendar.appointments}
+							year={calendar.year}
+							monthIndex={calendar.monthIndex}
+							onPrevMonth={() =>
+								navigateToMonth(
+									new Date(calendar.year, calendar.monthIndex - 1, 1),
+								)
+							}
+							onNextMonth={() =>
+								navigateToMonth(
+									new Date(calendar.year, calendar.monthIndex + 1, 1),
+								)
+							}
+							onToday={() => navigateToMonth(new Date())}
+						/>
+					)
+				) : (
+					<>
+						<MobileFilters {...search} />
+						<List appointments={items} />
+						<AppointmentLoadMoreFooter
+							items={items}
+							remaining={remaining}
+							matchedTotal={matchedTotal}
+							isNavigating={isNavigating}
+							onLoadMore={onLoadMore}
+						/>
+					</>
+				)}
 			</div>
+
+			{/* Mobile / tablet bottom tab bar — a native-style nav, fixed to the
+			    viewport bottom rather than inline with the page content. The
+			    mobile content column above reserves `pb-16` so its last item
+			    never sits underneath it. */}
+			<nav
+				className="fixed inset-x-0 bottom-0 z-30 flex border-border/60 border-t bg-background/95 backdrop-blur-sm lg:hidden"
+				style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+			>
+				<Link
+					to="."
+					search={(prev) => ({ ...prev, view: "list" })}
+					className={cn(
+						"flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium",
+						isCalendarView ? "text-muted-foreground" : "text-primary",
+					)}
+				>
+					<ListIcon className="size-5" />
+					{t("List")}
+				</Link>
+				<Link
+					to="."
+					search={(prev) => ({ ...prev, view: "calendar" })}
+					className={cn(
+						"flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium",
+						isCalendarView ? "text-primary" : "text-muted-foreground",
+					)}
+				>
+					<CalendarDaysIcon className="size-5" />
+					{t("Calendar")}
+				</Link>
+			</nav>
 
 			{/* Desktop layout: master-detail + inline filters, or calendar */}
 			<div
