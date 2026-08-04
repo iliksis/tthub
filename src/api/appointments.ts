@@ -614,7 +614,11 @@ export const getUserAppointments = createServerFn()
 		}
 	});
 
-export const getUserAppointmentsWithoutResponses = createServerFn()
+// "Open" appointments are ones the user hasn't committed to yet: either no
+// response at all, or an explicit "Maybe" (which the rest of the UI already
+// treats as the same non-committal state, e.g. appointments/Card.tsx's
+// `?? "MAYBE"` fallback for a missing response).
+export const getUserOpenAppointments = createServerFn()
 	.inputValidator((d: { userId: string }) => d)
 	.handler(async ({ data }) => {
 		try {
@@ -629,11 +633,14 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 				},
 				where: {
 					deletedAt: null,
-					responses: {
-						none: {
-							userId: data.userId,
+					OR: [
+						{ responses: { none: { userId: data.userId } } },
+						{
+							responses: {
+								some: { responseType: "MAYBE", userId: data.userId },
+							},
 						},
-					},
+					],
 					startDate: {
 						gte: now,
 					},

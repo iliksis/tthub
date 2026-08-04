@@ -1,12 +1,23 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	useRouteContext,
+	useRouter,
+} from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarDaysIcon, MapPinIcon } from "lucide-react";
+import {
+	CalendarDaysIcon,
+	CheckIcon,
+	MapPinIcon,
+	UsersIcon,
+	UsersRoundIcon,
+	XIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
 	createResponse,
 	getNextAppointments,
 	getUserAppointments,
-	getUserAppointmentsWithoutResponses,
+	getUserOpenAppointments,
 } from "@/api/appointments";
 import { getPlayers } from "@/api/players";
 import { getTeams } from "@/api/teams";
@@ -16,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import type { ResponseType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed/")({
 	component: App,
@@ -30,7 +42,7 @@ export const Route = createFileRoute("/_authed/")({
 		const promises = await Promise.all([
 			getNextAppointments(),
 			getUserAppointments({ data: { userId: context.user.id } }),
-			getUserAppointmentsWithoutResponses({
+			getUserOpenAppointments({
 				data: { userId: context.user.id },
 			}),
 			getPlayers(),
@@ -49,10 +61,10 @@ export const Route = createFileRoute("/_authed/")({
 			throw new Error(userRes.message);
 		}
 
-		const withoutResponsesData = promises[2];
-		const withoutResponsesRes = await withoutResponsesData.json();
-		if (withoutResponsesData.status >= 400) {
-			throw new Error(withoutResponsesRes.message);
+		const openData = promises[2];
+		const openRes = await openData.json();
+		if (openData.status >= 400) {
+			throw new Error(openRes.message);
 		}
 
 		const playersData = promises[3];
@@ -69,10 +81,10 @@ export const Route = createFileRoute("/_authed/")({
 
 		return {
 			nextAppointments: nextRes.data,
+			openAppointments: openRes.data,
 			playerCount: playersRes.data?.length ?? 0,
 			teamCount: teamsRes.data?.length ?? 0,
 			userAppointments: userRes.data,
-			withoutResponses: withoutResponsesRes.data,
 		};
 	},
 });
@@ -81,7 +93,7 @@ function App() {
 	const {
 		nextAppointments,
 		userAppointments,
-		withoutResponses,
+		openAppointments,
 		playerCount,
 		teamCount,
 	} = Route.useLoaderData();
@@ -101,148 +113,87 @@ function App() {
 			toast.error(data.message);
 		};
 
-	const [hero, ...restNext] = nextAppointments ?? [];
+	const [next] = nextAppointments ?? [];
 
 	return (
-		<>
-			{/* Mobile / tablet layout */}
-			<div className="flex flex-col gap-6 lg:hidden">
-				<div className="flex flex-col gap-3">
-					<div className="flex flex-row">
-						<h2 className="font-bold flex-1">{t("Upcoming appointments")}</h2>
-						{nextAppointments && (
-							<Badge variant="secondary" className="shrink-0">
-								{nextAppointments.length}
-							</Badge>
-						)}
+		<div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1fr_320px] lg:items-start lg:gap-6">
+			<div className="flex min-w-0 flex-col gap-6">
+				{next ? (
+					<HeroCard appointment={next} onResponse={onResponse} />
+				) : (
+					<div className="rounded-xl bg-card p-6 text-muted-foreground">
+						{t("No appointments in the next 4 weeks")}
 					</div>
-					{nextAppointments && nextAppointments.length > 0 ? (
-						nextAppointments.map((a) => <Card key={a.id} appointment={a} />)
-					) : (
-						<div> {t("No appointments in the next 4 weeks")}</div>
-					)}
-				</div>
+				)}
 				<div className="flex flex-col gap-3">
-					<div className="flex flex-row">
-						<h2 className="font-bold flex-1"> {t("Your appointments")}</h2>
-						{userAppointments && (
-							<Badge variant="secondary" className="shrink-0">
-								{userAppointments.length}
-							</Badge>
+					<div className="flex items-center gap-2">
+						<h3 className="flex-1 font-bold text-sm">
+							{t("Your appointments")}
+						</h3>
+						{userAppointments && userAppointments.length > 0 && (
+							<Badge variant="secondary">{userAppointments.length}</Badge>
 						)}
 					</div>
 					{userAppointments && userAppointments.length > 0 ? (
-						userAppointments.map((a) => <Card key={a.id} appointment={a} />)
+						<div className="flex flex-col gap-3">
+							{userAppointments.map((a) => (
+								<Card key={a.id} appointment={a} />
+							))}
+						</div>
 					) : (
-						<div>{t("You have no appointments")}</div>
-					)}
-				</div>
-				<div className="flex flex-col gap-3">
-					<div className="flex flex-row">
-						<h2 className="font-bold flex-1">{t("Pending appointments")}</h2>
-						{withoutResponses && (
-							<Badge variant="secondary" className="shrink-0">
-								{withoutResponses.length}
-							</Badge>
-						)}
-					</div>
-					{withoutResponses && withoutResponses.length > 0 ? (
-						withoutResponses.map((a) => <Card key={a.id} appointment={a} />)
-					) : (
-						<div> {t("You responded to all appointments")}</div>
+						<div className="rounded-xl bg-card px-4 py-6 text-center text-muted-foreground text-sm">
+							{t("You have no appointments")}
+						</div>
 					)}
 				</div>
 			</div>
 
-			{/* Desktop layout: next-match hero + side rail */}
-			<div className="hidden lg:grid lg:grid-cols-[1fr_360px] lg:gap-6">
-				<div className="flex min-w-0 flex-col gap-6">
-					{hero ? (
-						<HeroCard appointment={hero} onResponse={onResponse} />
+			<div className="flex min-w-0 flex-col gap-6">
+				<div className="rounded-xl bg-card p-4">
+					<h3 className="mb-3 font-bold text-sm">{t("Club at a glance")}</h3>
+					<div className="flex flex-col gap-2 text-sm">
+						<div className="flex justify-between">
+							<span className="flex items-center gap-1.5 text-muted-foreground">
+								<UsersIcon className="size-4" /> {t("Players")}
+							</span>
+							<span className="font-bold">{playerCount}</span>
+						</div>
+						<div className="flex justify-between">
+							<span className="flex items-center gap-1.5 text-muted-foreground">
+								<UsersRoundIcon className="size-4" /> {t("Teams")}
+							</span>
+							<span className="font-bold">{teamCount}</span>
+						</div>
+					</div>
+				</div>
+
+				<div className="rounded-xl bg-card p-4">
+					<div className="mb-3 flex items-center gap-2">
+						<h3 className="flex-1 font-bold text-sm">
+							{t("Pending appointments")}
+						</h3>
+						{openAppointments && openAppointments.length > 0 && (
+							<Badge variant="warning">{openAppointments.length}</Badge>
+						)}
+					</div>
+					{openAppointments && openAppointments.length > 0 ? (
+						<div className="flex flex-col gap-3">
+							{openAppointments.map((a) => (
+								<PendingResponseItem
+									key={a.id}
+									appointment={a}
+									onResponse={onResponse}
+								/>
+							))}
+						</div>
 					) : (
-						<div className="rounded-xl bg-card p-6 text-muted-foreground">
-							{t("No appointments in the next 4 weeks")}
+						<div className="text-muted-foreground text-sm">
+							{t("You responded to all appointments")}
 						</div>
 					)}
-					<div className="flex flex-col gap-3">
-						<div className="flex flex-row items-center gap-2">
-							<h3 className="font-bold flex-1">{t("More appointments")}</h3>
-							{restNext.length > 0 && (
-								<Badge variant="secondary" className="shrink-0">
-									{restNext.length}
-								</Badge>
-							)}
-						</div>
-						{restNext.length > 0 ? (
-							restNext.map((a) => <Card key={a.id} appointment={a} />)
-						) : (
-							<div className="text-muted-foreground text-sm">
-								{t("No appointments in the next 4 weeks")}
-							</div>
-						)}
-					</div>
-					<div className="flex flex-col gap-3">
-						<div className="flex flex-row items-center gap-2">
-							<h3 className="font-bold flex-1">{t("Your appointments")}</h3>
-							{userAppointments && (
-								<Badge variant="secondary" className="shrink-0">
-									{userAppointments.length}
-								</Badge>
-							)}
-						</div>
-						{userAppointments && userAppointments.length > 0 ? (
-							userAppointments.map((a) => <Card key={a.id} appointment={a} />)
-						) : (
-							<div className="text-muted-foreground text-sm">
-								{t("You have no appointments")}
-							</div>
-						)}
-					</div>
-				</div>
-				<div className="flex min-w-0 flex-col gap-6">
-					<div className="rounded-xl bg-card p-4">
-						<div className="mb-3 flex items-center gap-2">
-							<h3 className="font-bold text-sm flex-1">
-								{t("Pending appointments")}
-							</h3>
-							{withoutResponses && withoutResponses.length > 0 && (
-								<Badge variant="warning" className="shrink-0">
-									{withoutResponses.length}
-								</Badge>
-							)}
-						</div>
-						{withoutResponses && withoutResponses.length > 0 ? (
-							<div className="flex flex-col gap-3">
-								{withoutResponses.map((a) => (
-									<PendingResponseItem
-										key={a.id}
-										appointment={a}
-										onResponse={onResponse}
-									/>
-								))}
-							</div>
-						) : (
-							<div className="text-muted-foreground text-sm">
-								{t("You responded to all appointments")}
-							</div>
-						)}
-					</div>
-					<div className="rounded-xl bg-card p-4">
-						<h3 className="mb-3 font-bold text-sm">{t("Club at a glance")}</h3>
-						<div className="flex flex-col gap-2 text-sm">
-							<div className="flex justify-between">
-								<span className="text-muted-foreground">{t("Players")}</span>
-								<span className="font-bold">{playerCount}</span>
-							</div>
-							<div className="flex justify-between">
-								<span className="text-muted-foreground">{t("Teams")}</span>
-								<span className="font-bold">{teamCount}</span>
-							</div>
-						</div>
-					</div>
 				</div>
 			</div>
-		</>
+		</div>
 	);
 }
 
@@ -254,6 +205,13 @@ type HeroCardProps = {
 	) => () => Promise<void>;
 };
 const HeroCard = ({ appointment, onResponse }: HeroCardProps) => {
+	const { user } = useRouteContext({ from: "__root__" });
+	const userResponse = appointment.responses?.find(
+		(r) => r.userId === user?.id,
+	)?.responseType;
+	const isAccepted = userResponse === "ACCEPT";
+	const isDeclined = userResponse === "DECLINE";
+
 	return (
 		<div className="rounded-xl bg-card p-6">
 			<div className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">
@@ -287,7 +245,12 @@ const HeroCard = ({ appointment, onResponse }: HeroCardProps) => {
 					<Button
 						type="button"
 						variant="ghost"
-						className="border border-success/30 text-success hover:bg-success/15 hover:text-success"
+						className={cn(
+							"border",
+							isAccepted
+								? "border-success bg-success text-success-foreground hover:bg-success/90"
+								: "border-success/30 text-success hover:bg-success/15 hover:text-success",
+						)}
 						onClick={onResponse(appointment.id, "ACCEPT")}
 					>
 						{t("Accept")}
@@ -295,10 +258,15 @@ const HeroCard = ({ appointment, onResponse }: HeroCardProps) => {
 					<Button
 						type="button"
 						variant="ghost"
-						className="border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning"
-						onClick={onResponse(appointment.id, "MAYBE")}
+						className={cn(
+							"border",
+							isDeclined
+								? "border-destructive bg-destructive text-white hover:bg-destructive/90"
+								: "border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive",
+						)}
+						onClick={onResponse(appointment.id, "DECLINE")}
 					>
-						{t("Maybe")}
+						{t("Decline")}
 					</Button>
 				</div>
 			</div>
@@ -342,7 +310,7 @@ const PendingResponseItem = ({
 					title={t("Accept")}
 					onClick={onResponse(appointment.id, "ACCEPT")}
 				>
-					✓
+					<CheckIcon />
 				</Button>
 				<Button
 					type="button"
@@ -352,7 +320,7 @@ const PendingResponseItem = ({
 					title={t("Decline")}
 					onClick={onResponse(appointment.id, "DECLINE")}
 				>
-					✕
+					<XIcon />
 				</Button>
 			</div>
 		</div>
