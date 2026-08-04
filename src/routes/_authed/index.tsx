@@ -12,6 +12,7 @@ import {
 	UsersRoundIcon,
 	XIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
 	createResponse,
@@ -22,6 +23,7 @@ import {
 import { getPlayers } from "@/api/players";
 import { getTeams } from "@/api/teams";
 import { Card } from "@/components/appointments/Card";
+import { PendingPile } from "@/components/appointments/PendingPile";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Appointment, Response } from "@/lib/prisma/client";
@@ -115,28 +117,66 @@ function App() {
 
 	const [next] = nextAppointments ?? [];
 
+	const [initialPendingCount] = useState(openAppointments?.length ?? 0);
+	const resolvedCount = initialPendingCount - (openAppointments?.length ?? 0);
+
+	const upcoming = new Map<string, Appointment & { responses?: Response[] }>();
+	for (const a of [
+		...(nextAppointments ?? []),
+		...(userAppointments ?? []),
+		...(openAppointments ?? []),
+	]) {
+		upcoming.set(a.id, a);
+	}
+	const upcomingAppointments = [...upcoming.values()].sort(
+		(a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+	);
+
 	return (
-		<div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1fr_320px] lg:items-start lg:gap-6">
-			<div className="flex min-w-0 flex-col gap-6">
-				{next ? (
-					<HeroCard appointment={next} onResponse={onResponse} />
-				) : (
-					<div className="rounded-xl bg-card p-6 text-muted-foreground">
-						{t("No appointments in the next 4 weeks")}
+		<>
+			{/* Mobile / tablet layout */}
+			<div className="flex flex-col gap-5 lg:hidden">
+				<div className="flex gap-2">
+					<div className="flex flex-1 items-center gap-2 rounded-xl bg-card px-3 py-2.5">
+						<UsersIcon className="size-4 text-muted-foreground" />
+						<span className="font-bold text-sm">{playerCount}</span>
+						<span className="text-muted-foreground text-xs">
+							{t("Players")}
+						</span>
 					</div>
-				)}
-				<div className="flex flex-col gap-3">
-					<div className="flex items-center gap-2">
-						<h3 className="flex-1 font-bold text-sm">
-							{t("Your appointments")}
-						</h3>
-						{userAppointments && userAppointments.length > 0 && (
-							<Badge variant="secondary">{userAppointments.length}</Badge>
+					<div className="flex flex-1 items-center gap-2 rounded-xl bg-card px-3 py-2.5">
+						<UsersRoundIcon className="size-4 text-muted-foreground" />
+						<span className="font-bold text-sm">{teamCount}</span>
+						<span className="text-muted-foreground text-xs">{t("Teams")}</span>
+					</div>
+				</div>
+
+				<div>
+					<div className="mb-2 flex items-center justify-between">
+						<h2 className="font-bold text-sm">{t("Pending appointments")}</h2>
+						{initialPendingCount > 0 && (
+							<span className="text-muted-foreground text-xs">
+								{t(
+									"{0} of {1} answered",
+									resolvedCount.toString(),
+									initialPendingCount.toString(),
+								)}
+							</span>
 						)}
 					</div>
-					{userAppointments && userAppointments.length > 0 ? (
-						<div className="flex flex-col gap-3">
-							{userAppointments.map((a) => (
+					<PendingPile
+						appointments={openAppointments ?? []}
+						onRespond={(appointmentId, response) =>
+							onResponse(appointmentId, response)()
+						}
+					/>
+				</div>
+
+				<div className="flex flex-col gap-2.5">
+					<h2 className="font-bold text-sm">{t("Upcoming appointments")}</h2>
+					{upcomingAppointments.length > 0 ? (
+						<div className="flex flex-col gap-2.5">
+							{upcomingAppointments.map((a) => (
 								<Card key={a.id} appointment={a} />
 							))}
 						</div>
@@ -148,52 +188,86 @@ function App() {
 				</div>
 			</div>
 
-			<div className="flex min-w-0 flex-col gap-6">
-				<div className="rounded-xl bg-card p-4">
-					<h3 className="mb-3 font-bold text-sm">{t("Club at a glance")}</h3>
-					<div className="flex flex-col gap-2 text-sm">
-						<div className="flex justify-between">
-							<span className="flex items-center gap-1.5 text-muted-foreground">
-								<UsersIcon className="size-4" /> {t("Players")}
-							</span>
-							<span className="font-bold">{playerCount}</span>
+			{/* Desktop layout */}
+			<div className="hidden lg:grid lg:grid-cols-[1fr_320px] lg:items-start lg:gap-6">
+				<div className="flex min-w-0 flex-col gap-6">
+					{next ? (
+						<HeroCard appointment={next} onResponse={onResponse} />
+					) : (
+						<div className="rounded-xl bg-card p-6 text-muted-foreground">
+							{t("No appointments in the next 4 weeks")}
 						</div>
-						<div className="flex justify-between">
-							<span className="flex items-center gap-1.5 text-muted-foreground">
-								<UsersRoundIcon className="size-4" /> {t("Teams")}
-							</span>
-							<span className="font-bold">{teamCount}</span>
+					)}
+					<div className="flex flex-col gap-3">
+						<div className="flex items-center gap-2">
+							<h3 className="flex-1 font-bold text-sm">
+								{t("Your appointments")}
+							</h3>
+							{userAppointments && userAppointments.length > 0 && (
+								<Badge variant="secondary">{userAppointments.length}</Badge>
+							)}
 						</div>
+						{userAppointments && userAppointments.length > 0 ? (
+							<div className="flex flex-col gap-3">
+								{userAppointments.map((a) => (
+									<Card key={a.id} appointment={a} />
+								))}
+							</div>
+						) : (
+							<div className="rounded-xl bg-card px-4 py-6 text-center text-muted-foreground text-sm">
+								{t("You have no appointments")}
+							</div>
+						)}
 					</div>
 				</div>
 
-				<div className="rounded-xl bg-card p-4">
-					<div className="mb-3 flex items-center gap-2">
-						<h3 className="flex-1 font-bold text-sm">
-							{t("Pending appointments")}
-						</h3>
-						{openAppointments && openAppointments.length > 0 && (
-							<Badge variant="warning">{openAppointments.length}</Badge>
+				<div className="flex min-w-0 flex-col gap-6">
+					<div className="rounded-xl bg-card p-4">
+						<h3 className="mb-3 font-bold text-sm">{t("Club at a glance")}</h3>
+						<div className="flex flex-col gap-2 text-sm">
+							<div className="flex justify-between">
+								<span className="flex items-center gap-1.5 text-muted-foreground">
+									<UsersIcon className="size-4" /> {t("Players")}
+								</span>
+								<span className="font-bold">{playerCount}</span>
+							</div>
+							<div className="flex justify-between">
+								<span className="flex items-center gap-1.5 text-muted-foreground">
+									<UsersRoundIcon className="size-4" /> {t("Teams")}
+								</span>
+								<span className="font-bold">{teamCount}</span>
+							</div>
+						</div>
+					</div>
+
+					<div className="rounded-xl bg-card p-4">
+						<div className="mb-3 flex items-center gap-2">
+							<h3 className="flex-1 font-bold text-sm">
+								{t("Pending appointments")}
+							</h3>
+							{openAppointments && openAppointments.length > 0 && (
+								<Badge variant="warning">{openAppointments.length}</Badge>
+							)}
+						</div>
+						{openAppointments && openAppointments.length > 0 ? (
+							<div className="flex flex-col gap-3">
+								{openAppointments.map((a) => (
+									<PendingResponseItem
+										key={a.id}
+										appointment={a}
+										onResponse={onResponse}
+									/>
+								))}
+							</div>
+						) : (
+							<div className="text-muted-foreground text-sm">
+								{t("You responded to all appointments")}
+							</div>
 						)}
 					</div>
-					{openAppointments && openAppointments.length > 0 ? (
-						<div className="flex flex-col gap-3">
-							{openAppointments.map((a) => (
-								<PendingResponseItem
-									key={a.id}
-									appointment={a}
-									onResponse={onResponse}
-								/>
-							))}
-						</div>
-					) : (
-						<div className="text-muted-foreground text-sm">
-							{t("You responded to all appointments")}
-						</div>
-					)}
 				</div>
 			</div>
-		</div>
+		</>
 	);
 }
 
