@@ -186,14 +186,14 @@ function SettingsLayout() {
 
 			{/* Content pane is shared — a single Outlet, not duplicated per
 			    breakpoint, since sections hold real forms/fetches/mutations. */}
-			<Card className="min-w-0 flex-1">
+			<Card className="min-w-0 flex-1 bg-background py-0 lg:bg-card lg:py-6">
 				{!active.hasOwnHeading && (
 					<CardHeader>
 						<CardTitle>{active.label}</CardTitle>
 						<CardDescription>{active.description}</CardDescription>
 					</CardHeader>
 				)}
-				<CardContent>
+				<CardContent className="px-0 lg:px-6">
 					<Outlet />
 				</CardContent>
 			</Card>
