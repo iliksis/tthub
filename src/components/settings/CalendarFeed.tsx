@@ -1,16 +1,73 @@
 import { useForm } from "@tanstack/react-form";
-import { isServer } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
+import {
+	CalendarClockIcon,
+	CopyIcon,
+	LinkIcon,
+	ListFilterIcon,
+	SlidersHorizontalIcon,
+} from "lucide-react";
+import React from "react";
 import { toast } from "sonner";
 import { type FeedConfig, updateFeedConfig } from "@/api/users";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useMutation } from "@/hooks/useMutation";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
+
+const responseTypeMeta: Record<ResponseType, { label: string }> = {
+	ACCEPT: { label: t("Accepted") },
+	DECLINE: { label: t("Declined") },
+	MAYBE: { label: t("Maybe") },
+};
+const responseTypeOrder: ResponseType[] = ["ACCEPT", "MAYBE", "DECLINE"];
+
+const appointmentTypeMeta: Record<AppointmentType, { label: string }> = {
+	HOLIDAY: { label: t("Holiday") },
+	TOURNAMENT: { label: t("Tournament") },
+	TOURNAMENT_DE: { label: t("Tournament (Germany)") },
+};
+const appointmentTypeOrder: AppointmentType[] = [
+	"TOURNAMENT",
+	"TOURNAMENT_DE",
+	"HOLIDAY",
+];
+
+function Tile({
+	icon: Icon,
+	title,
+	description,
+	className,
+	children,
+}: {
+	icon: React.ComponentType<{ className?: string }>;
+	title: string;
+	description?: string;
+	className?: string;
+	children: React.ReactNode;
+}) {
+	return (
+		<div
+			className={`flex flex-col gap-4 rounded-lg border border-border/60 p-4 ${className ?? ""}`}
+		>
+			<div className="flex items-center gap-2">
+				<div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+					<Icon className="size-4" />
+				</div>
+				<div>
+					<div className="font-bold text-sm">{title}</div>
+					{description && (
+						<div className="text-muted-foreground text-xs">{description}</div>
+					)}
+				</div>
+			</div>
+			{children}
+		</div>
+	);
+}
 
 type CalendarFeedProps = {
 	feedId?: string;
@@ -43,211 +100,175 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 		},
 	});
 
-	const feedUrl =
-		feedId && !isServer ? `${window.location.origin}/feed/${feedId}` : "";
+	// Starts empty (matching SSR, which has no window) and fills in after mount,
+	// so the client's first paint matches the server and hydration doesn't mismatch.
+	const [feedUrl, setFeedUrl] = React.useState("");
+	React.useEffect(() => {
+		if (feedId) setFeedUrl(`${window.location.origin}/feed/${feedId}`);
+	}, [feedId]);
 
 	const handleCopyUrl = () => {
 		navigator.clipboard.writeText(feedUrl);
 		toast.success(t("Feed URL copied to clipboard"));
 	};
 
-	const toggleResponseType = (type: ResponseType, field: any) => {
-		const current = field.state.value as ResponseType[];
+	const toggleResponseType = (
+		type: ResponseType,
+		current: ResponseType[],
+		onChange: (v: ResponseType[]) => void,
+	) => {
 		if (current.includes(type)) {
-			field.handleChange(current.filter((t) => t !== type));
+			onChange(current.filter((v) => v !== type));
 		} else {
-			field.handleChange([...current, type]);
+			onChange([...current, type]);
 		}
 	};
 
-	const toggleAppointmentType = (type: AppointmentType, field: any) => {
-		const current = field.state.value as AppointmentType[];
+	const toggleAppointmentType = (
+		type: AppointmentType,
+		current: AppointmentType[],
+		onChange: (v: AppointmentType[]) => void,
+	) => {
 		if (current.includes(type)) {
-			field.handleChange(current.filter((t) => t !== type));
+			onChange(current.filter((v) => v !== type));
 		} else {
-			field.handleChange([...current, type]);
+			onChange([...current, type]);
 		}
 	};
 
 	return (
 		<form
+			className="flex flex-col gap-4"
 			onSubmit={(e) => {
 				e.preventDefault();
 				e.stopPropagation();
 				form.handleSubmit();
 			}}
 		>
-			<div className="space-y-6">
-				<div>
-					<h2 className="text-2xl font-bold mb-4">{t("Calendar Feed")}</h2>
-					<p className="text-gray-600 dark:text-gray-400 mb-4">
-						{t(
-							"Subscribe to your personalized calendar feed to receive appointment updates in your calendar app",
-						)}
-					</p>
-				</div>
+			<div className="flex flex-col gap-1">
+				<h2 className="font-bold text-2xl">{t("Calendar Feed")}</h2>
+				<p className="text-muted-foreground text-sm">
+					{t(
+						"Subscribe to your personalized calendar feed to receive appointment updates in your calendar app",
+					)}
+				</p>
+			</div>
 
+			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 				{feedUrl && (
-					<div>
-						<div className="block text-md font-medium mb-2">
-							{t("Your Feed URL")}
-						</div>
+					<Tile
+						icon={LinkIcon}
+						title={t("Your Feed URL")}
+						description={t(
+							"Use this URL in your calendar application to subscribe to your personal calendar feed.",
+						)}
+						className="lg:col-span-2"
+					>
 						<div className="flex gap-2">
 							<Input type="text" readOnly value={feedUrl} />
 							<Button type="button" onClick={handleCopyUrl}>
+								<CopyIcon />
 								{t("Copy")}
 							</Button>
 						</div>
-						<p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-							{t(
-								"Use this URL in your calendar application to subscribe to your personal calendar feed.",
-							)}
-						</p>
-					</div>
+					</Tile>
 				)}
 
-				<Separator className="my-4" />
-
-				<div className="space-y-4">
-					<div>
-						<h3 className="text-lg font-semibold mb-3">{t("Configuration")}</h3>
-					</div>
-
+				<Tile
+					icon={ListFilterIcon}
+					title={t("Response Types")}
+					description={t(
+						"Leave all unchecked to include all appointments regardless of response",
+					)}
+				>
 					<form.Field name="includeResponseTypes">
 						{(field) => (
-							<div>
-								<div className="block text-sm font-medium mb-3">
-									{t("Response Types")}
-								</div>
-								<div className="space-y-2 flex flex-col gap-2">
-									<div className="flex items-center gap-2">
+							<div className="flex flex-col gap-2">
+								{responseTypeOrder.map((type) => (
+									<div key={type} className="flex items-center gap-2">
 										<Checkbox
-											id={`${field.name}-accept`}
+											id={`response-${type}`}
 											checked={(field.state.value as ResponseType[]).includes(
-												"ACCEPT",
+												type,
 											)}
 											onCheckedChange={() =>
-												toggleResponseType("ACCEPT", field)
+												toggleResponseType(
+													type,
+													field.state.value as ResponseType[],
+													field.handleChange,
+												)
 											}
 										/>
-										<Label htmlFor={`${field.name}-accept`}>
-											{t("Accepted")}
+										<Label htmlFor={`response-${type}`}>
+											{responseTypeMeta[type].label}
 										</Label>
 									</div>
-									<div className="flex items-center gap-2">
-										<Checkbox
-											id={`${field.name}-maybe`}
-											checked={(field.state.value as ResponseType[]).includes(
-												"MAYBE",
-											)}
-											onCheckedChange={() => toggleResponseType("MAYBE", field)}
-										/>
-										<Label htmlFor={`${field.name}-maybe`}>{t("Maybe")}</Label>
-									</div>
-									<div className="flex items-center gap-2">
-										<Checkbox
-											id={`${field.name}-decline`}
-											checked={(field.state.value as ResponseType[]).includes(
-												"DECLINE",
-											)}
-											onCheckedChange={() =>
-												toggleResponseType("DECLINE", field)
-											}
-										/>
-										<Label htmlFor={`${field.name}-decline`}>
-											{t("Declined")}
-										</Label>
-									</div>
-								</div>
-								<p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-									{t(
-										"Leave all unchecked to include all appointments regardless of response",
-									)}
-								</p>
+								))}
 							</div>
 						)}
 					</form.Field>
+				</Tile>
 
+				<Tile icon={CalendarClockIcon} title={t("Appointment Types")}>
 					<form.Field name="includeAppointmentTypes">
 						{(field) => (
-							<div>
-								<div className="block text-sm font-medium mb-2">
-									{t("Appointment Types")}
-								</div>
-								<div className="space-y-2 flex flex-col gap-2">
-									<div className="flex items-center gap-2">
+							<div className="flex flex-col gap-2">
+								{appointmentTypeOrder.map((type) => (
+									<div key={type} className="flex items-center gap-2">
 										<Checkbox
-											id={`${field.name}-tournament`}
+											id={`type-${type}`}
 											checked={(
 												field.state.value as AppointmentType[]
-											).includes("TOURNAMENT")}
+											).includes(type)}
 											onCheckedChange={() =>
-												toggleAppointmentType("TOURNAMENT", field)
+												toggleAppointmentType(
+													type,
+													field.state.value as AppointmentType[],
+													field.handleChange,
+												)
 											}
 										/>
-										<Label htmlFor={`${field.name}-tournament`}>
-											{t("Tournament")}
+										<Label htmlFor={`type-${type}`}>
+											{appointmentTypeMeta[type].label}
 										</Label>
 									</div>
-									<div className="flex items-center gap-2">
-										<Checkbox
-											id={`${field.name}-tournament-de`}
-											checked={(
-												field.state.value as AppointmentType[]
-											).includes("TOURNAMENT_DE")}
-											onCheckedChange={() =>
-												toggleAppointmentType("TOURNAMENT_DE", field)
-											}
-										/>
-										<Label htmlFor={`${field.name}-tournament-de`}>
-											{t("Tournament (Germany)")}
-										</Label>
-									</div>
-									<div className="flex items-center gap-2">
-										<Checkbox
-											id={`${field.name}-holiday`}
-											checked={(
-												field.state.value as AppointmentType[]
-											).includes("HOLIDAY")}
-											onCheckedChange={() =>
-												toggleAppointmentType("HOLIDAY", field)
-											}
-										/>
-										<Label htmlFor={`${field.name}-holiday`}>
-											{t("Holiday")}
-										</Label>
-									</div>
-								</div>
+								))}
 							</div>
 						)}
 					</form.Field>
+				</Tile>
 
+				<Tile
+					icon={SlidersHorizontalIcon}
+					title={t("Configuration")}
+					className="lg:col-span-2"
+				>
 					<form.Field name="includeDraftStatus">
 						{(field) => (
-							<div>
-								<div className="flex items-center gap-2">
-									<Checkbox
-										id={field.name}
-										checked={field.state.value}
-										onCheckedChange={(checked) =>
-											field.handleChange(checked === true)
-										}
-									/>
-									<Label htmlFor={field.name}>
-										{t("Include draft appointments")}
-									</Label>
-								</div>
+							<div className="flex items-center gap-2">
+								<Checkbox
+									id={field.name}
+									checked={field.state.value}
+									onCheckedChange={(checked) =>
+										field.handleChange(checked === true)
+									}
+								/>
+								<Label htmlFor={field.name}>
+									{t("Include draft appointments")}
+								</Label>
 							</div>
 						)}
 					</form.Field>
-				</div>
-
-				<div className="pt-4">
-					<Button type="submit" disabled={updateMutation.status === "pending"}>
-						{updateMutation.status === "pending" ? "..." : t("Update")}
-					</Button>
-				</div>
+				</Tile>
 			</div>
+
+			<Button
+				type="submit"
+				className="w-36"
+				disabled={updateMutation.status === "pending"}
+			>
+				{updateMutation.status === "pending" ? "..." : t("Update")}
+			</Button>
 		</form>
 	);
 };
