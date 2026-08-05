@@ -119,6 +119,7 @@ const texts = {
 	"Grant Permission": "Benachrichtigunen erlauben",
 	History: "Verlauf",
 	Holiday: "Ferien",
+	"Holidays and myTischtennis data": "Feiertage und myTischtennis-Daten",
 	Import: "Importieren",
 	"Import Holidays": "Ferien/Feiertage importieren",
 	Imports: "Importe",
@@ -146,11 +147,15 @@ const texts = {
 	Location: "Ort",
 	Login: "Anmelden",
 	Logout: "Abmelden",
+	"Manage club members and invitations":
+		"Vereinsmitglieder und Einladungen verwalten",
 	Maybe: "Vielleicht",
 	"More details": "Weitere Details",
 	Name: "Name",
 	"Name must be at least 2 characters long":
 		"Name muss mindestens 2 Zeichen lang sein",
+	"Name, password and push notifications":
+		"Name, Passwort und Push-Benachrichtigungen",
 	"Needs your response": "Braucht deine Antwort",
 	"New Appointment": "Neuer Termin",
 	"Next Appointment": "Nächster Termin",
@@ -241,6 +246,7 @@ const texts = {
 	StartDate: "Start",
 	Status: "Status",
 	Subdivision: "Region",
+	"Subscribe to your personal calendar": "Kalender abonnieren",
 	"Subscribe to your personalized calendar feed to receive appointment updates in your calendar app":
 		"Abonniere deinen personalisierten Kalender-Feed, um Terminaktualisierungen in deiner Kalender-App zu erhalten",
 	"Subscription created": "Benachrichtigung erstellt",

@@ -5,13 +5,10 @@ import {
 	CalendarsIcon,
 	HistoryIcon,
 	HouseIcon,
-	ImportIcon,
 	LogOutIcon,
 	SearchIcon,
 	Settings2Icon,
 	ShieldIcon,
-	UserCogIcon,
-	UserPenIcon,
 	UsersIcon,
 } from "lucide-react";
 import React from "react";
@@ -44,6 +41,9 @@ type NavigationItem =
 			search?: Record<string, unknown>;
 			icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 			isHidden?: (role: User["role"]) => boolean;
+			// Highlight active for any path under `href`, not just an exact match —
+			// used for entry points (like Settings) that own their own sub-navigation.
+			activeExact?: boolean;
 	  }
 	| {
 			name: string;
@@ -78,26 +78,8 @@ const navigationItems: NavigationItem[] = [
 	{ href: "/players", icon: UsersIcon, name: t("Players") },
 	{ href: "/teams", icon: ShieldIcon, name: t("Teams") },
 	{
-		children: [
-			{ href: "/settings/profile", icon: UserPenIcon, name: t("Profile") },
-			{
-				href: "/settings/feed",
-				icon: CalendarDaysIcon,
-				name: t("Calendar Feed"),
-			},
-			{
-				href: "/settings/imports",
-				icon: ImportIcon,
-				isHidden: (role) => role === "USER",
-				name: t("Imports"),
-			},
-			{
-				href: "/settings/users",
-				icon: UserCogIcon,
-				isHidden: (role) => role !== "ADMIN",
-				name: t("User Management"),
-			},
-		],
+		activeExact: false,
+		href: "/settings",
 		icon: Settings2Icon,
 		name: t("Settings"),
 	},
@@ -126,7 +108,10 @@ const NavigationItems = () => {
 				search={item.search}
 				onClick={closeSidebar}
 				activeProps={{ className: activeLinkClassName }}
-				activeOptions={{ exact: true, includeSearch: !!item.search }}
+				activeOptions={{
+					exact: item.activeExact ?? true,
+					includeSearch: !!item.search,
+				}}
 			>
 				<item.icon />
 				<span>{item.name}</span>
