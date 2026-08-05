@@ -29,9 +29,9 @@ export const Route = createFileRoute("/_authed/settings/profile")({
 function RouteComponent() {
 	const { subscriptions } = Route.useLoaderData();
 	return (
-		<div>
+		<div className="flex flex-col gap-8">
 			<Profile />
-			<Separator className="my-4" />
+			<Separator className="border-border/60" />
 			<Notifications subscriptions={subscriptions} />
 		</div>
 	);

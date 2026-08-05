@@ -26,6 +26,7 @@ const texts = {
 	Accepted: "Angenommen",
 	Action: "Aktion",
 	"Active Subscriptions": "Geräte mit aktivierten Benachrichtigungen",
+	Administrator: "Administrator:in",
 	Adult: "Erwachsen",
 	"Age Group": "Altersklasse",
 	"All actions": "Alle Aktionen",
@@ -90,6 +91,8 @@ const texts = {
 	Dashboard: "Dashboard",
 	Date: "Datum",
 	"Date & Time": "Datum & Zeit",
+	"Decide when TTHub notifies you on this device.":
+		"Entscheide, wann dich TTHub auf diesem Gerät benachrichtigt.",
 	Decline: "Ablehnen",
 	Declined: "Abgelehnt",
 	Delete: "Löschen",
@@ -150,6 +153,7 @@ const texts = {
 	"Manage club members and invitations":
 		"Vereinsmitglieder und Einladungen verwalten",
 	Maybe: "Vielleicht",
+	Member: "Mitglied",
 	"More details": "Weitere Details",
 	Name: "Name",
 	"Name must be at least 2 characters long":
@@ -174,6 +178,7 @@ const texts = {
 	"No teams found": "Keine Teams gefunden",
 	"Not authenticated": "Nicht authentifiziert",
 	"Not available yet": "Noch nicht verfügbar",
+	"Not yet enabled for this device.": "Noch nicht aktiviert für dieses Gerät.",
 	Notifications: "Benachrichtigungen",
 	"Notifications are not supported in this browser":
 		"Benachrichtigungen werden in diesem Browser nicht unterstützt",
@@ -208,6 +213,7 @@ const texts = {
 	"Players found": "Spieler:innen gefunden",
 	"Previous month": "Vorheriger Monat",
 	Profile: "Profil",
+	"Profile & Security": "Profil & Sicherheit",
 	Publish: "Veröffentlichen",
 	"Publish appointment": "Termin veröffentlichen",
 	"Publish?": "Veröffentlichen?",
@@ -270,6 +276,7 @@ const texts = {
 	Tournament: "Turnier",
 	"Tournament (Germany)": "Turnier (Deutschland)",
 	Tournaments: "Turniere",
+	Trainer: "Trainer:in",
 	"Transaction Journal": "Transaktionsjournal",
 	"Transactions found": "Transaktionen gefunden",
 	"Type to search...": "Tippe zum Suchen...",
@@ -282,6 +289,8 @@ const texts = {
 	"Update player": "Spieler:in aktualisieren",
 	"Update Role": "Rolle aktualisieren",
 	"Update team": "Team aktualisieren",
+	"Update your name or set a new password.":
+		"Aktualisiere deinen Namen oder setze ein neues Passwort.",
 	"Update your password": "Aktualisiere dein Passwort",
 	"Use this URL in your calendar application to subscribe to your personal calendar feed.":
 		"Verwende diese URL in deiner Kalenderanwendung, um deinen persönlichen Kalender-Feed zu abonnieren.",

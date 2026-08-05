@@ -48,6 +48,7 @@ type SettingsSection = {
 const sections: SettingsSection[] = [
 	{
 		description: t("Name, password and push notifications"),
+		hasOwnHeading: true,
 		href: "/settings/profile",
 		icon: UserPenIcon,
 		label: t("Profile"),
