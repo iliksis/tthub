@@ -30,7 +30,9 @@ const texts = {
 	Adult: "Erwachsen",
 	"Age Group": "Altersklasse",
 	"All actions": "Alle Aktionen",
+	"All age groups": "Alle Altersklassen",
 	"All responses": "Alle Antworten",
+	"All teams": "Alle Teams",
 	"All types": "Alle Typen",
 	"An Error occurred": "Ein Fehler ist aufgetreten",
 	Apply: "Anwenden",
@@ -152,8 +154,10 @@ const texts = {
 	Logout: "Abmelden",
 	"Manage club members and invitations":
 		"Vereinsmitglieder und Einladungen verwalten",
+	Max: "Max",
 	Maybe: "Vielleicht",
 	Member: "Mitglied",
+	Min: "Min",
 	"More details": "Weitere Details",
 	Name: "Name",
 	"Name must be at least 2 characters long":
@@ -174,6 +178,7 @@ const texts = {
 	"No location set": "Kein Ort gesetzt",
 	"No players found": "Keine Spieler:innen gefunden",
 	"No response": "Keine Antwort",
+	"No team": "Ohne Team",
 	"No team set": "Gehört keinem Team an",
 	"No teams found": "Keine Teams gefunden",
 	"Not authenticated": "Nicht authentifiziert",

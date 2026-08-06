@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SearchIcon } from "lucide-react";
-import React from "react";
 import { getPlayers } from "@/api/players";
 import { getTeams } from "@/api/teams";
 import { CreatePlayer } from "@/components/players/CreatePlayer";
+import {
+	applyPlayerFilters,
+	filterSchema,
+	InlinePlayerFilters,
+	MobilePlayerFilters,
+} from "@/components/players/Filters";
 import { List } from "@/components/players/List";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import type { Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 
@@ -30,23 +33,23 @@ export const Route = createFileRoute("/_authed/players/")({
 		}
 		return { players: playersRes.data, teams: teamsRes.data };
 	},
+	validateSearch: filterSchema,
 });
 
 function RouteComponent() {
 	const { players, teams } = Route.useLoaderData();
-	const [query, setQuery] = React.useState("");
+	const search = Route.useSearch();
 
 	if (!players) return <div>{t("An Error occurred")}</div>;
 
-	const filteredPlayers = query
-		? players.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
-		: players;
+	const filteredPlayers = applyPlayerFilters(players, search);
 
 	return (
 		<>
 			{/* Mobile / tablet layout */}
 			<div className="lg:hidden">
-				<List players={players} />
+				<MobilePlayerFilters {...search} teams={teams ?? []} />
+				<List players={filteredPlayers} />
 				<CreatePlayer />
 			</div>
 
@@ -57,19 +60,13 @@ function RouteComponent() {
 						<h1 className="font-bold flex-1">
 							{t("Players")}{" "}
 							<span className="font-normal text-muted-foreground">
-								· {players.length}
+								· {filteredPlayers.length} / {players.length}
 							</span>
 						</h1>
-						<div className="relative w-56">
-							<SearchIcon className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-							<Input
-								className="pl-8"
-								placeholder={t("Search Players")}
-								value={query}
-								onChange={(e) => setQuery(e.target.value)}
-							/>
-						</div>
 						<CreatePlayer />
+					</div>
+					<div className="mb-3 rounded-lg bg-card p-3">
+						<InlinePlayerFilters {...search} teams={teams ?? []} />
 					</div>
 					<List players={filteredPlayers} />
 				</div>
