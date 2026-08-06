@@ -32,7 +32,6 @@ import { PlacementsPanel } from "@/components/placement/PlacementsPanel";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -359,16 +358,7 @@ function RouteComponent() {
 						</div>
 					</div>
 
-					<div>
-						<h1 className="font-bold text-xl leading-tight">
-							{appointment.title}
-						</h1>
-						<p className="text-muted-foreground text-sm">
-							{appointment.shortTitle}
-						</p>
-					</div>
-
-					<div className="grid grid-cols-2 gap-4 rounded-lg bg-card p-4 text-sm">
+					<div className="grid grid-cols-2 gap-4 text-sm">
 						<div>
 							<div className="mb-1 text-muted-foreground text-xs uppercase">
 								{t("Start")}
@@ -411,7 +401,7 @@ function RouteComponent() {
 
 					{!isHoliday && appointment.location && (
 						<iframe
-							src={`https://maps.google.com/maps?hl=de&t=&z=14&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
+							src={`https://maps.google.com/maps?hl=de&t=&z=10&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
 							className="h-48 w-full rounded-lg border border-border/40"
 							title="Google Maps"
 						/>
@@ -464,7 +454,7 @@ function RouteComponent() {
 							<ChevronDownIcon className="size-4 text-muted-foreground transition-transform duration-200 ease-out group-data-[state=open]:rotate-180" />
 						</CollapsibleTrigger>
 						<CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-							<div className="flex flex-col gap-4 px-4 pb-4">
+							<div className="flex flex-col gap-4 pb-4">
 								<RecordInfoPanel
 									createdAt={new Date(appointment.createdAt)}
 									lastUpdated={
@@ -527,133 +517,128 @@ function RouteComponent() {
 
 			<div className="hidden gap-6 lg:grid lg:grid-cols-3 lg:items-start">
 				<div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
-					<Card>
-						<CardContent>
-							<div className="mb-4 flex flex-wrap items-start justify-between gap-4">
-								<div className="min-w-0">
-									<div className="mb-2 flex items-center gap-2">
-										<Badge variant="outline">
-											{typeLabel(appointment.type)}
-										</Badge>
-										{!isHoliday && canEdit && (
-											<button
-												type="button"
-												onClick={isPublished ? onUnpublish : onPublish}
-												className="group rounded-full"
-												aria-label={
-													isPublished
-														? t("Unpublish appointment")
-														: t("Publish appointment")
-												}
-											>
-												<Badge
-													variant={isPublished ? "success" : "warning"}
-													className={cn(
-														"cursor-pointer gap-1 transition-shadow",
-														isPublished
-															? "group-hover:ring-2 group-hover:ring-success/40"
-															: "group-hover:ring-2 group-hover:ring-warning/40",
-													)}
-												>
-													{isPublished ? t("Published") : t("Draft")}
-													<RefreshCwIcon className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
-												</Badge>
-											</button>
-										)}
-										{!isHoliday && !canEdit && (
-											<Badge variant={isPublished ? "success" : "warning"}>
-												{isPublished ? t("Published") : t("Draft")}
-											</Badge>
-										)}
-									</div>
-									<div>
-										<h1 className="font-bold text-2xl">{appointment.title}</h1>
-										<p className="text-muted-foreground text-sm">
-											{appointment.shortTitle}
-										</p>
-									</div>
-								</div>
-							</div>
-
-							<div
-								className={cn(
-									"mb-6 grid grid-cols-1 items-start gap-4 border-border/60 border-t pt-4",
-									isHoliday ? "sm:grid-cols-2" : "sm:grid-cols-3",
-								)}
-							>
-								<div>
-									<div className="mb-1 text-muted-foreground text-xs uppercase">
-										{t("Start")}
-									</div>
-									<div>{formatDateTime(appointment.startDate)}</div>
-								</div>
-								<div>
-									<div className="mb-1 text-muted-foreground text-xs uppercase">
-										{t("End")}
-									</div>
-									<div>
-										{appointment.endDate
-											? formatDateTime(appointment.endDate)
-											: "—"}
-									</div>
-								</div>
-								{!isHoliday && (
-									<div>
-										<div className="mb-1 text-muted-foreground text-xs uppercase">
-											{t("Location")}
-										</div>
-										{appointment.location ? (
-											<a
-												href={createGoogleMapsLink(appointment.location)}
-												target="_blank"
-												rel="noreferrer"
-												className="flex items-center gap-1 hover:underline"
-											>
-												{appointment.location}
-												<ExternalLinkIcon className="size-3.5" />
-											</a>
-										) : (
-											<span className="text-muted-foreground">
-												{t("No location set")}
-											</span>
-										)}
-									</div>
-								)}
-							</div>
-
-							{!isHoliday && appointment.location && (
-								<div className="mb-6">
-									<iframe
-										src={`https://maps.google.com/maps?hl=de&t=&z=14&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
-										className="h-64 w-full rounded-lg border border-border/40"
-										title="Google Maps"
-									/>
-								</div>
-							)}
-
-							{!isHoliday && (
-								<div className="mb-6">
-									<div className="mb-1 text-muted-foreground text-xs uppercase">
-										{t("Link")}
-									</div>
-									{appointment.link ? (
-										<a
-											href={appointment.link}
-											target="_blank"
-											rel="noreferrer"
-											className="flex items-center gap-1 text-primary hover:underline"
+					<div className="flex flex-wrap items-start justify-between gap-4">
+						<div className="min-w-0">
+							<div className="mb-2 flex items-center gap-2">
+								<Badge variant="outline">{typeLabel(appointment.type)}</Badge>
+								{!isHoliday && canEdit && (
+									<button
+										type="button"
+										onClick={isPublished ? onUnpublish : onPublish}
+										className="group rounded-full"
+										aria-label={
+											isPublished
+												? t("Unpublish appointment")
+												: t("Publish appointment")
+										}
+									>
+										<Badge
+											variant={isPublished ? "success" : "warning"}
+											className={cn(
+												"cursor-pointer gap-1 transition-shadow",
+												isPublished
+													? "group-hover:ring-2 group-hover:ring-success/40"
+													: "group-hover:ring-2 group-hover:ring-warning/40",
+											)}
 										>
-											<ExternalLinkIcon className="size-3.5" />
-											{t("Join")}
-										</a>
-									) : (
-										<span className="text-muted-foreground">
-											{t("No link set")}
-										</span>
-									)}
-								</div>
-							)}
+											{isPublished ? t("Published") : t("Draft")}
+											<RefreshCwIcon className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
+										</Badge>
+									</button>
+								)}
+								{!isHoliday && !canEdit && (
+									<Badge variant={isPublished ? "success" : "warning"}>
+										{isPublished ? t("Published") : t("Draft")}
+									</Badge>
+								)}
+							</div>
+							<div>
+								<h1 className="font-bold text-2xl">{appointment.title}</h1>
+								<p className="text-muted-foreground text-sm">
+									{appointment.shortTitle}
+								</p>
+							</div>
+						</div>
+					</div>
 
+					<div
+						className={cn(
+							"grid grid-cols-1 items-start gap-4 border-border/60 border-t pt-4",
+							isHoliday ? "sm:grid-cols-2" : "sm:grid-cols-3",
+						)}
+					>
+						<div>
+							<div className="mb-1 text-muted-foreground text-xs uppercase">
+								{t("Start")}
+							</div>
+							<div>{formatDateTime(appointment.startDate)}</div>
+						</div>
+						<div>
+							<div className="mb-1 text-muted-foreground text-xs uppercase">
+								{t("End")}
+							</div>
+							<div>
+								{appointment.endDate
+									? formatDateTime(appointment.endDate)
+									: "—"}
+							</div>
+						</div>
+						{!isHoliday && (
+							<div>
+								<div className="mb-1 text-muted-foreground text-xs uppercase">
+									{t("Location")}
+								</div>
+								{appointment.location ? (
+									<a
+										href={createGoogleMapsLink(appointment.location)}
+										target="_blank"
+										rel="noreferrer"
+										className="flex items-center gap-1 hover:underline"
+									>
+										{appointment.location}
+										<ExternalLinkIcon className="size-3.5" />
+									</a>
+								) : (
+									<span className="text-muted-foreground">
+										{t("No location set")}
+									</span>
+								)}
+							</div>
+						)}
+					</div>
+
+					{!isHoliday && appointment.location && (
+						<div>
+							<iframe
+								src={`https://maps.google.com/maps?hl=de&t=&z=10&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
+								className="h-64 w-full rounded-lg border border-border/40"
+								title="Google Maps"
+							/>
+						</div>
+					)}
+
+					{!isHoliday && (
+						<div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
+							<div>
+								<div className="mb-1 text-muted-foreground text-xs uppercase">
+									{t("Link")}
+								</div>
+								{appointment.link ? (
+									<a
+										href={appointment.link}
+										target="_blank"
+										rel="noreferrer"
+										className="flex items-center gap-1 text-primary hover:underline"
+									>
+										<ExternalLinkIcon className="size-3.5" />
+										{t("Join")}
+									</a>
+								) : (
+									<span className="text-muted-foreground">
+										{t("No link set")}
+									</span>
+								)}
+							</div>
 							{!isHoliday && (
 								<EditableNextAppointmentCard
 									appointmentId={appointment.id}
@@ -664,8 +649,8 @@ function RouteComponent() {
 									onSave={(id) => onSaveField({ nextAppointmentId: id })}
 								/>
 							)}
-						</CardContent>
-					</Card>
+						</div>
+					)}
 
 					{!isHoliday && (
 						<PlacementsPanel

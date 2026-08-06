@@ -38,10 +38,10 @@ export function EditableNextAppointmentCard({
 
 	if (editing) {
 		return (
-			<div className="flex items-center gap-2 border-border/60 border-t pt-4 text-sm">
-				<span className="shrink-0 text-muted-foreground">
+			<div>
+				<div className="mb-1 text-muted-foreground text-xs uppercase">
 					{t("Next Appointment")}:
-				</span>
+				</div>
 				<Select
 					value={nextAppointmentId ?? undefined}
 					onValueChange={(v) => commit(v)}
@@ -81,8 +81,10 @@ export function EditableNextAppointmentCard({
 	}
 
 	return (
-		<div className="flex items-center gap-2 border-border/60 border-t pt-4 text-sm">
-			<span className="text-muted-foreground">{t("Next Appointment")}:</span>
+		<div>
+			<div className="mb-1 text-muted-foreground text-xs uppercase">
+				{t("Next Appointment")}:
+			</div>
 			{nextAppointment ? (
 				<InternalLink
 					to="/appts/$apptId"

@@ -380,9 +380,7 @@ function RouteComponent() {
 					)
 				) : (
 					<>
-						<div className="rounded-lg bg-card p-3">
-							<InlineFilters {...search} />
-						</div>
+						<InlineFilters {...search} />
 						<AppointmentSplitView
 							appointments={items}
 							onAppointmentsChange={setItems}

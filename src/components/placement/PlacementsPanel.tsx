@@ -17,7 +17,7 @@ export function PlacementsPanel({
 	const grouped = groupPlacementsByCategory(placements);
 
 	return (
-		<div className="rounded-lg bg-card p-4">
+		<div className="border-border/60 border-t pt-4">
 			<div className="mb-3 flex items-center justify-between">
 				<span className="font-bold text-sm">{t("Participants")}</span>
 				{canEdit && (
