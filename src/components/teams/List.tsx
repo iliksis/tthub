@@ -1,43 +1,52 @@
-import { useRouter } from "@tanstack/react-router";
-import { DetailsList } from "@/components/DetailsList";
+import { Link } from "@tanstack/react-router";
+import { Badge } from "@/components/ui/badge";
 import type { Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 
+type TeamRow = Team & { _count: { players: number } };
+
 type ListProps = {
-	teams: (Team & { _count: { players: number } })[];
+	teams: TeamRow[];
 };
 
+// Mobile list: a joined row per team, styled after the appointments page's
+// mobile row list. Tapping a row navigates straight to the team — there's no
+// selection step to pass through first. Unlike appointments (grouped by
+// month), teams aren't grouped — league names have no reliable sort order to
+// group/order sections by.
 export const List = ({ teams }: ListProps) => {
-	const router = useRouter();
-	if (teams.length === 0) return <div>{t("No teams found")}</div>;
-
-	const onClickTeam = async (id: string) => {
-		await router.navigate({
-			params: { teamId: id },
-			to: "/teams/$teamId",
-		});
-	};
+	if (teams.length === 0) {
+		return (
+			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
+				{t("No teams found")}
+			</div>
+		);
+	}
 
 	return (
-		<DetailsList
-			items={teams}
-			columns={[
-				{ key: "name", label: t("Name"), render: (item) => item.title },
-				{ key: "league", label: t("League"), render: (item) => item.league },
-				{
-					key: "placement",
-					label: t("Placement"),
-					render: (item) => item.placement,
-				},
-				{
-					key: "players",
-					label: t("Players"),
-					render: (item) => item._count.players,
-				},
-			]}
-			getItemId={(item) => item.id}
-			selectMode="none"
-			onItemClick={(item) => onClickTeam(item.id)}
-		/>
+		<div className="flex flex-col rounded-lg bg-card">
+			{teams.map((team) => (
+				<Link
+					key={team.id}
+					to="/teams/$teamId"
+					params={{ teamId: team.id }}
+					className="flex w-full items-center justify-between gap-3 border-border/60 border-b py-3.5 px-3 text-left first:rounded-t-lg last:border-b-0 last:rounded-b-lg"
+				>
+					<div className="min-w-0 flex-1">
+						<div className="truncate font-medium text-sm">{team.title}</div>
+						<div className="truncate text-muted-foreground text-xs">
+							{team.league}
+							{team.league && " · "}
+							{t("{0} players", team._count.players.toString())}
+						</div>
+					</div>
+					{team.placement && (
+						<Badge variant="secondary" className="shrink-0">
+							{team.placement}
+						</Badge>
+					)}
+				</Link>
+			))}
+		</div>
 	);
 };

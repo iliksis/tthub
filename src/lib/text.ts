@@ -190,6 +190,7 @@ const texts = {
 	"On iOS devices, you must add the website to the home screen before notifications will work.":
 		"Auf iOS-Geräten muss die Website zur Startseite hinzufügt werden, bevor Benachrichtigungen funktionieren.",
 	"Open appointment": "Termin öffnen",
+	"Open team": "Team öffnen",
 	Overview: "Übersicht",
 	"open sidebar": "Sidebar öffnen",
 	"Participant already exists in this category":
