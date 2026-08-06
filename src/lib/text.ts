@@ -233,6 +233,7 @@ const texts = {
 	Responses: "Antworten",
 	Restore: "Wiederherstellen",
 	"Restore?": "Wiederherstellen?",
+	Results: "Ergebnisse",
 	Role: "Rolle",
 	Save: "Speichern",
 	Search: "Suche",

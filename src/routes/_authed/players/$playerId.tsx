@@ -4,7 +4,7 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { CogIcon, EditIcon, Trash2Icon } from "lucide-react";
+import { EditIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { deletePlayer, getPlayer, updatePlayer } from "@/api/players";
@@ -14,10 +14,9 @@ import { InternalLink } from "@/components/InternalLink";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlayerForm } from "@/components/players/PlayerForm";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ValueCard";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
-import { calculateAgeGroup, shortenUserName } from "@/lib/utils";
+import { calculateAgeGroup } from "@/lib/utils";
 
 // biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
 export const Route = createFileRoute("/_authed/players/$playerId")({
@@ -138,98 +137,56 @@ function RouteComponent() {
 		});
 	};
 
-	const tournamentCount = new Set(player.placements.map((p) => p.appointmentId))
-		.size;
-
 	return (
-		<div>
-			{/* Desktop toolbar */}
-			<div className="mb-4 hidden items-center gap-2 lg:flex">
-				<span className="text-muted-foreground text-sm">{t("Players")} /</span>
-				<span className="flex-1 font-semibold text-[15px]">{player.name}</span>
-				{canEdit && (
-					<>
-						<Button variant="outline" size="sm" onClick={onEdit}>
-							<EditIcon className="size-4" />
-							{t("Update player")}
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-							onClick={onOpenDelete}
-						>
-							<Trash2Icon className="size-4" />
-							{t("Delete player")}
-						</Button>
-					</>
-				)}
-			</div>
-
-			{/* Mobile / tablet layout */}
-			<div className="lg:hidden">
-				<div className="grid grid-cols-4 gap-2">
-					<Card title={t("Year of birth")} gridRows={3}>
-						<p>
-							{player.year}{" "}
-							<span className="opacity-75">
-								- {calculateAgeGroup(player.year)}
-							</span>
-						</p>
-					</Card>
-					<Card title={t("QTTR")} gridRows={1}>
-						<p>{player.qttr}</p>
-					</Card>
-					<Card title={t("Team")} gridRows={4}>
-						<p>
+		<div className="grid grid-cols-1 gap-4 lg:grid-cols-[300px_1fr] lg:items-start lg:gap-6">
+			<div className="flex flex-col items-center rounded-xl bg-card p-6 text-center lg:sticky lg:top-6">
+				<div className="font-bold text-lg">{player.name}</div>
+				<div className="mb-4 text-muted-foreground text-sm">
+					{calculateAgeGroup(player.year)} · {player.year}
+				</div>
+				<div className="mb-4 flex w-full gap-2">
+					<div className="flex-1 rounded-md bg-muted/50 p-3 text-left">
+						<div className="mb-1 text-muted-foreground text-xs">
+							{t("QTTR")}
+						</div>
+						<div className="font-semibold text-success text-sm">
+							{player.qttr}
+						</div>
+					</div>
+					<div className="flex-1 rounded-md bg-muted/50 p-3 text-left">
+						<div className="mb-1 text-muted-foreground text-xs">
+							{t("Team")}
+						</div>
+						<div className="font-semibold text-sm">
 							{player.team ? (
 								<InternalLink
 									to="/teams/$teamId"
 									params={{ teamId: player.team.id }}
+									className="text-primary hover:underline"
 								>
 									{player.team.title}
 								</InternalLink>
 							) : (
 								t("No team set")
 							)}
-						</p>
-					</Card>
-					<Card gridRows={4}>
-						<DetailsList
-							items={player.placements}
-							getItemId={(item) => `${item.appointmentId}-${item.category}`}
-							columns={placementColumns}
-							onItemClick={onItemClick}
-							selectMode="none"
-						/>
-					</Card>
+						</div>
+					</div>
 				</div>
 				{canEdit && (
-					<div className="fab">
+					<div className="flex w-full gap-2">
 						<Button
-							asChild
-							variant="secondary"
-							size="icon-lg"
-							role="button"
-							tabIndex={0}
-						>
-							<div>
-								<CogIcon className="size-4" />
-							</div>
-						</Button>
-						<Button
-							variant="secondary"
-							size="icon-lg"
-							type="button"
+							variant="outline"
+							size="sm"
+							className="flex-1"
 							title={t("Update player")}
 							onClick={onEdit}
 						>
 							<EditIcon className="size-4" />
 						</Button>
 						<Button
-							variant="secondary"
-							size="icon-lg"
-							type="button"
+							variant="outline"
+							size="sm"
+							className="flex-1 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
 							title={t("Delete player")}
 							onClick={onOpenDelete}
 						>
@@ -239,59 +196,14 @@ function RouteComponent() {
 				)}
 			</div>
 
-			{/* Desktop layout: profile column + results */}
-			<div className="hidden lg:grid lg:grid-cols-[300px_1fr] lg:gap-6">
-				<div className="flex flex-col items-center rounded-xl bg-card p-6 text-center">
-					<div className="mb-3 flex size-20 items-center justify-center rounded-full bg-primary font-bold text-2xl text-primary-foreground">
-						{shortenUserName(player.name)}
-					</div>
-					<div className="font-bold text-lg">{player.name}</div>
-					<div className="mb-4 text-muted-foreground text-sm">
-						{calculateAgeGroup(player.year)} · {player.year}
-					</div>
-					<div className="mb-3 flex w-full gap-2">
-						<div className="flex-1 rounded-md bg-muted/50 p-3">
-							<div className="font-bold text-success text-xl">
-								{player.qttr}
-							</div>
-							<div className="mt-0.5 text-muted-foreground text-xs">
-								{t("QTTR")}
-							</div>
-						</div>
-						<div className="flex-1 rounded-md bg-muted/50 p-3">
-							<div className="font-bold text-xl">{tournamentCount}</div>
-							<div className="mt-0.5 text-muted-foreground text-xs">
-								{t("Tournaments")}
-							</div>
-						</div>
-					</div>
-					<div className="w-full rounded-md bg-muted/50 p-3 text-left">
-						<div className="mb-1 text-muted-foreground text-xs">
-							{t("Team")}
-						</div>
-						<div className="font-semibold text-sm">
-							{player.team ? (
-								<InternalLink
-									to="/teams/$teamId"
-									params={{ teamId: player.team.id }}
-								>
-									{player.team.title}
-								</InternalLink>
-							) : (
-								t("No team set")
-							)}
-						</div>
-					</div>
-				</div>
-				<div className="min-w-0 rounded-xl bg-card">
-					<DetailsList
-						items={player.placements}
-						getItemId={(item) => `${item.appointmentId}-${item.category}`}
-						columns={placementColumns}
-						onItemClick={onItemClick}
-						selectMode="none"
-					/>
-				</div>
+			<div className="min-w-0 rounded-xl bg-card">
+				<DetailsList
+					items={player.placements}
+					getItemId={(item) => `${item.appointmentId}-${item.category}`}
+					columns={placementColumns}
+					onItemClick={onItemClick}
+					selectMode="none"
+				/>
 			</div>
 
 			{canEdit && (
