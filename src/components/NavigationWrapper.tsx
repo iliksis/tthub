@@ -6,14 +6,11 @@ import {
 	HistoryIcon,
 	HouseIcon,
 	LogOutIcon,
-	SearchIcon,
 	Settings2Icon,
 	ShieldIcon,
 	UsersIcon,
 } from "lucide-react";
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { Kbd } from "@/components/ui/kbd";
 import {
 	Sidebar,
 	SidebarContent,
@@ -193,24 +190,9 @@ export const NavigationWrapper = ({
 				</SidebarFooter>
 			</Sidebar>
 			<SidebarInset>
-				<nav className="flex h-14 w-full items-center border-b border-border/40 px-4">
+				<nav className="flex h-11 w-full items-center gap-2 px-3 lg:hidden">
 					<SidebarTrigger className="lg:hidden" />
-					<div className="px-4">{title}</div>
-					<div className="flex-1" />
-					<Button
-						type="button"
-						variant="ghost"
-						className="mx-2 gap-2"
-						onClick={() => {
-							window.dispatchEvent(
-								new KeyboardEvent("keydown", { key: "k", metaKey: true }),
-							);
-						}}
-					>
-						<SearchIcon className="size-4" />
-						<span className="hidden sm:inline">{t("Search")}</span>
-						<Kbd className="hidden sm:inline-flex">⌘K</Kbd>
-					</Button>
+					<span className="font-bold text-lg">{title}</span>
 				</nav>
 				{/* Page content here */}
 				<div className="lg:mx-4 mx-0 p-4 relative">{children}</div>

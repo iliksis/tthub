@@ -58,7 +58,7 @@ Extend/compose these — don't hand-roll a new primitive if one exists here.
 
 ## 3. Layout shell & breakpoint convention
 
-App shell (`NavigationWrapper`, shadcn Sidebar/SidebarInset): top bar `flex h-14 w-full items-center border-b border-border/40 px-4`; page content wraps in `lg:mx-4 mx-0 p-4 relative`. Routes render directly into this — don't add another `container`/`max-w-*` wrapper around a page's root.
+App shell (`NavigationWrapper`, shadcn Sidebar/SidebarInset): a mobile-only top row (`flex h-11 w-full items-center gap-2 px-3 lg:hidden`, holding just the sidebar trigger inline with the page title — no border, no search button) disappears entirely at `lg:` — desktop has no app-shell chrome above the content, so each route's own page header (see "Desktop page header" below) carries the title. Page content wraps in `lg:mx-4 mx-0 p-4 relative`. Routes render directly into this — don't add another `container`/`max-w-*` wrapper around a page's root.
 
 **Single breakpoint rule**: page-level mobile/desktop layout switches use exactly `lg:` (1024px), as two parallel sibling trees:
 
