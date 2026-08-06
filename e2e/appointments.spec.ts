@@ -110,17 +110,26 @@ test.describe("Appointments - Edit Functionality", () => {
 		await loginAs(page, "admin");
 		await page.goto("/appts");
 		await page.waitForLoadState("networkidle");
-		const apptLinks = page.locator("tbody tr");
+		// The split view's rows only toggle selection; the title link is what
+		// actually navigates to the appointment detail page.
+		const apptLinks = page.locator(
+			'a[href^="/appts/"]:visible:not([href*="view="])',
+		);
 		const count = await apptLinks.count();
 		if (count > 0) {
 			await apptLinks.first().click();
 			await page.waitForLoadState("networkidle");
 
-			const configButton = page.locator("div svg.lucide-cog");
-			await configButton.first().click();
+			// The cog only exists in the mobile FAB menu; on desktop the edit
+			// button is already directly visible in the toolbar (as plain text,
+			// no icon).
+			const configButton = page.locator("div svg.lucide-cog:visible");
+			if ((await configButton.count()) > 0) {
+				await configButton.first().click();
+			}
 
 			const editButton = page.locator(
-				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen, button:has-text("Bearbeiten")',
 			);
 			if ((await editButton.count()) > 0) {
 				await editButton.first().click();
@@ -135,9 +144,7 @@ test.describe("Appointments - Edit Functionality", () => {
 					const originalValue = await titleInput.inputValue();
 					await titleInput.fill(`${originalValue} Updated`);
 
-					const submitButton = page.locator(
-						'button[type="submit"].btn-primary',
-					);
+					const submitButton = page.locator('button[type="submit"]');
 					await submitButton.click();
 					await page.waitForTimeout(1000);
 
@@ -157,18 +164,22 @@ test.describe("Appointments - Edit Functionality", () => {
 		await page.goto("/appts");
 		await page.waitForLoadState("networkidle");
 
-		const apptLinks = page.locator("tbody tr");
+		const apptLinks = page.locator(
+			'a[href^="/appts/"]:visible:not([href*="view="])',
+		);
 		const count = await apptLinks.count();
 
 		if (count > 0) {
 			await apptLinks.first().click();
 			await page.waitForLoadState("networkidle");
 
-			const configButton = page.locator("div svg.lucide-cog");
-			await configButton.first().click();
+			const configButton = page.locator("div svg.lucide-cog:visible");
+			if ((await configButton.count()) > 0) {
+				await configButton.first().click();
+			}
 
 			const editButton = page.locator(
-				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen, button:has-text("Bearbeiten")',
 			);
 			if ((await editButton.count()) > 0) {
 				await expect(editButton.first()).toBeVisible();
@@ -185,20 +196,21 @@ test.describe("Appointments - Edit Functionality", () => {
 		await page.goto("/appts");
 		await page.waitForLoadState("networkidle");
 
-		const apptLinks = page.locator("tbody tr");
+		const apptLinks = page.locator(
+			'a[href^="/appts/"]:visible:not([href*="view="])',
+		);
 		const count = await apptLinks.count();
 
 		if (count > 0) {
 			await apptLinks.first().click();
 			await page.waitForLoadState("networkidle");
 
-			const configButton = page.locator("div svg.lucide-cog");
-			await configButton.first().click();
-
+			const configButton = page.locator("div svg.lucide-cog:visible");
 			const editButton = page.locator(
-				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen, button:has-text("Bearbeiten")',
 			);
-			expect(editButton).not.toBeVisible();
+			await expect(configButton).not.toBeVisible();
+			await expect(editButton).not.toBeVisible();
 		} else {
 			test.skip();
 		}
@@ -341,7 +353,9 @@ test.describe("Appointments - Multi-select and bulk actions", () => {
 		await duplicateButton.click();
 
 		await expect(page.getByText(/Termine dupliziert/)).toBeVisible();
-		await expect(page.getByText("(Kopie)").first()).toBeVisible();
+		await expect(
+			page.locator(":visible", { hasText: "(Kopie)" }).first(),
+		).toBeVisible();
 	});
 
 	test("ADMIN can delete and then restore an appointment", async ({ page }) => {

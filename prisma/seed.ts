@@ -13,6 +13,7 @@ async function main() {
 	await prismaClient.team.deleteMany();
 	await prismaClient.player.deleteMany();
 	await prismaClient.response.deleteMany();
+	await prismaClient.transaction.deleteMany();
 	await prismaClient.appointment.deleteMany();
 	await prismaClient.user.deleteMany();
 

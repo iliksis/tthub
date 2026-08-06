@@ -4,19 +4,19 @@ import { loginAs } from "./helpers";
 test.describe("Dashboard Route - All Roles", () => {
 	test("ADMIN can access dashboard", async ({ page }) => {
 		await loginAs(page, "admin");
-		await expect(page.locator("nav")).toBeVisible({ timeout: 10000 });
+		await expect(page.locator("main")).toBeVisible({ timeout: 10000 });
 		await expect(page.locator("body")).toBeVisible();
 	});
 
 	test("EDITOR can access dashboard", async ({ page }) => {
 		await loginAs(page, "editor");
-		await expect(page.locator("nav")).toBeVisible({ timeout: 10000 });
+		await expect(page.locator("main")).toBeVisible({ timeout: 10000 });
 		await expect(page.locator("body")).toBeVisible();
 	});
 
 	test("USER can access dashboard", async ({ page }) => {
 		await loginAs(page, "user");
-		await expect(page.locator("nav")).toBeVisible({ timeout: 10000 });
+		await expect(page.locator("main")).toBeVisible({ timeout: 10000 });
 		await expect(page.locator("body")).toBeVisible();
 	});
 
