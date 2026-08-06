@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import {
 	ChevronDownIcon,
 	DownloadIcon,
-	ExternalLinkIcon,
 	PencilIcon,
 	RefreshCwIcon,
 	Trash2Icon,
@@ -39,6 +38,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Link } from "@/components/ui/link";
 import {
 	Sheet,
 	SheetClose,
@@ -381,15 +381,12 @@ function RouteComponent() {
 									{t("Location")}
 								</div>
 								{appointment.location ? (
-									<a
+									<Link
 										href={createGoogleMapsLink(appointment.location)}
-										target="_blank"
-										rel="noreferrer"
-										className="flex items-center gap-1 hover:underline"
+										external
 									>
 										{appointment.location}
-										<ExternalLinkIcon className="size-3.5" />
-									</a>
+									</Link>
 								) : (
 									<span className="text-muted-foreground">
 										{t("No location set")}
@@ -408,15 +405,13 @@ function RouteComponent() {
 					)}
 
 					{!isHoliday && appointment.link && (
-						<a
+						<Link
 							href={appointment.link}
-							target="_blank"
-							rel="noreferrer"
-							className="flex items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-3 font-medium text-primary text-sm hover:bg-primary/15"
+							external
+							className="flex items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-3 font-medium text-sm hover:bg-primary/15 hover:no-underline [&_svg]:size-4"
 						>
-							<ExternalLinkIcon className="size-4" />
-							{t("Join")}
-						</a>
+							{appointment.link}
+						</Link>
 					)}
 
 					{!isHoliday && (
@@ -589,15 +584,12 @@ function RouteComponent() {
 									{t("Location")}
 								</div>
 								{appointment.location ? (
-									<a
+									<Link
 										href={createGoogleMapsLink(appointment.location)}
-										target="_blank"
-										rel="noreferrer"
-										className="flex items-center gap-1 hover:underline"
+										external
 									>
 										{appointment.location}
-										<ExternalLinkIcon className="size-3.5" />
-									</a>
+									</Link>
 								) : (
 									<span className="text-muted-foreground">
 										{t("No location set")}
@@ -624,15 +616,9 @@ function RouteComponent() {
 									{t("Link")}
 								</div>
 								{appointment.link ? (
-									<a
-										href={appointment.link}
-										target="_blank"
-										rel="noreferrer"
-										className="flex items-center gap-1 text-primary hover:underline"
-									>
-										<ExternalLinkIcon className="size-3.5" />
-										{t("Join")}
-									</a>
+									<Link href={appointment.link} external>
+										{appointment.link}
+									</Link>
 								) : (
 									<span className="text-muted-foreground">
 										{t("No link set")}

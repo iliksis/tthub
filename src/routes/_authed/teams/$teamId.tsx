@@ -20,6 +20,7 @@ import { DeleteModal } from "@/components/modal/DeleteModal";
 import { TeamForm } from "@/components/teams/TeamForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
 import {
@@ -52,7 +53,11 @@ const rosterColumns: DetailsListColumn<TeamPlayer>[] = [
 	{
 		key: "name",
 		label: t("Name"),
-		render: (item) => item.name,
+		render: (item) => (
+			<Link to="/players/$playerId" params={{ playerId: item.id }}>
+				{item.name}
+			</Link>
+		),
 	},
 	{
 		key: "ageGroup",

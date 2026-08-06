@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
 import { groupPlacementsByCategory } from "@/lib/placements";
 import type { Placement, Player } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
@@ -38,7 +39,12 @@ export function PlacementsPanel({
 									key={p.playerId}
 									className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-accent/50"
 								>
-									<span>{p.player.name}</span>
+									<Link
+										to="/players/$playerId"
+										params={{ playerId: p.player.id }}
+									>
+										{p.player.name}
+									</Link>
 									{p.placement ? (
 										<span className="font-medium text-primary">
 											{p.placement}

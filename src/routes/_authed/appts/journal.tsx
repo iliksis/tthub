@@ -1,6 +1,5 @@
 import {
 	createFileRoute,
-	Link,
 	useRouter,
 	useRouterState,
 } from "@tanstack/react-router";
@@ -15,6 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Link } from "@/components/ui/link";
 import {
 	Select,
 	SelectContent,
@@ -131,7 +131,7 @@ const getTransactionColumns =
 					to="/appts/$apptId"
 					params={{ apptId: item.appointment.id }}
 					onClick={(e) => e.stopPropagation()}
-					className="truncate text-sm underline decoration-border underline-offset-2 hover:decoration-foreground"
+					className="truncate text-sm"
 				>
 					{item.appointment.shortTitle}
 				</Link>

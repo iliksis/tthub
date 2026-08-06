@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { UsersIcon } from "lucide-react";
-import { InternalLink } from "@/components/InternalLink";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Link as EntityLink } from "@/components/ui/link";
 import type { TeamDetail } from "@/hooks/useTeamDetail";
 import { t } from "@/lib/text";
 import { calculateAgeGroup, createColorForUserId } from "@/lib/utils";
@@ -48,11 +48,11 @@ export function TeamPreview({ team }: { team: TeamDetail }) {
 				) : (
 					<div className="flex max-h-56 flex-col overflow-y-auto rounded-md border p-1">
 						{sortedPlayers.map((player) => (
-							<InternalLink
+							<EntityLink
 								key={player.id}
 								to="/players/$playerId"
 								params={{ playerId: player.id }}
-								className="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-sm hover:bg-muted/60"
+								className="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-sm no-underline hover:bg-muted/60 hover:no-underline"
 							>
 								<span className="min-w-0 flex-1 truncate">{player.name}</span>
 								<span className="shrink-0 text-muted-foreground text-xs">
@@ -61,7 +61,7 @@ export function TeamPreview({ team }: { team: TeamDetail }) {
 								<span className="shrink-0 font-medium text-xs">
 									{player.qttr}
 								</span>
-							</InternalLink>
+							</EntityLink>
 						))}
 					</div>
 				)}

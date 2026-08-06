@@ -10,10 +10,10 @@ import { toast } from "sonner";
 import { deletePlayer, getPlayer, updatePlayer } from "@/api/players";
 import { getTeams } from "@/api/teams";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
-import { InternalLink } from "@/components/InternalLink";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlayerForm } from "@/components/players/PlayerForm";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
 import { calculateAgeGroup } from "@/lib/utils";
@@ -59,7 +59,11 @@ const placementColumns: DetailsListColumn<Placement>[] = [
 	{
 		key: "title",
 		label: t("Appointment"),
-		render: (item) => item.appointment.title,
+		render: (item) => (
+			<Link to="/appts/$apptId" params={{ apptId: item.appointment.id }}>
+				{item.appointment.title}
+			</Link>
+		),
 	},
 	{
 		key: "category",
@@ -139,9 +143,9 @@ function RouteComponent() {
 
 	return (
 		<div className="grid grid-cols-1 gap-4 lg:grid-cols-[300px_1fr] lg:items-start lg:gap-6">
-			<div className="flex flex-col items-center rounded-xl bg-card p-6 text-center lg:sticky lg:top-6">
-				<div className="font-bold text-lg">{player.name}</div>
-				<div className="mb-4 text-muted-foreground text-sm">
+			<div className="flex flex-col items-center lg:rounded-xl lg:bg-card lg:p-6 text-center lg:sticky lg:top-6">
+				<div className="font-bold text-lg hidden lg:block">{player.name}</div>
+				<div className="mb-4 text-muted-foreground text-sm self-start lg:self-center">
 					{calculateAgeGroup(player.year)} · {player.year}
 				</div>
 				<div className="mb-4 flex w-full gap-2">
@@ -159,13 +163,9 @@ function RouteComponent() {
 						</div>
 						<div className="font-semibold text-sm">
 							{player.team ? (
-								<InternalLink
-									to="/teams/$teamId"
-									params={{ teamId: player.team.id }}
-									className="text-primary hover:underline"
-								>
+								<Link to="/teams/$teamId" params={{ teamId: player.team.id }}>
 									{player.team.title}
-								</InternalLink>
+								</Link>
 							) : (
 								t("No team set")
 							)}

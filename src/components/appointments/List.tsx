@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Link as EntityLink } from "@/components/ui/link";
 import {
 	Select,
 	SelectContent,
@@ -60,7 +61,16 @@ export const getAppointmentColumns = (
 	{
 		key: "title",
 		label: t("Title"),
-		render: (item) => item.shortTitle,
+		render: (item) => (
+			<EntityLink
+				to="/appts/$apptId"
+				params={{ apptId: item.id }}
+				onClick={(e) => e.stopPropagation()}
+				className="truncate"
+			>
+				{item.shortTitle}
+			</EntityLink>
+		),
 		sortable,
 		sortFn: (a, b) => a.shortTitle.localeCompare(b.shortTitle),
 	},

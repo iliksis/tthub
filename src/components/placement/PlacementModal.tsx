@@ -3,8 +3,8 @@ import { EditIcon, Plus, Trash2Icon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { deletePlacement } from "@/api/placements";
-import { InternalLink } from "@/components/InternalLink";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
 import { groupPlacementsByCategory } from "@/lib/placements";
 import type { Placement, Player } from "@/lib/prisma/client";
@@ -111,12 +111,12 @@ export const ParticipantModal = ({
 								className="flex items-center gap-2"
 							>
 								<div className="flex-1">
-									<InternalLink
+									<Link
 										to="/players/$playerId"
 										params={{ playerId: p.player.id }}
 									>
 										{p.player.name}
-									</InternalLink>
+									</Link>
 								</div>
 								<div className="flex-1">
 									<p>{p.placement}</p>

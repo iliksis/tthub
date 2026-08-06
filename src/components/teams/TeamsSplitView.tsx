@@ -1,6 +1,7 @@
 import { Loader2Icon } from "lucide-react";
 import React from "react";
 import { DetailsList } from "@/components/DetailsList";
+import { Link } from "@/components/ui/link";
 import { TableRow } from "@/components/ui/table";
 import { useTeamDetail } from "@/hooks/useTeamDetail";
 import type { Team } from "@/lib/prisma/client";
@@ -29,7 +30,19 @@ export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 			<div className="min-w-0 overflow-x-auto rounded-lg bg-card">
 				<DetailsList
 					columns={[
-						{ key: "name", label: t("Name"), render: (item) => item.title },
+						{
+							key: "name",
+							label: t("Name"),
+							render: (item) => (
+								<Link
+									to="/teams/$teamId"
+									params={{ teamId: item.id }}
+									onClick={(e) => e.stopPropagation()}
+								>
+									{item.title}
+								</Link>
+							),
+						},
 						{
 							key: "league",
 							label: t("League"),

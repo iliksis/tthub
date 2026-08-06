@@ -1,6 +1,6 @@
 import { PencilIcon, XIcon } from "lucide-react";
-import { InternalLink } from "@/components/InternalLink";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
 import {
 	Select,
 	SelectContent,
@@ -86,13 +86,9 @@ export function EditableNextAppointmentCard({
 				{t("Next Appointment")}:
 			</div>
 			{nextAppointment ? (
-				<InternalLink
-					to="/appts/$apptId"
-					params={{ apptId: nextAppointment.id }}
-					className="text-primary"
-				>
-					{nextAppointment.title} →
-				</InternalLink>
+				<Link to="/appts/$apptId" params={{ apptId: nextAppointment.id }}>
+					{nextAppointment.title}
+				</Link>
 			) : (
 				<span className="text-muted-foreground">{t("No appointment set")}</span>
 			)}

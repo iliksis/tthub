@@ -1,5 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { DetailsList } from "@/components/DetailsList";
+import { Link } from "@/components/ui/link";
 import type { Player, Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { calculateAgeGroup } from "@/lib/utils";
@@ -32,7 +33,15 @@ export const List = ({ players }: ListProps) => {
 					{
 						key: "name",
 						label: t("Name"),
-						render: (item) => item.name,
+						render: (item) => (
+							<Link
+								to="/players/$playerId"
+								params={{ playerId: item.id }}
+								onClick={(e) => e.stopPropagation()}
+							>
+								{item.name}
+							</Link>
+						),
 						sortable: true,
 						sortFn: (a, b) => a.name.localeCompare(b.name),
 					},
@@ -56,7 +65,16 @@ export const List = ({ players }: ListProps) => {
 					{
 						key: "team",
 						label: t("Team"),
-						render: (item) => item.team?.title,
+						render: (item) =>
+							item.team && (
+								<Link
+									to="/teams/$teamId"
+									params={{ teamId: item.team.id }}
+									onClick={(e) => e.stopPropagation()}
+								>
+									{item.team.title}
+								</Link>
+							),
 						sortable: true,
 						sortFn: (a, b) => {
 							const teamA = a.team?.title || "";

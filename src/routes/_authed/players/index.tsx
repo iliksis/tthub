@@ -10,6 +10,7 @@ import {
 } from "@/components/players/Filters";
 import { List } from "@/components/players/List";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "@/components/ui/link";
 import type { Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 
@@ -97,7 +98,13 @@ const TeamsRail = ({ teams }: TeamsRailProps) => {
 					teams.map((team) => (
 						<div key={team.id} className="rounded-md bg-muted/40 p-3">
 							<div className="mb-1 flex items-center justify-between gap-2">
-								<span className="font-semibold text-sm">{team.title}</span>
+								<Link
+									to="/teams/$teamId"
+									params={{ teamId: team.id }}
+									className="font-semibold text-sm"
+								>
+									{team.title}
+								</Link>
 								{team.placement && (
 									<Badge variant="secondary" className="shrink-0">
 										{team.placement}
