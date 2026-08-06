@@ -4,20 +4,29 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { CogIcon, EditIcon, Trash2Icon } from "lucide-react";
+import {
+	ChevronRightIcon,
+	CogIcon,
+	EditIcon,
+	Trash2Icon,
+	TrophyIcon,
+	UsersIcon,
+} from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { deleteTeam, getTeam, updateTeam } from "@/api/teams";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
-import { InternalLink } from "@/components/InternalLink";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { TeamForm } from "@/components/teams/TeamForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ValueCard";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
-import { calculateAgeGroup } from "@/lib/utils";
+import {
+	calculateAgeGroup,
+	createColorForUserId,
+	shortenUserName,
+} from "@/lib/utils";
 
 // biome-ignore assist/source/useSortedKeys: head uses loaderData
 export const Route = createFileRoute("/_authed/teams/$teamId")({
@@ -44,16 +53,11 @@ const rosterColumns: DetailsListColumn<TeamPlayer>[] = [
 		key: "name",
 		label: t("Name"),
 		render: (item) => item.name,
-		sortable: true,
-		sortFn: (a, b) => a.name.localeCompare(b.name),
 	},
 	{
 		key: "ageGroup",
 		label: t("Age Group"),
 		render: (item) => calculateAgeGroup(item.year),
-		sortable: true,
-		sortFn: (a, b) =>
-			calculateAgeGroup(a.year).localeCompare(calculateAgeGroup(b.year)),
 	},
 	{
 		key: "qttr",
@@ -123,11 +127,13 @@ function RouteComponent() {
 	return (
 		<div>
 			{/* Desktop toolbar */}
-			<div className="mb-4 hidden items-center gap-2 lg:flex">
-				<span className="text-muted-foreground text-sm">{t("Teams")} /</span>
-				<span className="flex-1 font-semibold text-[15px]">{team.title}</span>
+			<div className="mb-4 hidden flex-wrap items-center gap-x-3 gap-y-2 lg:flex">
+				<span className="font-semibold text-[15px]">{team.title}</span>
+				<span className="text-muted-foreground text-sm">·</span>
+				<span className="text-muted-foreground text-sm">{team.league}</span>
+				{team.placement && <Badge variant="default">{team.placement}</Badge>}
 				{canEdit && (
-					<>
+					<div className="ml-auto flex gap-2">
 						<Button variant="outline" size="sm" onClick={onEdit}>
 							<EditIcon className="size-4" />
 							{t("Update team")}
@@ -141,33 +147,64 @@ function RouteComponent() {
 							<Trash2Icon className="size-4" />
 							{t("Delete team")}
 						</Button>
-					</>
+					</div>
 				)}
 			</div>
 
 			{/* Mobile / tablet layout */}
 			<div className="lg:hidden">
-				<div className="grid grid-cols-4 gap-2">
-					<Card title={t("League")} gridRows={3}>
-						{team.league}
-					</Card>
-					<Card title={t("Placement")} gridRows={1}>
-						{team.placement}
-					</Card>
-					<Card title={t("Players")} gridRows={4}>
-						<ul>
-							{team.players.map((player) => (
-								<li key={player.id} className="py-0.5">
-									<InternalLink
-										to="/players/$playerId"
-										params={{ playerId: player.id }}
+				<div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+					<span className="text-muted-foreground text-sm">{team.league}</span>
+					{team.placement && <Badge variant="default">{team.placement}</Badge>}
+				</div>
+				{sortedPlayers.length === 0 ? (
+					<div className="flex flex-col items-center gap-2 rounded-lg bg-card p-8 text-center text-muted-foreground">
+						<UsersIcon className="size-5" />
+						{t("No items found")}
+					</div>
+				) : (
+					<div className="flex flex-col gap-2.5">
+						{sortedPlayers.map((player) => {
+							const color = createColorForUserId(player.id);
+							return (
+								<button
+									key={player.id}
+									type="button"
+									onClick={async () => {
+										await router.navigate({
+											params: { playerId: player.id },
+											to: "/players/$playerId",
+										});
+									}}
+									className="flex items-center gap-3 rounded-lg bg-card p-3 text-left transition-colors hover:bg-muted/50"
+								>
+									<div
+										className="flex size-9 shrink-0 items-center justify-center rounded-full font-semibold text-xs"
+										style={{
+											backgroundColor: color.backgroundColor,
+											color: color.foregroundColor,
+										}}
 									>
-										{player.name}
-									</InternalLink>
-								</li>
-							))}
-						</ul>
-					</Card>
+										{shortenUserName(player.name)}
+									</div>
+									<div className="min-w-0 flex-1">
+										<div className="truncate font-medium text-sm">
+											{player.name}
+										</div>
+										<div className="text-muted-foreground text-xs">
+											{calculateAgeGroup(player.year)} · {player.year}
+										</div>
+									</div>
+									<Badge variant="success">{player.qttr}</Badge>
+									<ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />
+								</button>
+							);
+						})}
+					</div>
+				)}
+				<div className="mt-4 flex items-center gap-3 rounded-lg border border-border/60 border-dashed p-4 text-muted-foreground text-sm">
+					<TrophyIcon className="size-4 shrink-0" />
+					{t("League table and fixtures are not available yet.")}
 				</div>
 				{canEdit && (
 					<div className="fab">
@@ -204,67 +241,25 @@ function RouteComponent() {
 				)}
 			</div>
 
-			{/* Desktop layout: identity header + roster table + rail */}
+			{/* Desktop layout: roster-first, league table demoted to a placeholder strip */}
 			<div className="hidden lg:block">
-				<div className="mb-6 flex items-center gap-5 rounded-xl bg-gradient-to-br from-muted/60 to-card p-6">
-					<div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary font-bold text-primary-foreground text-xl">
-						{team.title.slice(0, 2).toUpperCase()}
-					</div>
-					<div className="min-w-0 flex-1">
-						<div className="font-bold text-xl">{team.title}</div>
-						<div className="mt-1 text-muted-foreground text-sm">
-							{team.league}
-						</div>
-					</div>
-					<div className="flex shrink-0 gap-3">
-						{team.placement && (
-							<div className="rounded-lg bg-background/60 px-4 py-2.5 text-center">
-								<div className="font-bold text-lg">{team.placement}</div>
-								<div className="mt-0.5 text-muted-foreground text-xs">
-									{t("Placement")}
-								</div>
-							</div>
-						)}
-						<div className="rounded-lg bg-background/60 px-4 py-2.5 text-center">
-							<div className="font-bold text-lg">{team.players.length}</div>
-							<div className="mt-0.5 text-muted-foreground text-xs">
-								{t("Players")}
-							</div>
-						</div>
-					</div>
+				<div className="rounded-lg bg-card">
+					<DetailsList
+						items={sortedPlayers}
+						getItemId={(item) => item.id}
+						columns={rosterColumns}
+						selectMode="none"
+						onItemClick={async (item) => {
+							await router.navigate({
+								params: { playerId: item.id },
+								to: "/players/$playerId",
+							});
+						}}
+					/>
 				</div>
-				<div className="grid grid-cols-[1fr_360px] gap-6">
-					<div className="min-w-0">
-						<h3 className="mb-3 font-bold text-sm">
-							{t("Players")}{" "}
-							<span className="font-normal text-muted-foreground">
-								· {team.players.length}
-							</span>
-						</h3>
-						<div className="rounded-lg bg-card">
-							<DetailsList
-								items={sortedPlayers}
-								getItemId={(item) => item.id}
-								columns={rosterColumns}
-								selectMode="none"
-								onItemClick={async (item) => {
-									await router.navigate({
-										params: { playerId: item.id },
-										to: "/players/$playerId",
-									});
-								}}
-							/>
-						</div>
-					</div>
-					<div className="min-w-0 rounded-lg bg-card p-4">
-						<h3 className="mb-3 font-bold text-sm">{t("League table")}</h3>
-						<Badge variant="secondary" className="mb-2">
-							{t("Not available yet")}
-						</Badge>
-						<p className="text-muted-foreground text-sm">
-							{t("League table and fixtures are not available yet.")}
-						</p>
-					</div>
+				<div className="mt-4 flex items-center gap-3 rounded-lg border border-border/60 border-dashed p-4 text-muted-foreground text-sm">
+					<TrophyIcon className="size-4 shrink-0" />
+					{t("League table and fixtures are not available yet.")}
 				</div>
 			</div>
 
