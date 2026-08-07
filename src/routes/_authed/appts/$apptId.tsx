@@ -26,8 +26,8 @@ import { RecordInfoPanel } from "@/components/appointments/RecordInfoPanel";
 import { ResponsesPanel } from "@/components/appointments/ResponsesPanel";
 import { TransactionHistory } from "@/components/appointments/TransactionHistory";
 import { DeleteModal } from "@/components/modal/DeleteModal";
-import { ParticipantModal } from "@/components/placement/PlacementModal";
 import { PlacementsPanel } from "@/components/placement/PlacementsPanel";
+import { PlacementsSheet } from "@/components/placement/PlacementsSheet";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -698,9 +698,10 @@ function RouteComponent() {
 				onDelete={onDelete}
 			/>
 
-			<ParticipantModal
+			<PlacementsSheet
 				open={isParticipantsModalOpen}
 				onClose={onCloseParticipants}
+				canEdit={canEdit}
 				placements={appointment.placements}
 				players={players ?? []}
 				appointmentId={appointment.id}
