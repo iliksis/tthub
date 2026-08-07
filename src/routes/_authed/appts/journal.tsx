@@ -4,16 +4,15 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import type { SortingState } from "@tanstack/react-table";
-import { Loader2Icon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
 import { getTransactionsPage } from "@/api/appointments";
 import { JournalMobileRow } from "@/components/appointments/JournalMobileRow";
+import { LoadMoreFooter } from "@/components/appointments/LoadMoreFooter";
 import { TransactionDetail } from "@/components/appointments/TransactionDetail";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "@/components/ui/link";
 import {
@@ -27,6 +26,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { TableRow } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
+import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
 import type { Appointment, Transaction, User } from "@/lib/prisma/client";
 import { TransactionType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
@@ -214,22 +214,12 @@ function RouteComponent() {
 		setDragOffset(0);
 	};
 
-	// The loader only ever fetches one batch (skip/take), never the whole
-	// list again — so the previously loaded rows are kept in state and the
-	// new batch is appended to them, unless the filters changed (or this is
-	// the first page), in which case it replaces them outright. Comparing
-	// against state (not a ref) during render is the React-sanctioned way to
-	// reset/derive state when an input changes without a useEffect round-trip.
 	const filterKey = `${search.query ?? ""}|${search.type ?? ""}|${search.sort ?? ""}`;
-	const [items, setItems] = React.useState(batch);
-	const [appliedLoad, setAppliedLoad] = React.useState({ filterKey, skip });
-	const [newIds, setNewIds] = React.useState<ReadonlySet<string>>(new Set());
-	if (appliedLoad.filterKey !== filterKey || appliedLoad.skip !== skip) {
-		const isFreshView = skip === 0 || appliedLoad.filterKey !== filterKey;
-		setAppliedLoad({ filterKey, skip });
-		setItems((prev) => (isFreshView ? batch : [...prev, ...batch]));
-		setNewIds(isFreshView ? new Set() : new Set(batch.map((t) => t.id)));
-	}
+	const { items, appended } = useLoadMoreBatch(batch, skip, filterKey);
+	const newIds = React.useMemo(
+		() => new Set(appended.map((t) => t.id)),
+		[appended],
+	);
 
 	// Debounced so typing doesn't fire a loader request per keystroke; the
 	// input itself still updates instantly for a responsive feel.
@@ -405,11 +395,12 @@ function RouteComponent() {
 				</div>
 			</div>
 
-			<JournalLoadMoreFooter
-				items={items}
+			<LoadMoreFooter
+				itemCount={items.length}
 				remaining={remaining}
 				matchedTotal={matchedTotal}
 				isNavigating={isNavigating}
+				batchSize={BATCH_SIZE}
 				onLoadMore={onLoadMore}
 			/>
 
@@ -448,54 +439,6 @@ function RouteComponent() {
 					)}
 				</SheetContent>
 			</Sheet>
-		</div>
-	);
-}
-
-type JournalLoadMoreFooterProps = {
-	items: TransactionWithRelations[];
-	remaining: number;
-	matchedTotal: number;
-	isNavigating: boolean;
-	onLoadMore: () => void;
-};
-
-function JournalLoadMoreFooter({
-	items,
-	remaining,
-	matchedTotal,
-	isNavigating,
-	onLoadMore,
-}: JournalLoadMoreFooterProps) {
-	if (items.length === 0) return null;
-
-	if (remaining > 0) {
-		return (
-			<div className="flex justify-center border-border/60 border-t pt-3">
-				<Button
-					variant="outline"
-					className="w-full"
-					disabled={isNavigating}
-					onClick={onLoadMore}
-				>
-					{isNavigating && <Loader2Icon className="animate-spin" />}
-					{isNavigating
-						? t("Loading…")
-						: t(
-								"Load {0} more ({1} remaining)",
-								Math.min(BATCH_SIZE, remaining).toString(),
-								remaining.toString(),
-							)}
-				</Button>
-			</div>
-		);
-	}
-
-	return (
-		<div className="flex justify-center border-border/60 border-t pt-3">
-			<span className="text-muted-foreground text-xs">
-				{t("You've reached the end — {0} events", matchedTotal.toString())}
-			</span>
 		</div>
 	);
 }

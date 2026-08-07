@@ -14,7 +14,6 @@ import {
 	CopyIcon,
 	EyeOffIcon,
 	ListIcon,
-	Loader2Icon,
 	MapPinIcon,
 	RotateCcwIcon,
 	Trash2Icon,
@@ -39,6 +38,7 @@ import {
 	List,
 	MobileFilters,
 } from "@/components/appointments/List";
+import { LoadMoreFooter } from "@/components/appointments/LoadMoreFooter";
 import { MobileCalendar } from "@/components/calendar/MobileCalendar";
 import type { CalendarAppointment } from "@/components/calendar/MonthCalendar";
 import { MonthCalendar } from "@/components/calendar/MonthCalendar";
@@ -48,6 +48,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
 import { buildMonthGrid } from "@/lib/calendarGrid";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import {
@@ -201,12 +202,6 @@ function RouteComponent() {
 		});
 	};
 
-	// The loader only ever fetches one batch (skip/take), never the whole list
-	// again — so previously loaded rows are kept in state and the new batch is
-	// appended to them, unless the filters changed (or this is the first
-	// page), in which case it replaces them outright. Comparing against state
-	// (not a ref) during render is the React-sanctioned way to reset/derive
-	// state when an input changes without a useEffect round-trip.
 	// `view`/`month`/`year` don't affect the list query, so they're excluded
 	// here — otherwise switching to Calendar and back (or paging months)
 	// would look like a filter change and reset the accumulated `items`.
@@ -217,13 +212,11 @@ function RouteComponent() {
 		view: undefined,
 		year: undefined,
 	});
-	const [items, setItems] = React.useState<AppointmentWithResponses[]>(batch);
-	const [appliedLoad, setAppliedLoad] = React.useState({ filterKey, skip });
-	if (appliedLoad.filterKey !== filterKey || appliedLoad.skip !== skip) {
-		const isFreshView = skip === 0 || appliedLoad.filterKey !== filterKey;
-		setAppliedLoad({ filterKey, skip });
-		setItems((prev) => (isFreshView ? batch : [...prev, ...batch]));
-	}
+	const { items, setItems } = useLoadMoreBatch<AppointmentWithResponses>(
+		batch,
+		skip,
+		filterKey,
+	);
 
 	const remaining = matchedTotal - items.length;
 	const onLoadMore = () => {
@@ -261,11 +254,12 @@ function RouteComponent() {
 					<>
 						<MobileFilters {...search} />
 						<List appointments={items} />
-						<AppointmentLoadMoreFooter
-							items={items}
+						<LoadMoreFooter
+							itemCount={items.length}
 							remaining={remaining}
 							matchedTotal={matchedTotal}
 							isNavigating={isNavigating}
+							batchSize={BATCH_SIZE}
 							onLoadMore={onLoadMore}
 						/>
 					</>
@@ -385,11 +379,12 @@ function RouteComponent() {
 							appointments={items}
 							onAppointmentsChange={setItems}
 							footer={
-								<AppointmentLoadMoreFooter
-									items={items}
+								<LoadMoreFooter
+									itemCount={items.length}
 									remaining={remaining}
 									matchedTotal={matchedTotal}
 									isNavigating={isNavigating}
+									batchSize={BATCH_SIZE}
 									onLoadMore={onLoadMore}
 								/>
 							}
@@ -398,54 +393,6 @@ function RouteComponent() {
 				)}
 			</div>
 		</>
-	);
-}
-
-type AppointmentLoadMoreFooterProps = {
-	items: AppointmentWithResponses[];
-	remaining: number;
-	matchedTotal: number;
-	isNavigating: boolean;
-	onLoadMore: () => void;
-};
-
-function AppointmentLoadMoreFooter({
-	items,
-	remaining,
-	matchedTotal,
-	isNavigating,
-	onLoadMore,
-}: AppointmentLoadMoreFooterProps) {
-	if (items.length === 0) return null;
-
-	if (remaining > 0) {
-		return (
-			<div className="flex justify-center border-border/60 border-t pt-3">
-				<Button
-					variant="outline"
-					className="w-full"
-					disabled={isNavigating}
-					onClick={onLoadMore}
-				>
-					{isNavigating && <Loader2Icon className="animate-spin" />}
-					{isNavigating
-						? t("Loading…")
-						: t(
-								"Load {0} more ({1} remaining)",
-								Math.min(BATCH_SIZE, remaining).toString(),
-								remaining.toString(),
-							)}
-				</Button>
-			</div>
-		);
-	}
-
-	return (
-		<div className="flex justify-center border-border/60 border-t pt-3">
-			<span className="text-muted-foreground text-xs">
-				{t("You've reached the end — {0} events", matchedTotal.toString())}
-			</span>
-		</div>
 	);
 }
 
