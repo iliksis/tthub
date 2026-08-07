@@ -3,6 +3,13 @@ import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { createPlacement } from "@/api/placements";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogFooter,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,7 +23,6 @@ import { useMutation } from "@/hooks/useMutation";
 import type { Player } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { calculateAgeGroup } from "@/lib/utils";
-import { Modal } from "../modal/Modal";
 
 type CreateCategoryProps = {
 	open: boolean;
@@ -73,96 +79,103 @@ export const CreatePlacement = ({
 	if (!open) return null;
 
 	return (
-		<Modal
+		<Dialog
 			open={open}
-			onClose={_onClose}
-			modalBoxClassName="md:max-w-xl md:mx-auto"
-			onRenderActionButton={() => (
-				<Button
-					type="submit"
-					onClick={(e) => {
-						e.preventDefault();
-						e.stopPropagation();
-						form.handleSubmit();
-					}}
-				>
-					{t("Create")}
-				</Button>
-			)}
+			onOpenChange={(nextOpen) => {
+				if (!nextOpen) _onClose();
+			}}
 		>
-			<form className="flex flex-col gap-2" onSubmit={form.handleSubmit}>
-				<div>
-					<form.Field name="player">
-						{(field) => (
-							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor={field.name}>{t("Player")}:</Label>
-								<Select
-									name={field.name}
-									value={field.state.value || undefined}
-									onValueChange={(value) => field.handleChange(value ?? "")}
-									onOpenChange={(open) => {
-										if (!open) field.handleBlur();
-									}}
-								>
-									<SelectTrigger id={field.name} className="w-full">
-										<SelectValue placeholder={t("Choose a player")} />
-									</SelectTrigger>
-									<SelectContent>
-										{players.map((p) => (
-											<SelectItem
-												key={p.id}
-												value={p.id}
-												className="before:content-[attr(data-before)] before:opacity-60"
-												data-before={calculateAgeGroup(p.year)}
-											>
-												{p.name}
-											</SelectItem>
+			<DialogContent className="md:max-w-xl md:mx-auto">
+				<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
+				<form className="flex flex-col gap-2" onSubmit={form.handleSubmit}>
+					<div>
+						<form.Field name="player">
+							{(field) => (
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Player")}:</Label>
+									<Select
+										name={field.name}
+										value={field.state.value || undefined}
+										onValueChange={(value) => field.handleChange(value ?? "")}
+										onOpenChange={(open) => {
+											if (!open) field.handleBlur();
+										}}
+									>
+										<SelectTrigger id={field.name} className="w-full">
+											<SelectValue placeholder={t("Choose a player")} />
+										</SelectTrigger>
+										<SelectContent>
+											{players.map((p) => (
+												<SelectItem
+													key={p.id}
+													value={p.id}
+													className="before:content-[attr(data-before)] before:opacity-60"
+													data-before={calculateAgeGroup(p.year)}
+												>
+													{p.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+					<div>
+						<form.Field name="category">
+							{(field) => (
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Category")}:</Label>
+									<Input
+										id={field.name}
+										list="categories"
+										name={field.name}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+									<datalist id="categories">
+										{categories.map((c) => (
+											<option key={c} value={c} />
 										))}
-									</SelectContent>
-								</Select>
-							</fieldset>
-						)}
-					</form.Field>
-				</div>
-				<div>
-					<form.Field name="category">
-						{(field) => (
-							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor={field.name}>{t("Category")}:</Label>
-								<Input
-									id={field.name}
-									list="categories"
-									name={field.name}
-									value={field.state.value}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
-								/>
-								<datalist id="categories">
-									{categories.map((c) => (
-										<option key={c} value={c} />
-									))}
-								</datalist>
-							</fieldset>
-						)}
-					</form.Field>
-				</div>
-				<div>
-					<form.Field name="placement">
-						{(field) => (
-							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor={field.name}>{t("Placement")}:</Label>
-								<Input
-									id={field.name}
-									name={field.name}
-									value={field.state.value}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
-								/>
-							</fieldset>
-						)}
-					</form.Field>
-				</div>
-			</form>
-		</Modal>
+									</datalist>
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+					<div>
+						<form.Field name="placement">
+							{(field) => (
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Placement")}:</Label>
+									<Input
+										id={field.name}
+										name={field.name}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+				</form>
+				<DialogFooter>
+					<DialogClose render={<Button variant="outline" />}>
+						{t("Close")}
+					</DialogClose>
+					<Button
+						type="submit"
+						onClick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							form.handleSubmit();
+						}}
+					>
+						{t("Create")}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 };

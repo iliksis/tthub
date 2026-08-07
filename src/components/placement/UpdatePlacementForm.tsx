@@ -3,12 +3,18 @@ import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { updatePlacement } from "@/api/placements";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogFooter,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import type { Placement } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
-import { Modal } from "../modal/Modal";
 
 type UpdatePlacementFormProps = {
 	open: boolean;
@@ -59,41 +65,48 @@ export const UpdatePlacementForm = ({
 	};
 
 	return (
-		<Modal
+		<Dialog
 			open={open}
-			onClose={_onClose}
-			modalBoxClassName="md:max-w-xl md:mx-auto"
-			onRenderActionButton={() => (
-				<Button
-					type="submit"
-					onClick={(e) => {
-						e.preventDefault();
-						e.stopPropagation();
-						form.handleSubmit();
-					}}
-				>
-					{t("Update")}
-				</Button>
-			)}
+			onOpenChange={(nextOpen) => {
+				if (!nextOpen) _onClose();
+			}}
 		>
-			<form className="flex flex-col gap-2" onSubmit={form.handleSubmit}>
-				<div>
-					<form.Field name="placement">
-						{(field) => (
-							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor={field.name}>{t("Placement")}:</Label>
-								<Input
-									id={field.name}
-									name={field.name}
-									value={field.state.value}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
-								/>
-							</fieldset>
-						)}
-					</form.Field>
-				</div>
-			</form>
-		</Modal>
+			<DialogContent className="md:max-w-xl md:mx-auto">
+				<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
+				<form className="flex flex-col gap-2" onSubmit={form.handleSubmit}>
+					<div>
+						<form.Field name="placement">
+							{(field) => (
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Placement")}:</Label>
+									<Input
+										id={field.name}
+										name={field.name}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+				</form>
+				<DialogFooter>
+					<DialogClose render={<Button variant="outline" />}>
+						{t("Close")}
+					</DialogClose>
+					<Button
+						type="submit"
+						onClick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							form.handleSubmit();
+						}}
+					>
+						{t("Update")}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 };

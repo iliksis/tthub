@@ -4,12 +4,18 @@ import React from "react";
 import { toast } from "sonner";
 import { deletePlacement } from "@/api/placements";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogFooter,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
 import { groupPlacementsByCategory } from "@/lib/placements";
 import type { Placement, Player } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
-import { Modal } from "../modal/Modal";
 import { CreatePlacement } from "./CreatePlacement";
 import { UpdatePlacementForm } from "./UpdatePlacementForm";
 
@@ -80,75 +86,84 @@ export const ParticipantModal = ({
 
 	return (
 		<>
-			<Modal
+			<Dialog
 				open={open}
-				onClose={onClose}
-				modalBoxClassName="w-[80vw] max-w-md"
+				onOpenChange={(nextOpen) => {
+					if (!nextOpen) onClose();
+				}}
 			>
-				<div className="flex items-center">
-					<h2 className="flex-1">{t("Participants")}</h2>
-					{!canEdit && (
-						<Button
-							type="button"
-							variant="ghost"
-							size="icon"
-							className="shrink"
-							title={t("Create")}
-							onClick={onCreateCategory}
-						>
-							<Plus className="size-4" />
-						</Button>
-					)}
-				</div>
-				{groupedPlacements.map((group) => (
-					<div key={group.category} className="flex flex-col gap-2 mt-8">
-						<div className="flex items-center">
-							<h3 className="flex-1 font-bold">{group.category}</h3>
-						</div>
-						{group.placements.map((p) => (
-							<div
-								key={`${p.appointmentId}-${p.playerId}`}
-								className="flex items-center gap-2"
+				<DialogContent className="w-[80vw] max-w-md" showCloseButton={false}>
+					<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
+					<div className="flex items-center">
+						<h2 className="flex-1">{t("Participants")}</h2>
+						{!canEdit && (
+							<Button
+								type="button"
+								variant="ghost"
+								size="icon"
+								className="shrink"
+								title={t("Create")}
+								onClick={onCreateCategory}
 							>
-								<div className="flex-1">
-									<Link
-										to="/players/$playerId"
-										params={{ playerId: p.player.id }}
-									>
-										{p.player.name}
-									</Link>
-								</div>
-								<div className="flex-1">
-									<p>{p.placement}</p>
-								</div>
-								{!canEdit && (
-									<>
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon"
-											title={t("Edit")}
-											onClick={() => onUpdatePlacement(p)}
-										>
-											<EditIcon className="size-4" />
-										</Button>
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon"
-											className="text-destructive hover:text-destructive"
-											title={t("Delete")}
-											onClick={onDeletePlacement(p)}
-										>
-											<Trash2Icon className="size-4" />
-										</Button>
-									</>
-								)}
-							</div>
-						))}
+								<Plus className="size-4" />
+							</Button>
+						)}
 					</div>
-				))}
-			</Modal>
+					{groupedPlacements.map((group) => (
+						<div key={group.category} className="flex flex-col gap-2 mt-8">
+							<div className="flex items-center">
+								<h3 className="flex-1 font-bold">{group.category}</h3>
+							</div>
+							{group.placements.map((p) => (
+								<div
+									key={`${p.appointmentId}-${p.playerId}`}
+									className="flex items-center gap-2"
+								>
+									<div className="flex-1">
+										<Link
+											to="/players/$playerId"
+											params={{ playerId: p.player.id }}
+										>
+											{p.player.name}
+										</Link>
+									</div>
+									<div className="flex-1">
+										<p>{p.placement}</p>
+									</div>
+									{!canEdit && (
+										<>
+											<Button
+												type="button"
+												variant="ghost"
+												size="icon"
+												title={t("Edit")}
+												onClick={() => onUpdatePlacement(p)}
+											>
+												<EditIcon className="size-4" />
+											</Button>
+											<Button
+												type="button"
+												variant="ghost"
+												size="icon"
+												className="text-destructive hover:text-destructive"
+												title={t("Delete")}
+												onClick={onDeletePlacement(p)}
+											>
+												<Trash2Icon className="size-4" />
+											</Button>
+										</>
+									)}
+								</div>
+							))}
+						</div>
+					))}
+					<DialogFooter>
+						<DialogClose render={<Button variant="outline" />}>
+							{t("Close")}
+						</DialogClose>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 			<CreatePlacement
 				open={showCreate}
 				onClose={onCloseCreateCategory}

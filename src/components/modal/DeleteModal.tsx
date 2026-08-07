@@ -1,6 +1,13 @@
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { t } from "@/lib/text";
-import { Modal } from "./Modal";
 
 type DeleteModalProps = {
 	label: string;
@@ -16,18 +23,24 @@ export const DeleteModal = ({
 	onDelete,
 }: DeleteModalProps) => {
 	return (
-		<Modal
+		<Dialog
 			open={open}
-			onClose={onClose}
-			className="text-warning-foreground"
-			modalBoxClassName="bg-warning"
-			onRenderActionButton={() => (
-				<Button type="button" variant="destructive" onClick={onDelete}>
-					{t("Delete")}
-				</Button>
-			)}
+			onOpenChange={(nextOpen) => {
+				if (!nextOpen) onClose();
+			}}
 		>
-			<p>{label}</p>
-		</Modal>
+			<DialogContent showCloseButton={false}>
+				<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
+				<DialogDescription>{label}</DialogDescription>
+				<DialogFooter>
+					<DialogClose render={<Button type="button" variant="outline" />}>
+						{t("Close")}
+					</DialogClose>
+					<Button type="button" variant="destructive" onClick={onDelete}>
+						{t("Delete")}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 };

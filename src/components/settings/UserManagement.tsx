@@ -10,6 +10,13 @@ import { deleteUser, updateUserRole } from "@/api/users";
 import { DetailsList } from "@/components/DetailsList";
 import { CreateUserModal } from "@/components/modal/CreateUserModal";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogFooter,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
 	Select,
@@ -23,7 +30,6 @@ import type { PasswordReset, User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { isInvitationExpired } from "@/lib/utils";
-import { Modal } from "../modal/Modal";
 
 type IUserManagementProps = {
 	users: (User & {
@@ -263,60 +269,69 @@ export const UpdateRoleModal = ({ onClose, user }: UpdateRoleModalProps) => {
 	});
 
 	return (
-		<Modal
-			modalBoxClassName="md:max-w-xl md:mx-auto"
+		<Dialog
 			open={true}
-			onClose={onClose}
-			onRenderActionButton={() => (
-				<Button
-					type="submit"
-					onClick={(e) => {
+			onOpenChange={(nextOpen) => {
+				if (!nextOpen) onClose();
+			}}
+		>
+			<DialogContent className="md:max-w-xl md:mx-auto">
+				<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
+				<form
+					onSubmit={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
 						form.handleSubmit();
 					}}
 				>
-					{t("Update")}
-				</Button>
-			)}
-		>
-			<form
-				onSubmit={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
-					form.handleSubmit();
-				}}
-			>
-				<div>
-					<form.Field name="role">
-						{(field) => {
-							return (
-								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("Role")}:</Label>
-									<Select
-										value={field.state.value}
-										onValueChange={(value) => field.handleChange(value as Role)}
-										onOpenChange={(open) => {
-											if (!open) field.handleBlur();
-										}}
-									>
-										<SelectTrigger id={field.name} className="w-full">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											{Object.keys(Role).map((role) => (
-												<SelectItem key={role} value={role}>
-													{role}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</fieldset>
-							);
+					<div>
+						<form.Field name="role">
+							{(field) => {
+								return (
+									<fieldset className="flex flex-col gap-1.5">
+										<Label htmlFor={field.name}>{t("Role")}:</Label>
+										<Select
+											value={field.state.value}
+											onValueChange={(value) =>
+												field.handleChange(value as Role)
+											}
+											onOpenChange={(open) => {
+												if (!open) field.handleBlur();
+											}}
+										>
+											<SelectTrigger id={field.name} className="w-full">
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												{Object.keys(Role).map((role) => (
+													<SelectItem key={role} value={role}>
+														{role}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</fieldset>
+								);
+							}}
+						</form.Field>
+					</div>
+				</form>
+				<DialogFooter>
+					<DialogClose render={<Button variant="outline" />}>
+						{t("Close")}
+					</DialogClose>
+					<Button
+						type="submit"
+						onClick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							form.handleSubmit();
 						}}
-					</form.Field>
-				</div>
-			</form>
-		</Modal>
+					>
+						{t("Update")}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 };
