@@ -118,6 +118,7 @@ const texts = {
 	"Delete player": "Spieler:in löschen",
 	"Delete team": "Team löschen",
 	Deleted: "Gelöscht",
+	"Deleted user": "Gelöschte:r Nutzer:in",
 	Details: "Details",
 	"Download iCal": "Termin speichern",
 	Draft: "Entwurf",

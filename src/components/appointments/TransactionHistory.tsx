@@ -15,7 +15,7 @@ import {
 } from "@/lib/utils";
 
 type TransactionHistoryProps = {
-	transactions: (Transaction & { user: User })[];
+	transactions: (Transaction & { user: User | null })[];
 };
 
 const dateTimeFormat: Intl.DateTimeFormatOptions = {
@@ -29,12 +29,12 @@ const dateTimeFormat: Intl.DateTimeFormatOptions = {
 type HistoryEntry = {
 	key: string;
 	header: string;
-	user: User;
+	user: User | null;
 	createdAt: Date;
 };
 
 const buildEntries = (
-	transactions: (Transaction & { user: User })[],
+	transactions: (Transaction & { user: User | null })[],
 ): HistoryEntry[] => {
 	const entries: HistoryEntry[] = [];
 	for (const transaction of transactions) {
@@ -89,23 +89,29 @@ export const TransactionHistory = ({
 			</div>
 			<ul className="flex flex-col gap-3">
 				{entries.map((entry) => {
-					const userColor = createColorForUserId(entry.user.id);
+					const userColor = entry.user
+						? createColorForUserId(entry.user.id)
+						: null;
 					return (
 						<li key={entry.key} className="flex gap-2 text-sm">
 							<Avatar size="sm" className="shrink-0">
 								<AvatarFallback
-									style={{
-										backgroundColor: userColor.backgroundColor,
-										color: userColor.foregroundColor,
-									}}
+									style={
+										userColor
+											? {
+													backgroundColor: userColor.backgroundColor,
+													color: userColor.foregroundColor,
+												}
+											: undefined
+									}
 								>
-									{shortenUserName(entry.user.name)}
+									{entry.user ? shortenUserName(entry.user.name) : "?"}
 								</AvatarFallback>
 							</Avatar>
 							<div className="min-w-0 flex-1">
 								<p>{entry.header}</p>
 								<p className="text-muted-foreground text-xs">
-									{entry.user.name} ·{" "}
+									{entry.user ? entry.user.name : t("Deleted user")} ·{" "}
 									<Tooltip>
 										<TooltipTrigger render={<span />}>
 											{formatRelativeTime(entry.createdAt)}

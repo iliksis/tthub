@@ -84,7 +84,7 @@ export const Route = createFileRoute("/_authed/appts/journal")({
 });
 
 type TransactionWithRelations = Transaction & {
-	user: User;
+	user: User | null;
 	appointment: Appointment;
 };
 
@@ -114,6 +114,13 @@ const getTransactionColumns =
 			key: "person",
 			label: t("Person"),
 			render: (item) => {
+				if (!item.user) {
+					return (
+						<span className="text-muted-foreground text-sm">
+							{t("Deleted user")}
+						</span>
+					);
+				}
 				const color = createColorForUserId(item.user.id);
 				return (
 					<div className="flex items-center gap-2">

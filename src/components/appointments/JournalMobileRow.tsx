@@ -15,7 +15,7 @@ import {
 } from "@/lib/utils";
 
 type JournalMobileRowProps = {
-	transaction: Transaction & { user: User; appointment: Appointment };
+	transaction: Transaction & { user: User | null; appointment: Appointment };
 	isSelected: boolean;
 	isNew: boolean;
 	onClick: () => void;
@@ -27,7 +27,9 @@ export const JournalMobileRow = ({
 	isNew,
 	onClick,
 }: JournalMobileRowProps) => {
-	const userColor = createColorForUserId(transaction.user.id);
+	const userColor = transaction.user
+		? createColorForUserId(transaction.user.id)
+		: null;
 	const badge = transactionActionBadge(transaction.type);
 	const fields = getChangedFields(
 		transaction.changes as TransactionChanges | null,
@@ -48,17 +50,25 @@ export const JournalMobileRow = ({
 		>
 			<div className="flex items-center justify-between gap-2">
 				<div className="flex min-w-0 items-center gap-2">
-					<Avatar size="sm" className="shrink-0">
-						<AvatarFallback
-							style={{
-								backgroundColor: userColor.backgroundColor,
-								color: userColor.foregroundColor,
-							}}
-						>
-							{shortenUserName(transaction.user.name)}
-						</AvatarFallback>
-					</Avatar>
-					<span className="truncate text-sm">{transaction.user.name}</span>
+					{transaction.user && userColor ? (
+						<>
+							<Avatar size="sm" className="shrink-0">
+								<AvatarFallback
+									style={{
+										backgroundColor: userColor.backgroundColor,
+										color: userColor.foregroundColor,
+									}}
+								>
+									{shortenUserName(transaction.user.name)}
+								</AvatarFallback>
+							</Avatar>
+							<span className="truncate text-sm">{transaction.user.name}</span>
+						</>
+					) : (
+						<span className="truncate text-muted-foreground text-sm">
+							{t("Deleted user")}
+						</span>
+					)}
 				</div>
 				<span className="shrink-0 text-muted-foreground text-xs">
 					{formatRelativeTime(transaction.createdAt)}

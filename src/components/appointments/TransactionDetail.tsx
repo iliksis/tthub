@@ -31,11 +31,13 @@ const dateTimeFormat: Intl.DateTimeFormatOptions = {
 };
 
 type TransactionDetailProps = {
-	transaction: Transaction & { user: User; appointment: Appointment };
+	transaction: Transaction & { user: User | null; appointment: Appointment };
 };
 
 export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
-	const userColor = createColorForUserId(transaction.user.id);
+	const userColor = transaction.user
+		? createColorForUserId(transaction.user.id)
+		: null;
 	const badge = transactionActionBadge(transaction.type);
 	const changes = transaction.changes as TransactionChanges | null;
 	const entries = Object.entries(changes ?? {});
@@ -55,17 +57,23 @@ export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
 				</div>
 			</div>
 			<div className="flex items-center gap-2 text-sm">
-				<Avatar size="sm" className="shrink-0">
-					<AvatarFallback
-						style={{
-							backgroundColor: userColor.backgroundColor,
-							color: userColor.foregroundColor,
-						}}
-					>
-						{shortenUserName(transaction.user.name)}
-					</AvatarFallback>
-				</Avatar>
-				<span>{transaction.user.name}</span>
+				{transaction.user && userColor ? (
+					<>
+						<Avatar size="sm" className="shrink-0">
+							<AvatarFallback
+								style={{
+									backgroundColor: userColor.backgroundColor,
+									color: userColor.foregroundColor,
+								}}
+							>
+								{shortenUserName(transaction.user.name)}
+							</AvatarFallback>
+						</Avatar>
+						<span>{transaction.user.name}</span>
+					</>
+				) : (
+					<span className="text-muted-foreground">{t("Deleted user")}</span>
+				)}
 			</div>
 			<Tooltip>
 				<TooltipTrigger
