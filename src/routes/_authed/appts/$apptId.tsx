@@ -78,17 +78,17 @@ export const Route = createFileRoute("/_authed/appts/$apptId")({
 
 		const players = await playerData.json();
 		if (playerData.status >= 400) {
-			throw new Error(res.message);
+			throw new Error(players.message);
 		}
 
 		const categories = await categoriesData.json();
 		if (categoriesData.status >= 400) {
-			throw new Error(res.message);
+			throw new Error(categories.message);
 		}
 
 		const appointments = await apptsData.json();
 		if (apptsData.status >= 400) {
-			throw new Error(res.message);
+			throw new Error(appointments.message);
 		}
 
 		return {
