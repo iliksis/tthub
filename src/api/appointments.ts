@@ -865,16 +865,30 @@ export const restoreAppointment = createServerFn()
 	.inputValidator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
+		const { data: session } = await useAppSession();
 		if (!isAuthorized) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
+		if (!session.id) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
-			const appointment = await prismaClient.appointment.update({
-				data: {
-					deletedAt: null,
-				},
-				where: { id: data.id },
+			const appointment = await prismaClient.$transaction(async (tx) => {
+				const appointment = await tx.appointment.update({
+					data: {
+						deletedAt: null,
+					},
+					where: { id: data.id },
+				});
+				await tx.transaction.create({
+					data: {
+						appointmentId: appointment.id,
+						type: TransactionType.RESTORE,
+						userId: session.id as string,
+					},
+				});
+				return appointment;
 			});
 			return json<Return<Appointment>>(
 				{ data: appointment, message: t("Appointment restored") },

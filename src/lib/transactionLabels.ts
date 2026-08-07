@@ -53,5 +53,8 @@ export const transactionActionBadge = (
 	if (type === TransactionType.DELETE) {
 		return { label: t("Deleted"), variant: "destructive" };
 	}
+	if (type === TransactionType.RESTORE) {
+		return { label: t("Restored"), variant: "success" };
+	}
 	return { label: t("Changed"), variant: "info" };
 };

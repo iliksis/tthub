@@ -244,6 +244,7 @@ const texts = {
 	Responses: "Antworten",
 	Restore: "Wiederherstellen",
 	"Restore?": "Wiederherstellen?",
+	Restored: "Wiederhergestellt",
 	Results: "Ergebnisse",
 	Review: "Überprüfung",
 	Role: "Rolle",

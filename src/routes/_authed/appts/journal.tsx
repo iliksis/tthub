@@ -48,7 +48,7 @@ const journalSearchSchema = z.object({
 	query: z.string().optional(),
 	skip: z.number().int().nonnegative().optional(),
 	sort: z.enum(["asc", "desc"]).optional(),
-	type: z.enum(["CREATE", "UPDATE", "DELETE"]).optional(),
+	type: z.enum(["CREATE", "UPDATE", "DELETE", "RESTORE"]).optional(),
 });
 
 // biome-ignore assist/source/useSortedKeys: validateSearch and loaderDeps need to be before loader
@@ -93,6 +93,7 @@ const typeFilters: { value: TransactionType | "ALL"; label: string }[] = [
 	{ label: t("Created"), value: TransactionType.CREATE },
 	{ label: t("Changed"), value: TransactionType.UPDATE },
 	{ label: t("Deleted"), value: TransactionType.DELETE },
+	{ label: t("Restored"), value: TransactionType.RESTORE },
 ];
 
 const getTransactionColumns =

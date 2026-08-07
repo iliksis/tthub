@@ -148,6 +148,7 @@ enum TransactionType {
   CREATE
   UPDATE
   DELETE
+  RESTORE
 }
 
 model Subscription {

@@ -52,6 +52,13 @@ const buildEntries = (
 				key: transaction.id,
 				user: transaction.user,
 			});
+		} else if (transaction.type === TransactionType.RESTORE) {
+			entries.push({
+				createdAt: transaction.createdAt,
+				header: t("Appointment restored"),
+				key: transaction.id,
+				user: transaction.user,
+			});
 		} else {
 			const changes = transaction.changes as TransactionChanges | null;
 			const fields = Object.keys(changes ?? {});
