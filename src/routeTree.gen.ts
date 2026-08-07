@@ -31,8 +31,6 @@ import { Route as AuthedPlayersPlayerIdRouteImport } from './routes/_authed/play
 import { Route as AuthedApptsJournalRouteImport } from './routes/_authed/appts/journal'
 import { Route as AuthedApptsCalendarRouteImport } from './routes/_authed/appts/calendar'
 import { Route as AuthedApptsApptIdRouteImport } from './routes/_authed/appts/$apptId'
-import { Route as AuthedPrototypesTeamDetailIndexRouteImport } from './routes/_authed/prototypes/team-detail/index'
-import { Route as AuthedPrototypesTeamDetailTeamIdRouteImport } from './routes/_authed/prototypes/team-detail/$teamId'
 
 const SentryTunnelRoute = SentryTunnelRouteImport.update({
   id: '/sentry-tunnel',
@@ -143,18 +141,6 @@ const AuthedApptsApptIdRoute = AuthedApptsApptIdRouteImport.update({
   path: '/appts/$apptId',
   getParentRoute: () => AuthedRoute,
 } as any)
-const AuthedPrototypesTeamDetailIndexRoute =
-  AuthedPrototypesTeamDetailIndexRouteImport.update({
-    id: '/prototypes/team-detail/',
-    path: '/prototypes/team-detail/',
-    getParentRoute: () => AuthedRoute,
-  } as any)
-const AuthedPrototypesTeamDetailTeamIdRoute =
-  AuthedPrototypesTeamDetailTeamIdRouteImport.update({
-    id: '/prototypes/team-detail/$teamId',
-    path: '/prototypes/team-detail/$teamId',
-    getParentRoute: () => AuthedRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/logout': typeof LogoutRoute
@@ -178,8 +164,6 @@ export interface FileRoutesByFullPath {
   '/players': typeof AuthedPlayersIndexRoute
   '/settings/': typeof AuthedSettingsIndexRoute
   '/teams': typeof AuthedTeamsIndexRoute
-  '/prototypes/team-detail/$teamId': typeof AuthedPrototypesTeamDetailTeamIdRoute
-  '/prototypes/team-detail': typeof AuthedPrototypesTeamDetailIndexRoute
 }
 export interface FileRoutesByTo {
   '/logout': typeof LogoutRoute
@@ -202,8 +186,6 @@ export interface FileRoutesByTo {
   '/players': typeof AuthedPlayersIndexRoute
   '/settings': typeof AuthedSettingsIndexRoute
   '/teams': typeof AuthedTeamsIndexRoute
-  '/prototypes/team-detail/$teamId': typeof AuthedPrototypesTeamDetailTeamIdRoute
-  '/prototypes/team-detail': typeof AuthedPrototypesTeamDetailIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -229,8 +211,6 @@ export interface FileRoutesById {
   '/_authed/players/': typeof AuthedPlayersIndexRoute
   '/_authed/settings/': typeof AuthedSettingsIndexRoute
   '/_authed/teams/': typeof AuthedTeamsIndexRoute
-  '/_authed/prototypes/team-detail/$teamId': typeof AuthedPrototypesTeamDetailTeamIdRoute
-  '/_authed/prototypes/team-detail/': typeof AuthedPrototypesTeamDetailIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -256,8 +236,6 @@ export interface FileRouteTypes {
     | '/players'
     | '/settings/'
     | '/teams'
-    | '/prototypes/team-detail/$teamId'
-    | '/prototypes/team-detail'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/logout'
@@ -280,8 +258,6 @@ export interface FileRouteTypes {
     | '/players'
     | '/settings'
     | '/teams'
-    | '/prototypes/team-detail/$teamId'
-    | '/prototypes/team-detail'
   id:
     | '__root__'
     | '/_authed'
@@ -306,8 +282,6 @@ export interface FileRouteTypes {
     | '/_authed/players/'
     | '/_authed/settings/'
     | '/_authed/teams/'
-    | '/_authed/prototypes/team-detail/$teamId'
-    | '/_authed/prototypes/team-detail/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -475,20 +449,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedApptsApptIdRouteImport
       parentRoute: typeof AuthedRoute
     }
-    '/_authed/prototypes/team-detail/': {
-      id: '/_authed/prototypes/team-detail/'
-      path: '/prototypes/team-detail'
-      fullPath: '/prototypes/team-detail'
-      preLoaderRoute: typeof AuthedPrototypesTeamDetailIndexRouteImport
-      parentRoute: typeof AuthedRoute
-    }
-    '/_authed/prototypes/team-detail/$teamId': {
-      id: '/_authed/prototypes/team-detail/$teamId'
-      path: '/prototypes/team-detail/$teamId'
-      fullPath: '/prototypes/team-detail/$teamId'
-      preLoaderRoute: typeof AuthedPrototypesTeamDetailTeamIdRouteImport
-      parentRoute: typeof AuthedRoute
-    }
   }
 }
 
@@ -524,8 +484,6 @@ interface AuthedRouteChildren {
   AuthedApptsIndexRoute: typeof AuthedApptsIndexRoute
   AuthedPlayersIndexRoute: typeof AuthedPlayersIndexRoute
   AuthedTeamsIndexRoute: typeof AuthedTeamsIndexRoute
-  AuthedPrototypesTeamDetailTeamIdRoute: typeof AuthedPrototypesTeamDetailTeamIdRoute
-  AuthedPrototypesTeamDetailIndexRoute: typeof AuthedPrototypesTeamDetailIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
@@ -540,8 +498,6 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedApptsIndexRoute: AuthedApptsIndexRoute,
   AuthedPlayersIndexRoute: AuthedPlayersIndexRoute,
   AuthedTeamsIndexRoute: AuthedTeamsIndexRoute,
-  AuthedPrototypesTeamDetailTeamIdRoute: AuthedPrototypesTeamDetailTeamIdRoute,
-  AuthedPrototypesTeamDetailIndexRoute: AuthedPrototypesTeamDetailIndexRoute,
 }
 
 const AuthedRouteWithChildren =
