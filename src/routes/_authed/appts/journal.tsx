@@ -422,7 +422,7 @@ function RouteComponent() {
 							: undefined
 					}
 				>
-					<SheetTitle className="sr-only">{t("Record info")}</SheetTitle>
+					<SheetTitle className="sr-only">{t("Details")}</SheetTitle>
 					<div
 						className="flex shrink-0 cursor-grab touch-none justify-center pt-2 pb-1 active:cursor-grabbing"
 						onPointerDown={onHandlePointerDown}

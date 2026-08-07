@@ -43,7 +43,7 @@ export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex items-center justify-between gap-2">
-				<span className="font-bold text-sm">{t("Record info")}</span>
+				<span className="font-bold text-sm">{t("Details")}</span>
 				<Badge variant={badge.variant}>{badge.label}</Badge>
 			</div>
 			<div>

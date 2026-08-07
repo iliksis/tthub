@@ -242,7 +242,6 @@ const texts = {
 	Published: "Veröffentlicht",
 	QTTR: "QTTR",
 	"QTTR must be set (0 is allowed)": "QTTR muss gesetzt sein (0 ist erlaubt)",
-	"Record info": "Details",
 	"Reset Password": "Passwort zurücksetzen",
 	Response: "Antwort",
 	"Response created": "Antwort erstellt",
