@@ -529,7 +529,9 @@ const AppointmentSplitView = ({
 					data: { appointmentId: a.id, response },
 				}),
 			),
-			t("{0} appointments answered", targets.length.toString()),
+			targets.length === 1
+				? t("1 appointment answered")
+				: t("{0} appointments answered", targets.length.toString()),
 			() => {
 				const ids = new Set(targets.map((a) => a.id));
 				onAppointmentsChange((prev) =>
@@ -557,7 +559,9 @@ const AppointmentSplitView = ({
 		const ids = new Set(targets.map((a) => a.id));
 		return runBulkAction(
 			targets.map((a) => publishAppointmentServerFn({ data: { id: a.id } })),
-			t("{0} appointments published", targets.length.toString()),
+			targets.length === 1
+				? t("1 appointment published")
+				: t("{0} appointments published", targets.length.toString()),
 			() =>
 				onAppointmentsChange((prev) =>
 					prev.map((a) =>
@@ -575,7 +579,9 @@ const AppointmentSplitView = ({
 		const ids = new Set(targets.map((a) => a.id));
 		return runBulkAction(
 			targets.map((a) => unpublishAppointmentServerFn({ data: { id: a.id } })),
-			t("{0} appointments unpublished", targets.length.toString()),
+			targets.length === 1
+				? t("1 appointment unpublished")
+				: t("{0} appointments unpublished", targets.length.toString()),
 			() =>
 				onAppointmentsChange((prev) =>
 					prev.map((a) =>
@@ -633,7 +639,9 @@ const AppointmentSplitView = ({
 			}
 			if (created.length === items.length) {
 				toast.success(
-					t("{0} appointments duplicated", items.length.toString()),
+					created.length === 1
+						? t("1 appointment duplicated")
+						: t("{0} appointments duplicated", items.length.toString()),
 				);
 			} else {
 				toast.error(t("An Error occurred"));
@@ -650,7 +658,9 @@ const AppointmentSplitView = ({
 		const ids = new Set(targets.map((a) => a.id));
 		return runBulkAction(
 			targets.map((a) => restoreAppointmentServerFn({ data: { id: a.id } })),
-			t("{0} appointments restored", targets.length.toString()),
+			targets.length === 1
+				? t("1 appointment restored")
+				: t("{0} appointments restored", targets.length.toString()),
 			() =>
 				onAppointmentsChange((prev) =>
 					prev.map((a) => (ids.has(a.id) ? { ...a, deletedAt: null } : a)),
@@ -665,7 +675,9 @@ const AppointmentSplitView = ({
 		const now = new Date();
 		return runBulkAction(
 			targets.map((a) => deleteAppointmentServerFn({ data: { id: a.id } })),
-			t("{0} appointments deleted", targets.length.toString()),
+			targets.length === 1
+				? t("1 appointment deleted")
+				: t("{0} appointments deleted", targets.length.toString()),
 			() =>
 				onAppointmentsChange((prev) =>
 					prev.map((a) => (ids.has(a.id) ? { ...a, deletedAt: now } : a)),

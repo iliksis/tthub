@@ -21,7 +21,13 @@ const texts = {
 	"{0} of {1} answered": "{0} von {1} beantwortet",
 	"{0} of {1} events": "{0} von {1} Ereignissen",
 	"{0} players": "{0} Spieler:innen",
+	"1 appointment answered": "1 Termin beantwortet",
+	"1 appointment deleted": "1 Termin gelöscht",
+	"1 appointment duplicated": "1 Termin dupliziert",
+	"1 appointment published": "1 Termin veröffentlicht",
+	"1 appointment restored": "1 Termin wiederhergestellt",
 	"1 appointment selected": "1 Termin ausgewählt",
+	"1 appointment unpublished": "1 Termin zurückgezogen",
 	"A closed period without training or events":
 		"Ein geschlossener Zeitraum ohne Training oder Termine",
 	"A competitive event players sign up for":
