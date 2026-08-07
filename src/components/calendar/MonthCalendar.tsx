@@ -205,17 +205,19 @@ export const MonthCalendar = ({
 							hidden.length > 0 && week[col].inCurrentMonth ? (
 								// biome-ignore lint/suspicious/noArrayIndexKey: fixed 7 columns per fixed week
 								<DropdownMenu key={`overflow-${weekIndex}-${col}`}>
-									<DropdownMenuTrigger asChild>
-										<button
-											type="button"
-											style={{
-												gridColumn: col + 1,
-												gridRow: OVERFLOW_ROW_INDEX,
-											}}
-											className="mx-1 h-[26px] rounded-lg px-2 text-left text-[10px] font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-										>
-											+{new Set(hidden.map((b) => b.event.id)).size}
-										</button>
+									<DropdownMenuTrigger
+										render={
+											<button
+												type="button"
+												style={{
+													gridColumn: col + 1,
+													gridRow: OVERFLOW_ROW_INDEX,
+												}}
+												className="mx-1 h-[26px] rounded-lg px-2 text-left text-[10px] font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+											/>
+										}
+									>
+										+{new Set(hidden.map((b) => b.event.id)).size}
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="start" className="w-56 p-2">
 										<div className="flex flex-col gap-1">
@@ -224,22 +226,25 @@ export const MonthCalendar = ({
 													hidden.map((b) => [b.event.id, b.event]),
 												).values(),
 											].map((event) => (
-												<DropdownMenuItem key={event.id} asChild>
-													<Link
-														to="/appts/$apptId"
-														params={{ apptId: event.id }}
-														className="flex items-center gap-2"
-													>
-														<span
-															className={`size-1.5 shrink-0 rounded-full ${categoryStyle[event.type].dot}`}
+												<DropdownMenuItem
+													key={event.id}
+													render={
+														<Link
+															to="/appts/$apptId"
+															params={{ apptId: event.id }}
+															className="flex items-center gap-2"
 														/>
-														<span className="truncate font-medium">
-															{event.title}
-														</span>
-														<span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
-															{formatTime(event.start)}
-														</span>
-													</Link>
+													}
+												>
+													<span
+														className={`size-1.5 shrink-0 rounded-full ${categoryStyle[event.type].dot}`}
+													/>
+													<span className="truncate font-medium">
+														{event.title}
+													</span>
+													<span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
+														{formatTime(event.start)}
+													</span>
 												</DropdownMenuItem>
 											))}
 										</div>

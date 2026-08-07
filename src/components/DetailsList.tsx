@@ -122,11 +122,8 @@ export function DetailsList<T>({
 					if (selectMode === "multiple") {
 						return (
 							<Checkbox
-								checked={
-									table.getIsSomeRowsSelected()
-										? "indeterminate"
-										: table.getIsAllRowsSelected()
-								}
+								checked={table.getIsAllRowsSelected()}
+								indeterminate={table.getIsSomeRowsSelected()}
 								onCheckedChange={(checked) =>
 									table.toggleAllRowsSelected(checked === true)
 								}
@@ -243,18 +240,20 @@ export function DetailsList<T>({
 								if (commandItem.dropdown) {
 									return (
 										<DropdownMenu key={commandItem.key}>
-											<DropdownMenuTrigger asChild>
-												<Button
-													type="button"
-													size="sm"
-													variant={variant}
-													disabled={isDisabled}
-													title={commandItem.label}
-												>
-													{commandItem.icon}
-													{commandItem.onlyIcon ? null : commandItem.label}
-													<ChevronDown className="size-3" />
-												</Button>
+											<DropdownMenuTrigger
+												render={
+													<Button
+														type="button"
+														size="sm"
+														variant={variant}
+														disabled={isDisabled}
+														title={commandItem.label}
+													/>
+												}
+											>
+												{commandItem.icon}
+												{commandItem.onlyIcon ? null : commandItem.label}
+												<ChevronDown className="size-3" />
 											</DropdownMenuTrigger>
 											<DropdownMenuContent align="end" className="w-60">
 												{commandItem.dropdown.items.map((dropdownItem) => {

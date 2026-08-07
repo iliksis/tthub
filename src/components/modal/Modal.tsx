@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogClose,
@@ -5,7 +6,6 @@ import {
 	DialogFooter,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
@@ -47,10 +47,12 @@ export const Modal = ({
 				<div className="flex-1">{children}</div>
 				<DialogFooter>
 					{onRenderActionButton?.()}
-					<DialogClose asChild>
-						<Button variant="secondary" className={closeButtonClassName}>
-							{closeButtonLabel}
-						</Button>
+					<DialogClose
+						render={
+							<Button variant="secondary" className={closeButtonClassName} />
+						}
+					>
+						{closeButtonLabel}
 					</DialogClose>
 				</DialogFooter>
 			</DialogContent>

@@ -58,10 +58,13 @@ export function TeamPreview({ team }: { team: TeamDetail }) {
 				)}
 			</div>
 
-			<Button asChild variant="outline" size="sm" className="w-full">
-				<Link to="/teams/$teamId" params={{ teamId: team.id }}>
-					{t("Open team")}
-				</Link>
+			<Button
+				variant="outline"
+				size="sm"
+				className="w-full"
+				render={<Link to="/teams/$teamId" params={{ teamId: team.id }} />}
+			>
+				{t("Open team")}
 			</Button>
 		</div>
 	);

@@ -95,52 +95,53 @@ function SettingsLayout() {
 			{/* Mobile: a trigger row opens a dropdown to switch sections. */}
 			<div className="lg:hidden">
 				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<button
-							type="button"
-							className="flex w-full items-center gap-3 rounded-lg bg-card p-3 text-left"
-						>
-							<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-								<active.icon className="size-4" />
+					<DropdownMenuTrigger
+						render={
+							<button
+								type="button"
+								className="flex w-full items-center gap-3 rounded-lg bg-card p-3 text-left"
+							/>
+						}
+					>
+						<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+							<active.icon className="size-4" />
+						</div>
+						<div className="min-w-0 flex-1">
+							<div className="font-medium text-sm">{active.label}</div>
+							<div className="text-muted-foreground text-xs">
+								{active.description}
 							</div>
-							<div className="min-w-0 flex-1">
-								<div className="font-medium text-sm">{active.label}</div>
-								<div className="text-muted-foreground text-xs">
-									{active.description}
-								</div>
-							</div>
-							<ChevronDownIcon className="size-4 shrink-0 text-muted-foreground" />
-						</button>
+						</div>
+						<ChevronDownIcon className="size-4 shrink-0 text-muted-foreground" />
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="start" className="w-72">
 						{visible.map((section) => {
 							const isActive = section.routeId === activeRouteId;
 							return (
-								<DropdownMenuItem key={section.href} asChild>
-									<Link
-										to={section.href}
-										className={cn(
-											"items-start gap-3 py-2",
-											isActive && "bg-primary/10 text-primary",
-										)}
-									>
-										<section.icon className="mt-0.5 size-4 shrink-0" />
-										<span className="flex flex-col">
-											<span className="font-medium text-sm">
-												{section.label}
-											</span>
-											<span
-												className={cn(
-													"text-xs",
-													isActive
-														? "text-primary/70"
-														: "text-muted-foreground",
-												)}
-											>
-												{section.description}
-											</span>
+								<DropdownMenuItem
+									key={section.href}
+									render={
+										<Link
+											to={section.href}
+											className={cn(
+												"items-start gap-3 py-2",
+												isActive && "bg-primary/10 text-primary",
+											)}
+										/>
+									}
+								>
+									<section.icon className="mt-0.5 size-4 shrink-0" />
+									<span className="flex flex-col">
+										<span className="font-medium text-sm">{section.label}</span>
+										<span
+											className={cn(
+												"text-xs",
+												isActive ? "text-primary/70" : "text-muted-foreground",
+											)}
+										>
+											{section.description}
 										</span>
-									</Link>
+									</span>
 								</DropdownMenuItem>
 							);
 						})}

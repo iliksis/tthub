@@ -108,7 +108,9 @@ export const InlinePlayerFilters = ({
 			/>
 			<Select
 				value={props.teamId ?? "ALL"}
-				onValueChange={(v) => navigate({ teamId: v === "ALL" ? undefined : v })}
+				onValueChange={(v) =>
+					navigate({ teamId: !v || v === "ALL" ? undefined : v })
+				}
 			>
 				<SelectTrigger size="sm" className="w-40">
 					<SelectValue />
@@ -124,7 +126,7 @@ export const InlinePlayerFilters = ({
 			<Select
 				value={props.ageGroup ?? "ALL"}
 				onValueChange={(v) =>
-					navigate({ ageGroup: v === "ALL" ? undefined : v })
+					navigate({ ageGroup: !v || v === "ALL" ? undefined : v })
 				}
 			>
 				<SelectTrigger size="sm" className="w-40">
@@ -288,7 +290,7 @@ export const MobilePlayerFilters = ({
 								<Select
 									value={props.teamId ?? "ALL"}
 									onValueChange={(v) =>
-										navigate({ teamId: v === "ALL" ? undefined : v })
+										navigate({ teamId: !v || v === "ALL" ? undefined : v })
 									}
 								>
 									<SelectTrigger
@@ -313,7 +315,7 @@ export const MobilePlayerFilters = ({
 								<Select
 									value={props.ageGroup ?? "ALL"}
 									onValueChange={(v) =>
-										navigate({ ageGroup: v === "ALL" ? undefined : v })
+										navigate({ ageGroup: !v || v === "ALL" ? undefined : v })
 									}
 								>
 									<SelectTrigger

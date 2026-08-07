@@ -29,6 +29,11 @@ const Toaster = ({ theme = "system", ...props }: ToasterProps) => {
 					"--normal-text": "var(--popover-foreground)",
 				} as React.CSSProperties
 			}
+			toastOptions={{
+				classNames: {
+					toast: "cn-toast",
+				},
+			}}
 			{...props}
 		/>
 	);

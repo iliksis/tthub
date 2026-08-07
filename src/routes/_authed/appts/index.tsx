@@ -345,11 +345,9 @@ function RouteComponent() {
 						</Link>
 					</div>
 					{canEdit && (
-						<Button asChild>
-							<Link to="/create">
-								<CalendarPlusIcon className="size-4" />
-								{t("Create appointment")}
-							</Link>
+						<Button render={<Link to="/create" />}>
+							<CalendarPlusIcon className="size-4" />
+							{t("Create appointment")}
 						</Button>
 					)}
 				</div>
@@ -1033,10 +1031,15 @@ function AppointmentDetailContent({
 					</Button>
 				</div>
 			)}
-			<Button asChild variant="outline" size="sm" className="mt-2 w-full">
-				<Link to="/appts/$apptId" params={{ apptId: appointment.id }}>
-					{t("Open appointment")}
-				</Link>
+			<Button
+				variant="outline"
+				size="sm"
+				className="mt-2 w-full"
+				render={
+					<Link to="/appts/$apptId" params={{ apptId: appointment.id }} />
+				}
+			>
+				{t("Open appointment")}
 			</Button>
 		</>
 	);

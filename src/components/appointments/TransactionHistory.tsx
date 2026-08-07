@@ -107,8 +107,8 @@ export const TransactionHistory = ({
 								<p className="text-muted-foreground text-xs">
 									{entry.user.name} ·{" "}
 									<Tooltip>
-										<TooltipTrigger asChild>
-											<span>{formatRelativeTime(entry.createdAt)}</span>
+										<TooltipTrigger render={<span />}>
+											{formatRelativeTime(entry.createdAt)}
 										</TooltipTrigger>
 										<TooltipContent>
 											{new Date(entry.createdAt).toLocaleString(

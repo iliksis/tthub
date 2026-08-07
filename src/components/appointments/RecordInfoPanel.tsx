@@ -28,8 +28,8 @@ export function RecordInfoPanel({
 				<div className="flex items-center justify-between gap-4">
 					<dt className="text-muted-foreground">{t("Created")}</dt>
 					<Tooltip>
-						<TooltipTrigger asChild>
-							<dd>{formatRelativeTime(createdAt)}</dd>
+						<TooltipTrigger render={<dd />}>
+							{formatRelativeTime(createdAt)}
 						</TooltipTrigger>
 						<TooltipContent>
 							{createdAt.toLocaleString("de-DE", dateTimeFormat)}
@@ -39,8 +39,8 @@ export function RecordInfoPanel({
 				<div className="flex items-center justify-between gap-4">
 					<dt className="text-muted-foreground">{t("Last updated")}</dt>
 					<Tooltip>
-						<TooltipTrigger asChild>
-							<dd>{formatRelativeTime(lastUpdated)}</dd>
+						<TooltipTrigger render={<dd />}>
+							{formatRelativeTime(lastUpdated)}
 						</TooltipTrigger>
 						<TooltipContent>
 							{lastUpdated.toLocaleString("de-DE", dateTimeFormat)}

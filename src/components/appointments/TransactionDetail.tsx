@@ -68,10 +68,10 @@ export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
 				<span>{transaction.user.name}</span>
 			</div>
 			<Tooltip>
-				<TooltipTrigger asChild>
-					<div className="w-fit text-muted-foreground text-xs">
-						{formatRelativeTime(transaction.createdAt)}
-					</div>
+				<TooltipTrigger
+					render={<div className="w-fit text-muted-foreground text-xs" />}
+				>
+					{formatRelativeTime(transaction.createdAt)}
 				</TooltipTrigger>
 				<TooltipContent>
 					{new Date(transaction.createdAt).toLocaleString(
@@ -100,14 +100,19 @@ export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
 					))}
 				</dl>
 			)}
-			<Button variant="outline" size="sm" asChild className="mt-1 w-fit">
-				<Link
-					to="/appts/$apptId"
-					params={{ apptId: transaction.appointment.id }}
-				>
-					<ExternalLinkIcon className="size-3.5" />
-					{t("Open appointment")}
-				</Link>
+			<Button
+				variant="outline"
+				size="sm"
+				className="mt-1 w-fit"
+				render={
+					<Link
+						to="/appts/$apptId"
+						params={{ apptId: transaction.appointment.id }}
+					/>
+				}
+			>
+				<ExternalLinkIcon className="size-3.5" />
+				{t("Open appointment")}
 			</Button>
 		</div>
 	);

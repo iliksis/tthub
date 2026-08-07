@@ -793,8 +793,8 @@ function RouteComponent() {
 					</form>
 					<SheetFooter>
 						<div className="flex justify-end gap-2">
-							<SheetClose asChild>
-								<Button variant="secondary">{t("Cancel")}</Button>
+							<SheetClose render={<Button variant="secondary" />}>
+								{t("Cancel")}
 							</SheetClose>
 							<Button type="submit" form="edit-appointment">
 								{t("Save")}

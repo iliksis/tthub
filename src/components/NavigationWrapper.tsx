@@ -118,16 +118,14 @@ const NavigationItems = () => {
 		if (asSubItem) {
 			return (
 				<SidebarMenuSubItem key={item.name}>
-					<SidebarMenuSubButton asChild>{link}</SidebarMenuSubButton>
+					<SidebarMenuSubButton render={link} />
 				</SidebarMenuSubItem>
 			);
 		}
 
 		return (
 			<SidebarMenuItem key={item.name}>
-				<SidebarMenuButton asChild tooltip={item.name}>
-					{link}
-				</SidebarMenuButton>
+				<SidebarMenuButton render={link} tooltip={item.name} />
 			</SidebarMenuItem>
 		);
 	};
@@ -179,12 +177,15 @@ export const NavigationWrapper = ({
 					<SidebarMenu>
 						<ThemeSwitch />
 						<SidebarMenuItem>
-							<SidebarMenuButton asChild tooltip={t("Logout")}>
-								<Link to="/logout">
-									<LogOutIcon />
-									<span>{t("Logout")}</span>
-								</Link>
-							</SidebarMenuButton>
+							<SidebarMenuButton
+								tooltip={t("Logout")}
+								render={
+									<Link to="/logout">
+										<LogOutIcon />
+										<span>{t("Logout")}</span>
+									</Link>
+								}
+							/>
 						</SidebarMenuItem>
 					</SidebarMenu>
 				</SidebarFooter>

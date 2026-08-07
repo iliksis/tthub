@@ -100,7 +100,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 										value={field.state.value || undefined}
 										onValueChange={(value) => {
 											form.setFieldValue("subdivision", "");
-											field.handleChange(value);
+											field.handleChange(value ?? "");
 										}}
 										onOpenChange={(open) => {
 											if (!open) field.handleBlur();
@@ -130,7 +130,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 										name={field.name}
 										disabled={!query.data || query.data.length === 0}
 										value={field.state.value || undefined}
-										onValueChange={(value) => field.handleChange(value)}
+										onValueChange={(value) => field.handleChange(value ?? "")}
 										onOpenChange={(open) => {
 											if (!open) field.handleBlur();
 										}}

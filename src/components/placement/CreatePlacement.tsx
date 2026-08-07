@@ -99,7 +99,7 @@ export const CreatePlacement = ({
 								<Select
 									name={field.name}
 									value={field.state.value || undefined}
-									onValueChange={(value) => field.handleChange(value)}
+									onValueChange={(value) => field.handleChange(value ?? "")}
 									onOpenChange={(open) => {
 										if (!open) field.handleBlur();
 									}}
