@@ -43,6 +43,7 @@ import { MobileCalendar } from "@/components/calendar/MobileCalendar";
 import type { CalendarAppointment } from "@/components/calendar/MonthCalendar";
 import { MonthCalendar } from "@/components/calendar/MonthCalendar";
 import { DetailsList } from "@/components/DetailsList";
+import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -433,6 +434,7 @@ const AppointmentSplitView = ({
 	const [collapsedMonths, setCollapsedMonths] = React.useState<Set<string>>(
 		() => new Set(),
 	);
+	const [isConfirmingDelete, setIsConfirmingDelete] = React.useState(false);
 
 	const toggleMonth = (label: string) => {
 		setCollapsedMonths((prev) => {
@@ -759,188 +761,209 @@ const AppointmentSplitView = ({
 			isDisabled: !selectedAppointments.some((a) => a.deletedAt === null),
 			key: "delete",
 			label: t("Delete"),
-			onClick: () => onDelete(selectedAppointments),
+			onClick: () => setIsConfirmingDelete(true),
 		},
 	];
 
 	return (
-		<div className="grid grid-cols-[1fr_360px] items-start gap-4">
-			<div className="flex min-w-0 flex-col gap-3">
-				<div className="min-w-0 overflow-x-auto rounded-lg bg-card">
-					<DetailsList
-						items={appointments}
-						getItemId={(item) => item.id}
-						columns={columns}
-						onRenderRow={(item, children) => {
-							const inPast = isDayInPast(item.startDate);
-							const isDeleted = item.deletedAt !== null;
-							const index = appointments.findIndex((a) => a.id === item.id);
-							const previous = appointments[index - 1];
-							const label = monthLabel(item.startDate);
-							const showMonthHeader =
-								index === 0 || label !== monthLabel(previous.startDate);
-							const isCollapsed = collapsedMonths.has(label);
+		<>
+			<div className="grid grid-cols-[1fr_360px] items-start gap-4">
+				<div className="flex min-w-0 flex-col gap-3">
+					<div className="min-w-0 overflow-x-auto rounded-lg bg-card">
+						<DetailsList
+							items={appointments}
+							getItemId={(item) => item.id}
+							columns={columns}
+							onRenderRow={(item, children) => {
+								const inPast = isDayInPast(item.startDate);
+								const isDeleted = item.deletedAt !== null;
+								const index = appointments.findIndex((a) => a.id === item.id);
+								const previous = appointments[index - 1];
+								const label = monthLabel(item.startDate);
+								const showMonthHeader =
+									index === 0 || label !== monthLabel(previous.startDate);
+								const isCollapsed = collapsedMonths.has(label);
 
-							return (
-								<React.Fragment key={item.id}>
-									{showMonthHeader && (
-										<TableRow
-											className="cursor-pointer hover:bg-transparent"
-											onClick={() => toggleMonth(label)}
-										>
-											<TableCell
-												colSpan={columns.length}
-												className="bg-muted/40 py-1.5 text-muted-foreground text-xs uppercase tracking-wide"
+								return (
+									<React.Fragment key={item.id}>
+										{showMonthHeader && (
+											<TableRow
+												className="cursor-pointer hover:bg-transparent"
+												onClick={() => toggleMonth(label)}
 											>
-												<span className="flex items-center gap-1.5 select-none">
-													<ChevronDownIcon
-														className={cn(
-															"size-3.5 transition-transform duration-200 ease-out",
-															isCollapsed && "-rotate-90",
-														)}
-													/>
-													{label}
-												</span>
-											</TableCell>
-										</TableRow>
-									)}
-									{/* `collapse` (visibility: collapse) hides the row without
+												<TableCell
+													colSpan={columns.length}
+													className="bg-muted/40 py-1.5 text-muted-foreground text-xs uppercase tracking-wide"
+												>
+													<span className="flex items-center gap-1.5 select-none">
+														<ChevronDownIcon
+															className={cn(
+																"size-3.5 transition-transform duration-200 ease-out",
+																isCollapsed && "-rotate-90",
+															)}
+														/>
+														{label}
+													</span>
+												</TableCell>
+											</TableRow>
+										)}
+										{/* `collapse` (visibility: collapse) hides the row without
 								    re-triggering the table's column-width calculation, unlike
 								    unmounting it or `display: none`, which would let the
 								    remaining visible rows resize the columns. */}
-									<TableRow
-										className={cn(
-											"h-10 cursor-pointer",
-											selectedIds.has(item.id) && "bg-muted",
-											inPast && "opacity-65",
-											isDeleted && "text-destructive",
-											isCollapsed && "collapse",
-										)}
-										onClick={() => toggleSelected(item.id)}
-									>
-										{children}
-									</TableRow>
-								</React.Fragment>
-							);
-						}}
-						selectMode="none"
-					/>
-				</div>
-				{footer}
-			</div>
-			<div className="min-w-0 rounded-lg bg-card p-5">
-				{selectedIds.size === 0 ? (
-					<div className="text-muted-foreground text-sm">
-						{t("Select a row to see details")}
-					</div>
-				) : (
-					<div className="flex flex-col gap-3">
-						<div className="flex items-center justify-between">
-							<span className="font-semibold text-sm">
-								{single
-									? t("1 appointment selected")
-									: t("{0} appointments selected", selectedIds.size.toString())}
-							</span>
-							<Button
-								type="button"
-								variant="ghost"
-								size="sm"
-								onClick={() => setSelectedIds(new Set())}
-							>
-								{t("Clear selection")}
-							</Button>
-						</div>
-						{single ? (
-							<AppointmentDetailContent
-								appointment={single}
-								myResponse={myResponse}
-								onRespond={onRespond}
-							/>
-						) : (
-							<>
-								<div className="flex max-h-48 flex-col overflow-y-auto rounded-md border p-1">
-									{selectedAppointments.map((a) => (
-										<div
-											key={a.id}
-											className="flex items-center gap-2 rounded-md px-1.5 py-1"
+										<TableRow
+											className={cn(
+												"h-10 cursor-pointer",
+												selectedIds.has(item.id) && "bg-muted",
+												inPast && "opacity-65",
+												isDeleted && "text-destructive",
+												isCollapsed && "collapse",
+											)}
+											onClick={() => toggleSelected(item.id)}
 										>
-											<span
-												className={cn(
-													"size-1.5 shrink-0 rounded-full",
-													a.type === AppointmentType.HOLIDAY
-														? "bg-muted-foreground"
-														: a.status === AppointmentStatus.PUBLISHED
-															? "bg-success"
-															: "bg-warning",
-												)}
-											/>
-											<span className="min-w-0 flex-1 truncate text-sm">
-												{a.shortTitle}
-											</span>
-											<span className="shrink-0 text-muted-foreground text-xs">
-												{new Date(a.startDate).toLocaleDateString("de-DE", {
-													day: "2-digit",
-													month: "2-digit",
-												})}
-											</span>
-										</div>
+											{children}
+										</TableRow>
+									</React.Fragment>
+								);
+							}}
+							selectMode="none"
+						/>
+					</div>
+					{footer}
+				</div>
+				<div className="min-w-0 rounded-lg bg-card p-5">
+					{selectedIds.size === 0 ? (
+						<div className="text-muted-foreground text-sm">
+							{t("Select a row to see details")}
+						</div>
+					) : (
+						<div className="flex flex-col gap-3">
+							<div className="flex items-center justify-between">
+								<span className="font-semibold text-sm">
+									{single
+										? t("1 appointment selected")
+										: t(
+												"{0} appointments selected",
+												selectedIds.size.toString(),
+											)}
+								</span>
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									onClick={() => setSelectedIds(new Set())}
+								>
+									{t("Clear selection")}
+								</Button>
+							</div>
+							{single ? (
+								<AppointmentDetailContent
+									appointment={single}
+									myResponse={myResponse}
+									onRespond={onRespond}
+								/>
+							) : (
+								<>
+									<div className="flex max-h-48 flex-col overflow-y-auto rounded-md border p-1">
+										{selectedAppointments.map((a) => (
+											<div
+												key={a.id}
+												className="flex items-center gap-2 rounded-md px-1.5 py-1"
+											>
+												<span
+													className={cn(
+														"size-1.5 shrink-0 rounded-full",
+														a.type === AppointmentType.HOLIDAY
+															? "bg-muted-foreground"
+															: a.status === AppointmentStatus.PUBLISHED
+																? "bg-success"
+																: "bg-warning",
+													)}
+												/>
+												<span className="min-w-0 flex-1 truncate text-sm">
+													{a.shortTitle}
+												</span>
+												<span className="shrink-0 text-muted-foreground text-xs">
+													{new Date(a.startDate).toLocaleDateString("de-DE", {
+														day: "2-digit",
+														month: "2-digit",
+													})}
+												</span>
+											</div>
+										))}
+									</div>
+									<div className="flex gap-2">
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											className="flex-1 border border-success/30 text-success hover:bg-success/15 hover:text-success"
+											disabled={!hasRespondableSelection}
+											onClick={() => onBulkRespond(ResponseType.ACCEPT)}
+										>
+											{t("Accept")}
+										</Button>
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											className="flex-1 border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning"
+											disabled={!hasRespondableSelection}
+											onClick={() => onBulkRespond(ResponseType.MAYBE)}
+										>
+											{t("Maybe")}
+										</Button>
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											className="flex-1 border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive"
+											disabled={!hasRespondableSelection}
+											onClick={() => onBulkRespond(ResponseType.DECLINE)}
+										>
+											{t("Decline")}
+										</Button>
+									</div>
+								</>
+							)}
+							{canEdit && (
+								<div className="flex flex-col gap-2">
+									{bulkActions.map((action) => (
+										<Button
+											key={action.key}
+											type="button"
+											variant={action.destructive ? "destructive" : "outline"}
+											className="justify-start"
+											disabled={action.isDisabled}
+											onClick={action.onClick}
+										>
+											{action.icon}
+											{action.label}
+										</Button>
 									))}
 								</div>
-								<div className="flex gap-2">
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										className="flex-1 border border-success/30 text-success hover:bg-success/15 hover:text-success"
-										disabled={!hasRespondableSelection}
-										onClick={() => onBulkRespond(ResponseType.ACCEPT)}
-									>
-										{t("Accept")}
-									</Button>
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										className="flex-1 border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning"
-										disabled={!hasRespondableSelection}
-										onClick={() => onBulkRespond(ResponseType.MAYBE)}
-									>
-										{t("Maybe")}
-									</Button>
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										className="flex-1 border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive"
-										disabled={!hasRespondableSelection}
-										onClick={() => onBulkRespond(ResponseType.DECLINE)}
-									>
-										{t("Decline")}
-									</Button>
-								</div>
-							</>
-						)}
-						{canEdit && (
-							<div className="flex flex-col gap-2">
-								{bulkActions.map((action) => (
-									<Button
-										key={action.key}
-										type="button"
-										variant={action.destructive ? "destructive" : "outline"}
-										className="justify-start"
-										disabled={action.isDisabled}
-										onClick={action.onClick}
-									>
-										{action.icon}
-										{action.label}
-									</Button>
-								))}
-							</div>
-						)}
-					</div>
-				)}
+							)}
+						</div>
+					)}
+				</div>
 			</div>
-		</div>
+			<DeleteModal
+				label={
+					selectedAppointments.length === 1
+						? t("Are you sure you want to delete this appointment?")
+						: t(
+								"Are you sure you want to delete {0} appointments?",
+								selectedAppointments.length.toString(),
+							)
+				}
+				open={isConfirmingDelete}
+				onClose={() => setIsConfirmingDelete(false)}
+				onDelete={() => {
+					setIsConfirmingDelete(false);
+					onDelete(selectedAppointments);
+				}}
+			/>
+		</>
 	);
 };
 

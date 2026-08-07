@@ -65,6 +65,8 @@ const texts = {
 	"Appointment was deleted.": "Termin wurde gelöscht.",
 	Appointments: "Termine",
 	"Appointments could not be loaded": "Termine konnten nicht geladen werden",
+	"Are you sure you want to delete {0} appointments?":
+		"Bist du sicher, dass du {0} Termine löschen möchtest?",
 	"Are you sure you want to delete this appointment?":
 		"Bist du sicher, dass du diesen Termin löschen möchtest?",
 	"Are you sure you want to delete this player?":
