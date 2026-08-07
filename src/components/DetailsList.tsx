@@ -68,6 +68,11 @@ type DetailsListProps<T> = {
 	emptyMessage?: string;
 	className?: string;
 	selectMode?: "multiple" | "single" | "none";
+	// When provided, sorting is controlled by the parent (e.g. to drive a
+	// server-side sorted/paginated fetch) instead of TanStack Table sorting
+	// whatever rows happen to be loaded client-side.
+	sorting?: SortingState;
+	onSortingChange?: (sorting: SortingState) => void;
 };
 
 const commandBarButtonVariant = (
@@ -89,8 +94,13 @@ export function DetailsList<T>({
 	emptyMessage = t("No items found"),
 	className = "",
 	selectMode = "multiple",
+	sorting: controlledSorting,
+	onSortingChange,
 }: DetailsListProps<T>) {
-	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [internalSorting, setInternalSorting] = React.useState<SortingState>(
+		[],
+	);
+	const sorting = controlledSorting ?? internalSorting;
 	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
 	// Convert custom columns to TanStack Table column definitions
@@ -158,7 +168,12 @@ export function DetailsList<T>({
 		enableRowSelection: selectMode !== "none",
 		getCoreRowModel: getCoreRowModel(),
 		getRowId: (row) => getItemId(row),
-		getSortedRowModel: getSortedRowModel(),
+		// When sorting is controlled, the parent is responsible for fetching
+		// the data in the requested order (e.g. server-side sort across a
+		// paginated dataset) rather than the table resorting whatever rows
+		// happen to be loaded client-side.
+		getSortedRowModel: controlledSorting ? undefined : getSortedRowModel(),
+		manualSorting: !!controlledSorting,
 		onRowSelectionChange: (updater) => {
 			if (selectMode === "single") {
 				// For single mode, only allow one selection
@@ -178,7 +193,14 @@ export function DetailsList<T>({
 				setRowSelection(updater);
 			}
 		},
-		onSortingChange: setSorting,
+		onSortingChange: (updater) => {
+			const next = typeof updater === "function" ? updater(sorting) : updater;
+			if (onSortingChange) {
+				onSortingChange(next);
+			} else {
+				setInternalSorting(next);
+			}
+		},
 		state: {
 			rowSelection,
 			sorting,

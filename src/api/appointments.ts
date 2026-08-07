@@ -184,6 +184,7 @@ export const getTransactionsPage = createServerFn()
 			take: number;
 			type?: TransactionType;
 			query?: string;
+			sortDirection?: "asc" | "desc";
 		}) => d,
 	)
 	.handler(async ({ data }) => {
@@ -208,7 +209,7 @@ export const getTransactionsPage = createServerFn()
 						appointment: true,
 						user: true,
 					},
-					orderBy: { createdAt: "desc" },
+					orderBy: { createdAt: data.sortDirection ?? "desc" },
 					skip: data.skip,
 					take: data.take,
 					where,

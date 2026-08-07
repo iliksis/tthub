@@ -3,6 +3,7 @@ import {
 	useRouter,
 	useRouterState,
 } from "@tanstack/react-router";
+import type { SortingState } from "@tanstack/react-table";
 import { Loader2Icon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
@@ -46,6 +47,7 @@ const BATCH_SIZE = 25;
 const journalSearchSchema = z.object({
 	query: z.string().optional(),
 	skip: z.number().int().nonnegative().optional(),
+	sort: z.enum(["asc", "desc"]).optional(),
 	type: z.enum(["CREATE", "UPDATE", "DELETE"]).optional(),
 });
 
@@ -57,7 +59,13 @@ export const Route = createFileRoute("/_authed/appts/journal")({
 	loader: async ({ deps }) => {
 		const skip = deps.skip ?? 0;
 		const res = await getTransactionsPage({
-			data: { query: deps.query, skip, take: BATCH_SIZE, type: deps.type },
+			data: {
+				query: deps.query,
+				skip,
+				sortDirection: deps.sort,
+				take: BATCH_SIZE,
+				type: deps.type,
+			},
 		});
 		const response = await res.json();
 		if (res.status < 400) {
@@ -211,7 +219,7 @@ function RouteComponent() {
 	// the first page), in which case it replaces them outright. Comparing
 	// against state (not a ref) during render is the React-sanctioned way to
 	// reset/derive state when an input changes without a useEffect round-trip.
-	const filterKey = `${search.query ?? ""}|${search.type ?? ""}`;
+	const filterKey = `${search.query ?? ""}|${search.type ?? ""}|${search.sort ?? ""}`;
 	const [items, setItems] = React.useState(batch);
 	const [appliedLoad, setAppliedLoad] = React.useState({ filterKey, skip });
 	const [newIds, setNewIds] = React.useState<ReadonlySet<string>>(new Set());
@@ -230,7 +238,11 @@ function RouteComponent() {
 			if (queryInput !== (search.query ?? "")) {
 				router.navigate({
 					replace: true,
-					search: { query: queryInput || undefined, type: search.type },
+					search: {
+						query: queryInput || undefined,
+						sort: search.sort,
+						type: search.type,
+					},
 					to: ".",
 				});
 			}
@@ -243,6 +255,7 @@ function RouteComponent() {
 			replace: true,
 			search: {
 				query: search.query,
+				sort: search.sort,
 				type: value === "ALL" ? undefined : value,
 			},
 			to: ".",
@@ -255,6 +268,27 @@ function RouteComponent() {
 			search: {
 				query: search.query,
 				skip: items.length,
+				sort: search.sort,
+				type: search.type,
+			},
+			to: ".",
+		});
+	};
+
+	// Sorting is server-driven (see getTransactionsPage) since the list is
+	// loaded in batches: reordering only the rows already fetched would leave
+	// later "Load more" pages out of order. Toggling the header instead
+	// re-fetches from the start with the new order.
+	const sorting: SortingState =
+		search.sort != null ? [{ desc: search.sort === "desc", id: "time" }] : [];
+
+	const onSortingChange = (next: SortingState) => {
+		const timeSort = next.find((s) => s.id === "time");
+		router.navigate({
+			replace: true,
+			search: {
+				query: search.query,
+				sort: timeSort ? (timeSort.desc ? "desc" : "asc") : undefined,
 				type: search.type,
 			},
 			to: ".",
@@ -332,6 +366,8 @@ function RouteComponent() {
 						items={items}
 						getItemId={(item) => item.id}
 						columns={getTransactionColumns()}
+						sorting={sorting}
+						onSortingChange={onSortingChange}
 						onRenderRow={(item, children) => {
 							const isNew = !prefersReducedMotion && newIds.has(item.id);
 							return (
