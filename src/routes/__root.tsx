@@ -9,7 +9,6 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
-import { GlobalSearch } from "@/components/GlobalSearch";
 import { NavigationWrapper } from "@/components/NavigationWrapper";
 import { getTheme } from "@/components/ThemeSwitch";
 import { Toaster } from "@/components/ui/sonner";
@@ -151,7 +150,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 						{user && isAuthedRoute ? (
 							<>
 								<NavigationWrapper title={title}>{children}</NavigationWrapper>
-								<GlobalSearch />
 								<TanStackDevtools
 									config={{
 										position: "bottom-left",
