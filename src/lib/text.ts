@@ -116,6 +116,7 @@ const texts = {
 	Duplicate: "Duplizieren",
 	Edit: "Bearbeiten",
 	"Edit appointment": "Termin bearbeiten",
+	Editor: "Editor:in",
 	End: "Ende",
 	EndDate: "Ende",
 	Expired: "Abgelaufen",
@@ -165,7 +166,6 @@ const texts = {
 		"Vereinsmitglieder und Einladungen verwalten",
 	Max: "Max",
 	Maybe: "Vielleicht",
-	Member: "Mitglied",
 	Min: "Min",
 	"More details": "Weitere Details",
 	Name: "Name",
@@ -315,6 +315,7 @@ const texts = {
 	"Update your password": "Aktualisiere dein Passwort",
 	"Use this URL in your calendar application to subscribe to your personal calendar feed.":
 		"Verwende diese URL in deiner Kalenderanwendung, um deinen persönlichen Kalender-Feed zu abonnieren.",
+	User: "User:in",
 	"User created": "Benutzer:in erstellt",
 	"User deleted": "Benutzer:in gelöscht",
 	"User Management": "Benutzerverwaltung",

@@ -26,9 +26,9 @@ const roleLabel = (role: Role) => {
 		case "ADMIN":
 			return t("Administrator");
 		case "EDITOR":
-			return t("Trainer");
+			return t("Editor");
 		default:
-			return t("Member");
+			return t("User");
 	}
 };
 
