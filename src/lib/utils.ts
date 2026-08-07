@@ -40,6 +40,8 @@ export const dateToInputValue = (date: Date, withSeconds = true) => {
 	return isoString.split("T")[0];
 };
 
+// Intl.RelativeTimeFormat needs a BCP-47 locale, not a t() key — the app is German-only
+// (see CLAUDE.md i18n section), so this hardcode is intentional, not a missed t() call.
 const relativeTimeFormat = new Intl.RelativeTimeFormat("de-DE", {
 	numeric: "auto",
 });
