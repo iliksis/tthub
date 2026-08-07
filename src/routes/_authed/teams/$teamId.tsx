@@ -5,7 +5,6 @@ import {
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
-	ChevronRightIcon,
 	CogIcon,
 	EditIcon,
 	Trash2Icon,
@@ -17,17 +16,14 @@ import { toast } from "sonner";
 import { deleteTeam, getTeam, updateTeam } from "@/api/teams";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
+import { PlayerRosterRow } from "@/components/teams/PlayerRosterRow";
 import { TeamForm } from "@/components/teams/TeamForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
-import {
-	calculateAgeGroup,
-	createColorForUserId,
-	shortenUserName,
-} from "@/lib/utils";
+import { calculateAgeGroup } from "@/lib/utils";
 
 // biome-ignore assist/source/useSortedKeys: head uses loaderData
 export const Route = createFileRoute("/_authed/teams/$teamId")({
@@ -169,42 +165,9 @@ function RouteComponent() {
 					</div>
 				) : (
 					<div className="flex flex-col gap-2.5">
-						{sortedPlayers.map((player) => {
-							const color = createColorForUserId(player.id);
-							return (
-								<button
-									key={player.id}
-									type="button"
-									onClick={async () => {
-										await router.navigate({
-											params: { playerId: player.id },
-											to: "/players/$playerId",
-										});
-									}}
-									className="flex items-center gap-3 rounded-lg bg-card p-3 text-left transition-colors hover:bg-muted/50"
-								>
-									<div
-										className="flex size-9 shrink-0 items-center justify-center rounded-full font-semibold text-xs"
-										style={{
-											backgroundColor: color.backgroundColor,
-											color: color.foregroundColor,
-										}}
-									>
-										{shortenUserName(player.name)}
-									</div>
-									<div className="min-w-0 flex-1">
-										<div className="truncate font-medium text-sm">
-											{player.name}
-										</div>
-										<div className="text-muted-foreground text-xs">
-											{calculateAgeGroup(player.year)} · {player.year}
-										</div>
-									</div>
-									<Badge variant="success">{player.qttr}</Badge>
-									<ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />
-								</button>
-							);
-						})}
+						{sortedPlayers.map((player) => (
+							<PlayerRosterRow key={player.id} player={player} variant="card" />
+						))}
 					</div>
 				)}
 				<div className="mt-4 flex items-center gap-3 rounded-lg border border-border/60 border-dashed p-4 text-muted-foreground text-sm">
