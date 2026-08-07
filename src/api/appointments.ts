@@ -188,6 +188,10 @@ export const getTransactionsPage = createServerFn()
 		}) => d,
 	)
 	.handler(async ({ data }) => {
+		const session = await useAppSession();
+		if (!session.data.id) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
 		try {
 			const where: Prisma.TransactionWhereInput = {
 				type: data.type,
