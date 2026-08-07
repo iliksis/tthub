@@ -3,7 +3,6 @@ import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { updateUserInformation } from "@/api/users";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +11,6 @@ import { useMutation } from "@/hooks/useMutation";
 import type { Role } from "@/lib/prisma/enums";
 import { useAppSession } from "@/lib/session";
 import { t } from "@/lib/text";
-import { createColorForUserId, shortenUserName } from "@/lib/utils";
 
 const updateSession = createServerFn({ method: "POST" })
 	.inputValidator((d: { name: string }) => d)
@@ -35,11 +33,11 @@ const roleLabel = (role: Role) => {
 const roleBadgeVariant = (role: Role) => {
 	switch (role) {
 		case "ADMIN":
-			return "default" as const;
+			return "success" as const;
 		case "EDITOR":
 			return "info" as const;
 		default:
-			return "secondary" as const;
+			return "outline" as const;
 	}
 };
 
@@ -97,32 +95,18 @@ export const Profile = () => {
 	});
 
 	const formErrorMap = useStore(form.store, (state) => state.errorMap);
-	const colors = createColorForUserId(currentUser?.id ?? "");
 
 	return (
 		<div className="flex flex-col gap-8">
-			<div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:text-left">
-				<Avatar className="size-16">
-					<AvatarFallback
-						className="text-lg"
-						style={{
-							backgroundColor: colors.backgroundColor,
-							color: colors.foregroundColor,
-						}}
-					>
-						{shortenUserName(currentUser?.name ?? "?")}
-					</AvatarFallback>
-				</Avatar>
-				<div className="flex flex-col items-center gap-1 sm:items-start">
-					<h1 className="font-bold text-2xl">{currentUser?.name}</h1>
-					<div className="flex items-center gap-2 text-muted-foreground text-sm">
-						<span>@{currentUser?.userName}</span>
-						{currentUser?.role && (
-							<Badge variant={roleBadgeVariant(currentUser.role)}>
-								{roleLabel(currentUser.role)}
-							</Badge>
-						)}
-					</div>
+			<div className="flex flex-col items-center gap-1 sm:items-start">
+				<h1 className="font-bold text-2xl">{currentUser?.name}</h1>
+				<div className="flex items-center gap-2 text-muted-foreground text-sm">
+					<span>{currentUser?.userName}</span>
+					{currentUser?.role && (
+						<Badge variant={roleBadgeVariant(currentUser.role)}>
+							{roleLabel(currentUser.role)}
+						</Badge>
+					)}
 				</div>
 			</div>
 

@@ -328,6 +328,8 @@ const texts = {
 	"User updated": "Benutzer aktualisiert",
 	"Year of birth": "Geburtsjahr",
 	"Year of birth must be set": "Geburtsjahr muss gesetzt sein",
+	"You cannot change your own role":
+		"Du kannst deine eigene Rolle nicht ändern",
 	"You do not have permission to access import settings":
 		"Du hast keine Berechtigung, um auf die Importeinstellungen zuzugreifen",
 	"You do not have permission to access user management":
