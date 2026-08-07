@@ -26,7 +26,7 @@ export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 	}
 
 	return (
-		<div className="grid grid-cols-[1fr_360px] items-start gap-4">
+		<div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_360px]">
 			<div className="min-w-0 overflow-x-auto rounded-lg bg-card">
 				<DetailsList
 					columns={[
