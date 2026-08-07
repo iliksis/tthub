@@ -100,7 +100,7 @@ export const CreateAppointmentForm = () => {
 							: "border-border/60 hover:bg-accent/50",
 					)}
 				>
-					<div className="flex size-11 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
+					<div className="flex size-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
 						<CalendarIcon className="size-5" />
 					</div>
 					<div>
@@ -120,7 +120,7 @@ export const CreateAppointmentForm = () => {
 							: "border-border/60 hover:bg-accent/50",
 					)}
 				>
-					<div className="flex size-11 items-center justify-center rounded-lg bg-gradient-to-br from-success to-success/70 text-success-foreground">
+					<div className="flex size-11 items-center justify-center rounded-lg bg-success text-success-foreground">
 						<TrophyIcon className="size-5" />
 					</div>
 					<div>

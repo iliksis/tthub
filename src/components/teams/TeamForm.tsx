@@ -43,10 +43,10 @@ export const TeamForm = ({
 				if (!nextOpen) onClose?.();
 			}}
 		>
-			<DialogContent className="md:max-w-xl md:mx-auto">
+			<DialogContent showCloseButton={false}>
 				<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
 				<form
-					className="flex flex-col gap-2"
+					className="flex flex-col gap-4"
 					onSubmit={(e) => {
 						e.preventDefault();
 						e.stopPropagation();

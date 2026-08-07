@@ -118,7 +118,7 @@ export const Profile = () => {
 					</p>
 				</div>
 				<form
-					className="flex flex-col gap-5"
+					className="flex flex-col gap-4"
 					onSubmit={(e) => {
 						e.preventDefault();
 						e.stopPropagation();

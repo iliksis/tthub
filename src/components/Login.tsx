@@ -46,7 +46,7 @@ export function Login() {
 					form.handleSubmit();
 				}}
 			>
-				<div className="flex flex-col gap-2 p-6">
+				<div className="flex flex-col gap-3 p-6">
 					<form.Field name="userName">
 						{(field) => {
 							return (

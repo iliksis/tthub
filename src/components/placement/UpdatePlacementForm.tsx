@@ -71,9 +71,9 @@ export const UpdatePlacementForm = ({
 				if (!nextOpen) _onClose();
 			}}
 		>
-			<DialogContent className="md:max-w-xl md:mx-auto">
+			<DialogContent className="md:max-w-xl md:mx-auto" showCloseButton={false}>
 				<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
-				<form className="flex flex-col gap-2" onSubmit={form.handleSubmit}>
+				<form className="flex flex-col gap-4" onSubmit={form.handleSubmit}>
 					<div>
 						<form.Field name="placement">
 							{(field) => (

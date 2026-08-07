@@ -81,6 +81,7 @@ export const CreateUserModal = ({
 			<DialogContent showCloseButton={false}>
 				<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
 				<form
+					className="flex flex-col gap-4"
 					onSubmit={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
