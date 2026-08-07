@@ -228,18 +228,23 @@ function RouteComponent() {
 		[appended],
 	);
 
+	const searchRef = React.useRef(search);
+	searchRef.current = search;
+	const routerRef = React.useRef(router);
+	routerRef.current = router;
+
 	// Debounced so typing doesn't fire a loader request per keystroke; the
 	// input itself still updates instantly for a responsive feel.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: only re-runs when the local input changes; search.query/type/router are read, not resynced on
 	React.useEffect(() => {
 		const timeout = setTimeout(() => {
-			if (queryInput !== (search.query ?? "")) {
-				router.navigate({
+			const current = searchRef.current;
+			if (queryInput !== (current.query ?? "")) {
+				routerRef.current.navigate({
 					replace: true,
 					search: {
 						query: queryInput || undefined,
-						sort: search.sort,
-						type: search.type,
+						sort: current.sort,
+						type: current.type,
 					},
 					to: ".",
 				});

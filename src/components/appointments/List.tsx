@@ -298,11 +298,15 @@ const useAppointmentLiveFilters = (props: FiltersProps) => {
 		[router, props],
 	);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: only re-runs when the local input changes; navigate/props.query are read, not resynced on
+	const navigateRef = React.useRef(navigate);
+	navigateRef.current = navigate;
+	const propsQueryRef = React.useRef(props.query);
+	propsQueryRef.current = props.query;
+
 	React.useEffect(() => {
 		const timeout = setTimeout(() => {
-			if (queryInput !== (props.query ?? "")) {
-				navigate({ query: queryInput || undefined });
+			if (queryInput !== (propsQueryRef.current ?? "")) {
+				navigateRef.current({ query: queryInput || undefined });
 			}
 		}, 300);
 		return () => clearTimeout(timeout);
