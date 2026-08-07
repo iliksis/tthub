@@ -8,7 +8,7 @@ import {
 	type ResponseType,
 	TransactionType,
 } from "@/lib/prisma/enums";
-import { useAppSession, useIsRole } from "@/lib/session";
+import { requireEditor, useAppSession } from "@/lib/session";
 import { t } from "@/lib/text";
 import { formatTanstackRouterPath } from "@/lib/utils";
 import { sendNotification } from "./notifications";
@@ -34,12 +34,8 @@ type ICreateAppointment =
 export const createAppointment = createServerFn()
 	.inputValidator((d: ICreateAppointment) => d)
 	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		const { data: session } = await useAppSession();
-		if (!isAuthorized) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
-		}
-		if (!session.id) {
+		const session = await requireEditor();
+		if (!session) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
@@ -62,7 +58,7 @@ export const createAppointment = createServerFn()
 					data: {
 						appointmentId: appointment.id,
 						type: TransactionType.CREATE,
-						userId: session.id as string,
+						userId: session.id,
 					},
 				});
 				return appointment;
@@ -401,12 +397,8 @@ function scheduleAppointmentUpdatedNotification(appointment: Appointment) {
 export const updateAppointment = createServerFn()
 	.inputValidator((d: { id: string; updates: Partial<Appointment> }) => d)
 	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		const { data: session } = await useAppSession();
-		if (!isAuthorized) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
-		}
-		if (!session.id) {
+		const session = await requireEditor();
+		if (!session) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
@@ -444,7 +436,7 @@ export const updateAppointment = createServerFn()
 							appointmentId: appointment.id,
 							changes: changes as Prisma.InputJsonValue,
 							type: TransactionType.UPDATE,
-							userId: session.id as string,
+							userId: session.id,
 						},
 					});
 				}
@@ -470,12 +462,8 @@ export const updateAppointment = createServerFn()
 export const deleteAppointment = createServerFn()
 	.inputValidator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		const { data: session } = await useAppSession();
-		if (!isAuthorized) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
-		}
-		if (!session.id) {
+		const session = await requireEditor();
+		if (!session) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
@@ -491,7 +479,7 @@ export const deleteAppointment = createServerFn()
 					data: {
 						appointmentId: appointment.id,
 						type: TransactionType.DELETE,
-						userId: session.id as string,
+						userId: session.id,
 					},
 				});
 				return appointment;
@@ -758,12 +746,8 @@ export const importHolidays = createServerFn()
 export const publishAppointment = createServerFn()
 	.inputValidator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		const { data: session } = await useAppSession();
-		if (!isAuthorized) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
-		}
-		if (!session.id) {
+		const session = await requireEditor();
+		if (!session) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
@@ -786,7 +770,7 @@ export const publishAppointment = createServerFn()
 								status: { new: appointment.status, old: before.status },
 							} as Prisma.InputJsonValue,
 							type: TransactionType.UPDATE,
-							userId: session.id as string,
+							userId: session.id,
 						},
 					});
 				}
@@ -816,12 +800,8 @@ export const publishAppointment = createServerFn()
 export const unpublishAppointment = createServerFn()
 	.inputValidator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		const { data: session } = await useAppSession();
-		if (!isAuthorized) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
-		}
-		if (!session.id) {
+		const session = await requireEditor();
+		if (!session) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
@@ -844,7 +824,7 @@ export const unpublishAppointment = createServerFn()
 								status: { new: appointment.status, old: before.status },
 							} as Prisma.InputJsonValue,
 							type: TransactionType.UPDATE,
-							userId: session.id as string,
+							userId: session.id,
 						},
 					});
 				}
@@ -864,12 +844,8 @@ export const unpublishAppointment = createServerFn()
 export const restoreAppointment = createServerFn()
 	.inputValidator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		const { data: session } = await useAppSession();
-		if (!isAuthorized) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
-		}
-		if (!session.id) {
+		const session = await requireEditor();
+		if (!session) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
@@ -885,7 +861,7 @@ export const restoreAppointment = createServerFn()
 					data: {
 						appointmentId: appointment.id,
 						type: TransactionType.RESTORE,
-						userId: session.id as string,
+						userId: session.id,
 					},
 				});
 				return appointment;
