@@ -4,13 +4,7 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import {
-	CogIcon,
-	EditIcon,
-	Trash2Icon,
-	TrophyIcon,
-	UsersIcon,
-} from "lucide-react";
+import { EditIcon, Trash2Icon, TrophyIcon, UsersIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { deleteTeam, getTeam, updateTeam } from "@/api/teams";
@@ -176,17 +170,6 @@ function RouteComponent() {
 				</div>
 				{canEdit && (
 					<div className="fab">
-						<Button
-							asChild
-							variant="secondary"
-							size="icon-lg"
-							role="button"
-							tabIndex={0}
-						>
-							<div>
-								<CogIcon className="size-4" />
-							</div>
-						</Button>
 						<Button
 							variant="secondary"
 							size="icon-lg"
