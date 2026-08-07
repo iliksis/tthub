@@ -18,7 +18,7 @@ type EditableNextAppointmentCardProps = {
 	nextAppointment: { id: string; title: string } | null;
 	otherAppointments: Appointment[];
 	canEdit: boolean;
-	onSave: (nextAppointmentId: string) => Promise<boolean>;
+	onSave: (nextAppointmentId: string | null) => Promise<boolean>;
 };
 
 /** Lightweight "Next Appointment: …" row — no card chrome, sits inline in the main content. */
@@ -32,7 +32,7 @@ export function EditableNextAppointmentCard({
 }: EditableNextAppointmentCardProps) {
 	const { editing, start, cancel, commit } = useInlineEditable<string | null>({
 		canEdit,
-		onSave: (v) => onSave(v ?? ""),
+		onSave,
 		value: nextAppointmentId,
 	});
 
