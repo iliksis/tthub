@@ -1,6 +1,7 @@
 import { Loader2Icon } from "lucide-react";
 import React from "react";
 import { DetailsList } from "@/components/DetailsList";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "@/components/ui/link";
 import { TableRow } from "@/components/ui/table";
 import { useTeamDetail } from "@/hooks/useTeamDetail";
@@ -15,7 +16,7 @@ export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 	const [selectedId, setSelectedId] = React.useState<string | undefined>(
 		teams[0]?.id,
 	);
-	const { team, isLoading } = useTeamDetail(selectedId);
+	const { team, isLoading, isError } = useTeamDetail(selectedId);
 
 	if (teams.length === 0) {
 		return (
@@ -82,6 +83,10 @@ export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 					<div className="text-muted-foreground text-sm">
 						{t("Select a row to see details")}
 					</div>
+				) : isError ? (
+					<Alert variant="destructive">
+						<AlertDescription>{t("Team could not be loaded")}</AlertDescription>
+					</Alert>
 				) : isLoading || !team ? (
 					<div className="flex items-center justify-center py-8">
 						<Loader2Icon className="size-5 animate-spin text-muted-foreground" />

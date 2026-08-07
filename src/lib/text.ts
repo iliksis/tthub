@@ -291,6 +291,7 @@ const texts = {
 	"Swipe to respond": "Wischen zum Antworten",
 	"Switch Theme": "Theme wechseln",
 	Team: "Team",
+	"Team could not be loaded": "Team konnte nicht geladen werden",
 	"Team created": "Team erstellt",
 	"Team deleted": "Team gelöscht",
 	"Team found": "Team gefunden",
