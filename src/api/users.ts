@@ -32,6 +32,15 @@ export const updateUserRole = createServerFn({ method: "POST" })
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
+		// biome-ignore lint/correctness/useHookAtTopLevel: not a real hook
+		const session = await useAppSession();
+		if (session.data?.id === data.id) {
+			return json<Return>(
+				{ message: t("You cannot change your own role") },
+				{ status: 400 },
+			);
+		}
+
 		try {
 			const user = await prismaClient.user.update({
 				data: {
