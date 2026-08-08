@@ -42,45 +42,17 @@ export const Route = createFileRoute("/_authed/")({
 			throw new Error(t("Unauthorized"));
 		}
 
-		const promises = await Promise.all([
-			getNextAppointments(),
-			getUserAppointments({ data: { userId: context.user.id } }),
-			getUserOpenAppointments({
-				data: { userId: context.user.id },
-			}),
-			getPlayers(),
-			getTeams(),
-		]);
-
-		const nextData = promises[0];
-		const nextRes = await nextData.json();
-		if (nextData.status >= 400) {
-			throw new Error(nextRes.message);
-		}
-
-		const userData = promises[1];
-		const userRes = await userData.json();
-		if (userData.status >= 400) {
-			throw new Error(userRes.message);
-		}
-
-		const openData = promises[2];
-		const openRes = await openData.json();
-		if (openData.status >= 400) {
-			throw new Error(openRes.message);
-		}
-
-		const playersData = promises[3];
-		const playersRes = await playersData.json();
-		if (playersData.status >= 400) {
-			throw new Error(playersRes.message);
-		}
-
-		const teamsData = promises[4];
-		const teamsRes = await teamsData.json();
-		if (teamsData.status >= 400) {
-			throw new Error(teamsRes.message);
-		}
+		const [nextRes, userRes, openRes, playersRes, teamsRes] = await Promise.all(
+			[
+				getNextAppointments(),
+				getUserAppointments({ data: { userId: context.user.id } }),
+				getUserOpenAppointments({
+					data: { userId: context.user.id },
+				}),
+				getPlayers(),
+				getTeams(),
+			],
+		);
 
 		return {
 			nextAppointments: nextRes.data,
@@ -105,15 +77,14 @@ function App() {
 
 	const onResponse =
 		(appointmentId: string, response: ResponseType) => async () => {
-			const res = await createResponseServerFn({
-				data: { appointmentId, response },
-			});
-			const data = await res.json();
-			if (res.status < 400 && data) {
+			try {
+				await createResponseServerFn({
+					data: { appointmentId, response },
+				});
 				await router.invalidate();
-				return;
+			} catch (err) {
+				toast.error((err as Error).message);
 			}
-			toast.error(data.message);
 		};
 
 	const [next] = nextAppointments ?? [];

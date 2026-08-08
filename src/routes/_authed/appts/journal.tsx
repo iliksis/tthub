@@ -59,7 +59,7 @@ export const Route = createFileRoute("/_authed/appts/journal")({
 	loaderDeps: ({ search }) => ({ ...search }),
 	loader: async ({ deps }) => {
 		const skip = deps.skip ?? 0;
-		const res = await getTransactionsPage({
+		const response = await getTransactionsPage({
 			data: {
 				query: deps.query,
 				skip,
@@ -68,16 +68,12 @@ export const Route = createFileRoute("/_authed/appts/journal")({
 				type: deps.type,
 			},
 		});
-		const response = await res.json();
-		if (res.status < 400) {
-			const data = response.data ?? {
-				grandTotal: 0,
-				matchedTotal: 0,
-				transactions: [],
-			};
-			return { ...data, skip };
-		}
-		throw new Error(response.message);
+		const data = response.data ?? {
+			grandTotal: 0,
+			matchedTotal: 0,
+			transactions: [],
+		};
+		return { ...data, skip };
 	},
 	head: () => ({
 		meta: [{ title: t("Transaction Journal") }],

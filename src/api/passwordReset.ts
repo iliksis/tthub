@@ -1,9 +1,7 @@
-import { createServerFn, json } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
-import type { PasswordReset } from "@/lib/prisma/client";
 import { useIsRole } from "@/lib/session";
 import { t } from "@/lib/text";
-import type { Return } from "./types";
 
 export const getPasswordReset = createServerFn({ method: "GET" })
 	.inputValidator((d: { id: string }) => d)
@@ -24,7 +22,7 @@ export const createPasswordReset = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("ADMIN");
 		if (!isAuthorized) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		try {
@@ -45,13 +43,9 @@ export const createPasswordReset = createServerFn({ method: "POST" })
 					userId: data.userId,
 				},
 			});
-			return json<Return<PasswordReset>>(
-				{ data: invitation, message: t("User updated") },
-				{ status: 200 },
-			);
+			return { data: invitation, message: t("User updated") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});

@@ -46,15 +46,13 @@ export const CreateUserModal = ({
 
 	const createMutation = useMutation({
 		fn: createUser,
+		onError: (err) => {
+			toast.error(err.message);
+		},
 		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data?.status < 400) {
-				form.reset();
-				await router.invalidate();
-				toast.success(data.message);
-				return;
-			}
-			toast.error(data.message);
+			form.reset();
+			await router.invalidate();
+			toast.success(ctx.data.message);
 		},
 	});
 

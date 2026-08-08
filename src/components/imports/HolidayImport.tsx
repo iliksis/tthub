@@ -39,14 +39,12 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 
 	const importMutation = useMutation({
 		fn: importHolidays,
+		onError: (err) => {
+			toast.error(err.message);
+		},
 		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data?.status < 400) {
-				await router.invalidate();
-				toast.success(data.message);
-				return;
-			}
-			toast.error(data.message);
+			await router.invalidate();
+			toast.success(ctx.data.message);
 		},
 	});
 

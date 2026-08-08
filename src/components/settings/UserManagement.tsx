@@ -43,14 +43,12 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 
 	const deleteMutation = useMutation({
 		fn: deleteUser,
+		onError: (err) => {
+			toast.error(err.message);
+		},
 		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data?.status < 400) {
-				await router.invalidate();
-				toast.success(data.message);
-				return;
-			}
-			toast.error(data.message);
+			await router.invalidate();
+			toast.success(ctx.data.message);
 		},
 	});
 
@@ -64,14 +62,12 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 
 	const createInvitationMutation = useMutation({
 		fn: createUserInvitation,
+		onError: (err) => {
+			toast.error(err.message);
+		},
 		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data?.status < 400) {
-				await router.invalidate();
-				toast.success(data.message);
-				return;
-			}
-			toast.error(data.message);
+			await router.invalidate();
+			toast.success(ctx.data.message);
 		},
 	});
 
@@ -85,14 +81,12 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 
 	const updateRoleMutation = useMutation({
 		fn: updateUserRole,
+		onError: (err) => {
+			toast.error(err.message);
+		},
 		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data?.status < 400) {
-				await router.invalidate();
-				toast.success(data.message);
-				return;
-			}
-			toast.error(data.message);
+			await router.invalidate();
+			toast.success(ctx.data.message);
 		},
 	});
 
@@ -199,17 +193,16 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 						key: "password-reset",
 						label: t("Reset Password"),
 						onClick: async (items) => {
-							const response = await createPasswordResetServerFn({
-								data: { userId: items[0].id },
-							});
-							const data = await response.json();
-							if (response.status < 400 && data.data) {
+							try {
+								const response = await createPasswordResetServerFn({
+									data: { userId: items[0].id },
+								});
 								await navigator.clipboard.writeText(
-									`${window.location.origin}/password-reset/${data.data.id}`,
+									`${window.location.origin}/password-reset/${response.data.id}`,
 								);
 								toast.success(t("Password reset created"));
-							} else {
-								toast.error(data.message);
+							} catch (err) {
+								toast.error((err as Error).message);
 							}
 						},
 						variant: "secondary",

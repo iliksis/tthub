@@ -16,9 +16,7 @@ export function useTeamDetail(id: string | undefined) {
 		enabled: !!id,
 		queryFn: async () => {
 			const res = await getTeamServerFn({ data: { id: id as string } });
-			const body = await res.json();
-			if (res.status >= 400) throw new Error(body.message);
-			return body.data as TeamDetail;
+			return res.data as TeamDetail;
 		},
 		queryKey: ["team", id],
 	});

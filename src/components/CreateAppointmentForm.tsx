@@ -46,18 +46,16 @@ export const CreateAppointmentForm = () => {
 
 	const createMutation = useMutation({
 		fn: createAppointment,
+		onError: (err) => {
+			toast.error(err.message);
+		},
 		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data?.status < 400 && data.data) {
-				await router.invalidate();
-				toast.success(data.message);
-				await router.navigate({
-					params: { apptId: data.data.id },
-					to: "/appts/$apptId",
-				});
-				return;
-			}
-			toast.error(data.message);
+			await router.invalidate();
+			toast.success(ctx.data.message);
+			await router.navigate({
+				params: { apptId: ctx.data.data.id },
+				to: "/appts/$apptId",
+			});
 		},
 	});
 

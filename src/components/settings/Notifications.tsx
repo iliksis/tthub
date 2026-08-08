@@ -136,29 +136,27 @@ const Form = ({ subscription }: FormProps) => {
 
 	const query = useQuery({
 		queryFn: async () => {
-			const response = await getNotificationSettings({
-				data: { subscriptionId: subscription.id },
-			});
-			const result = await response.json();
-			if (response.status < 400) {
-				return result.data;
+			try {
+				const response = await getNotificationSettings({
+					data: { subscriptionId: subscription.id },
+				});
+				return response.data;
+			} catch {
+				return null;
 			}
-			return null;
 		},
 		queryKey: ["notification-subscription-settings", subscription.id],
 	});
 
 	const mutation = useMutation({
 		fn: updateNotificationSettings,
+		onError: (err) => {
+			toast.error(err.message);
+		},
 		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data?.status < 400) {
-				await router.invalidate();
-				await query.refetch();
-				toast.success(data.message);
-				return;
-			}
-			toast.error(data.message);
+			await router.invalidate();
+			await query.refetch();
+			toast.success(ctx.data.message);
 		},
 	});
 
@@ -280,16 +278,15 @@ const ActiveSubscriptions = ({ subscriptions }: ActiveSubscriptionsProps) => {
 
 	const deleteSubscription = useServerFn(deleteNotificationSubscription);
 	const onDelete = (subscription: Subscription) => async () => {
-		const response = await deleteSubscription({
-			data: { id: subscription.id },
-		});
-		const result = await response.json();
-		if (response.status < 400) {
+		try {
+			const result = await deleteSubscription({
+				data: { id: subscription.id },
+			});
 			await router.invalidate();
 			toast.success(result.message);
-			return;
+		} catch (err) {
+			toast.error((err as Error).message);
 		}
-		toast.error(result.message);
 	};
 
 	if (!subscriptions || subscriptions.length === 0) return null;

@@ -66,35 +66,15 @@ import {
 export const Route = createFileRoute("/_authed/appts/$apptId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const apptData = await getAppointment({ data: { id: params.apptId } });
+		const res = await getAppointment({ data: { id: params.apptId } });
 
-		const res = await apptData.json();
-		if (apptData.status >= 400) {
-			throw new Error(res.message);
-		}
-
-		const [playerData, categoriesData, apptsData] = await Promise.all([
+		const [players, categories, appointments] = await Promise.all([
 			getPlayers(),
 			getUniqueCategories(),
 			getAppointments({
 				data: { minDate: res.data?.startDate, orderBy: { startDate: "desc" } },
 			}),
 		]);
-
-		const players = await playerData.json();
-		if (playerData.status >= 400) {
-			throw new Error(players.message);
-		}
-
-		const categories = await categoriesData.json();
-		if (categoriesData.status >= 400) {
-			throw new Error(categories.message);
-		}
-
-		const appointments = await apptsData.json();
-		if (apptsData.status >= 400) {
-			throw new Error(appointments.message);
-		}
 
 		return {
 			appointment: res.data,
@@ -189,46 +169,56 @@ function RouteComponent() {
 	};
 
 	const onDelete = async () => {
-		const res = await deleteAppointmentServerFn({
-			data: { id: appointment.id },
-		});
-		const data = await res.json();
-		if (res.status < 400 && data) {
+		try {
+			const res = await deleteAppointmentServerFn({
+				data: { id: appointment.id },
+			});
 			await router.invalidate();
-			toast.success(data.message);
+			toast.success(res.message);
 			await router.navigate({
 				to: "..",
 			});
-			return;
+		} catch (err) {
+			toast.error((err as Error).message);
 		}
-		toast.error(data.message);
 	};
 
 	const onResponse = (response: ResponseType) => async () => {
-		const res = await createResponseServerFn({
-			data: { appointmentId: appointment.id, response },
-		});
-		const data = await res.json();
-		if (res.status < 400 && data) {
+		try {
+			await createResponseServerFn({
+				data: { appointmentId: appointment.id, response },
+			});
 			await router.invalidate();
-			return;
+		} catch (err) {
+			toast.error((err as Error).message);
 		}
-		toast.error(data.message);
 	};
 
 	const onPublish = async () => {
-		await publish({ data: { id: appointment.id } });
-		await router.invalidate();
+		try {
+			await publish({ data: { id: appointment.id } });
+			await router.invalidate();
+		} catch (err) {
+			toast.error((err as Error).message);
+		}
 	};
 
 	const onUnpublish = async () => {
-		await unpublish({ data: { id: appointment.id } });
-		await router.invalidate();
+		try {
+			await unpublish({ data: { id: appointment.id } });
+			await router.invalidate();
+		} catch (err) {
+			toast.error((err as Error).message);
+		}
 	};
 
 	const onRestore = async () => {
-		await restore({ data: { id: appointment.id } });
-		await router.invalidate();
+		try {
+			await restore({ data: { id: appointment.id } });
+			await router.invalidate();
+		} catch (err) {
+			toast.error((err as Error).message);
+		}
 	};
 
 	const onDownloadIcal = async () => {
@@ -237,17 +227,17 @@ function RouteComponent() {
 	};
 
 	const onSaveField = async (updates: Partial<Appointment>) => {
-		const res = await updateAppointmentServerFn({
-			data: { id: appointment.id, updates },
-		});
-		const data = await res.json();
-		if (res.status < 400 && data) {
+		try {
+			const res = await updateAppointmentServerFn({
+				data: { id: appointment.id, updates },
+			});
 			await router.invalidate();
-			toast.success(data.message);
+			toast.success(res.message);
 			return true;
+		} catch (err) {
+			toast.error((err as Error).message);
+			return false;
 		}
-		toast.error(data.message);
-		return false;
 	};
 
 	const onStartEdit = () => {

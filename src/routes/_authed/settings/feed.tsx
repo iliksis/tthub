@@ -9,12 +9,12 @@ export const Route = createFileRoute("/_authed/settings/feed")({
 		meta: [{ title: t("Calendar Feed Settings") }],
 	}),
 	loader: async () => {
-		const response = await getFeedConfig();
-		const result = await response.json();
-		if (response.status >= 400) {
-			return { error: result.message };
+		try {
+			const result = await getFeedConfig();
+			return { feedConfig: result.data };
+		} catch (err) {
+			return { error: (err as Error).message };
 		}
-		return { feedConfig: result.data };
 	},
 });
 
