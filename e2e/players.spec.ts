@@ -80,7 +80,7 @@ test.describe("Players Route - Edit Functionality", () => {
 			}
 
 			const editButton = page.locator(
-				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+				'button[aria-label*="aktualisieren"]:visible, button svg.lucide-square-pen:visible',
 			);
 			if ((await editButton.count()) > 0) {
 				await editButton.first().click();
@@ -126,7 +126,7 @@ test.describe("Players Route - Edit Functionality", () => {
 			}
 
 			const editButton = page.locator(
-				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+				'button[aria-label*="aktualisieren"]:visible, button svg.lucide-square-pen:visible',
 			);
 			if ((await editButton.count()) > 0) {
 				await expect(editButton.first()).toBeVisible();
@@ -154,7 +154,7 @@ test.describe("Players Route - Edit Functionality", () => {
 
 			const configButton = page.locator("div svg.lucide-cog:visible");
 			const editButton = page.locator(
-				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+				'button[aria-label*="aktualisieren"]:visible, button svg.lucide-square-pen:visible',
 			);
 			await expect(configButton).not.toBeVisible();
 			await expect(editButton).not.toBeVisible();

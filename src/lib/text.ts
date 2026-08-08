@@ -122,6 +122,7 @@ const texts = {
 	Deleted: "Gelöscht",
 	"Deleted user": "Gelöschte:r Nutzer:in",
 	Details: "Details",
+	Dialog: "Dialog",
 	"Download iCal": "Termin speichern",
 	Draft: "Entwurf",
 	Duplicate: "Duplizieren",

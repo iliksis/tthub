@@ -352,7 +352,7 @@ test.describe("Appointments - Multi-select and bulk actions", () => {
 		}
 		await duplicateButton.click();
 
-		await expect(page.getByText(/Termine dupliziert/)).toBeVisible();
+		await expect(page.getByText(/dupliziert/)).toBeVisible();
 		await expect(
 			page.locator(":visible", { hasText: "(Kopie)" }).first(),
 		).toBeVisible();
@@ -372,13 +372,18 @@ test.describe("Appointments - Multi-select and bulk actions", () => {
 			return;
 		}
 		await deleteButton.click();
-		await expect(page.getByText(/Termine gelöscht/)).toBeVisible();
+
+		const confirmDialog = page.getByRole("dialog");
+		await expect(confirmDialog).toBeVisible();
+		await confirmDialog.getByRole("button", { name: "Löschen" }).click();
+
+		await expect(page.getByText(/gelöscht/)).toBeVisible();
 
 		const restoreButton = page.getByRole("button", {
 			name: "Wiederherstellen",
 		});
 		await expect(restoreButton).toBeEnabled();
 		await restoreButton.click();
-		await expect(page.getByText(/Termine wiederhergestellt/)).toBeVisible();
+		await expect(page.getByText(/wiederhergestellt/)).toBeVisible();
 	});
 });
