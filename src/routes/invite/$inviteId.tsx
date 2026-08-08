@@ -22,15 +22,7 @@ export const Route = createFileRoute("/invite/$inviteId")({
 		return { invitation };
 	},
 	component: RouteComponent,
-	errorComponent: ({ error }) => {
-		if (error.message === "Not found") {
-			return <div>{t("Invitation not found")}</div>;
-		}
-		if (error.message === "Invitation expired") {
-			return <div>{t("Invitation expired")}</div>;
-		}
-		throw error;
-	},
+	errorComponent: ({ error }) => <div>{error.message}</div>,
 	loader: async ({ context }) => ({ invitation: context.invitation }),
 });
 
