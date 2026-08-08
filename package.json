@@ -47,7 +47,7 @@
     "dotenv": "^17.4.2",
     "lucide-react": "0.562.0",
     "mustache": "4.2.0",
-    "node-device-detector": "2.2.5",
+    "node-device-detector": "^2.2.7",
     "open-holiday-js": "1.0.3",
     "prisma": "^7.9.1",
     "react": "^19.2.8",
