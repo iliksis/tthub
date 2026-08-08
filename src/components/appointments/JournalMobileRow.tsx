@@ -35,7 +35,11 @@ export const JournalMobileRow = ({
 		transaction.changes as TransactionChanges | null,
 	);
 	const changedSummary =
-		fields.length > 0 ? t("{0} fields changed", fields.length.toString()) : "—";
+		fields.length === 1
+			? t("1 field changed")
+			: fields.length > 0
+				? t("{0} fields changed", fields.length.toString())
+				: "—";
 
 	return (
 		<button

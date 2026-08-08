@@ -171,9 +171,11 @@ const getTransactionColumns =
 				);
 				return (
 					<span className="text-muted-foreground text-xs">
-						{fields.length > 0
-							? t("{0} fields changed", fields.length.toString())
-							: "—"}
+						{fields.length === 1
+							? t("1 field changed")
+							: fields.length > 0
+								? t("{0} fields changed", fields.length.toString())
+								: "—"}
 					</span>
 				);
 			},
