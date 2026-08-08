@@ -20,13 +20,12 @@ import { useMutation } from "@/hooks/useMutation";
 import type { PasswordReset, User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import { cn, isInvitationExpired } from "@/lib/utils";
-
-const roleBadgeVariant: Record<Role, "outline" | "info" | "success"> = {
-	ADMIN: "success",
-	EDITOR: "info",
-	USER: "outline",
-};
+import {
+	cn,
+	isInvitationExpired,
+	roleBadgeVariant,
+	roleLabel,
+} from "@/lib/utils";
 
 type IUserManagementProps = {
 	users: (User & {
@@ -143,7 +142,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 										}
 									>
 										<Badge variant={roleBadgeVariant[item.role]}>
-											{item.role}
+											{roleLabel(item.role)}
 										</Badge>
 										{!isSelf && (
 											<ChevronsUpDownIcon className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
@@ -160,7 +159,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 										>
 											{Object.keys(Role).map((role) => (
 												<DropdownMenuRadioItem key={role} value={role}>
-													{role}
+													{roleLabel(role as Role)}
 												</DropdownMenuRadioItem>
 											))}
 										</DropdownMenuRadioGroup>

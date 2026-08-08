@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
-import type { Role } from "@/lib/prisma/enums";
 import { useAppSession } from "@/lib/session";
 import { t } from "@/lib/text";
+import { roleBadgeVariant, roleLabel } from "@/lib/utils";
 
 const updateSession = createServerFn({ method: "POST" })
 	.inputValidator((d: { name: string }) => d)
@@ -18,28 +18,6 @@ const updateSession = createServerFn({ method: "POST" })
 		const session = await useAppSession();
 		await session.update({ ...session.data, name: data.name });
 	});
-
-const roleLabel = (role: Role) => {
-	switch (role) {
-		case "ADMIN":
-			return t("Administrator");
-		case "EDITOR":
-			return t("Editor");
-		default:
-			return t("User");
-	}
-};
-
-const roleBadgeVariant = (role: Role) => {
-	switch (role) {
-		case "ADMIN":
-			return "success" as const;
-		case "EDITOR":
-			return "info" as const;
-		default:
-			return "outline" as const;
-	}
-};
 
 export const Profile = () => {
 	const router = useRouter();
@@ -103,7 +81,7 @@ export const Profile = () => {
 				<div className="flex items-center gap-2 text-muted-foreground text-sm">
 					<span>{currentUser?.userName}</span>
 					{currentUser?.role && (
-						<Badge variant={roleBadgeVariant(currentUser.role)}>
+						<Badge variant={roleBadgeVariant[currentUser.role]}>
 							{roleLabel(currentUser.role)}
 						</Badge>
 					)}

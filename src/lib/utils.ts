@@ -29,6 +29,23 @@ export const compareRoles = (role1: Role, role2: Role) => {
 	return 1;
 };
 
+export const roleLabel = (role: Role) => {
+	switch (role) {
+		case Role.ADMIN:
+			return t("Administrator");
+		case Role.EDITOR:
+			return t("Editor");
+		default:
+			return t("User");
+	}
+};
+
+export const roleBadgeVariant: Record<Role, "outline" | "info" | "success"> = {
+	ADMIN: "success",
+	EDITOR: "info",
+	USER: "outline",
+};
+
 /**
  * Converts a date to an input value for a date input field.
  */
