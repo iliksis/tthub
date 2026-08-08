@@ -26,6 +26,7 @@ import { Card } from "@/components/appointments/Card";
 import { PendingPile } from "@/components/appointments/PendingPile";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import type { ResponseType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
@@ -288,12 +289,16 @@ const HeroCard = ({ appointment, onResponse }: HeroCardProps) => {
 
 	return (
 		<div className="rounded-xl bg-card p-6">
-			<div className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">
+			<div className="mb-2 text-xs font-bold uppercase tracking-wide">
 				{t("Next Appointment")}
 			</div>
 			<div className="flex flex-wrap items-end justify-between gap-4">
 				<div className="min-w-0">
-					<h1 className="mb-2 font-bold text-2xl">{appointment.title}</h1>
+					<h1 className="mb-2 font-bold text-2xl">
+						<Link to={`/appts/$apptId`} params={{ apptId: appointment.id }}>
+							{appointment.title}
+						</Link>
+					</h1>
 					<div className="flex flex-wrap gap-4 text-muted-foreground text-sm">
 						<span className="flex items-center gap-1.5">
 							<CalendarDaysIcon className="size-4" />
