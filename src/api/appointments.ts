@@ -92,6 +92,10 @@ export const createAppointment = createServerFn()
 export const getAppointment = createServerFn()
 	.inputValidator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
+		const session = await useAppSession();
+		if (session.data.id === null) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
 		try {
 			const appointment = await prismaClient.appointment.findUnique({
 				include: {
@@ -663,6 +667,10 @@ export const getUserOpenAppointments = createServerFn()
 export const getCalendarAppointments = createServerFn()
 	.inputValidator((d: { start: Date; end: Date }) => d)
 	.handler(async ({ data }) => {
+		const session = await useAppSession();
+		if (session.data.id === null) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
 		try {
 			const start = new Date(data.start);
 			const end = new Date(data.end);
