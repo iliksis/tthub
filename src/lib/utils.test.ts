@@ -129,14 +129,16 @@ describe("createGoogleMapsLink", () => {
 		const location = "Berlin, Germany";
 		const result = createGoogleMapsLink(location);
 		expect(result).toBe(
-			"https://www.google.com/maps/search/?api=1&query=Berlin, Germany",
+			"https://www.google.com/maps/search/?api=1&query=Berlin%2C%20Germany",
 		);
 	});
 
-	it("should handle special characters", () => {
+	it("should encode special characters", () => {
 		const location = "München & Co.";
 		const result = createGoogleMapsLink(location);
-		expect(result).toContain("München & Co.");
+		expect(result).toBe(
+			"https://www.google.com/maps/search/?api=1&query=M%C3%BCnchen%20%26%20Co.",
+		);
 	});
 });
 
