@@ -152,7 +152,7 @@
 }
 
 .light {
-	--color-appointment-by: var(--success);
+	--color-appointment-by: hsl(var(--success));
 	--color-tournament-de: var(--catppuccin-color-lavender-400);
 	--color-holiday: var(--color-red-800);
 }
