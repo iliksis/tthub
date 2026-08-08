@@ -489,8 +489,9 @@ function RouteComponent() {
 							variant="ghost"
 							className={cn(
 								"flex-1 border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning",
-								myResponse?.responseType === ResponseType.MAYBE &&
-									"border-warning bg-warning text-warning-foreground hover:bg-warning/90 hover:text-warning-foreground",
+								(!myResponse ||
+									myResponse?.responseType === ResponseType.MAYBE) &&
+									"border-warning bg-warning text-warning-foreground hover:bg-warning/90 hover:text-warning",
 							)}
 							disabled={isDeleted}
 							onClick={onResponse(ResponseType.MAYBE)}

@@ -14,6 +14,7 @@ import type { Appointment, Response } from "@/lib/prisma/client";
 import type { ResponseType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
+import { Link } from "../ui/link";
 
 const SWIPE_THRESHOLD = 90;
 const MAX_VISIBLE = 3;
@@ -165,13 +166,15 @@ const PileCard = ({ appointment, depth, onRespond }: PileCardProps) => {
 					</div>
 				</div>
 			)}
-			<div className="mb-1 font-bold text-primary text-xs uppercase tracking-wide">
+			<div className="mb-1 font-bold text-xs uppercase tracking-wide">
 				{new Date(appointment.startDate).toLocaleDateString("de-DE", {
 					weekday: "long",
 				})}
 			</div>
 			<h3 className="mb-2 font-bold text-lg leading-tight">
-				{appointment.title}
+				<Link to={`/appts/$apptId`} params={{ apptId: appointment.id }}>
+					{appointment.title}
+				</Link>
 			</h3>
 			<div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground text-sm">
 				<span className="flex items-center gap-1.5">

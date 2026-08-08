@@ -40,7 +40,8 @@ export function ResponsesPanel({
 }: ResponsesPanelProps) {
 	const myResponse = responses.find((r) => r.userId === currentUserId);
 	const isAccepted = myResponse?.responseType === ResponseType.ACCEPT;
-	const isMaybe = myResponse?.responseType === ResponseType.MAYBE;
+	const isMaybe =
+		!myResponse || myResponse?.responseType === ResponseType.MAYBE;
 	const isDeclined = myResponse?.responseType === ResponseType.DECLINE;
 	const visible = responses.filter(
 		(r) => r.responseType !== ResponseType.MAYBE,
