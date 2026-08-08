@@ -68,4 +68,11 @@ describe("t (translation function)", () => {
 		expect(t("1 appointment selected")).toBe("1 Termin ausgewählt");
 		expect(t("{0} appointments selected", "3")).toBe("3 Termine ausgewählt");
 	});
+
+	it("should have singular forms for the holiday import and journal field counts", () => {
+		expect(t("1 appointment created")).toBe("1 Termin erstellt");
+		expect(t("{0} Appointments created", "3")).toBe("3 Termine erstellt");
+		expect(t("1 field changed")).toBe("1 Feld geändert");
+		expect(t("{0} fields changed", "2")).toBe("2 Felder geändert");
+	});
 });

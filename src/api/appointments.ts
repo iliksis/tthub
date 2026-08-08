@@ -750,7 +750,12 @@ export const importHolidays = createServerFn()
 				count++;
 			}
 			return json<Return>(
-				{ message: t("{0} Appointments created", count.toString()) },
+				{
+					message:
+						count === 1
+							? t("1 appointment created")
+							: t("{0} Appointments created", count.toString()),
+				},
 				{ status: 200 },
 			);
 		} catch (e) {
