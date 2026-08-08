@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "set NODE_OPTIONS='--import ./instrument.server.mjs' && vite dev --port 3000",
+    "dev": "set NODE_OPTIONS=--import ./instrument.server.mjs && vite dev --port 3000",
     "build": "vite build && cp instrument.server.mjs .output/server",
     "serve": "vite preview",
     "test": "vitest run",
@@ -11,7 +11,7 @@
     "test:e2e:setup": "npm run test:e2e:db:reset && npm run test:e2e:db:seed",
     "test:e2e:db:reset": "set DATABASE_URL=file:./prisma/test.db && npx prisma migrate deploy",
     "test:e2e:db:seed": "set DATABASE_URL=file:./prisma/test.db && npx tsx prisma/seed.ts",
-    "test:e2e:server": "set DATABASE_URL=file:./prisma/test.db && set NODE_OPTIONS='--import ./instrument.server.mjs' && vite dev --port 3001",
+    "test:e2e:server": "set DATABASE_URL=file:./prisma/test.db && set NODE_OPTIONS=--import ./instrument.server.mjs && vite dev --port 3001",
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check",
