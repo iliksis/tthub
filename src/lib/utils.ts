@@ -112,7 +112,7 @@ export const isDayInPast = (date: Date) => {
  * Creates a Google Maps link for a given location.
  */
 export const createGoogleMapsLink = (location: string) => {
-	return `https://www.google.com/maps/search/?api=1&query=${location}`;
+	return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
 };
 
 const colorNames = [
