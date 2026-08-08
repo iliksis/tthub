@@ -9,32 +9,31 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SentryTunnelRouteImport } from './routes/sentry-tunnel'
-import { Route as LogoutRouteImport } from './routes/logout'
 import { Route as AuthedRouteImport } from './routes/_authed'
+import { Route as LogoutRouteImport } from './routes/logout'
+import { Route as SentryTunnelRouteImport } from './routes/sentry-tunnel'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
-import { Route as PasswordResetResetIdRouteImport } from './routes/password-reset/$resetId'
-import { Route as InviteInviteIdRouteImport } from './routes/invite/$inviteId'
-import { Route as FeedFeedIdRouteImport } from './routes/feed/$feedId'
-import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
 import { Route as AuthedCreateRouteImport } from './routes/_authed/create'
-import { Route as AuthedTeamsIndexRouteImport } from './routes/_authed/teams/index'
-import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settings/index'
-import { Route as AuthedPlayersIndexRouteImport } from './routes/_authed/players/index'
+import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
+import { Route as FeedFeedIdRouteImport } from './routes/feed/$feedId'
+import { Route as InviteInviteIdRouteImport } from './routes/invite/$inviteId'
+import { Route as PasswordResetResetIdRouteImport } from './routes/password-reset/$resetId'
 import { Route as AuthedApptsIndexRouteImport } from './routes/_authed/appts/index'
-import { Route as AuthedTeamsTeamIdRouteImport } from './routes/_authed/teams/$teamId'
-import { Route as AuthedSettingsUsersRouteImport } from './routes/_authed/settings/users'
-import { Route as AuthedSettingsProfileRouteImport } from './routes/_authed/settings/profile'
-import { Route as AuthedSettingsImportsRouteImport } from './routes/_authed/settings/imports'
-import { Route as AuthedSettingsFeedRouteImport } from './routes/_authed/settings/feed'
-import { Route as AuthedPlayersPlayerIdRouteImport } from './routes/_authed/players/$playerId'
-import { Route as AuthedApptsJournalRouteImport } from './routes/_authed/appts/journal'
-import { Route as AuthedApptsCalendarRouteImport } from './routes/_authed/appts/calendar'
 import { Route as AuthedApptsApptIdRouteImport } from './routes/_authed/appts/$apptId'
+import { Route as AuthedApptsCalendarRouteImport } from './routes/_authed/appts/calendar'
+import { Route as AuthedApptsJournalRouteImport } from './routes/_authed/appts/journal'
+import { Route as AuthedPlayersIndexRouteImport } from './routes/_authed/players/index'
+import { Route as AuthedPlayersPlayerIdRouteImport } from './routes/_authed/players/$playerId'
+import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settings/index'
+import { Route as AuthedSettingsFeedRouteImport } from './routes/_authed/settings/feed'
+import { Route as AuthedSettingsImportsRouteImport } from './routes/_authed/settings/imports'
+import { Route as AuthedSettingsProfileRouteImport } from './routes/_authed/settings/profile'
+import { Route as AuthedSettingsUsersRouteImport } from './routes/_authed/settings/users'
+import { Route as AuthedTeamsIndexRouteImport } from './routes/_authed/teams/index'
+import { Route as AuthedTeamsTeamIdRouteImport } from './routes/_authed/teams/$teamId'
 
-const SentryTunnelRoute = SentryTunnelRouteImport.update({
-  id: '/sentry-tunnel',
-  path: '/sentry-tunnel',
+const AuthedRoute = AuthedRouteImport.update({
+  id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LogoutRoute = LogoutRouteImport.update({
@@ -42,8 +41,9 @@ const LogoutRoute = LogoutRouteImport.update({
   path: '/logout',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthedRoute = AuthedRouteImport.update({
-  id: '/_authed',
+const SentryTunnelRoute = SentryTunnelRouteImport.update({
+  id: '/sentry-tunnel',
+  path: '/sentry-tunnel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedIndexRoute = AuthedIndexRouteImport.update({
@@ -51,9 +51,19 @@ const AuthedIndexRoute = AuthedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthedRoute,
 } as any)
-const PasswordResetResetIdRoute = PasswordResetResetIdRouteImport.update({
-  id: '/password-reset/$resetId',
-  path: '/password-reset/$resetId',
+const AuthedCreateRoute = AuthedCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const FeedFeedIdRoute = FeedFeedIdRouteImport.update({
+  id: '/feed/$feedId',
+  path: '/feed/$feedId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteInviteIdRoute = InviteInviteIdRouteImport.update({
@@ -61,79 +71,14 @@ const InviteInviteIdRoute = InviteInviteIdRouteImport.update({
   path: '/invite/$inviteId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FeedFeedIdRoute = FeedFeedIdRouteImport.update({
-  id: '/feed/$feedId',
-  path: '/feed/$feedId',
+const PasswordResetResetIdRoute = PasswordResetResetIdRouteImport.update({
+  id: '/password-reset/$resetId',
+  path: '/password-reset/$resetId',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthedCreateRoute = AuthedCreateRouteImport.update({
-  id: '/create',
-  path: '/create',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthedTeamsIndexRoute = AuthedTeamsIndexRouteImport.update({
-  id: '/teams/',
-  path: '/teams/',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthedSettingsIndexRoute = AuthedSettingsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthedSettingsRoute,
-} as any)
-const AuthedPlayersIndexRoute = AuthedPlayersIndexRouteImport.update({
-  id: '/players/',
-  path: '/players/',
-  getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedApptsIndexRoute = AuthedApptsIndexRouteImport.update({
   id: '/appts/',
   path: '/appts/',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthedTeamsTeamIdRoute = AuthedTeamsTeamIdRouteImport.update({
-  id: '/teams/$teamId',
-  path: '/teams/$teamId',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthedSettingsUsersRoute = AuthedSettingsUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AuthedSettingsRoute,
-} as any)
-const AuthedSettingsProfileRoute = AuthedSettingsProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AuthedSettingsRoute,
-} as any)
-const AuthedSettingsImportsRoute = AuthedSettingsImportsRouteImport.update({
-  id: '/imports',
-  path: '/imports',
-  getParentRoute: () => AuthedSettingsRoute,
-} as any)
-const AuthedSettingsFeedRoute = AuthedSettingsFeedRouteImport.update({
-  id: '/feed',
-  path: '/feed',
-  getParentRoute: () => AuthedSettingsRoute,
-} as any)
-const AuthedPlayersPlayerIdRoute = AuthedPlayersPlayerIdRouteImport.update({
-  id: '/players/$playerId',
-  path: '/players/$playerId',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthedApptsJournalRoute = AuthedApptsJournalRouteImport.update({
-  id: '/appts/journal',
-  path: '/appts/journal',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthedApptsCalendarRoute = AuthedApptsCalendarRouteImport.update({
-  id: '/appts/calendar',
-  path: '/appts/calendar',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedApptsApptIdRoute = AuthedApptsApptIdRouteImport.update({
@@ -141,8 +86,64 @@ const AuthedApptsApptIdRoute = AuthedApptsApptIdRouteImport.update({
   path: '/appts/$apptId',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedApptsCalendarRoute = AuthedApptsCalendarRouteImport.update({
+  id: '/appts/calendar',
+  path: '/appts/calendar',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedApptsJournalRoute = AuthedApptsJournalRouteImport.update({
+  id: '/appts/journal',
+  path: '/appts/journal',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedPlayersIndexRoute = AuthedPlayersIndexRouteImport.update({
+  id: '/players/',
+  path: '/players/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedPlayersPlayerIdRoute = AuthedPlayersPlayerIdRouteImport.update({
+  id: '/players/$playerId',
+  path: '/players/$playerId',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSettingsIndexRoute = AuthedSettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedSettingsFeedRoute = AuthedSettingsFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedSettingsImportsRoute = AuthedSettingsImportsRouteImport.update({
+  id: '/imports',
+  path: '/imports',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedSettingsProfileRoute = AuthedSettingsProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedSettingsUsersRoute = AuthedSettingsUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
+const AuthedTeamsIndexRoute = AuthedTeamsIndexRouteImport.update({
+  id: '/teams/',
+  path: '/teams/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedTeamsTeamIdRoute = AuthedTeamsTeamIdRouteImport.update({
+  id: '/teams/$teamId',
+  path: '/teams/$teamId',
+  getParentRoute: () => AuthedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof AuthedIndexRoute
   '/logout': typeof LogoutRoute
   '/sentry-tunnel': typeof SentryTunnelRoute
   '/create': typeof AuthedCreateRoute
@@ -150,7 +151,6 @@ export interface FileRoutesByFullPath {
   '/feed/$feedId': typeof FeedFeedIdRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/password-reset/$resetId': typeof PasswordResetResetIdRoute
-  '/': typeof AuthedIndexRoute
   '/appts/$apptId': typeof AuthedApptsApptIdRoute
   '/appts/calendar': typeof AuthedApptsCalendarRoute
   '/appts/journal': typeof AuthedApptsJournalRoute
@@ -160,10 +160,10 @@ export interface FileRoutesByFullPath {
   '/settings/profile': typeof AuthedSettingsProfileRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
   '/teams/$teamId': typeof AuthedTeamsTeamIdRoute
-  '/appts': typeof AuthedApptsIndexRoute
-  '/players': typeof AuthedPlayersIndexRoute
+  '/appts/': typeof AuthedApptsIndexRoute
+  '/players/': typeof AuthedPlayersIndexRoute
   '/settings/': typeof AuthedSettingsIndexRoute
-  '/teams': typeof AuthedTeamsIndexRoute
+  '/teams/': typeof AuthedTeamsIndexRoute
 }
 export interface FileRoutesByTo {
   '/logout': typeof LogoutRoute
@@ -215,6 +215,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/logout'
     | '/sentry-tunnel'
     | '/create'
@@ -222,7 +223,6 @@ export interface FileRouteTypes {
     | '/feed/$feedId'
     | '/invite/$inviteId'
     | '/password-reset/$resetId'
-    | '/'
     | '/appts/$apptId'
     | '/appts/calendar'
     | '/appts/journal'
@@ -232,10 +232,10 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/users'
     | '/teams/$teamId'
-    | '/appts'
-    | '/players'
+    | '/appts/'
+    | '/players/'
     | '/settings/'
-    | '/teams'
+    | '/teams/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/logout'
@@ -295,11 +295,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sentry-tunnel': {
-      id: '/sentry-tunnel'
-      path: '/sentry-tunnel'
-      fullPath: '/sentry-tunnel'
-      preLoaderRoute: typeof SentryTunnelRouteImport
+    '/_authed': {
+      id: '/_authed'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/logout': {
@@ -309,11 +309,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LogoutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authed': {
-      id: '/_authed'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthedRouteImport
+    '/sentry-tunnel': {
+      id: '/sentry-tunnel'
+      path: '/sentry-tunnel'
+      fullPath: '/sentry-tunnel'
+      preLoaderRoute: typeof SentryTunnelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed/': {
@@ -323,11 +323,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
-    '/password-reset/$resetId': {
-      id: '/password-reset/$resetId'
-      path: '/password-reset/$resetId'
-      fullPath: '/password-reset/$resetId'
-      preLoaderRoute: typeof PasswordResetResetIdRouteImport
+    '/_authed/create': {
+      id: '/_authed/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof AuthedCreateRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/settings': {
+      id: '/_authed/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthedSettingsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/feed/$feedId': {
+      id: '/feed/$feedId'
+      path: '/feed/$feedId'
+      fullPath: '/feed/$feedId'
+      preLoaderRoute: typeof FeedFeedIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite/$inviteId': {
@@ -337,102 +351,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteInviteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/feed/$feedId': {
-      id: '/feed/$feedId'
-      path: '/feed/$feedId'
-      fullPath: '/feed/$feedId'
-      preLoaderRoute: typeof FeedFeedIdRouteImport
+    '/password-reset/$resetId': {
+      id: '/password-reset/$resetId'
+      path: '/password-reset/$resetId'
+      fullPath: '/password-reset/$resetId'
+      preLoaderRoute: typeof PasswordResetResetIdRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_authed/settings': {
-      id: '/_authed/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthedSettingsRouteImport
-      parentRoute: typeof AuthedRoute
-    }
-    '/_authed/create': {
-      id: '/_authed/create'
-      path: '/create'
-      fullPath: '/create'
-      preLoaderRoute: typeof AuthedCreateRouteImport
-      parentRoute: typeof AuthedRoute
-    }
-    '/_authed/teams/': {
-      id: '/_authed/teams/'
-      path: '/teams'
-      fullPath: '/teams'
-      preLoaderRoute: typeof AuthedTeamsIndexRouteImport
-      parentRoute: typeof AuthedRoute
-    }
-    '/_authed/settings/': {
-      id: '/_authed/settings/'
-      path: '/'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof AuthedSettingsIndexRouteImport
-      parentRoute: typeof AuthedSettingsRoute
-    }
-    '/_authed/players/': {
-      id: '/_authed/players/'
-      path: '/players'
-      fullPath: '/players'
-      preLoaderRoute: typeof AuthedPlayersIndexRouteImport
-      parentRoute: typeof AuthedRoute
     }
     '/_authed/appts/': {
       id: '/_authed/appts/'
       path: '/appts'
-      fullPath: '/appts'
+      fullPath: '/appts/'
       preLoaderRoute: typeof AuthedApptsIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
-    '/_authed/teams/$teamId': {
-      id: '/_authed/teams/$teamId'
-      path: '/teams/$teamId'
-      fullPath: '/teams/$teamId'
-      preLoaderRoute: typeof AuthedTeamsTeamIdRouteImport
-      parentRoute: typeof AuthedRoute
-    }
-    '/_authed/settings/users': {
-      id: '/_authed/settings/users'
-      path: '/users'
-      fullPath: '/settings/users'
-      preLoaderRoute: typeof AuthedSettingsUsersRouteImport
-      parentRoute: typeof AuthedSettingsRoute
-    }
-    '/_authed/settings/profile': {
-      id: '/_authed/settings/profile'
-      path: '/profile'
-      fullPath: '/settings/profile'
-      preLoaderRoute: typeof AuthedSettingsProfileRouteImport
-      parentRoute: typeof AuthedSettingsRoute
-    }
-    '/_authed/settings/imports': {
-      id: '/_authed/settings/imports'
-      path: '/imports'
-      fullPath: '/settings/imports'
-      preLoaderRoute: typeof AuthedSettingsImportsRouteImport
-      parentRoute: typeof AuthedSettingsRoute
-    }
-    '/_authed/settings/feed': {
-      id: '/_authed/settings/feed'
-      path: '/feed'
-      fullPath: '/settings/feed'
-      preLoaderRoute: typeof AuthedSettingsFeedRouteImport
-      parentRoute: typeof AuthedSettingsRoute
-    }
-    '/_authed/players/$playerId': {
-      id: '/_authed/players/$playerId'
-      path: '/players/$playerId'
-      fullPath: '/players/$playerId'
-      preLoaderRoute: typeof AuthedPlayersPlayerIdRouteImport
-      parentRoute: typeof AuthedRoute
-    }
-    '/_authed/appts/journal': {
-      id: '/_authed/appts/journal'
-      path: '/appts/journal'
-      fullPath: '/appts/journal'
-      preLoaderRoute: typeof AuthedApptsJournalRouteImport
+    '/_authed/appts/$apptId': {
+      id: '/_authed/appts/$apptId'
+      path: '/appts/$apptId'
+      fullPath: '/appts/$apptId'
+      preLoaderRoute: typeof AuthedApptsApptIdRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/appts/calendar': {
@@ -442,11 +379,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedApptsCalendarRouteImport
       parentRoute: typeof AuthedRoute
     }
-    '/_authed/appts/$apptId': {
-      id: '/_authed/appts/$apptId'
-      path: '/appts/$apptId'
-      fullPath: '/appts/$apptId'
-      preLoaderRoute: typeof AuthedApptsApptIdRouteImport
+    '/_authed/appts/journal': {
+      id: '/_authed/appts/journal'
+      path: '/appts/journal'
+      fullPath: '/appts/journal'
+      preLoaderRoute: typeof AuthedApptsJournalRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/players/': {
+      id: '/_authed/players/'
+      path: '/players'
+      fullPath: '/players/'
+      preLoaderRoute: typeof AuthedPlayersIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/players/$playerId': {
+      id: '/_authed/players/$playerId'
+      path: '/players/$playerId'
+      fullPath: '/players/$playerId'
+      preLoaderRoute: typeof AuthedPlayersPlayerIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/settings/': {
+      id: '/_authed/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthedSettingsIndexRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/feed': {
+      id: '/_authed/settings/feed'
+      path: '/feed'
+      fullPath: '/settings/feed'
+      preLoaderRoute: typeof AuthedSettingsFeedRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/imports': {
+      id: '/_authed/settings/imports'
+      path: '/imports'
+      fullPath: '/settings/imports'
+      preLoaderRoute: typeof AuthedSettingsImportsRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/profile': {
+      id: '/_authed/settings/profile'
+      path: '/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof AuthedSettingsProfileRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/settings/users': {
+      id: '/_authed/settings/users'
+      path: '/users'
+      fullPath: '/settings/users'
+      preLoaderRoute: typeof AuthedSettingsUsersRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
+    '/_authed/teams/': {
+      id: '/_authed/teams/'
+      path: '/teams'
+      fullPath: '/teams/'
+      preLoaderRoute: typeof AuthedTeamsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/teams/$teamId': {
+      id: '/_authed/teams/$teamId'
+      path: '/teams/$teamId'
+      fullPath: '/teams/$teamId'
+      preLoaderRoute: typeof AuthedTeamsTeamIdRouteImport
       parentRoute: typeof AuthedRoute
     }
   }
