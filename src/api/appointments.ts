@@ -394,6 +394,14 @@ function scheduleAppointmentUpdatedNotification(appointment: Appointment) {
 	);
 }
 
+function cancelAppointmentUpdatedNotification(appointmentId: string) {
+	const existing = pendingUpdateNotifications.get(appointmentId);
+	if (existing) {
+		clearTimeout(existing);
+		pendingUpdateNotifications.delete(appointmentId);
+	}
+}
+
 export const updateAppointment = createServerFn()
 	.inputValidator((d: { id: string; updates: Partial<Appointment> }) => d)
 	.handler(async ({ data }) => {
@@ -484,6 +492,7 @@ export const deleteAppointment = createServerFn()
 				});
 				return appointment;
 			});
+			cancelAppointmentUpdatedNotification(appointment.id);
 			return json<Return<Appointment>>(
 				{ data: appointment, message: t("Appointment deleted") },
 				{ status: 200 },
