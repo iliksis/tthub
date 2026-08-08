@@ -1,9 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Badge } from "@/components/ui/badge";
-import type { Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
-
-type TeamRow = Team & { _count: { players: number } };
+import { TeamMeta, TeamPlacementBadge, type TeamRow } from "./TeamSummary";
 
 type ListProps = {
 	teams: TeamRow[];
@@ -35,16 +32,10 @@ export const List = ({ teams }: ListProps) => {
 					<div className="min-w-0 flex-1">
 						<div className="truncate font-medium text-sm">{team.title}</div>
 						<div className="truncate text-muted-foreground text-xs">
-							{team.league}
-							{team.league && " · "}
-							{t("{0} players", team._count.players.toString())}
+							<TeamMeta team={team} />
 						</div>
 					</div>
-					{team.placement && (
-						<Badge variant="secondary" className="shrink-0">
-							{team.placement}
-						</Badge>
-					)}
+					<TeamPlacementBadge team={team} />
 				</Link>
 			))}
 		</div>

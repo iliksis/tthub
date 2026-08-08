@@ -5,12 +5,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "@/components/ui/link";
 import { TableRow } from "@/components/ui/table";
 import { useTeamDetail } from "@/hooks/useTeamDetail";
-import type { Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
 import { TeamPreview } from "./TeamPreview";
-
-type TeamRow = Team & { _count: { players: number } };
+import type { TeamRow } from "./TeamSummary";
 
 export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 	const [selectedId, setSelectedId] = React.useState<string | undefined>(

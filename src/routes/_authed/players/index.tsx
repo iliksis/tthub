@@ -9,9 +9,12 @@ import {
 	MobilePlayerFilters,
 } from "@/components/players/Filters";
 import { List } from "@/components/players/List";
-import { Badge } from "@/components/ui/badge";
+import {
+	TeamMeta,
+	TeamPlacementBadge,
+	type TeamRow,
+} from "@/components/teams/TeamSummary";
 import { Link } from "@/components/ui/link";
-import type { Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/players/")({
@@ -78,7 +81,7 @@ function RouteComponent() {
 }
 
 type TeamsRailProps = {
-	teams: (Team & { _count: { players: number } })[];
+	teams: TeamRow[];
 };
 const TeamsRail = ({ teams }: TeamsRailProps) => {
 	return (
@@ -105,16 +108,10 @@ const TeamsRail = ({ teams }: TeamsRailProps) => {
 								>
 									{team.title}
 								</Link>
-								{team.placement && (
-									<Badge variant="secondary" className="shrink-0">
-										{team.placement}
-									</Badge>
-								)}
+								<TeamPlacementBadge team={team} />
 							</div>
 							<div className="text-muted-foreground text-xs">
-								{team.league}
-								{team.league && " · "}
-								{t("{0} players", team._count.players.toString())}
+								<TeamMeta team={team} />
 							</div>
 						</div>
 					))
