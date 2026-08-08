@@ -752,6 +752,7 @@ export const publishAppointment = createServerFn()
 		}
 
 		try {
+			let statusChanged = false;
 			const appointment = await prismaClient.$transaction(async (tx) => {
 				const before = await tx.appointment.findUniqueOrThrow({
 					where: { id: data.id },
@@ -762,7 +763,8 @@ export const publishAppointment = createServerFn()
 					},
 					where: { id: data.id },
 				});
-				if (before.status !== appointment.status) {
+				statusChanged = before.status !== appointment.status;
+				if (statusChanged) {
 					await tx.transaction.create({
 						data: {
 							appointmentId: appointment.id,
@@ -776,7 +778,7 @@ export const publishAppointment = createServerFn()
 				}
 				return appointment;
 			});
-			if (appointment.type === AppointmentType.TOURNAMENT) {
+			if (statusChanged && appointment.type === AppointmentType.TOURNAMENT) {
 				await sendNotification({
 					body: appointment.title,
 					scope: "new",
