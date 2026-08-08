@@ -13,6 +13,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import type { Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
@@ -204,28 +205,9 @@ export const MobilePlayerFilters = ({
 		});
 
 	const prefersReducedMotion = usePrefersReducedMotion();
-	const dragStartY = React.useRef<number | null>(null);
-	const [dragOffset, setDragOffset] = React.useState(0);
-	const [isDragging, setIsDragging] = React.useState(false);
-	const DISMISS_THRESHOLD = 96;
-
-	const onHandlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-		e.currentTarget.setPointerCapture(e.pointerId);
-		dragStartY.current = e.clientY;
-		setIsDragging(true);
-	};
-
-	const onHandlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-		if (dragStartY.current === null) return;
-		setDragOffset(Math.max(0, e.clientY - dragStartY.current));
-	};
-
-	const onHandlePointerEnd = () => {
-		dragStartY.current = null;
-		setIsDragging(false);
-		if (dragOffset > DISMISS_THRESHOLD) setSheetOpen(false);
-		setDragOffset(0);
-	};
+	const { dragOffset, isDragging, handlePointerHandlers } = useDragToDismiss(
+		() => setSheetOpen(false),
+	);
 
 	return (
 		<div className="mb-3 flex flex-col gap-1.5">
@@ -276,10 +258,7 @@ export const MobilePlayerFilters = ({
 					<SheetTitle className="sr-only">{t("Filters")}</SheetTitle>
 					<div
 						className="flex shrink-0 cursor-grab touch-none justify-center pt-2 pb-1 active:cursor-grabbing"
-						onPointerDown={onHandlePointerDown}
-						onPointerMove={onHandlePointerMove}
-						onPointerUp={onHandlePointerEnd}
-						onPointerCancel={onHandlePointerEnd}
+						{...handlePointerHandlers}
 					>
 						<div className="h-1.5 w-9 rounded-full bg-muted-foreground/30" />
 					</div>

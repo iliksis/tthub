@@ -24,6 +24,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
+import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import { useMutation } from "@/hooks/useMutation";
@@ -68,31 +69,8 @@ export function PlacementsSheet({
 	const isMobile = useIsMobile();
 	const prefersReducedMotion = usePrefersReducedMotion();
 
-	// Drag-to-dismiss for the mobile sheet's handle: follows the pointer 1:1
-	// while dragging, then either snaps back or closes depending on how far
-	// past the threshold the sheet was pulled.
-	const dragStartY = React.useRef<number | null>(null);
-	const [dragOffset, setDragOffset] = React.useState(0);
-	const [isDragging, setIsDragging] = React.useState(false);
-	const DISMISS_THRESHOLD = 96;
-
-	const onHandlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-		e.currentTarget.setPointerCapture(e.pointerId);
-		dragStartY.current = e.clientY;
-		setIsDragging(true);
-	};
-
-	const onHandlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-		if (dragStartY.current === null) return;
-		setDragOffset(Math.max(0, e.clientY - dragStartY.current));
-	};
-
-	const onHandlePointerEnd = () => {
-		dragStartY.current = null;
-		setIsDragging(false);
-		if (dragOffset > DISMISS_THRESHOLD) onClose();
-		setDragOffset(0);
-	};
+	const { dragOffset, isDragging, handlePointerHandlers } =
+		useDragToDismiss(onClose);
 
 	const grouped = React.useMemo(
 		() => groupPlacementsByCategory(placements),
@@ -240,10 +218,7 @@ export function PlacementsSheet({
 				{isMobile && (
 					<div
 						className="flex shrink-0 cursor-grab touch-none justify-center pt-2 pb-1 active:cursor-grabbing"
-						onPointerDown={onHandlePointerDown}
-						onPointerMove={onHandlePointerMove}
-						onPointerUp={onHandlePointerEnd}
-						onPointerCancel={onHandlePointerEnd}
+						{...handlePointerHandlers}
 					>
 						<div className="h-1.5 w-9 rounded-full bg-muted-foreground/30" />
 					</div>
