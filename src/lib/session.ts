@@ -11,6 +11,7 @@ export type SessionUser = {
 
 export const useAppSession = () => {
 	return useSession<SessionUser>({
+		maxAge: 60 * 60 * 24 * 14, // 2 weeks
 		name: "tthub-session",
 		password: process.env.SESSION_PASSWORD,
 	});
