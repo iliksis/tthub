@@ -6,7 +6,7 @@ import { t } from "@/lib/text";
 import type { Return } from "./types";
 
 export const getInvitation = createServerFn({ method: "GET" })
-	.inputValidator((d: { id: string }) => d)
+	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const invitation = await prismaClient.userInvitation.findUnique({
 			include: {
@@ -20,7 +20,7 @@ export const getInvitation = createServerFn({ method: "GET" })
 	});
 
 export const createUserInvitation = createServerFn({ method: "POST" })
-	.inputValidator((d: { userId: string }) => d)
+	.validator((d: { userId: string }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("ADMIN");
 		if (!isAuthorized) {

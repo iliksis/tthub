@@ -25,7 +25,7 @@ All `db:*` scripts load `.env.local` via `dotenv-cli`; a `.env.local` with `DATA
 **Layering**: routes (`src/routes`) → API/server functions (`src/api`) → Prisma client (`src/lib/db.ts`). Route components call functions from `src/api/*.ts`; those functions are the only place Prisma is touched directly (aside from `_authed.tsx`/`__root.tsx` auth checks).
 
 **Server functions (`src/api/*.ts`)**: every mutation/query is a TanStack Start `createServerFn()`. The established pattern per function:
-1. `.inputValidator((d: Shape) => d)` for typed input (no runtime schema library — validator is just a type cast).
+1. `.validator((d: Shape) => d)` for typed input (no runtime schema library — validator is just a type cast).
 2. Auth check via `useIsRole("EDITOR"|"ADMIN")` (from `src/lib/session.ts`) for writes, or session presence for reads that require a logged-in user.
 3. Body wrapped in try/catch, returning `json<Return<T>>({ data, message }, { status })` (`Return<T>` in `src/api/types.ts` is `{ message: string; data?: T }`) — errors return the same shape with a message and status 400/401/404, they don't throw.
 4. Mutations that change an `Appointment` also write a `Transaction` row (`CREATE`/`UPDATE`/`DELETE`) inside the same `$transaction`, diffing only the fields that were part of the update, for the audit journal at `/appts/journal`. Do not confuse `prismaClient.$transaction` (DB transaction) with the `Transaction` model (change-history log) — see the comment in `createAppointment`.

@@ -5,7 +5,7 @@ import { t } from "@/lib/text";
 import type { Return } from "./types";
 
 export const createPlacement = createServerFn()
-	.inputValidator(
+	.validator(
 		(d: {
 			category: string;
 			playerId: string;
@@ -78,7 +78,7 @@ export const getUniqueCategories = createServerFn().handler(async () => {
 });
 
 export const updatePlacement = createServerFn()
-	.inputValidator(
+	.validator(
 		(d: {
 			playerId: string;
 			appointmentId: string;
@@ -120,7 +120,7 @@ export const updatePlacement = createServerFn()
 	});
 
 export const deletePlacement = createServerFn()
-	.inputValidator(
+	.validator(
 		(d: { playerId: string; appointmentId: string; category: string }) => d,
 	)
 	.handler(async ({ data }) => {
