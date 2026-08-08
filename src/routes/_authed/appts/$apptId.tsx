@@ -476,7 +476,7 @@ function RouteComponent() {
 							className={cn(
 								"flex-1 border border-success/30 text-success hover:bg-success/15 hover:text-success",
 								myResponse?.responseType === ResponseType.ACCEPT &&
-									"border-success bg-success text-success-foreground hover:bg-success/90 hover:text-success-foreground",
+									"border-success bg-success text-success-foreground hover:bg-background hover:text-success-foreground",
 							)}
 							disabled={isDeleted}
 							onClick={onResponse(ResponseType.ACCEPT)}
@@ -491,7 +491,7 @@ function RouteComponent() {
 								"flex-1 border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning",
 								(!myResponse ||
 									myResponse?.responseType === ResponseType.MAYBE) &&
-									"border-warning bg-warning text-warning-foreground hover:bg-warning/90 hover:text-warning",
+									"border-warning bg-warning text-warning-foreground hover:bg-background hover:text-warning",
 							)}
 							disabled={isDeleted}
 							onClick={onResponse(ResponseType.MAYBE)}
@@ -503,7 +503,7 @@ function RouteComponent() {
 							className={cn(
 								"flex-1 border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive",
 								myResponse?.responseType === ResponseType.DECLINE &&
-									"border-destructive bg-destructive text-white hover:bg-destructive/90",
+									"border-destructive bg-destructive text-white hover:bg-background",
 							)}
 							disabled={isDeleted}
 							onClick={onResponse(ResponseType.DECLINE)}
