@@ -44,7 +44,7 @@
     "@tanstack/router-plugin": "^1.168.27",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
-    "dotenv": "17.2.3",
+    "dotenv": "^17.4.2",
     "lucide-react": "0.562.0",
     "mustache": "4.2.0",
     "node-device-detector": "2.2.5",
