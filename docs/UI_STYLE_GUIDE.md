@@ -23,7 +23,7 @@ Registered via `@theme inline` as `hsl(var(--token))`, so use them as normal Tai
 
 `success`/`warning`/`info` are custom additions on top of stock shadcn — they exist specifically so status/semantic color doesn't fall back to raw palette colors. Always reach for these first.
 
-App-specific calendar tokens (only meaningfully differ from stock shadcn tokens where noted): `--color-appointment-by`, `--color-tournament-de`, `--color-holiday`, defined per-theme in the `.dark`/`.light` blocks, sourced from Catppuccin's exposed `--catppuccin-color-<name>-<shade>` variables (e.g. `var(--catppuccin-color-lavender-400)`).
+App-specific calendar tokens `--color-appointment-by`, `--color-tournament-de`, `--color-holiday` (`src/styles.css`) are dead: `MonthCalendar.tsx`'s `categoryStyle` hardcodes `bg-primary`/`bg-success`/`bg-info` per event type directly instead of consuming them. Don't add new calendar coloring through these tokens — follow `categoryStyle`'s pattern of semantic Tailwind utilities instead.
 
 ### Radius scale
 
@@ -39,17 +39,17 @@ Extend/compose these — don't hand-roll a new primitive if one exists here.
 
 **Button** (`button.tsx`) — cva variants:
 - `variant`: `default` (bg-primary), `destructive` (bg-destructive, white text), `outline` (border + bg-background + shadow-xs), `secondary` (bg-secondary), `ghost` (transparent, hover bg-accent), `link` (text-primary, underline on hover)
-- `size`: `default` (h-9), `xs` (h-6), `sm` (h-8), `lg` (h-10), `icon` (size-9), `icon-xs` (size-6), `icon-sm` (size-8), `icon-lg` (size-10)
+- `size`: `default` (h-8), `xs` (h-6), `sm` (h-7), `lg` (h-9), `icon` (size-8), `icon-xs` (size-6), `icon-sm` (size-7), `icon-lg` (size-9)
 - Defaults: `variant="default" size="default"`.
 
 **Badge** (`badge.tsx`) — pill shape (`rounded-full px-2 py-0.5 text-xs`), no size variants. `variant`: `default`, `secondary`, `destructive`, `success`, `warning`, `info`, `outline`, `ghost`, `link`. `success`/`warning`/`info` are this codebase's additions over stock shadcn — use them for status badges (publish state, response status, transaction type) rather than `outline` + manual color classes.
 
-**Alert** (`alert.tsx`) — `rounded-lg border px-4 py-3`. `variant`: `default`, `destructive`, `success`, `warning`, `info` (no `outline`/`secondary` — all variants share `bg-card`, only text color changes).
+**Alert** (`alert.tsx`) — `rounded-lg border px-2.5 py-2`. `variant`: `default`, `destructive`, `success`, `warning`, `info` (no `outline`/`secondary` — all variants share `bg-card`, only text color changes).
 
-**Card** (`card.tsx`) — plain classes, not cva: `Card` = `flex flex-col gap-6 rounded-xl bg-card py-6 text-card-foreground shadow-sm` (no border by default). Sub-parts: `CardHeader`, `CardTitle`, `CardDescription`, `CardAction`, `CardContent` (`px-6`), `CardFooter`.
+**Card** (`card.tsx`) — plain classes, not cva: `Card` = `flex flex-col gap-(--card-spacing) rounded-xl bg-card py-(--card-spacing) text-card-foreground ring-1 ring-foreground/10` (ring instead of border/shadow by default). Sub-parts: `CardHeader`, `CardTitle`, `CardDescription`, `CardAction`, `CardContent` (`px-(--card-spacing)`), `CardFooter`.
 
 **Dialog vs Sheet** — both wrap the same Radix Dialog primitive; pick based on intent, not habit:
-- `Dialog` (`dialog.tsx`) — centered modal, `rounded-lg border p-6 shadow-lg`, zoom+fade animation, `sm:max-w-lg`. Use for confirmations (delete) and short standalone forms.
+- `Dialog` (`dialog.tsx`) — centered modal, `rounded-xl ring-1 ring-foreground/10 p-4`, zoom+fade animation, `sm:max-w-sm`. Use for confirmations (delete) and short standalone forms.
 - `Sheet` (`sheet.tsx`) — side-anchored drawer (`side` prop, default `right`), slide animation, `w-3/4 sm:max-w-sm`. Use for inline edit-in-place forms and mobile bottom-anchored panels (`side="bottom"`).
 
 **`cn()`** (`@/lib/utils`) — merges Tailwind classes (clsx + tailwind-merge); use for every conditional class.
