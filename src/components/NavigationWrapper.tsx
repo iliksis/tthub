@@ -66,6 +66,7 @@ const navigationItems: NavigationItem[] = [
 			{
 				href: "/appts/journal",
 				icon: HistoryIcon,
+				isHidden: (role) => role === "USER",
 				name: t("Journal"),
 			},
 		],

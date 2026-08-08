@@ -184,8 +184,8 @@ export const getTransactionsPage = createServerFn()
 		}) => d,
 	)
 	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		if (!session.data.id) {
+		const session = await requireEditor();
+		if (!session) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 		try {
