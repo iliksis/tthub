@@ -230,7 +230,7 @@ const Form = ({ subscription }: FormProps) => {
 						className="mt-1 w-36"
 						disabled={!canSubmit || isDefaultValue}
 					>
-						{isSubmitting ? "..." : t("Update")}
+						{isSubmitting ? t("Loading…") : t("Update")}
 					</Button>
 				)}
 			</form.Subscribe>

@@ -354,7 +354,7 @@ export const CreateAppointmentForm = () => {
 				>
 					{([canSubmit, isSubmitting]) => (
 						<Button type="submit" disabled={!canSubmit || isSubmitting}>
-							{isSubmitting ? "..." : t("Create")}
+							{isSubmitting ? t("Loading…") : t("Create")}
 						</Button>
 					)}
 				</form.Subscribe>

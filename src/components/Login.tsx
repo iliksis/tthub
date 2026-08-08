@@ -94,7 +94,7 @@ export function Login() {
 					>
 						{([canSubmit, isSubmitting]) => (
 							<Button type="submit" className="mt-2" disabled={!canSubmit}>
-								{isSubmitting ? "..." : t("Login")}
+								{isSubmitting ? t("Loading…") : t("Login")}
 							</Button>
 						)}
 					</form.Subscribe>

@@ -267,7 +267,7 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 				className="w-36"
 				disabled={updateMutation.status === "pending"}
 			>
-				{updateMutation.status === "pending" ? "..." : t("Update")}
+				{updateMutation.status === "pending" ? t("Loading…") : t("Update")}
 			</Button>
 		</form>
 	);

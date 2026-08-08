@@ -201,7 +201,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 							disabled={!canSubmit}
 							onClick={form.handleSubmit}
 						>
-							{isSubmitting ? "..." : t("Import")}
+							{isSubmitting ? t("Loading…") : t("Import")}
 						</Button>
 					)}
 				</form.Subscribe>
