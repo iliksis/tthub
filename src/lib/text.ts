@@ -48,6 +48,8 @@ const texts = {
 	"All teams": "Alle Teams",
 	"All types": "Alle Typen",
 	"An Error occurred": "Ein Fehler ist aufgetreten",
+	"An unexpected error occurred. Try again or go back to the overview.":
+		"Ein unerwarteter Fehler ist aufgetreten. Versuche es erneut oder kehre zur Übersicht zurück.",
 	Apply: "Anwenden",
 	Appointment: "Termin",
 	"Appointment created": "Termin erstellt",
@@ -74,6 +76,7 @@ const texts = {
 	"Are you sure you want to delete this team?":
 		"Bist du sicher, dass du dieses Team löschen möchtest?",
 	Back: "Zurück",
+	"Back to dashboard": "Zum Dashboard",
 	Bavaria: "Bayern",
 	Calendar: "Kalender",
 	"Calendar Feed": "Kalender-Feed",
@@ -216,6 +219,7 @@ const texts = {
 	"Open team": "Team öffnen",
 	Overview: "Übersicht",
 	"open sidebar": "Sidebar öffnen",
+	"Page not found": "Seite nicht gefunden",
 	"Participant already exists in this category":
 		"Teilnehmer:in existiert bereits in dieser Kategorie",
 	Participants: "Teilnehmer:innen",
@@ -301,6 +305,8 @@ const texts = {
 	"Teams found": "Teams gefunden",
 	"The passwords entered do not match":
 		"Die eingegebenen Passwörter stimmen nicht überein",
+	"This address doesn't exist or has been moved.":
+		"Diese Adresse existiert nicht oder wurde verschoben.",
 	Time: "Zeit",
 	Title: "Titel",
 	To: "Bis",
@@ -312,6 +318,7 @@ const texts = {
 	Trainer: "Trainer:in",
 	"Transaction Journal": "Transaktionsjournal",
 	"Transactions found": "Transaktionen gefunden",
+	"Try again": "Erneut versuchen",
 	Type: "Typ",
 	"Type to search...": "Tippe zum Suchen...",
 	Unauthorized: "Nicht autorisiert",
