@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
-import { calculateAgeGroup } from "@/lib/utils";
+import { calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 
 // biome-ignore assist/source/useSortedKeys: head uses loaderData
 export const Route = createFileRoute("/_authed/teams/$teamId")({
@@ -67,7 +67,7 @@ function RouteComponent() {
 	const { team } = Route.useLoaderData();
 	const { user } = useRouteContext({ from: "__root__" });
 	const router = useRouter();
-	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
+	const canEdit = isEditorOrAdmin(user?.role);
 
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [isDeleting, setIsDeleting] = React.useState(false);

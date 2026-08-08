@@ -29,6 +29,9 @@ export const compareRoles = (role1: Role, role2: Role) => {
 	return 1;
 };
 
+export const isEditorOrAdmin = (role?: Role) =>
+	role === Role.EDITOR || role === Role.ADMIN;
+
 export const roleLabel = (role: Role) => {
 	switch (role) {
 		case Role.ADMIN:

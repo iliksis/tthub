@@ -58,7 +58,7 @@ import {
 	ResponseType,
 } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import { cn, isDayInPast } from "@/lib/utils";
+import { cn, isDayInPast, isEditorOrAdmin } from "@/lib/utils";
 
 const BATCH_SIZE = 25;
 
@@ -187,7 +187,7 @@ function RouteComponent() {
 	const router = useRouter();
 	const isNavigating = useRouterState({ select: (s) => s.isLoading });
 	const { user } = useRouteContext({ from: "__root__" });
-	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
+	const canEdit = isEditorOrAdmin(user?.role);
 	const isCalendarView = search.view === "calendar";
 
 	const navigateToMonth = (target: Date) => {
@@ -421,7 +421,7 @@ const AppointmentSplitView = ({
 }) => {
 	const { user } = useRouteContext({ from: "__root__" });
 	const router = useRouter();
-	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
+	const canEdit = isEditorOrAdmin(user?.role);
 	const createResponseServerFn = useServerFn(createResponse);
 	const publishAppointmentServerFn = useServerFn(publishAppointment);
 	const unpublishAppointmentServerFn = useServerFn(unpublishAppointment);

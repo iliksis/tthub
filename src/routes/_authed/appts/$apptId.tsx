@@ -55,7 +55,12 @@ import {
 	ResponseType,
 } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import { cn, createGoogleMapsLink, dateToInputValue } from "@/lib/utils";
+import {
+	cn,
+	createGoogleMapsLink,
+	dateToInputValue,
+	isEditorOrAdmin,
+} from "@/lib/utils";
 
 // biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
 export const Route = createFileRoute("/_authed/appts/$apptId")({
@@ -134,7 +139,7 @@ type EditableDraft = {
 
 function RouteComponent() {
 	const { user } = Route.useRouteContext();
-	const canEdit = user?.role === "EDITOR" || user?.role === "ADMIN";
+	const canEdit = isEditorOrAdmin(user?.role);
 
 	const [isDeleting, setIsDeleting] = React.useState(false);
 	const [isParticipantsModalOpen, setIsParticipantsModalOpen] =
