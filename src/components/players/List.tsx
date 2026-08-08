@@ -1,5 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { DetailsList } from "@/components/DetailsList";
+import { Link } from "@/components/ui/link";
 import type { Player, Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { calculateAgeGroup } from "@/lib/utils";
@@ -9,7 +10,13 @@ type ListProps = {
 };
 export const List = ({ players }: ListProps) => {
 	const router = useRouter();
-	if (players.length === 0) return <div>{t("No players found")}</div>;
+	if (players.length === 0) {
+		return (
+			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
+				{t("No players found")}
+			</div>
+		);
+	}
 
 	const onClickPlayer = async (id: string) => {
 		await router.navigate({
@@ -19,46 +26,67 @@ export const List = ({ players }: ListProps) => {
 	};
 
 	return (
-		<DetailsList
-			items={players}
-			columns={[
-				{
-					key: "name",
-					label: t("Name"),
-					render: (item) => item.name,
-					sortable: true,
-					sortFn: (a, b) => a.name.localeCompare(b.name),
-				},
-				{
-					key: "ageGroup",
-					label: t("Age Group"),
-					render: (item) => calculateAgeGroup(item.year),
-					sortable: true,
-					sortFn: (a, b) =>
-						calculateAgeGroup(a.year).localeCompare(calculateAgeGroup(b.year)),
-				},
-				{
-					key: "qttr",
-					label: t("QTTR"),
-					render: (item) => item.qttr,
-					sortable: true,
-					sortFn: (a, b) => a.qttr - b.qttr,
-				},
-				{
-					key: "team",
-					label: t("Team"),
-					render: (item) => item.team?.title,
-					sortable: true,
-					sortFn: (a, b) => {
-						const teamA = a.team?.title || "";
-						const teamB = b.team?.title || "";
-						return teamA.localeCompare(teamB);
+		<div className="min-w-0 overflow-x-auto rounded-lg bg-card">
+			<DetailsList
+				items={players}
+				columns={[
+					{
+						key: "name",
+						label: t("Name"),
+						render: (item) => (
+							<Link
+								to="/players/$playerId"
+								params={{ playerId: item.id }}
+								onClick={(e) => e.stopPropagation()}
+							>
+								{item.name}
+							</Link>
+						),
+						sortable: true,
+						sortFn: (a, b) => a.name.localeCompare(b.name),
 					},
-				},
-			]}
-			getItemId={(item) => item.id}
-			selectMode="none"
-			onItemClick={(item) => onClickPlayer(item.id)}
-		/>
+					{
+						key: "ageGroup",
+						label: t("Age Group"),
+						render: (item) => calculateAgeGroup(item.year),
+						sortable: true,
+						sortFn: (a, b) =>
+							calculateAgeGroup(a.year).localeCompare(
+								calculateAgeGroup(b.year),
+							),
+					},
+					{
+						key: "qttr",
+						label: t("QTTR"),
+						render: (item) => item.qttr,
+						sortable: true,
+						sortFn: (a, b) => a.qttr - b.qttr,
+					},
+					{
+						key: "team",
+						label: t("Team"),
+						render: (item) =>
+							item.team && (
+								<Link
+									to="/teams/$teamId"
+									params={{ teamId: item.team.id }}
+									onClick={(e) => e.stopPropagation()}
+								>
+									{item.team.title}
+								</Link>
+							),
+						sortable: true,
+						sortFn: (a, b) => {
+							const teamA = a.team?.title || "";
+							const teamB = b.team?.title || "";
+							return teamA.localeCompare(teamB);
+						},
+					},
+				]}
+				getItemId={(item) => item.id}
+				selectMode="none"
+				onItemClick={(item) => onClickPlayer(item.id)}
+			/>
+		</div>
 	);
 };

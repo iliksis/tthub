@@ -42,3 +42,13 @@ export const ResponseType = {
 } as const
 
 export type ResponseType = (typeof ResponseType)[keyof typeof ResponseType]
+
+
+export const TransactionType = {
+  CREATE: 'CREATE',
+  UPDATE: 'UPDATE',
+  DELETE: 'DELETE',
+  RESTORE: 'RESTORE'
+} as const
+
+export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType]

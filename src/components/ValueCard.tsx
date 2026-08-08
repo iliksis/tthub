@@ -1,3 +1,10 @@
+import {
+	CardContent,
+	CardTitle,
+	Card as ShadcnCard,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
 type CardProps = {
 	title?: string;
 	icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
@@ -11,16 +18,16 @@ export const Card = (props: React.PropsWithChildren<CardProps>) => {
 		4: "col-span-4",
 	};
 	return (
-		<div className={`card bg-base-200 ${span[props.gridRows || 1]}`}>
-			<div className="card-body p-4">
+		<ShadcnCard className={cn("py-4", span[props.gridRows || 1])}>
+			<CardContent className="flex flex-col gap-2 px-4">
 				{props.title && (
-					<h2 className="card-title text-base">
+					<CardTitle className="text-base">
 						{/* {props.icon && <props.icon className="my-1.5 size-4" />} */}
 						{props.title}
-					</h2>
+					</CardTitle>
 				)}
 				{props.children}
-			</div>
-		</div>
+			</CardContent>
+		</ShadcnCard>
 	);
 };

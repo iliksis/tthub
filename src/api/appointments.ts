@@ -6,8 +6,9 @@ import {
 	AppointmentStatus,
 	AppointmentType,
 	type ResponseType,
+	TransactionType,
 } from "@/lib/prisma/enums";
-import { useAppSession, useIsRole } from "@/lib/session";
+import { requireEditor, useAppSession } from "@/lib/session";
 import { t } from "@/lib/text";
 import { formatTanstackRouterPath } from "@/lib/utils";
 import { sendNotification } from "./notifications";
@@ -33,22 +34,34 @@ type ICreateAppointment =
 export const createAppointment = createServerFn()
 	.inputValidator((d: ICreateAppointment) => d)
 	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
+		const session = await requireEditor();
+		if (!session) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
-			const appointment = await prismaClient.appointment.create({
-				data: {
-					endDate: data.endDate,
-					location: data.type === "HOLIDAY" ? undefined : data.location,
-					shortTitle: data.shortTitle,
-					startDate: data.startDate,
-					status: data.type === "HOLIDAY" ? undefined : data.status,
-					title: data.title,
-					type: data.type,
-				},
+			// prismaClient.$transaction (DB transaction) is unrelated to the
+			// `transaction` model below (the appointment change-history log).
+			const appointment = await prismaClient.$transaction(async (tx) => {
+				const appointment = await tx.appointment.create({
+					data: {
+						endDate: data.endDate,
+						location: data.type === "HOLIDAY" ? undefined : data.location,
+						shortTitle: data.shortTitle,
+						startDate: data.startDate,
+						status: data.type === "HOLIDAY" ? undefined : data.status,
+						title: data.title,
+						type: data.type,
+					},
+				});
+				await tx.transaction.create({
+					data: {
+						appointmentId: appointment.id,
+						type: TransactionType.CREATE,
+						userId: session.id,
+					},
+				});
+				return appointment;
 			});
 
 			if (
@@ -88,6 +101,10 @@ export const getAppointment = createServerFn()
 					},
 					responses: {
 						include: { user: true },
+					},
+					transactions: {
+						include: { user: true },
+						orderBy: { createdAt: "desc" },
 					},
 				},
 				where: { id: data.id },
@@ -156,6 +173,70 @@ export const searchAppointments = createServerFn()
 		}
 	});
 
+export const getTransactionsPage = createServerFn()
+	.inputValidator(
+		(d: {
+			skip: number;
+			take: number;
+			type?: TransactionType;
+			query?: string;
+			sortDirection?: "asc" | "desc";
+		}) => d,
+	)
+	.handler(async ({ data }) => {
+		const session = await requireEditor();
+		if (!session) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
+		try {
+			const where: Prisma.TransactionWhereInput = {
+				type: data.type,
+				...(data.query
+					? {
+							OR: [
+								{ appointment: { title: { contains: data.query } } },
+								{ appointment: { shortTitle: { contains: data.query } } },
+								{ user: { name: { contains: data.query } } },
+							],
+						}
+					: {}),
+			};
+			// matchedTotal drives "N remaining"/pagination, grandTotal is the
+			// unfiltered count used for the "N of TOTAL events" summary.
+			const [transactions, matchedTotal, grandTotal] = await Promise.all([
+				prismaClient.transaction.findMany({
+					include: {
+						appointment: true,
+						user: true,
+					},
+					orderBy: { createdAt: data.sortDirection ?? "desc" },
+					skip: data.skip,
+					take: data.take,
+					where,
+				}),
+				prismaClient.transaction.count({ where }),
+				prismaClient.transaction.count(),
+			]);
+			return json<
+				Return<{
+					transactions: typeof transactions;
+					matchedTotal: number;
+					grandTotal: number;
+				}>
+			>(
+				{
+					data: { grandTotal, matchedTotal, transactions },
+					message: t("Transactions found"),
+				},
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
 export const getAppointments = createServerFn()
 	.inputValidator(
 		(d: {
@@ -210,38 +291,169 @@ export const getAppointments = createServerFn()
 		}
 	});
 
+export const getAppointmentsPage = createServerFn()
+	.inputValidator(
+		(d: {
+			query?: string;
+			type?: AppointmentType;
+			response?: ResponseType | "NONE";
+			dateFrom?: Date;
+			dateTo?: Date;
+			withDeleted?: boolean;
+			skip: number;
+			take: number;
+		}) => d,
+	)
+	.handler(async ({ data }) => {
+		const session = await useAppSession();
+		if (!session.data.id) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
+		const userId = session.data.id;
+
+		try {
+			const where: Prisma.AppointmentWhereInput = {
+				deletedAt: data.withDeleted ? undefined : null,
+				OR: [
+					{ title: { contains: data.query ?? "" } },
+					{ shortTitle: { contains: data.query ?? "" } },
+					{ location: { contains: data.query ?? "" } },
+				],
+				responses:
+					data.response === "NONE"
+						? { none: { userId } }
+						: data.response
+							? { some: { responseType: data.response, userId } }
+							: undefined,
+				startDate: {
+					gte: data.dateFrom,
+					lte: data.dateTo,
+				},
+				type: data.type,
+			};
+
+			const [appointments, matchedTotal, grandTotal] = await Promise.all([
+				prismaClient.appointment.findMany({
+					include: { responses: true },
+					orderBy: { startDate: "desc" },
+					skip: data.skip,
+					take: data.take,
+					where,
+				}),
+				prismaClient.appointment.count({ where }),
+				prismaClient.appointment.count({
+					where: { deletedAt: data.withDeleted ? undefined : null },
+				}),
+			]);
+
+			return json<
+				Return<{
+					appointments: typeof appointments;
+					matchedTotal: number;
+					grandTotal: number;
+				}>
+			>(
+				{
+					data: { appointments, grandTotal, matchedTotal },
+					message: t("Appointments found"),
+				},
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
+// Click-to-edit saves one field at a time, so a burst of edits to the same
+// appointment would otherwise fire one notification per field. Debounce so
+// only one notification goes out per appointment, ~5s after the last edit.
+const pendingUpdateNotifications = new Map<
+	string,
+	ReturnType<typeof setTimeout>
+>();
+const UPDATE_NOTIFICATION_DEBOUNCE_MS = 5000;
+
+function scheduleAppointmentUpdatedNotification(appointment: Appointment) {
+	const existing = pendingUpdateNotifications.get(appointment.id);
+	if (existing) clearTimeout(existing);
+	pendingUpdateNotifications.set(
+		appointment.id,
+		setTimeout(() => {
+			pendingUpdateNotifications.delete(appointment.id);
+			void sendNotification({
+				body: appointment.title,
+				scope: "updated",
+				title: t("Appointment updated"),
+				url: formatTanstackRouterPath("/appts/$apptId", {
+					apptId: appointment.id,
+				}),
+			});
+		}, UPDATE_NOTIFICATION_DEBOUNCE_MS),
+	);
+}
+
+function cancelAppointmentUpdatedNotification(appointmentId: string) {
+	const existing = pendingUpdateNotifications.get(appointmentId);
+	if (existing) {
+		clearTimeout(existing);
+		pendingUpdateNotifications.delete(appointmentId);
+	}
+}
+
 export const updateAppointment = createServerFn()
 	.inputValidator((d: { id: string; updates: Partial<Appointment> }) => d)
 	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
+		const session = await requireEditor();
+		if (!session) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
-			const appointment = await prismaClient.appointment.update({
-				data: {
-					endDate: data.updates.endDate,
-					link: data.updates.link,
-					location: data.updates.location,
-					nextAppointmentId: data.updates.nextAppointmentId,
-					shortTitle: data.updates.shortTitle,
-					startDate: data.updates.startDate,
-					status: data.updates.status,
-					title: data.updates.title,
-				},
-				where: { id: data.id },
+			const appointment = await prismaClient.$transaction(async (tx) => {
+				const before = await tx.appointment.findUniqueOrThrow({
+					where: { id: data.id },
+				});
+				const appointment = await tx.appointment.update({
+					data: {
+						endDate: data.updates.endDate,
+						link: data.updates.link,
+						location: data.updates.location,
+						nextAppointmentId: data.updates.nextAppointmentId,
+						shortTitle: data.updates.shortTitle,
+						startDate: data.updates.startDate,
+						status: data.updates.status,
+						title: data.updates.title,
+					},
+					where: { id: data.id },
+				});
+
+				// Only the fields that were part of this save (and actually
+				// changed value) are logged, matching click-to-edit's
+				// one-field/group-per-save flow.
+				const changes: Record<string, { old: unknown; new: unknown }> = {};
+				for (const key of Object.keys(data.updates) as (keyof Appointment)[]) {
+					if (before[key]?.valueOf() !== appointment[key]?.valueOf()) {
+						changes[key] = { new: appointment[key], old: before[key] };
+					}
+				}
+				if (Object.keys(changes).length > 0) {
+					await tx.transaction.create({
+						data: {
+							appointmentId: appointment.id,
+							changes: changes as Prisma.InputJsonValue,
+							type: TransactionType.UPDATE,
+							userId: session.id,
+						},
+					});
+				}
+
+				return appointment;
 			});
 
 			if (appointment.type === AppointmentType.TOURNAMENT) {
-				await sendNotification({
-					body: appointment.title,
-					scope: "updated",
-					title: t("Appointment updated"),
-					url: formatTanstackRouterPath("/appts/$apptId", {
-						apptId: appointment.id,
-					}),
-				});
+				scheduleAppointmentUpdatedNotification(appointment);
 			}
 
 			return json<Return<Appointment>>(
@@ -258,18 +470,29 @@ export const updateAppointment = createServerFn()
 export const deleteAppointment = createServerFn()
 	.inputValidator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
+		const session = await requireEditor();
+		if (!session) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
-			const appointment = await prismaClient.appointment.update({
-				data: {
-					deletedAt: new Date(),
-				},
-				where: { id: data.id },
+			const appointment = await prismaClient.$transaction(async (tx) => {
+				const appointment = await tx.appointment.update({
+					data: {
+						deletedAt: new Date(),
+					},
+					where: { id: data.id },
+				});
+				await tx.transaction.create({
+					data: {
+						appointmentId: appointment.id,
+						type: TransactionType.DELETE,
+						userId: session.id,
+					},
+				});
+				return appointment;
 			});
+			cancelAppointmentUpdatedNotification(appointment.id);
 			return json<Return<Appointment>>(
 				{ data: appointment, message: t("Appointment deleted") },
 				{ status: 200 },
@@ -393,7 +616,11 @@ export const getUserAppointments = createServerFn()
 		}
 	});
 
-export const getUserAppointmentsWithoutResponses = createServerFn()
+// "Open" appointments are ones the user hasn't committed to yet: either no
+// response at all, or an explicit "Maybe" (which the rest of the UI already
+// treats as the same non-committal state, e.g. appointments/Card.tsx's
+// `?? "MAYBE"` fallback for a missing response).
+export const getUserOpenAppointments = createServerFn()
 	.inputValidator((d: { userId: string }) => d)
 	.handler(async ({ data }) => {
 		try {
@@ -408,11 +635,14 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 				},
 				where: {
 					deletedAt: null,
-					responses: {
-						none: {
-							userId: data.userId,
+					OR: [
+						{ responses: { none: { userId: data.userId } } },
+						{
+							responses: {
+								some: { responseType: "MAYBE", userId: data.userId },
+							},
 						},
-					},
+					],
 					startDate: {
 						gte: now,
 					},
@@ -430,53 +660,29 @@ export const getUserAppointmentsWithoutResponses = createServerFn()
 		}
 	});
 
-const colors = {
-	HOLIDAY: {
-		bg: "var(--catppuccin-color-lavender-400)",
-		text: "var(--color-primary-content)",
-	},
-	TOURNAMENT: {
-		bg: "var(--color-success)",
-		text: "var(--color-success-content)",
-	},
-	TOURNAMENT_DE: {
-		bg: "var(--catppuccin-color-blue-400)",
-		text: "var(--color-primary-content)",
-	},
-};
 export const getCalendarAppointments = createServerFn()
 	.inputValidator((d: { start: Date; end: Date }) => d)
 	.handler(async ({ data }) => {
 		try {
+			const start = new Date(data.start);
+			const end = new Date(data.end);
 			const appointments = await prismaClient.appointment.findMany({
-				include: {
-					responses: true,
-				},
 				where: {
 					deletedAt: null,
-					startDate: {
-						gte: new Date(data.start),
-						lt: new Date(data.end),
-					},
+					OR: [
+						{ endDate: { gte: start } },
+						{ endDate: null, startDate: { gte: start } },
+					],
+					startDate: { lt: end },
 				},
 			});
 			const calAppointments = appointments.map((a) => ({
-				color: colors[a.type].bg,
-				end:
-					a.endDate ??
-					new Date(
-						a.startDate.getFullYear(),
-						a.startDate.getMonth(),
-						a.startDate.getDate(),
-						17,
-					),
-				extendedProps: {
-					shortTitle: a.shortTitle,
-				},
+				end: a.endDate ?? a.startDate,
 				id: a.id,
+				shortTitle: a.shortTitle,
 				start: a.startDate,
-				textColor: colors[a.type].text,
-				title: a.shortTitle,
+				title: a.title,
+				type: a.type,
 			}));
 			return json<Return<typeof calAppointments>>(
 				{ data: calAppointments, message: t("Appointments found") },
@@ -549,19 +755,39 @@ export const importHolidays = createServerFn()
 export const publishAppointment = createServerFn()
 	.inputValidator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
+		const session = await requireEditor();
+		if (!session) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
-			const appointment = await prismaClient.appointment.update({
-				data: {
-					status: AppointmentStatus.PUBLISHED,
-				},
-				where: { id: data.id },
+			let statusChanged = false;
+			const appointment = await prismaClient.$transaction(async (tx) => {
+				const before = await tx.appointment.findUniqueOrThrow({
+					where: { id: data.id },
+				});
+				const appointment = await tx.appointment.update({
+					data: {
+						status: AppointmentStatus.PUBLISHED,
+					},
+					where: { id: data.id },
+				});
+				statusChanged = before.status !== appointment.status;
+				if (statusChanged) {
+					await tx.transaction.create({
+						data: {
+							appointmentId: appointment.id,
+							changes: {
+								status: { new: appointment.status, old: before.status },
+							} as Prisma.InputJsonValue,
+							type: TransactionType.UPDATE,
+							userId: session.id,
+						},
+					});
+				}
+				return appointment;
 			});
-			if (appointment.type === AppointmentType.TOURNAMENT) {
+			if (statusChanged && appointment.type === AppointmentType.TOURNAMENT) {
 				await sendNotification({
 					body: appointment.title,
 					scope: "new",
@@ -582,20 +808,74 @@ export const publishAppointment = createServerFn()
 		}
 	});
 
-export const restoreAppointment = createServerFn()
+export const unpublishAppointment = createServerFn()
 	.inputValidator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
+		const session = await requireEditor();
+		if (!session) {
 			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
 		}
 
 		try {
-			const appointment = await prismaClient.appointment.update({
-				data: {
-					deletedAt: null,
-				},
-				where: { id: data.id },
+			const appointment = await prismaClient.$transaction(async (tx) => {
+				const before = await tx.appointment.findUniqueOrThrow({
+					where: { id: data.id },
+				});
+				const appointment = await tx.appointment.update({
+					data: {
+						status: AppointmentStatus.DRAFT,
+					},
+					where: { id: data.id },
+				});
+				if (before.status !== appointment.status) {
+					await tx.transaction.create({
+						data: {
+							appointmentId: appointment.id,
+							changes: {
+								status: { new: appointment.status, old: before.status },
+							} as Prisma.InputJsonValue,
+							type: TransactionType.UPDATE,
+							userId: session.id,
+						},
+					});
+				}
+				return appointment;
+			});
+			return json<Return<Appointment>>(
+				{ data: appointment, message: t("Appointment unpublished") },
+				{ status: 200 },
+			);
+		} catch (e) {
+			console.error(e);
+			const error = e as Error;
+			return json<Return>({ message: error.message }, { status: 400 });
+		}
+	});
+
+export const restoreAppointment = createServerFn()
+	.inputValidator((d: { id: string }) => d)
+	.handler(async ({ data }) => {
+		const session = await requireEditor();
+		if (!session) {
+			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+		}
+
+		try {
+			const appointment = await prismaClient.$transaction(async (tx) => {
+				const appointment = await tx.appointment.update({
+					data: {
+						deletedAt: null,
+					},
+					where: { id: data.id },
+				});
+				await tx.transaction.create({
+					data: {
+						appointmentId: appointment.id,
+						type: TransactionType.RESTORE,
+						userId: session.id,
+					},
+				});
+				return appointment;
 			});
 			return json<Return<Appointment>>(
 				{ data: appointment, message: t("Appointment restored") },

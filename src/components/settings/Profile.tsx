@@ -3,9 +3,14 @@ import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { updateUserInformation } from "@/api/users";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import { useAppSession } from "@/lib/session";
 import { t } from "@/lib/text";
+import { roleBadgeVariant, roleLabel } from "@/lib/utils";
 
 const updateSession = createServerFn({ method: "POST" })
 	.inputValidator((d: { name: string }) => d)
@@ -70,24 +75,40 @@ export const Profile = () => {
 	const formErrorMap = useStore(form.store, (state) => state.errorMap);
 
 	return (
-		<div>
-			<form
-				onSubmit={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
-					form.handleSubmit();
-				}}
-			>
-				<div>
+		<div className="flex flex-col gap-8">
+			<div className="flex flex-col items-center gap-1 sm:items-start">
+				<h1 className="font-bold text-2xl">{currentUser?.name}</h1>
+				<div className="flex items-center gap-2 text-muted-foreground text-sm">
+					<span>{currentUser?.userName}</span>
+					{currentUser?.role && (
+						<Badge variant={roleBadgeVariant[currentUser.role]}>
+							{roleLabel(currentUser.role)}
+						</Badge>
+					)}
+				</div>
+			</div>
+
+			<div className="flex flex-col gap-5">
+				<div className="flex flex-col gap-1">
+					<h2 className="font-semibold text-lg">{t("Profile & Security")}</h2>
+					<p className="text-muted-foreground text-sm">
+						{t("Update your name or set a new password.")}
+					</p>
+				</div>
+				<form
+					className="flex flex-col gap-4"
+					onSubmit={(e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						form.handleSubmit();
+					}}
+				>
 					<form.Field name="name">
 						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Name")}:
-								</label>
-								<input
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Name")}:</Label>
+								<Input
 									id={field.name}
-									className="input input-primary w-full"
 									name={field.name}
 									value={field.state.value}
 									onBlur={field.handleBlur}
@@ -96,68 +117,62 @@ export const Profile = () => {
 							</fieldset>
 						)}
 					</form.Field>
-				</div>
-				<div>
-					<form.Field name="password">
-						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Password")}:
-								</label>
-								<input
-									id={field.name}
-									className="input input-primary w-full"
-									type="password"
-									name={field.name}
-									value={field.state.value}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
-								/>
-							</fieldset>
-						)}
-					</form.Field>
-				</div>
-				<div>
-					<form.Field name="confirmPassword">
-						{(field) => (
-							<fieldset className="fieldset">
-								<label className="label" htmlFor={field.name}>
-									{t("Confirm Password")}:
-								</label>
-								<input
-									id={field.name}
-									className="input input-primary w-full"
-									type="password"
-									name={field.name}
-									value={field.state.value}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
-								/>
-							</fieldset>
-						)}
-					</form.Field>
-				</div>
-				{formErrorMap.onChange && (
-					<div className="text-error text-xs">{formErrorMap.onChange}</div>
-				)}
-				<form.Subscribe
-					selector={(state) => [
-						state.canSubmit,
-						state.isSubmitting,
-						state.isDefaultValue,
-					]}
-				>
-					{([canSubmit, isSubmitting, isDefaultValue]) => (
-						<button
-							type="submit"
-							className="btn btn-primary mt-4 w-36"
-							disabled={!canSubmit || isDefaultValue}
-						>
-							{isSubmitting ? "..." : t("Update")}
-						</button>
+					<div className="grid gap-5 sm:grid-cols-2">
+						<form.Field name="password">
+							{(field) => (
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Password")}:</Label>
+									<Input
+										id={field.name}
+										type="password"
+										name={field.name}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+								</fieldset>
+							)}
+						</form.Field>
+						<form.Field name="confirmPassword">
+							{(field) => (
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Confirm Password")}:</Label>
+									<Input
+										id={field.name}
+										type="password"
+										name={field.name}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+					{formErrorMap.onChange && (
+						<div className="text-destructive text-xs">
+							{formErrorMap.onChange}
+						</div>
 					)}
-				</form.Subscribe>
-			</form>
+					<form.Subscribe
+						selector={(state) => [
+							state.canSubmit,
+							state.isSubmitting,
+							state.isDefaultValue,
+						]}
+					>
+						{([canSubmit, isSubmitting, isDefaultValue]) => (
+							<Button
+								type="submit"
+								className="w-36"
+								disabled={!canSubmit || isDefaultValue}
+							>
+								{isSubmitting ? t("Loading…") : t("Update")}
+							</Button>
+						)}
+					</form.Subscribe>
+				</form>
+			</div>
 		</div>
 	);
 };

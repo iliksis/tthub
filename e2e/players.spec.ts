@@ -45,7 +45,7 @@ test.describe("Players Route - Data Display", () => {
 		await page.goto("/players");
 		await page.waitForLoadState("networkidle");
 
-		const playerLinks = page.locator('a[href^="/players/"]');
+		const playerLinks = page.locator('a[href^="/players/"]:visible');
 		const count = await playerLinks.count();
 
 		if (count > 0) {
@@ -63,18 +63,24 @@ test.describe("Players Route - Edit Functionality", () => {
 		await page.goto("/players");
 		await page.waitForLoadState("networkidle");
 
-		const playerLinks = page.locator("tbody tr");
+		// The mobile and desktop layouts both render a table; scope to the
+		// one that's actually visible at the test viewport.
+		const playerLinks = page.locator("tbody tr:visible");
 		const count = await playerLinks.count();
 
 		if (count > 0) {
 			await playerLinks.first().click();
 			await page.waitForLoadState("networkidle");
 
-			const configButton = page.locator("div svg.lucide-cog");
-			await configButton.first().click();
+			// Players have no mobile-only cog menu — the edit button is
+			// always directly visible, so this is a no-op there.
+			const configButton = page.locator("div svg.lucide-cog:visible");
+			if ((await configButton.count()) > 0) {
+				await configButton.first().click();
+			}
 
 			const editButton = page.locator(
-				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+				'button[aria-label*="aktualisieren"]:visible, button svg.lucide-square-pen:visible',
 			);
 			if ((await editButton.count()) > 0) {
 				await editButton.first().click();
@@ -85,9 +91,7 @@ test.describe("Players Route - Edit Functionality", () => {
 					const originalValue = await nameInput.inputValue();
 					await nameInput.fill(`${originalValue} Updated`);
 
-					const submitButton = page.locator(
-						'button[type="submit"].btn-primary',
-					);
+					const submitButton = page.locator('button[type="submit"]');
 					await submitButton.click();
 					await page.waitForTimeout(1000);
 
@@ -107,18 +111,22 @@ test.describe("Players Route - Edit Functionality", () => {
 		await page.goto("/players");
 		await page.waitForLoadState("networkidle");
 
-		const playerLinks = page.locator("tbody tr");
+		// The mobile and desktop layouts both render a table; scope to the
+		// one that's actually visible at the test viewport.
+		const playerLinks = page.locator("tbody tr:visible");
 		const count = await playerLinks.count();
 
 		if (count > 0) {
 			await playerLinks.first().click();
 			await page.waitForLoadState("networkidle");
 
-			const configButton = page.locator("div svg.lucide-cog");
-			await configButton.first().click();
+			const configButton = page.locator("div svg.lucide-cog:visible");
+			if ((await configButton.count()) > 0) {
+				await configButton.first().click();
+			}
 
 			const editButton = page.locator(
-				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+				'button[aria-label*="aktualisieren"]:visible, button svg.lucide-square-pen:visible',
 			);
 			if ((await editButton.count()) > 0) {
 				await expect(editButton.first()).toBeVisible();
@@ -135,15 +143,21 @@ test.describe("Players Route - Edit Functionality", () => {
 		await page.goto("/players");
 		await page.waitForLoadState("networkidle");
 
-		const playerLinks = page.locator("tbody tr");
+		// The mobile and desktop layouts both render a table; scope to the
+		// one that's actually visible at the test viewport.
+		const playerLinks = page.locator("tbody tr:visible");
 		const count = await playerLinks.count();
 
 		if (count > 0) {
 			await playerLinks.first().click();
 			await page.waitForLoadState("networkidle");
 
-			const configButton = page.locator("div svg.lucide-cog");
+			const configButton = page.locator("div svg.lucide-cog:visible");
+			const editButton = page.locator(
+				'button[aria-label*="aktualisieren"]:visible, button svg.lucide-square-pen:visible',
+			);
 			await expect(configButton).not.toBeVisible();
+			await expect(editButton).not.toBeVisible();
 		} else {
 			test.skip();
 		}

@@ -35,21 +35,21 @@ test.describe("Appointments Calendar Route", () => {
 	test("ADMIN can access calendar view", async ({ page }) => {
 		await loginAs(page, "admin");
 		await page.goto("/appts/calendar");
-		await expect(page).toHaveURL("/appts/calendar");
+		await expect(page).toHaveURL("/appts?view=calendar");
 		await expect(page.locator("body")).toBeVisible();
 	});
 
 	test("EDITOR can access calendar view", async ({ page }) => {
 		await loginAs(page, "editor");
 		await page.goto("/appts/calendar");
-		await expect(page).toHaveURL("/appts/calendar");
+		await expect(page).toHaveURL("/appts?view=calendar");
 		await expect(page.locator("body")).toBeVisible();
 	});
 
 	test("USER can access calendar view", async ({ page }) => {
 		await loginAs(page, "user");
 		await page.goto("/appts/calendar");
-		await expect(page).toHaveURL("/appts/calendar");
+		await expect(page).toHaveURL("/appts?view=calendar");
 		await expect(page.locator("body")).toBeVisible();
 	});
 });
@@ -92,10 +92,8 @@ test.describe("Appointments - Data Display", () => {
 		await page.goto("/appts");
 		await page.waitForLoadState("networkidle");
 
-		// Find links to specific appointments (not the calendar link)
-		const apptLinks = page.locator(
-			'a[href^="/appts/"]:not([href="/appts/calendar"])',
-		);
+		// Find links to specific appointments (not the list/calendar view toggle)
+		const apptLinks = page.locator('a[href^="/appts/"]:not([href*="view="])');
 		const count = await apptLinks.count();
 
 		if (count > 0) {
@@ -112,17 +110,26 @@ test.describe("Appointments - Edit Functionality", () => {
 		await loginAs(page, "admin");
 		await page.goto("/appts");
 		await page.waitForLoadState("networkidle");
-		const apptLinks = page.locator("tbody tr");
+		// The split view's rows only toggle selection; the title link is what
+		// actually navigates to the appointment detail page.
+		const apptLinks = page.locator(
+			'a[href^="/appts/"]:visible:not([href*="view="])',
+		);
 		const count = await apptLinks.count();
 		if (count > 0) {
 			await apptLinks.first().click();
 			await page.waitForLoadState("networkidle");
 
-			const configButton = page.locator("div svg.lucide-cog");
-			await configButton.first().click();
+			// The cog only exists in the mobile FAB menu; on desktop the edit
+			// button is already directly visible in the toolbar (as plain text,
+			// no icon).
+			const configButton = page.locator("div svg.lucide-cog:visible");
+			if ((await configButton.count()) > 0) {
+				await configButton.first().click();
+			}
 
 			const editButton = page.locator(
-				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen, button:has-text("Bearbeiten")',
 			);
 			if ((await editButton.count()) > 0) {
 				await editButton.first().click();
@@ -137,9 +144,7 @@ test.describe("Appointments - Edit Functionality", () => {
 					const originalValue = await titleInput.inputValue();
 					await titleInput.fill(`${originalValue} Updated`);
 
-					const submitButton = page.locator(
-						'button[type="submit"].btn-primary',
-					);
+					const submitButton = page.locator('button[type="submit"]');
 					await submitButton.click();
 					await page.waitForTimeout(1000);
 
@@ -159,18 +164,22 @@ test.describe("Appointments - Edit Functionality", () => {
 		await page.goto("/appts");
 		await page.waitForLoadState("networkidle");
 
-		const apptLinks = page.locator("tbody tr");
+		const apptLinks = page.locator(
+			'a[href^="/appts/"]:visible:not([href*="view="])',
+		);
 		const count = await apptLinks.count();
 
 		if (count > 0) {
 			await apptLinks.first().click();
 			await page.waitForLoadState("networkidle");
 
-			const configButton = page.locator("div svg.lucide-cog");
-			await configButton.first().click();
+			const configButton = page.locator("div svg.lucide-cog:visible");
+			if ((await configButton.count()) > 0) {
+				await configButton.first().click();
+			}
 
 			const editButton = page.locator(
-				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen, button:has-text("Bearbeiten")',
 			);
 			if ((await editButton.count()) > 0) {
 				await expect(editButton.first()).toBeVisible();
@@ -187,22 +196,194 @@ test.describe("Appointments - Edit Functionality", () => {
 		await page.goto("/appts");
 		await page.waitForLoadState("networkidle");
 
-		const apptLinks = page.locator("tbody tr");
+		const apptLinks = page.locator(
+			'a[href^="/appts/"]:visible:not([href*="view="])',
+		);
 		const count = await apptLinks.count();
 
 		if (count > 0) {
 			await apptLinks.first().click();
 			await page.waitForLoadState("networkidle");
 
-			const configButton = page.locator("div svg.lucide-cog");
-			await configButton.first().click();
-
+			const configButton = page.locator("div svg.lucide-cog:visible");
 			const editButton = page.locator(
-				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen, button:has-text("Bearbeiten")',
 			);
-			expect(editButton).not.toBeVisible();
+			await expect(configButton).not.toBeVisible();
+			await expect(editButton).not.toBeVisible();
 		} else {
 			test.skip();
 		}
+	});
+});
+
+test.describe("Appointments - Multi-select and bulk actions", () => {
+	// The multi-select split view only renders at the `lg` breakpoint — force
+	// a desktop viewport so these tests behave the same on every project,
+	// including the mobile ones.
+	test.use({ viewport: { height: 900, width: 1440 } });
+
+	test("ADMIN, EDITOR and USER all see selection checkboxes", async ({
+		page,
+	}) => {
+		for (const role of ["admin", "editor", "user"] as const) {
+			await loginAs(page, role);
+			await page.goto("/appts");
+			await page.waitForLoadState("networkidle");
+			await expect(
+				page.getByRole("checkbox", { name: "Training" }),
+			).toBeVisible();
+		}
+	});
+
+	test("selecting exactly one appointment shows its details; selecting a second one hides them", async ({
+		page,
+	}) => {
+		await loginAs(page, "admin");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		const rowCheckboxes = page.locator("table").getByRole("checkbox");
+		const count = await rowCheckboxes.count();
+		if (count < 2) {
+			test.skip();
+			return;
+		}
+
+		// One row is preselected by default, so the detail heading is already visible.
+		await expect(page.getByRole("heading", { level: 3 })).toBeVisible();
+
+		await rowCheckboxes.nth(1).click();
+		await expect(page.getByText(/Termine ausgewählt/)).toBeVisible();
+		await expect(page.getByRole("heading", { level: 3 })).not.toBeVisible();
+
+		await page.getByRole("button", { name: "Auswahl aufheben" }).click();
+		await expect(
+			page.getByText("Zeile auswählen, um Details zu sehen"),
+		).toBeVisible();
+	});
+
+	test("USER can bulk respond but cannot see management actions", async ({
+		page,
+	}) => {
+		await loginAs(page, "user");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		const rowCheckboxes = page.locator("table").getByRole("checkbox");
+		const count = await rowCheckboxes.count();
+		if (count < 2) {
+			test.skip();
+			return;
+		}
+		await rowCheckboxes.nth(1).click();
+
+		await expect(page.getByRole("button", { name: "Annehmen" })).toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Vielleicht" }),
+		).toBeVisible();
+		await expect(page.getByRole("button", { name: "Ablehnen" })).toBeVisible();
+
+		await expect(
+			page.getByRole("button", { name: "Veröffentlichen" }),
+		).not.toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Duplizieren" }),
+		).not.toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Löschen" }),
+		).not.toBeVisible();
+	});
+
+	test("EDITOR sees both bulk respond and management actions", async ({
+		page,
+	}) => {
+		await loginAs(page, "editor");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		const rowCheckboxes = page.locator("table").getByRole("checkbox");
+		const count = await rowCheckboxes.count();
+		if (count < 2) {
+			test.skip();
+			return;
+		}
+		await rowCheckboxes.nth(1).click();
+
+		await expect(page.getByRole("button", { name: "Annehmen" })).toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Veröffentlichen" }),
+		).toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Duplizieren" }),
+		).toBeVisible();
+	});
+
+	test("USER bulk-responding to multiple appointments succeeds", async ({
+		page,
+	}) => {
+		await loginAs(page, "user");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		const rowCheckboxes = page.locator("table").getByRole("checkbox");
+		const count = await rowCheckboxes.count();
+		if (count < 2) {
+			test.skip();
+			return;
+		}
+		await rowCheckboxes.nth(1).click();
+
+		await page.getByRole("button", { name: "Vielleicht" }).click();
+		await expect(page.getByText(/Termine beantwortet/)).toBeVisible();
+	});
+
+	test("EDITOR duplicating an appointment shows the copy immediately", async ({
+		page,
+	}) => {
+		await loginAs(page, "editor");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		const duplicateButton = page.getByRole("button", { name: "Duplizieren" });
+		if (!(await duplicateButton.isVisible())) {
+			test.skip();
+			return;
+		}
+		await duplicateButton.click();
+
+		await expect(page.getByText(/dupliziert/)).toBeVisible();
+		await expect(
+			page.locator(":visible", { hasText: "(Kopie)" }).first(),
+		).toBeVisible();
+	});
+
+	test("ADMIN can delete and then restore an appointment", async ({ page }) => {
+		await loginAs(page, "admin");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		const deleteButton = page.getByRole("button", { name: "Löschen" });
+		if (
+			!(await deleteButton.isVisible()) ||
+			!(await deleteButton.isEnabled())
+		) {
+			test.skip();
+			return;
+		}
+		await deleteButton.click();
+
+		const confirmDialog = page.getByRole("dialog");
+		await expect(confirmDialog).toBeVisible();
+		await confirmDialog.getByRole("button", { name: "Löschen" }).click();
+
+		await expect(page.getByText(/gelöscht/)).toBeVisible();
+
+		const restoreButton = page.getByRole("button", {
+			name: "Wiederherstellen",
+		});
+		await expect(restoreButton).toBeEnabled();
+		await restoreButton.click();
+		await expect(page.getByText(/wiederhergestellt/)).toBeVisible();
 	});
 });

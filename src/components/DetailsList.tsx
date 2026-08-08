@@ -9,6 +9,23 @@ import {
 } from "@tanstack/react-table";
 import { ChevronDown, ChevronsDownUp, ChevronUp } from "lucide-react";
 import React from "react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +34,7 @@ export type DetailsListColumn<T> = {
 	label: string;
 	render: (item: T) => React.ReactNode;
 	minWidth?: string;
+	align?: "left" | "right" | "center";
 	sortable?: boolean;
 	sortFn?: (a: T, b: T) => number;
 };
@@ -50,6 +68,20 @@ type DetailsListProps<T> = {
 	emptyMessage?: string;
 	className?: string;
 	selectMode?: "multiple" | "single" | "none";
+	// When provided, sorting is controlled by the parent (e.g. to drive a
+	// server-side sorted/paginated fetch) instead of TanStack Table sorting
+	// whatever rows happen to be loaded client-side.
+	sorting?: SortingState;
+	onSortingChange?: (sorting: SortingState) => void;
+};
+
+const commandBarButtonVariant = (
+	variant: CommandBarItem<unknown>["variant"],
+) => {
+	if (variant === "error") return "destructive" as const;
+	if (variant === "primary") return "default" as const;
+	if (variant === "secondary") return "secondary" as const;
+	return "ghost" as const;
 };
 
 export function DetailsList<T>({
@@ -62,8 +94,13 @@ export function DetailsList<T>({
 	emptyMessage = t("No items found"),
 	className = "",
 	selectMode = "multiple",
+	sorting: controlledSorting,
+	onSortingChange,
 }: DetailsListProps<T>) {
-	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [internalSorting, setInternalSorting] = React.useState<SortingState>(
+		[],
+	);
+	const sorting = controlledSorting ?? internalSorting;
 	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
 	// Convert custom columns to TanStack Table column definitions
@@ -74,33 +111,23 @@ export function DetailsList<T>({
 		if (selectMode !== "none") {
 			cols.push({
 				cell: ({ row }) => (
-					<label className="cursor-pointer flex items-center justify-center">
-						<input
-							type="checkbox"
-							checked={row.getIsSelected()}
-							onChange={row.getToggleSelectedHandler()}
-							className="checkbox checkbox-sm"
-							onClick={(e) => e.stopPropagation()}
-						/>
-					</label>
+					<Checkbox
+						checked={row.getIsSelected()}
+						onCheckedChange={(checked) => row.toggleSelected(checked === true)}
+						onClick={(e) => e.stopPropagation()}
+					/>
 				),
 				enableSorting: false,
 				header: ({ table }) => {
 					if (selectMode === "multiple") {
 						return (
-							<label className="cursor-pointer flex items-center justify-center">
-								<input
-									type="checkbox"
-									checked={table.getIsAllRowsSelected()}
-									ref={(el) => {
-										if (el) {
-											el.indeterminate = table.getIsSomeRowsSelected();
-										}
-									}}
-									onChange={table.getToggleAllRowsSelectedHandler()}
-									className="checkbox checkbox-sm"
-								/>
-							</label>
+							<Checkbox
+								checked={table.getIsAllRowsSelected()}
+								indeterminate={table.getIsSomeRowsSelected()}
+								onCheckedChange={(checked) =>
+									table.toggleAllRowsSelected(checked === true)
+								}
+							/>
 						);
 					}
 					return null;
@@ -118,7 +145,9 @@ export function DetailsList<T>({
 				enableSorting: column.sortable ?? false,
 				header: column.label,
 				id: column.key,
-				minSize: column.minWidth ? Number.parseInt(column.minWidth) : undefined,
+				minSize: column.minWidth
+					? Number.parseInt(column.minWidth, 10)
+					: undefined,
 				sortingFn: column.sortFn
 					? // biome-ignore lint/style/noNonNullAssertion: Cannot be null here
 						(rowA, rowB) => column.sortFn!(rowA.original, rowB.original)
@@ -136,7 +165,12 @@ export function DetailsList<T>({
 		enableRowSelection: selectMode !== "none",
 		getCoreRowModel: getCoreRowModel(),
 		getRowId: (row) => getItemId(row),
-		getSortedRowModel: getSortedRowModel(),
+		// When sorting is controlled, the parent is responsible for fetching
+		// the data in the requested order (e.g. server-side sort across a
+		// paginated dataset) rather than the table resorting whatever rows
+		// happen to be loaded client-side.
+		getSortedRowModel: controlledSorting ? undefined : getSortedRowModel(),
+		manualSorting: !!controlledSorting,
 		onRowSelectionChange: (updater) => {
 			if (selectMode === "single") {
 				// For single mode, only allow one selection
@@ -156,7 +190,14 @@ export function DetailsList<T>({
 				setRowSelection(updater);
 			}
 		},
-		onSortingChange: setSorting,
+		onSortingChange: (updater) => {
+			const next = typeof updater === "function" ? updater(sorting) : updater;
+			if (onSortingChange) {
+				onSortingChange(next);
+			} else {
+				setInternalSorting(next);
+			}
+		},
 		state: {
 			rowSelection,
 			sorting,
@@ -169,7 +210,7 @@ export function DetailsList<T>({
 
 	const handleItemClick = (item: T, e: React.MouseEvent) => {
 		// Prevent triggering row click when clicking checkbox
-		if ((e.target as HTMLElement).closest("input[type='checkbox']")) {
+		if ((e.target as HTMLElement).closest("button[role='checkbox']")) {
 			return;
 		}
 		if (onItemClick) {
@@ -179,7 +220,7 @@ export function DetailsList<T>({
 
 	if (items.length === 0) {
 		return (
-			<div className="text-center py-8 text-base-content/60">
+			<div className="text-center py-8 text-muted-foreground">
 				{emptyMessage}
 			</div>
 		);
@@ -193,118 +234,81 @@ export function DetailsList<T>({
 						<div className="flex gap-2 ml-auto flex-wrap">
 							{commandBarItems.map((commandItem) => {
 								const isDisabled = commandItem.isDisabled?.(selectedItems);
+								const variant = commandBarButtonVariant(commandItem.variant);
 
 								// Render dropdown if dropdown items are provided
 								if (commandItem.dropdown) {
 									return (
-										<div key={commandItem.key} className="dropdown">
-											<button
-												type="button"
-												tabIndex={0}
-												disabled={isDisabled}
-												title={commandItem.label}
-												className={cn(
-													"btn btn-sm",
-													commandItem.variant === "error" && "btn-error",
-													commandItem.variant === "primary" && "btn-primary",
-													commandItem.variant === "secondary" &&
-														"btn-secondary",
-													commandItem.variant === "ghost" && "btn-ghost",
-												)}
+										<DropdownMenu key={commandItem.key}>
+											<DropdownMenuTrigger
+												render={
+													<Button
+														type="button"
+														size="sm"
+														variant={variant}
+														disabled={isDisabled}
+														title={commandItem.label}
+													/>
+												}
 											>
-												{commandItem.icon && (
-													<span className="w-4 h-4">{commandItem.icon}</span>
-												)}
+												{commandItem.icon}
 												{commandItem.onlyIcon ? null : commandItem.label}
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													width="12"
-													height="12"
-													viewBox="0 0 24 24"
-													fill="none"
-													stroke="currentColor"
-													strokeWidth="2"
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													aria-hidden="true"
-												>
-													<polyline points="6 9 12 15 18 9" />
-												</svg>
-											</button>
-											<ul
-												tabIndex={-1}
-												className="dropdown-content menu bg-base-200 rounded-box w-60 p-2 shadow"
-											>
+												<ChevronDown className="size-3" />
+											</DropdownMenuTrigger>
+											<DropdownMenuContent align="end" className="w-60">
 												{commandItem.dropdown.items.map((dropdownItem) => {
 													const isDropdownDisabled =
 														dropdownItem.isDisabled?.(selectedItems) ?? false;
 
 													return (
-														<li key={dropdownItem.key}>
-															<button
-																type="button"
-																onClick={() =>
-																	dropdownItem.onClick(selectedItems)
-																}
-																disabled={isDropdownDisabled}
-																className={cn(
-																	"flex items-center gap-2",
-																	isDropdownDisabled &&
-																		"opacity-50 cursor-not-allowed",
-																)}
-															>
-																{dropdownItem.icon && (
-																	<span className="w-4 h-4">
-																		{dropdownItem.icon}
-																	</span>
-																)}
-																{dropdownItem.label}
-															</button>
-														</li>
+														<DropdownMenuItem
+															key={dropdownItem.key}
+															disabled={isDropdownDisabled}
+															onClick={() =>
+																dropdownItem.onClick(selectedItems)
+															}
+														>
+															{dropdownItem.icon}
+															{dropdownItem.label}
+														</DropdownMenuItem>
 													);
 												})}
-											</ul>
-										</div>
+											</DropdownMenuContent>
+										</DropdownMenu>
 									);
 								}
 
 								return (
-									<button
+									<Button
 										type="button"
+										size="sm"
+										variant={variant}
 										key={commandItem.key}
 										onClick={() => commandItem.onClick?.(selectedItems)}
 										disabled={isDisabled}
 										title={commandItem.label}
-										className={`btn btn-sm ${
-											commandItem.variant === "error"
-												? "btn-error"
-												: commandItem.variant === "primary"
-													? "btn-primary"
-													: commandItem.variant === "secondary"
-														? "btn-secondary"
-														: "btn-ghost"
-										}`}
 									>
-										{commandItem.icon && (
-											<span className="w-4 h-4">{commandItem.icon}</span>
-										)}
+										{commandItem.icon}
 										{commandItem.onlyIcon ? null : commandItem.label}
-									</button>
+									</Button>
 								);
 							})}
 						</div>
 					</div>
-					<div className="divider h-1 m-0"></div>
+					<Separator />
 				</>
 			)}
 
-			<div className="overflow-x-auto">
-				<table className="table table-sm">
-					<thead>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<tr key={headerGroup.id}>
-								{headerGroup.headers.map((header) => (
-									<th
+			<Table>
+				<TableHeader>
+					{table.getHeaderGroups().map((headerGroup) => (
+						<TableRow key={headerGroup.id} className="hover:bg-transparent">
+							{headerGroup.headers.map((header) => {
+								const align = columns.find(
+									(c) => c.key === header.column.id,
+								)?.align;
+								return (
+									<TableHead
 										key={header.id}
 										style={{
 											minWidth: header.column.columnDef.minSize,
@@ -316,11 +320,19 @@ export function DetailsList<T>({
 										className={cn(
 											header.column.getCanSort() &&
 												"cursor-pointer select-none",
+											align === "right" && "text-right",
+											align === "center" && "text-center",
 										)}
 										onClick={header.column.getToggleSortingHandler()}
 									>
 										{header.isPlaceholder ? null : (
-											<div className="flex items-center gap-1">
+											<div
+												className={cn(
+													"flex items-center gap-1",
+													align === "right" && "justify-end",
+													align === "center" && "justify-center",
+												)}
+											>
 												{flexRender(
 													header.column.columnDef.header,
 													header.getContext(),
@@ -338,46 +350,57 @@ export function DetailsList<T>({
 												)}
 											</div>
 										)}
-									</th>
-								))}
-							</tr>
-						))}
-					</thead>
-					<tbody>
-						{table.getRowModel().rows.map((row) => {
-							const children = (
-								<>
-									{row.getVisibleCells().map((cell) => (
-										<td key={cell.id}>
+									</TableHead>
+								);
+							})}
+						</TableRow>
+					))}
+				</TableHeader>
+				<TableBody>
+					{table.getRowModel().rows.map((row) => {
+						const children = (
+							<>
+								{row.getVisibleCells().map((cell) => {
+									const align = columns.find(
+										(c) => c.key === cell.column.id,
+									)?.align;
+									return (
+										<TableCell
+											key={cell.id}
+											className={cn(
+												align === "right" && "text-right",
+												align === "center" && "text-center",
+											)}
+										>
 											{flexRender(
 												cell.column.columnDef.cell,
 												cell.getContext(),
 											)}
-										</td>
-									))}
-								</>
-							);
+										</TableCell>
+									);
+								})}
+							</>
+						);
 
-							if (onRenderRow) {
-								return onRenderRow(row.original, children);
-							}
+						if (onRenderRow) {
+							return onRenderRow(row.original, children);
+						}
 
-							return (
-								<tr
-									key={row.id}
-									className={cn(
-										"h-10 hover:bg-base-300 cursor-pointer",
-										row.getIsSelected() && "bg-base-200",
-									)}
-									onClick={(e) => handleItemClick(row.original, e)}
-								>
-									{children}
-								</tr>
-							);
-						})}
-					</tbody>
-				</table>
-			</div>
+						return (
+							<TableRow
+								key={row.id}
+								className={cn(
+									"h-10 cursor-pointer",
+									row.getIsSelected() && "bg-muted",
+								)}
+								onClick={(e) => handleItemClick(row.original, e)}
+							>
+								{children}
+							</TableRow>
+						);
+					})}
+				</TableBody>
+			</Table>
 		</div>
 	);
 }

@@ -4,6 +4,17 @@ import { useRouter } from "@tanstack/react-router";
 import { Holiday } from "open-holiday-js";
 import { toast } from "sonner";
 import { importHolidays } from "@/api/appointments";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
 
@@ -82,27 +93,30 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 					<form.Field name="country">
 						{(field) => {
 							return (
-								<fieldset className="fieldset flex-1">
-									<label className="label" htmlFor={field.name}>
-										{t("Country")}:
-									</label>
-									<select
-										id={field.name}
-										className="select select-primary w-full"
+								<fieldset className="flex flex-1 flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Country")}:</Label>
+									<Select
 										name={field.name}
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => {
+										value={field.state.value || undefined}
+										onValueChange={(value) => {
 											form.setFieldValue("subdivision", "");
-											field.handleChange(e.target.value);
+											field.handleChange(value ?? "");
+										}}
+										onOpenChange={(open) => {
+											if (!open) field.handleBlur();
 										}}
 									>
-										{countries.map((c) => (
-											<option key={c.code} value={c.code}>
-												{c.title}
-											</option>
-										))}
-									</select>
+										<SelectTrigger id={field.name} className="w-full">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											{countries.map((c) => (
+												<SelectItem key={c.code} value={c.code}>
+													{c.title}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 								</fieldset>
 							);
 						}}
@@ -110,25 +124,28 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 					<form.Field name="subdivision">
 						{(field) => {
 							return (
-								<fieldset className="fieldset flex-1">
-									<label className="label" htmlFor={field.name}>
-										{t("Subdivision")}:
-									</label>
-									<select
-										id={field.name}
-										className="select select-primary w-full"
+								<fieldset className="flex flex-1 flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Subdivision")}:</Label>
+									<Select
 										name={field.name}
 										disabled={!query.data || query.data.length === 0}
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
+										value={field.state.value || undefined}
+										onValueChange={(value) => field.handleChange(value ?? "")}
+										onOpenChange={(open) => {
+											if (!open) field.handleBlur();
+										}}
 									>
-										{query.data?.map((c) => (
-											<option key={c.code} value={c.code}>
-												{c.name[0].text}
-											</option>
-										))}
-									</select>
+										<SelectTrigger id={field.name} className="w-full">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											{query.data?.map((c) => (
+												<SelectItem key={c.code} value={c.code}>
+													{c.name[0].text}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 								</fieldset>
 							);
 						}}
@@ -138,13 +155,10 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 					<form.Field name="startDate">
 						{(field) => {
 							return (
-								<fieldset className="fieldset flex-1">
-									<label className="label" htmlFor={field.name}>
-										{t("Start")}:
-									</label>
-									<input
+								<fieldset className="flex flex-1 flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("Start")}:</Label>
+									<Input
 										id={field.name}
-										className="input input-primary  w-full"
 										type="date"
 										name={field.name}
 										value={field.state.value}
@@ -158,13 +172,10 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 					<form.Field name="endDate">
 						{(field) => {
 							return (
-								<fieldset className="fieldset flex-1">
-									<label className="label" htmlFor={field.name}>
-										{t("End")}:
-									</label>
-									<input
+								<fieldset className="flex flex-1 flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("End")}:</Label>
+									<Input
 										id={field.name}
-										className="input input-primary w-full"
 										type="date"
 										name={field.name}
 										value={field.state.value}
@@ -177,22 +188,21 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 					</form.Field>
 				</div>
 				{formErrorMap.onSubmit && (
-					<div role="alert" className="alert alert-error alert-soft">
-						{formErrorMap.onSubmit}
-					</div>
+					<Alert variant="destructive">
+						<AlertDescription>{formErrorMap.onSubmit}</AlertDescription>
+					</Alert>
 				)}
 				<form.Subscribe
 					selector={(state) => [state.canSubmit, state.isSubmitting]}
 				>
 					{([canSubmit, isSubmitting]) => (
-						<button
+						<Button
 							type="button"
-							className="btn btn-primary"
 							disabled={!canSubmit}
 							onClick={form.handleSubmit}
 						>
-							{isSubmitting ? "..." : t("Import")}
-						</button>
+							{isSubmitting ? t("Loading…") : t("Import")}
+						</Button>
 					)}
 				</form.Subscribe>
 			</form>

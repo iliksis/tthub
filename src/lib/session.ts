@@ -34,3 +34,15 @@ export const useIsUserOrRole = async (
 	}
 	return data.id === userId || data.role === role;
 };
+
+// Shared by every Appointment-mutating server function: EDITOR+ role AND a
+// present session.id. Returns the session on success, null otherwise so
+// callers can build their own `Return`/status-401 response.
+export const requireEditor = async (): Promise<
+	(Partial<SessionUser> & { id: string }) | null
+> => {
+	const isAuthorized = await useIsRole("EDITOR");
+	const { data: session } = await useAppSession();
+	if (!isAuthorized || !session.id) return null;
+	return { ...session, id: session.id };
+};

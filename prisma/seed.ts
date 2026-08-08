@@ -13,6 +13,7 @@ async function main() {
 	await prismaClient.team.deleteMany();
 	await prismaClient.player.deleteMany();
 	await prismaClient.response.deleteMany();
+	await prismaClient.transaction.deleteMany();
 	await prismaClient.appointment.deleteMany();
 	await prismaClient.user.deleteMany();
 
@@ -83,15 +84,49 @@ async function main() {
 	});
 
 	// Create sample appointments
+	// Dated relative to "now" (rather than a fixed past date) so they stay
+	// selectable/upcoming regardless of when the e2e suite runs, and so the
+	// multi-select/bulk-action tests always have at least 3 rows to work with.
+	const daysFromNow = (days: number) => {
+		const date = new Date();
+		date.setDate(date.getDate() + days);
+		date.setHours(17, 0, 0, 0);
+		return date;
+	};
+
 	await prismaClient.appointment.create({
 		data: {
 			title: "Training Session",
 			shortTitle: "Training",
 			type: "TOURNAMENT",
 			status: "PUBLISHED",
-			startDate: new Date("2026-02-01T17:00:00"),
-			endDate: new Date("2026-02-01T19:00:00"),
+			startDate: daysFromNow(7),
+			endDate: daysFromNow(7),
 			location: "Sporthalle",
+		},
+	});
+
+	await prismaClient.appointment.create({
+		data: {
+			title: "Bezirksliga Spieltag 1",
+			shortTitle: "Bezirksliga",
+			type: "TOURNAMENT",
+			status: "DRAFT",
+			startDate: daysFromNow(14),
+			endDate: daysFromNow(14),
+			location: "Sporthalle Nord",
+		},
+	});
+
+	await prismaClient.appointment.create({
+		data: {
+			title: "Kreispokal Finale",
+			shortTitle: "Kreispokal",
+			type: "TOURNAMENT",
+			status: "PUBLISHED",
+			startDate: daysFromNow(21),
+			endDate: daysFromNow(21),
+			location: "Sporthalle Süd",
 		},
 	});
 
@@ -99,7 +134,7 @@ async function main() {
 	console.log("   Admin:", { userName: adminUser.userName, password, role: "ADMIN" });
 	console.log("   Editor:", { userName: editorUser.userName, password, role: "EDITOR" });
 	console.log("   User:", { userName: regularUser.userName, password, role: "USER" });
-	console.log("✅ Created 2 teams, 2 players, 1 appointment");
+	console.log("✅ Created 2 teams, 2 players, 3 appointments");
 }
 
 main()

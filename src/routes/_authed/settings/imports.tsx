@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Holiday } from "open-holiday-js";
 import { HolidayImport } from "@/components/imports/HolidayImport";
 import { MyTTImport } from "@/components/imports/MyTTImport";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/settings/imports")({
@@ -16,9 +18,11 @@ export const Route = createFileRoute("/_authed/settings/imports")({
 	component: RouteComponent,
 	errorComponent: () => {
 		return (
-			<div className="alert alert-error">
-				{t("You do not have permission to access import settings")}
-			</div>
+			<Alert variant="destructive">
+				<AlertDescription>
+					{t("You do not have permission to access import settings")}
+				</AlertDescription>
+			</Alert>
 		);
 	},
 	head: () => ({
@@ -42,7 +46,7 @@ function RouteComponent() {
 	return (
 		<>
 			<HolidayImport countries={countries} />
-			<div className="divider"></div>
+			<Separator className="my-4" />
 			<MyTTImport />
 		</>
 	);

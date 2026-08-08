@@ -21,6 +21,7 @@ model User {
   notificationSettings NotificationSettings[]
   passwordReset        PasswordReset?
   feedConfig           FeedConfig?
+  transactions         Transaction[]
 }
 
 enum Role {
@@ -69,6 +70,7 @@ model Appointment {
   nextAppointmentId    String?
   nextAppointment      Appointment?       @relation("AppointmentSeries", fields: [nextAppointmentId], references: [id])
   previousAppointments Appointment[]      @relation("AppointmentSeries")
+  transactions         Transaction[]
 }
 
 enum AppointmentStatus {
@@ -129,6 +131,24 @@ model Placement {
   placement     String?
 
   @@id([playerId, appointmentId, category])
+}
+
+model Transaction {
+  id            String          @id @default(nanoid(6))
+  createdAt     DateTime        @default(now())
+  appointmentId String
+  appointment   Appointment     @relation(fields: [appointmentId], references: [id])
+  userId        String?
+  user          User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type          TransactionType
+  changes       Json?
+}
+
+enum TransactionType {
+  CREATE
+  UPDATE
+  DELETE
+  RESTORE
 }
 
 model Subscription {

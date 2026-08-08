@@ -3,6 +3,7 @@ import { UserPlus2Icon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { createPlayer } from "@/api/players";
+import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
 import { PlayerForm } from "./PlayerForm";
@@ -37,13 +38,25 @@ export const CreatePlayer = () => {
 
 	return (
 		<>
-			<button
-				className="fab btn btn-circle btn-lg"
+			<Button
+				className="fab lg:hidden"
+				variant="secondary"
+				size="icon-lg"
 				type="button"
 				onClick={onOpenCreate}
 			>
 				<UserPlus2Icon className="size-4" />
-			</button>
+			</Button>
+			<Button
+				className="hidden lg:flex"
+				variant="default"
+				size="sm"
+				type="button"
+				onClick={onOpenCreate}
+			>
+				<UserPlus2Icon className="size-4" />
+				{t("Player")}
+			</Button>
 			<PlayerForm
 				open={isCreating}
 				onClose={onStopCreating}

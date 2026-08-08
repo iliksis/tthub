@@ -7,13 +7,13 @@ test.describe("Navigation UI - ADMIN", () => {
 		await page.waitForLoadState("domcontentloaded");
 	});
 
-	test("is authenticated (shows nav element)", async ({ page }) => {
-		await expect(page.locator("nav")).toBeVisible({ timeout: 10000 });
+	test("is authenticated (shows app shell)", async ({ page }) => {
+		await expect(page.locator("main")).toBeVisible({ timeout: 10000 });
 	});
 
 	test("has links on the page", async ({ page }) => {
 		await page.waitForTimeout(2000);
-		await expect(page.locator("nav")).toBeVisible({ timeout: 10000 });
+		await expect(page.locator("main")).toBeVisible({ timeout: 10000 });
 		const links = page.locator("a");
 		const count = await links.count();
 		expect(count).toBeGreaterThan(0);

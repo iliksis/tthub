@@ -29,6 +29,26 @@ export const compareRoles = (role1: Role, role2: Role) => {
 	return 1;
 };
 
+export const isEditorOrAdmin = (role?: Role) =>
+	role === Role.EDITOR || role === Role.ADMIN;
+
+export const roleLabel = (role: Role) => {
+	switch (role) {
+		case Role.ADMIN:
+			return t("Administrator");
+		case Role.EDITOR:
+			return t("Editor");
+		default:
+			return t("User");
+	}
+};
+
+export const roleBadgeVariant: Record<Role, "outline" | "info" | "success"> = {
+	ADMIN: "success",
+	EDITOR: "info",
+	USER: "outline",
+};
+
 /**
  * Converts a date to an input value for a date input field.
  */
@@ -38,6 +58,43 @@ export const dateToInputValue = (date: Date, withSeconds = true) => {
 	const isoString = offsetDate.toISOString().slice(0, -1);
 	if (withSeconds) return isoString.slice(0, -4);
 	return isoString.split("T")[0];
+};
+
+// Intl.RelativeTimeFormat needs a BCP-47 locale, not a t() key — the app is German-only
+// (see CLAUDE.md i18n section), so this hardcode is intentional, not a missed t() call.
+const relativeTimeFormat = new Intl.RelativeTimeFormat("de-DE", {
+	numeric: "auto",
+});
+
+/**
+ * Formats a date as a relative time string (e.g. "vor 5 Minuten", "gestern").
+ */
+export const formatRelativeTime = (date: Date | string) => {
+	const target = new Date(date);
+	const diffSeconds = Math.round((target.getTime() - Date.now()) / 1000);
+	const diffMinutes = Math.round(diffSeconds / 60);
+	const diffHours = Math.round(diffMinutes / 60);
+	const diffDays = Math.round(diffHours / 24);
+
+	if (Math.abs(diffSeconds) < 60) {
+		return relativeTimeFormat.format(diffSeconds, "second");
+	}
+	if (Math.abs(diffMinutes) < 60) {
+		return relativeTimeFormat.format(diffMinutes, "minute");
+	}
+	if (Math.abs(diffHours) < 24) {
+		return relativeTimeFormat.format(diffHours, "hour");
+	}
+	if (Math.abs(diffDays) < 7) {
+		return relativeTimeFormat.format(diffDays, "day");
+	}
+	if (Math.abs(diffDays) < 30) {
+		return relativeTimeFormat.format(Math.round(diffDays / 7), "week");
+	}
+	if (Math.abs(diffDays) < 365) {
+		return relativeTimeFormat.format(Math.round(diffDays / 30), "month");
+	}
+	return relativeTimeFormat.format(Math.round(diffDays / 365), "year");
 };
 
 /**

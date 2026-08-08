@@ -45,7 +45,7 @@ test.describe("Teams Route - Data Display", () => {
 		await page.goto("/teams");
 		await page.waitForLoadState("networkidle");
 
-		const teamLinks = page.locator('a[href^="/teams/"]');
+		const teamLinks = page.locator('a[href^="/teams/"]:visible');
 		const count = await teamLinks.count();
 
 		if (count > 0) {
@@ -63,18 +63,24 @@ test.describe("Teams Route - Edit Functionality", () => {
 		await page.goto("/teams");
 		await page.waitForLoadState("networkidle");
 
-		const teamLinks = page.locator("tbody tr");
+		// The split view's rows only select a team in the preview panel; the
+		// name link is what actually navigates to the team detail page.
+		const teamLinks = page.locator('a[href^="/teams/"]:visible');
 		const count = await teamLinks.count();
 
 		if (count > 0) {
 			await teamLinks.first().click();
 			await page.waitForLoadState("networkidle");
 
-			const configButton = page.locator("div svg.lucide-cog");
-			await configButton.first().click();
+			// The cog only exists in the mobile FAB menu; on desktop the edit
+			// button is already directly visible in the toolbar.
+			const configButton = page.locator("div svg.lucide-cog:visible");
+			if ((await configButton.count()) > 0) {
+				await configButton.first().click();
+			}
 
 			const editButton = page.locator(
-				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+				'button[aria-label*="aktualisieren"]:visible, button svg.lucide-square-pen:visible',
 			);
 			if ((await editButton.count()) > 0) {
 				await editButton.first().click();
@@ -87,9 +93,7 @@ test.describe("Teams Route - Edit Functionality", () => {
 					const originalValue = await leagueInput.inputValue();
 					await leagueInput.fill(`${originalValue} Updated`);
 
-					const submitButton = page.locator(
-						'button[type="submit"].btn-primary',
-					);
+					const submitButton = page.locator('button[type="submit"]');
 					await submitButton.click();
 					await page.waitForTimeout(1000);
 
@@ -109,18 +113,22 @@ test.describe("Teams Route - Edit Functionality", () => {
 		await page.goto("/teams");
 		await page.waitForLoadState("networkidle");
 
-		const teamLinks = page.locator("tbody tr");
+		// The split view's rows only select a team in the preview panel; the
+		// name link is what actually navigates to the team detail page.
+		const teamLinks = page.locator('a[href^="/teams/"]:visible');
 		const count = await teamLinks.count();
 
 		if (count > 0) {
 			await teamLinks.first().click();
 			await page.waitForLoadState("networkidle");
 
-			const configButton = page.locator("div svg.lucide-cog");
-			await configButton.first().click();
+			const configButton = page.locator("div svg.lucide-cog:visible");
+			if ((await configButton.count()) > 0) {
+				await configButton.first().click();
+			}
 
 			const editButton = page.locator(
-				'button[aria-label*="aktualisieren"], button svg.lucide-square-pen',
+				'button[aria-label*="aktualisieren"]:visible, button svg.lucide-square-pen:visible',
 			);
 			if ((await editButton.count()) > 0) {
 				await expect(editButton.first()).toBeVisible();
@@ -137,15 +145,21 @@ test.describe("Teams Route - Edit Functionality", () => {
 		await page.goto("/teams");
 		await page.waitForLoadState("networkidle");
 
-		const teamLinks = page.locator("tbody tr");
+		// The split view's rows only select a team in the preview panel; the
+		// name link is what actually navigates to the team detail page.
+		const teamLinks = page.locator('a[href^="/teams/"]:visible');
 		const count = await teamLinks.count();
 
 		if (count > 0) {
 			await teamLinks.first().click();
 			await page.waitForLoadState("networkidle");
 
-			const configButton = page.locator("div svg.lucide-cog");
+			const configButton = page.locator("div svg.lucide-cog:visible");
+			const editButton = page.locator(
+				'button[aria-label*="aktualisieren"]:visible, button svg.lucide-square-pen:visible',
+			);
 			await expect(configButton).not.toBeVisible();
+			await expect(editButton).not.toBeVisible();
 		} else {
 			test.skip();
 		}

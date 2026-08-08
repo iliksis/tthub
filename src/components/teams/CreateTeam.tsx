@@ -3,6 +3,7 @@ import { ShieldPlusIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { createTeam } from "@/api/teams";
+import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
 import { TeamForm } from "./TeamForm";
@@ -37,13 +38,25 @@ export const CreateTeam = () => {
 
 	return (
 		<>
-			<button
-				className="fab btn btn-circle btn-lg"
+			<Button
+				className="fab lg:hidden"
+				variant="secondary"
+				size="icon-lg"
 				type="button"
 				onClick={onOpenCreate}
 			>
 				<ShieldPlusIcon className="size-4" />
-			</button>
+			</Button>
+			<Button
+				className="hidden lg:flex"
+				variant="default"
+				size="sm"
+				type="button"
+				onClick={onOpenCreate}
+			>
+				<ShieldPlusIcon className="size-4" />
+				{t("Team")}
+			</Button>
 			<TeamForm
 				open={isCreating}
 				onClose={onStopCreating}

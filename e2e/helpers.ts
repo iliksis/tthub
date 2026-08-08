@@ -45,9 +45,9 @@ export async function loginAs(page: Page, role: UserRole | string) {
 	await page.goto("/");
 	await page.waitForLoadState("networkidle");
 
-	// Check if already logged in by looking for the nav (authenticated layout)
+	// Check if already logged in by looking for the app shell (authenticated layout)
 	const hasNavigation = await page
-		.locator("nav")
+		.locator("main")
 		.isVisible({ timeout: 2000 })
 		.catch(() => false);
 	if (hasNavigation) {
@@ -72,7 +72,7 @@ export async function loginAs(page: Page, role: UserRole | string) {
 	// Now click the submit button and wait for the navigation/response
 	const submitButton = page.locator('button[type="submit"]');
 
-	// Click and wait for the authenticated page to load (nav appears)
+	// Click and wait for the authenticated page to load (app shell appears)
 	await submitButton.click();
-	await page.waitForSelector("nav", { timeout: 15000 });
+	await page.waitForSelector("main", { timeout: 15000 });
 }

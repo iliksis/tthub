@@ -1,7 +1,6 @@
-import { useForm } from "@tanstack/react-form";
 import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Trash2Icon, UserPlusIcon } from "lucide-react";
+import { ChevronsUpDownIcon, Trash2Icon, UserPlusIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { createUserInvitation } from "@/api/invitations";
@@ -9,12 +8,24 @@ import { createPasswordReset } from "@/api/passwordReset";
 import { deleteUser, updateUserRole } from "@/api/users";
 import { DetailsList } from "@/components/DetailsList";
 import { CreateUserModal } from "@/components/modal/CreateUserModal";
+import { Badge } from "@/components/ui/badge";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useMutation } from "@/hooks/useMutation";
 import type { PasswordReset, User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import { isInvitationExpired } from "@/lib/utils";
-import { Modal } from "../modal/Modal";
+import {
+	cn,
+	isInvitationExpired,
+	roleBadgeVariant,
+	roleLabel,
+} from "@/lib/utils";
 
 type IUserManagementProps = {
 	users: (User & {
@@ -26,9 +37,6 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 	const router = useRouter();
 	const { user: currentUser } = useRouteContext({ from: "__root__" });
 
-	const [showRoleUpdateModal, setShowRoleUpdateModal] = React.useState<
-		User | undefined
-	>(undefined);
 	const [showNewUserModal, setShowNewUserModal] = React.useState(false);
 
 	const createPasswordResetServerFn = useServerFn(createPasswordReset);
@@ -75,6 +83,19 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 		});
 	};
 
+	const updateRoleMutation = useMutation({
+		fn: updateUserRole,
+		onSuccess: async (ctx) => {
+			const data = await ctx.data.json();
+			if (ctx.data?.status < 400) {
+				await router.invalidate();
+				toast.success(data.message);
+				return;
+			}
+			toast.error(data.message);
+		},
+	});
+
 	return (
 		<div className="overflow-x-auto">
 			<DetailsList
@@ -94,7 +115,59 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 						label: t("User Name"),
 						render: (item) => item.userName,
 					},
-					{ key: "role", label: t("Role"), render: (item) => item.role },
+					{
+						key: "role",
+						label: t("Role"),
+						render: (item) => {
+							const isSelf = item.id === currentUser?.id;
+							return (
+								<DropdownMenu>
+									<DropdownMenuTrigger
+										disabled={isSelf}
+										render={
+											<button
+												type="button"
+												title={
+													isSelf
+														? t("You cannot change your own role")
+														: undefined
+												}
+												className={cn(
+													"group -mx-1.5 flex items-center gap-1 rounded-md px-1.5 py-1 transition-colors",
+													isSelf
+														? "cursor-not-allowed opacity-60"
+														: "hover:bg-muted",
+												)}
+											/>
+										}
+									>
+										<Badge variant={roleBadgeVariant[item.role]}>
+											{roleLabel(item.role)}
+										</Badge>
+										{!isSelf && (
+											<ChevronsUpDownIcon className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+										)}
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align="start">
+										<DropdownMenuRadioGroup
+											value={item.role}
+											onValueChange={(value) =>
+												updateRoleMutation.mutate({
+													data: { id: item.id, role: value as Role },
+												})
+											}
+										>
+											{Object.keys(Role).map((role) => (
+												<DropdownMenuRadioItem key={role} value={role}>
+													{roleLabel(role as Role)}
+												</DropdownMenuRadioItem>
+											))}
+										</DropdownMenuRadioGroup>
+									</DropdownMenuContent>
+								</DropdownMenu>
+							);
+						},
+					},
 					{
 						key: "invitation",
 						label: "",
@@ -117,16 +190,6 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 						onClick: () => setShowNewUserModal(true),
 						onlyIcon: true,
 						variant: "primary",
-					},
-					{
-						isDisabled: (items) =>
-							items.length !== 1 || items[0].id === currentUser?.id,
-						key: "update-role",
-						label: t("Update Role"),
-						onClick: (items) => {
-							setShowRoleUpdateModal(items[0]);
-						},
-						variant: "secondary",
 					},
 					{
 						isDisabled: (items) =>
@@ -211,100 +274,6 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 				modalOpen={showNewUserModal}
 				onClose={() => setShowNewUserModal(false)}
 			/>
-			{showRoleUpdateModal && (
-				<UpdateRoleModal
-					onClose={() => setShowRoleUpdateModal(undefined)}
-					user={showRoleUpdateModal}
-				/>
-			)}
 		</div>
-	);
-};
-
-type UpdateRoleModalProps = {
-	onClose: () => void;
-	user: User;
-};
-export const UpdateRoleModal = ({ onClose, user }: UpdateRoleModalProps) => {
-	const router = useRouter();
-
-	const updateUserMutation = useMutation({
-		fn: updateUserRole,
-		onSuccess: async (ctx) => {
-			if (ctx.data?.status < 400) {
-				await router.invalidate();
-				onClose();
-				return;
-			}
-		},
-	});
-
-	const form = useForm({
-		defaultValues: {
-			role: user.role,
-		},
-		onSubmit: async ({ value }) => {
-			updateUserMutation.mutate({
-				data: {
-					id: user.id,
-					role: value.role,
-				},
-			});
-		},
-	});
-
-	return (
-		<Modal
-			className="modal-bottom"
-			modalBoxClassName="md:max-w-xl md:mx-auto"
-			open={true}
-			onClose={onClose}
-			onRenderActionButton={() => (
-				<button
-					type="submit"
-					className="btn btn-primary"
-					onClick={(e) => {
-						e.preventDefault();
-						e.stopPropagation();
-						form.handleSubmit();
-					}}
-				>
-					{t("Update")}
-				</button>
-			)}
-		>
-			<form
-				onSubmit={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
-					form.handleSubmit();
-				}}
-			>
-				<div>
-					<form.Field name="role">
-						{(field) => {
-							return (
-								<fieldset className="fieldset">
-									<label className="label" htmlFor={field.name}>
-										{t("Role")}:
-									</label>
-									<select
-										className="select select-primary w-full"
-										value={field.state.value}
-										onChange={(e) => field.handleChange(e.target.value as Role)}
-										id={field.name}
-										onBlur={field.handleBlur}
-									>
-										{Object.keys(Role).map((role) => (
-											<option key={role}>{role}</option>
-										))}
-									</select>
-								</fieldset>
-							);
-						}}
-					</form.Field>
-				</div>
-			</form>
-		</Modal>
 	);
 };

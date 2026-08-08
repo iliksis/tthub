@@ -1,5 +1,9 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import { t } from "@/lib/text";
 import { loginFn } from "@/routes/_authed";
@@ -35,25 +39,22 @@ export function Login() {
 	return (
 		<div className="w-dvw h-dvh relative">
 			<form
-				className="card w-full max-w-sm bg-base-300 shrink-0 shadow-2xl absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+				className="w-full max-w-sm shrink-0 rounded-xl bg-card text-card-foreground shadow-2xl absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
 				onSubmit={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
 					form.handleSubmit();
 				}}
 			>
-				<div className="card-body gap-2">
+				<div className="flex flex-col gap-3 p-6">
 					<form.Field name="userName">
 						{(field) => {
 							return (
-								<fieldset className="fieldset">
+								<fieldset className="flex flex-col gap-1.5">
 									{/* register your input into the hook by invoking the "register" function */}
-									<label className="label" htmlFor={field.name}>
-										{t("User Name")}
-									</label>
-									<input
+									<Label htmlFor={field.name}>{t("User Name")}</Label>
+									<Input
 										id={field.name}
-										className="input input-primary w-full"
 										placeholder={t("User Name")}
 										name={field.name}
 										value={field.state.value}
@@ -67,14 +68,11 @@ export function Login() {
 					<form.Field name="password">
 						{(field) => {
 							return (
-								<fieldset className="fieldset">
+								<fieldset className="flex flex-col gap-1.5">
 									{/* register your input into the hook by invoking the "register" function */}
-									<label className="label" htmlFor={field.name}>
-										{t("Password")}
-									</label>
-									<input
+									<Label htmlFor={field.name}>{t("Password")}</Label>
+									<Input
 										id={field.name}
-										className="input input-primary w-full"
 										type="password"
 										placeholder={t("Password")}
 										name={field.name}
@@ -87,21 +85,17 @@ export function Login() {
 						}}
 					</form.Field>
 					{loginMutation.data?.error && (
-						<div className="alert alert-error alert-soft">
-							{loginMutation.data.message}
-						</div>
+						<Alert variant="destructive">
+							<AlertDescription>{loginMutation.data.message}</AlertDescription>
+						</Alert>
 					)}
 					<form.Subscribe
 						selector={(state) => [state.canSubmit, state.isSubmitting]}
 					>
 						{([canSubmit, isSubmitting]) => (
-							<button
-								type="submit"
-								className="btn btn-primary mt-2"
-								disabled={!canSubmit}
-							>
-								{isSubmitting ? "..." : t("Login")}
-							</button>
+							<Button type="submit" className="mt-2" disabled={!canSubmit}>
+								{isSubmitting ? t("Loading…") : t("Login")}
+							</Button>
 						)}
 					</form.Subscribe>
 				</div>
