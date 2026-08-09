@@ -27,16 +27,13 @@ export const Profile = () => {
 
 	const updateMutation = useMutation({
 		fn: updateUserInformation,
+		onError: (err) => {
+			toast.error(err.message);
+		},
 		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data?.status < 400) {
-				await router.invalidate();
-				data.data?.name &&
-					(await updateSession({ data: { name: data.data.name } }));
-				toast.success(data.message);
-				return;
-			}
-			toast.error(data.message);
+			await router.invalidate();
+			await updateSession({ data: { name: ctx.data.data.name } });
+			toast.success(ctx.data.message);
 		},
 	});
 

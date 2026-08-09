@@ -11,12 +11,8 @@ export const Route = createFileRoute("/_authed/teams/")({
 		meta: [{ title: t("Teams") }],
 	}),
 	loader: async () => {
-		const data = await getTeams();
-		const res = await data.json();
-		if (data.status < 400) {
-			return { teams: res.data };
-		}
-		throw new Error(res.message);
+		const res = await getTeams();
+		return { teams: res.data };
 	},
 });
 

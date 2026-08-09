@@ -78,14 +78,12 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 
 	const updateMutation = useMutation({
 		fn: updateFeedConfig,
+		onError: (err) => {
+			toast.error(err.message);
+		},
 		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data?.status < 400) {
-				toast.success(data.message);
-				router.invalidate();
-				return;
-			}
-			toast.error(data.message);
+			toast.success(ctx.data.message);
+			router.invalidate();
 		},
 	});
 

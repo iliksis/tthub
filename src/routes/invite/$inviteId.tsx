@@ -33,12 +33,9 @@ function RouteComponent() {
 
 	const createMutation = useMutation({
 		fn: createUserFromInvitation,
-		onSuccess: async (ctx) => {
-			if (ctx.data.status < 400) {
-				await router.invalidate();
-				await router.navigate({ to: "/" });
-				return;
-			}
+		onSuccess: async () => {
+			await router.invalidate();
+			await router.navigate({ to: "/" });
 		},
 	});
 

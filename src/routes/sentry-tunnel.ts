@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { json } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/sentry-tunnel")({
 	server: {
@@ -22,10 +21,13 @@ export const Route = createFileRoute("/sentry-tunnel")({
 						body: envelopeBytes,
 						method: "POST",
 					});
-					return json({}, { status: 200 });
+					return Response.json({}, { status: 200 });
 				} catch (e) {
 					console.error("error tunneling to sentry", e);
-					return json({ error: "error tunneling to sentry" }, { status: 500 });
+					return Response.json(
+						{ error: "error tunneling to sentry" },
+						{ status: 500 },
+					);
 				}
 			},
 		},

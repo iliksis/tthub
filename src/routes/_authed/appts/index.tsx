@@ -22,6 +22,7 @@ import React from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
+	type AppointmentWithResponses,
 	createAppointment,
 	createResponse,
 	deleteAppointment,
@@ -51,7 +52,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
 import { buildMonthGrid } from "@/lib/calendarGrid";
-import type { Appointment, Response } from "@/lib/prisma/client";
+import type { Response } from "@/lib/prisma/client";
 import {
 	AppointmentStatus,
 	AppointmentType,
@@ -87,19 +88,15 @@ async function loadCalendarData(
 	const end = new Date(lastCell?.fullDate ?? start);
 	end.setDate(end.getDate() + 1);
 
-	const res = await getCalendarAppointments({ data: { end, start } });
-	const response = await res.json();
-	if (res.status < 400) {
-		const appointments: CalendarAppointment[] = (response.data ?? []).map(
-			(a) => ({
-				...a,
-				end: new Date(a.end),
-				start: new Date(a.start),
-			}),
-		);
-		return { appointments, monthIndex, year: resolvedYear };
-	}
-	throw new Error(response.message);
+	const response = await getCalendarAppointments({ data: { end, start } });
+	const appointments: CalendarAppointment[] = (response.data ?? []).map(
+		(a) => ({
+			...a,
+			end: new Date(a.end),
+			start: new Date(a.start),
+		}),
+	);
+	return { appointments, monthIndex, year: resolvedYear };
 }
 
 // biome-ignore assist/source/useSortedKeys: validateSearch and loaderDeps need to be before loader
@@ -109,7 +106,7 @@ export const Route = createFileRoute("/_authed/appts/")({
 	loaderDeps: ({ search }) => ({ ...search }),
 	loader: async ({ deps }) => {
 		const skip = deps.skip ?? 0;
-		const res = await getAppointmentsPage({
+		const response = await getAppointmentsPage({
 			data: {
 				dateFrom: deps.dateFrom ? new Date(deps.dateFrom) : undefined,
 				dateTo: deps.dateTo ? new Date(deps.dateTo) : undefined,
@@ -121,20 +118,16 @@ export const Route = createFileRoute("/_authed/appts/")({
 				withDeleted: deps.deleted,
 			},
 		});
-		const response = await res.json();
-		if (res.status < 400) {
-			const data = response.data ?? {
-				appointments: [],
-				grandTotal: 0,
-				matchedTotal: 0,
-			};
-			const calendar =
-				deps.view === "calendar"
-					? await loadCalendarData(deps.month, deps.year)
-					: null;
-			return { ...data, calendar, skip };
-		}
-		throw new Error(response.message);
+		const data = response.data ?? {
+			appointments: [],
+			grandTotal: 0,
+			matchedTotal: 0,
+		};
+		const calendar =
+			deps.view === "calendar"
+				? await loadCalendarData(deps.month, deps.year)
+				: null;
+		return { ...data, calendar, skip };
 	},
 	errorComponent: () => {
 		return (
@@ -149,8 +142,6 @@ export const Route = createFileRoute("/_authed/appts/")({
 		meta: [{ title: t("Appointments") }],
 	}),
 });
-
-type AppointmentWithResponses = Appointment & { responses: Response[] };
 
 function typeLabel(type: string) {
 	if (type === AppointmentType.HOLIDAY) return t("Holiday");
@@ -465,11 +456,10 @@ const AppointmentSplitView = ({
 		if (!single) return;
 		const userId = user?.id;
 		if (!userId) return;
-		const res = await createResponseServerFn({
-			data: { appointmentId: single.id, response },
-		});
-		const data = await res.json();
-		if (res.status < 400 && data) {
+		try {
+			await createResponseServerFn({
+				data: { appointmentId: single.id, response },
+			});
 			const appointmentId = single.id;
 			onAppointmentsChange((prev) =>
 				prev.map((a) =>
@@ -485,9 +475,9 @@ const AppointmentSplitView = ({
 				),
 			);
 			await router.invalidate();
-			return;
+		} catch (err) {
+			toast.error((err as Error).message);
 		}
-		toast.error(data.message);
 	};
 
 	// `router.invalidate()` alone doesn't refresh this page's `items` state —
@@ -497,18 +487,14 @@ const AppointmentSplitView = ({
 	// for instant feedback; invalidate() still runs afterwards to keep the
 	// loader cache consistent for the next real navigation.
 	const runBulkAction = async (
-		calls: Promise<globalThis.Response>[],
+		calls: Promise<unknown>[],
 		successMessage: string,
 		applyLocalUpdate: () => void,
 	) => {
 		try {
-			const results = await Promise.all(calls);
-			if (results.every((res) => res.status < 400)) {
-				applyLocalUpdate();
-				toast.success(successMessage);
-			} else {
-				toast.error(t("An Error occurred"));
-			}
+			await Promise.all(calls);
+			applyLocalUpdate();
+			toast.success(successMessage);
 			await router.invalidate();
 		} catch {
 			toast.error(t("An Error occurred"));
@@ -622,30 +608,21 @@ const AppointmentSplitView = ({
 					});
 				}),
 			);
-			const bodies = await Promise.all(results.map((res) => res.json()));
-			const created: AppointmentWithResponses[] = bodies
-				.filter((body) => body.data)
-				.map((body) => ({
-					...(body.data as Appointment),
-					responses: [] as Response[],
-				}));
-			if (created.length > 0) {
-				onAppointmentsChange((prev) =>
-					[...prev, ...created].sort(
-						(a, b) =>
-							new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-					),
-				);
-			}
-			if (created.length === items.length) {
-				toast.success(
-					created.length === 1
-						? t("1 appointment duplicated")
-						: t("{0} appointments duplicated", items.length.toString()),
-				);
-			} else {
-				toast.error(t("An Error occurred"));
-			}
+			const created: AppointmentWithResponses[] = results.map((result) => ({
+				...result.data,
+				responses: [] as Response[],
+			}));
+			onAppointmentsChange((prev) =>
+				[...prev, ...created].sort(
+					(a, b) =>
+						new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+				),
+			);
+			toast.success(
+				created.length === 1
+					? t("1 appointment duplicated")
+					: t("{0} appointments duplicated", items.length.toString()),
+			);
 			await router.invalidate();
 		} catch {
 			toast.error(t("An Error occurred"));

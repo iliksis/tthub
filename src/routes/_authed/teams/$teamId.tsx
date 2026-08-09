@@ -23,12 +23,8 @@ import { calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 export const Route = createFileRoute("/_authed/teams/$teamId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const data = await getTeam({ data: { id: params.teamId } });
-		const res = await data.json();
-		if (data.status < 400) {
-			return { team: res.data };
-		}
-		throw new Error(res.message);
+		const res = await getTeam({ data: { id: params.teamId } });
+		return { team: res.data };
 	},
 	head: ({ loaderData }) => ({
 		meta: [{ title: loaderData?.team?.title }],
@@ -75,14 +71,12 @@ function RouteComponent() {
 
 	const updateTeamMutation = useMutation({
 		fn: updateTeam,
+		onError: (err) => {
+			toast.error(err.message);
+		},
 		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data?.status < 400) {
-				await router.invalidate();
-				toast.success(data.message);
-				return;
-			}
-			toast.error(data.message);
+			await router.invalidate();
+			toast.success(ctx.data.message);
 		},
 	});
 
@@ -102,19 +96,18 @@ function RouteComponent() {
 		setIsDeleting(false);
 	};
 	const onDelete = async () => {
-		const res = await deleteTeamServerFn({
-			data: { id: team.id },
-		});
-		const data = await res.json();
-		if (res.status < 400 && data) {
+		try {
+			const res = await deleteTeamServerFn({
+				data: { id: team.id },
+			});
 			await router.invalidate();
-			toast.success(data.message);
+			toast.success(res.message);
 			await router.navigate({
 				to: "..",
 			});
-			return;
+		} catch (err) {
+			toast.error((err as Error).message);
 		}
-		toast.error(data.message);
 	};
 
 	const sortedPlayers = [...team.players].sort((a, b) => b.qttr - a.qttr);

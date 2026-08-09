@@ -23,18 +23,10 @@ export const Route = createFileRoute("/_authed/players/")({
 		meta: [{ title: t("Players") }],
 	}),
 	loader: async () => {
-		const [playersData, teamsData] = await Promise.all([
+		const [playersRes, teamsRes] = await Promise.all([
 			getPlayers(),
 			getTeams(),
 		]);
-		const playersRes = await playersData.json();
-		if (playersData.status >= 400) {
-			throw new Error(playersRes.message);
-		}
-		const teamsRes = await teamsData.json();
-		if (teamsData.status >= 400) {
-			throw new Error(teamsRes.message);
-		}
 		return { players: playersRes.data, teams: teamsRes.data };
 	},
 	validateSearch: filterSchema,

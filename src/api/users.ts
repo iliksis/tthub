@@ -1,10 +1,8 @@
-import { createServerFn, json } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { hashPassword, prismaClient } from "@/lib/db";
-import type { User } from "@/lib/prisma/client";
 import type { AppointmentType, ResponseType, Role } from "@/lib/prisma/enums";
 import { useAppSession, useIsRole, useIsUserOrRole } from "@/lib/session";
 import { t } from "@/lib/text";
-import type { Return } from "./types";
 
 export interface FeedConfig {
 	includeResponseTypes?: ResponseType[];
@@ -29,16 +27,13 @@ export const updateUserRole = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("ADMIN");
 		if (!isAuthorized) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		// biome-ignore lint/correctness/useHookAtTopLevel: not a real hook
 		const session = await useAppSession();
 		if (session.data?.id === data.id) {
-			return json<Return>(
-				{ message: t("You cannot change your own role") },
-				{ status: 400 },
-			);
+			throw new Error(t("You cannot change your own role"));
 		}
 
 		try {
@@ -50,14 +45,10 @@ export const updateUserRole = createServerFn({ method: "POST" })
 					id: data.id,
 				},
 			});
-			return json<Return<User>>(
-				{ data: user, message: t("User updated") },
-				{ status: 200 },
-			);
+			return { data: user, message: t("User updated") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -73,14 +64,11 @@ export const updateUserInformation = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsUserOrRole(data.id, "ADMIN");
 		if (!isAuthorized) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		if (data.password !== data.confirmPassword) {
-			return json<Return>(
-				{ message: t("The passwords entered do not match") },
-				{ status: 400 },
-			);
+			throw new Error(t("The passwords entered do not match"));
 		}
 
 		try {
@@ -94,14 +82,10 @@ export const updateUserInformation = createServerFn({ method: "POST" })
 					id: data.id,
 				},
 			});
-			return json<Return<User>>(
-				{ data: user, message: t("Settings updated") },
-				{ status: 200 },
-			);
+			return { data: user, message: t("Settings updated") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -110,7 +94,7 @@ export const createUser = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthenticated = await useIsRole("ADMIN");
 		if (!isAuthenticated) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		try {
@@ -125,14 +109,10 @@ export const createUser = createServerFn({ method: "POST" })
 				},
 			});
 
-			return json<Return<User>>(
-				{ data: user, message: t("User created") },
-				{ status: 200 },
-			);
+			return { data: user, message: t("User created") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -152,19 +132,11 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 				},
 			});
 			if (!invitation) {
-				return json<Return>(
-					{ message: t("Invitation not found") },
-					{
-						status: 404,
-					},
-				);
+				throw new Error(t("Invitation not found"));
 			}
 
 			if (data.password !== data.confirmPassword) {
-				return json<Return>(
-					{ message: t("The passwords entered do not match") },
-					{ status: 400 },
-				);
+				throw new Error(t("The passwords entered do not match"));
 			}
 
 			const hashedPassword = await hashPassword(data.password);
@@ -187,16 +159,10 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 				});
 			}
 			await session.update(user);
-			return json<Return<User>>(
-				{ data: user, message: t("User created") },
-				{
-					status: 200,
-				},
-			);
+			return { data: user, message: t("User created") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -205,7 +171,7 @@ export const deleteUser = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("ADMIN");
 		if (!isAuthorized) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		try {
@@ -224,11 +190,10 @@ export const deleteUser = createServerFn({ method: "POST" })
 					id: data.id,
 				},
 			});
-			return json<Return>({ message: t("User deleted") }, { status: 200 });
+			return { message: t("User deleted") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -245,19 +210,11 @@ export const updatePasswordFromReset = createServerFn({ method: "POST" })
 				},
 			});
 			if (!passwordReset) {
-				return json<Return>(
-					{ message: t("Password reset request not found") },
-					{
-						status: 404,
-					},
-				);
+				throw new Error(t("Password reset request not found"));
 			}
 
 			if (data.password !== data.confirmPassword) {
-				return json<Return>(
-					{ message: t("The passwords entered do not match") },
-					{ status: 400 },
-				);
+				throw new Error(t("The passwords entered do not match"));
 			}
 
 			const hashedPassword = await hashPassword(data.password);
@@ -277,16 +234,10 @@ export const updatePasswordFromReset = createServerFn({ method: "POST" })
 			});
 
 			await session.update(user);
-			return json<Return<User>>(
-				{ data: user, message: t("User updated") },
-				{
-					status: 200,
-				},
-			);
+			return { data: user, message: t("User updated") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -294,7 +245,7 @@ export const getFeedConfig = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const session = await useAppSession();
 		if (!session.data?.id) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		try {
@@ -304,7 +255,7 @@ export const getFeedConfig = createServerFn({ method: "GET" }).handler(
 			});
 
 			if (!user) {
-				return json<Return>({ message: t("User not found") }, { status: 404 });
+				throw new Error(t("User not found"));
 			}
 
 			const config: FeedConfig = {
@@ -319,17 +270,13 @@ export const getFeedConfig = createServerFn({ method: "GET" }).handler(
 					: undefined,
 			};
 
-			return json<Return<{ feedId: string; config: FeedConfig }>>(
-				{
-					data: { config, feedId: user.feedId },
-					message: t("Feed config loaded"),
-				},
-				{ status: 200 },
-			);
+			return {
+				data: { config, feedId: user.feedId },
+				message: t("Feed config loaded"),
+			};
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	},
 );
@@ -339,7 +286,7 @@ export const updateFeedConfig = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data?.id) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		try {
@@ -375,16 +322,12 @@ export const updateFeedConfig = createServerFn({ method: "POST" })
 					: undefined,
 			};
 
-			return json<Return<{ feedId: string; config: FeedConfig }>>(
-				{
-					data: { config, feedId: user?.feedId || "" },
-					message: t("Feed settings updated"),
-				},
-				{ status: 200 },
-			);
+			return {
+				data: { config, feedId: user?.feedId || "" },
+				message: t("Feed settings updated"),
+			};
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});

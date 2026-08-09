@@ -22,18 +22,10 @@ import { calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 export const Route = createFileRoute("/_authed/players/$playerId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const [playerData, teamsData] = await Promise.all([
+		const [playerRes, teamsRes] = await Promise.all([
 			getPlayer({ data: { id: params.playerId } }),
 			getTeams(),
 		]);
-		const playerRes = await playerData.json();
-		const teamsRes = await teamsData.json();
-		if (playerData.status >= 400) {
-			throw new Error(playerRes.message);
-		}
-		if (teamsData.status >= 400) {
-			throw new Error(teamsRes.message);
-		}
 		return { player: playerRes.data, teams: teamsRes.data };
 	},
 	head: ({ loaderData }) => ({
@@ -91,14 +83,12 @@ function RouteComponent() {
 
 	const updatePlayerMutation = useMutation({
 		fn: updatePlayer,
+		onError: (err) => {
+			toast.error(err.message);
+		},
 		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data?.status < 400) {
-				await router.invalidate();
-				toast.success(data.message);
-				return;
-			}
-			toast.error(data.message);
+			await router.invalidate();
+			toast.success(ctx.data.message);
 		},
 	});
 
@@ -119,19 +109,18 @@ function RouteComponent() {
 	};
 
 	const onDelete = async () => {
-		const res = await deletePlayerServerFn({
-			data: { id: player.id },
-		});
-		const data = await res.json();
-		if (res.status < 400 && data) {
+		try {
+			const res = await deletePlayerServerFn({
+				data: { id: player.id },
+			});
 			await router.invalidate();
-			toast.success(data.message);
+			toast.success(res.message);
 			await router.navigate({
 				to: "..",
 			});
-			return;
+		} catch (err) {
+			toast.error((err as Error).message);
 		}
-		toast.error(data.message);
 	};
 
 	const onItemClick = async (item: Placement) => {

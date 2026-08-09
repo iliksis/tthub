@@ -102,37 +102,31 @@ export function PlacementsSheet({
 
 	const createMutation = useMutation({
 		fn: createPlacement,
-		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data.status < 400) {
-				await router.invalidate();
-				return;
-			}
-			toast.error(data.message);
+		onError: (err) => {
+			toast.error(err.message);
+		},
+		onSuccess: async () => {
+			await router.invalidate();
 		},
 	});
 
 	const updateMutation = useMutation({
 		fn: updatePlacement,
-		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data.status < 400) {
-				await router.invalidate();
-				return;
-			}
-			toast.error(data.message);
+		onError: (err) => {
+			toast.error(err.message);
+		},
+		onSuccess: async () => {
+			await router.invalidate();
 		},
 	});
 
 	const deleteMutation = useMutation({
 		fn: deletePlacement,
-		onSuccess: async (ctx) => {
-			const data = await ctx.data.json();
-			if (ctx.data.status < 400) {
-				await router.invalidate();
-				return;
-			}
-			toast.error(data.message);
+		onError: (err) => {
+			toast.error(err.message);
+		},
+		onSuccess: async () => {
+			await router.invalidate();
 		},
 	});
 

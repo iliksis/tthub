@@ -1,29 +1,31 @@
-import { createServerFn, json } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
+import type { Prisma } from "@/lib/prisma/client";
 import { useIsRole } from "@/lib/session";
 import { t } from "@/lib/text";
-import type { Return } from "./types";
+
+const playerWithTeamInclude = { team: true } satisfies Prisma.PlayerInclude;
+
+export type PlayerWithTeam = Prisma.PlayerGetPayload<{
+	include: typeof playerWithTeamInclude;
+}>;
 
 export const searchPlayers = createServerFn()
 	.validator((d: { query?: string }) => d)
 	.handler(async ({ data }) => {
 		try {
 			const players = await prismaClient.player.findMany({
-				include: { team: true },
+				include: playerWithTeamInclude,
 				orderBy: { name: "asc" },
 				take: 10,
 				where: {
 					name: { contains: data.query ?? "" },
 				},
 			});
-			return json<Return<typeof players>>(
-				{ data: players, message: t("Players found") },
-				{ status: 200 },
-			);
+			return { data: players, message: t("Players found") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -31,17 +33,13 @@ export const getPlayers = createServerFn({ method: "GET" }).handler(
 	async () => {
 		try {
 			const players = await prismaClient.player.findMany({
-				include: { team: true },
+				include: playerWithTeamInclude,
 				orderBy: { name: "asc" },
 			});
-			return json<Return<typeof players>>(
-				{ data: players, message: t("Players found") },
-				{ status: 200 },
-			);
+			return { data: players, message: t("Players found") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	},
 );
@@ -51,7 +49,7 @@ export const createPlayer = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		try {
@@ -62,14 +60,10 @@ export const createPlayer = createServerFn({ method: "POST" })
 					year: data.year,
 				},
 			});
-			return json<Return<typeof player>>(
-				{ data: player, message: t("Player created") },
-				{ status: 200 },
-			);
+			return { data: player, message: t("Player created") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -91,21 +85,12 @@ export const getPlayer = createServerFn()
 				where: { id: data.id },
 			});
 			if (!player) {
-				return json<Return>(
-					{ message: t("Player not found") },
-					{
-						status: 404,
-					},
-				);
+				throw new Error(t("Player not found"));
 			}
-			return json<Return<typeof player>>(
-				{ data: player, message: t("Player found") },
-				{ status: 200 },
-			);
+			return { data: player, message: t("Player found") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -132,14 +117,10 @@ export const updatePlayer = createServerFn()
 					id: data.id,
 				},
 			});
-			return json<Return<typeof player>>(
-				{ data: player, message: t("Player updated") },
-				{ status: 200 },
-			);
+			return { data: player, message: t("Player updated") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -148,7 +129,7 @@ export const deletePlayer = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 		try {
 			const player = await prismaClient.player.delete({
@@ -156,13 +137,9 @@ export const deletePlayer = createServerFn()
 					id: data.id,
 				},
 			});
-			return json<Return<typeof player>>(
-				{ data: player, message: t("Player deleted") },
-				{ status: 200 },
-			);
+			return { data: player, message: t("Player deleted") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});

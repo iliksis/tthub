@@ -28,18 +28,17 @@ export const useNotificationPermissions = () => {
 			const subscription = await registration.pushManager.getSubscription();
 			const subscriptionJSON = subscription?.toJSON();
 			if (subscriptionJSON?.keys?.auth) {
-				const response = await getSubscription({
-					data: { authKey: subscriptionJSON.keys.auth },
-				});
-				const result = await response.json();
-				if (
-					response.status < 400 &&
-					isSupported &&
-					Notification.permission === "granted"
-				) {
-					return result.data;
+				try {
+					const result = await getSubscription({
+						data: { authKey: subscriptionJSON.keys.auth },
+					});
+					if (isSupported && Notification.permission === "granted") {
+						return result.data;
+					}
+					return null;
+				} catch {
+					return null;
 				}
-				return null;
 			}
 		},
 		queryKey: ["notification-subscription"],
@@ -59,18 +58,17 @@ export const useNotificationPermissions = () => {
 					userVisibleOnly: true,
 				});
 				const detected = detector.detect(navigator.userAgent);
-				const response = await setSubscription({
-					data: {
-						device: `${detected.os.name} - ${detected.client.name}`,
-						subscription: subscription.toJSON(),
-					},
-				});
-				const result = await response.json();
-				if (response.status < 400) {
+				try {
+					const result = await setSubscription({
+						data: {
+							device: `${detected.os.name} - ${detected.client.name}`,
+							subscription: subscription.toJSON(),
+						},
+					});
 					queryClient.setQueryData(["notification-subscription"], result.data);
 					router.invalidate();
-				} else {
-					toast.error(result.message);
+				} catch (err) {
+					toast.error((err as Error).message);
 				}
 			}
 		}

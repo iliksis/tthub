@@ -16,12 +16,12 @@ export const Route = createFileRoute("/_authed/settings/profile")({
 		meta: [{ title: t("Settings") }],
 	}),
 	loader: async () => {
-		const response = await getAllSubscriptions();
-		const result = await response.json();
-		if (response.status > 400) {
-			return { error: result.message };
+		try {
+			const result = await getAllSubscriptions();
+			return { subscriptions: result.data };
+		} catch (err) {
+			return { error: (err as Error).message };
 		}
-		return { subscriptions: result.data };
 	},
 	validateSearch: searchSchema,
 });

@@ -1,4 +1,4 @@
-import { createServerFn, json } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { Holiday } from "open-holiday-js";
 import { prismaClient } from "@/lib/db";
 import type { Appointment, Prisma, Response } from "@/lib/prisma/client";
@@ -12,7 +12,6 @@ import { requireEditor, useAppSession } from "@/lib/session";
 import { t } from "@/lib/text";
 import { formatTanstackRouterPath } from "@/lib/utils";
 import { sendNotification } from "./notifications";
-import type { Return } from "./types";
 
 type ICreateAppointment =
 	| {
@@ -31,12 +30,13 @@ type ICreateAppointment =
 			location: string | null;
 			status: AppointmentStatus;
 	  };
+
 export const createAppointment = createServerFn()
 	.validator((d: ICreateAppointment) => d)
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		try {
@@ -78,57 +78,52 @@ export const createAppointment = createServerFn()
 				});
 			}
 
-			return json<Return<Appointment>>(
-				{ data: appointment, message: t("Appointment created") },
-				{ status: 200 },
-			);
+			return { data: appointment, message: t("Appointment created") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
+
+const appointmentDetailInclude = {
+	nextAppointment: true,
+	placements: {
+		include: { player: true },
+	},
+	responses: {
+		include: { user: true },
+	},
+	transactions: {
+		include: { user: true },
+		orderBy: { createdAt: "desc" },
+	},
+} satisfies Prisma.AppointmentInclude;
+
+export type AppointmentDetail = Prisma.AppointmentGetPayload<{
+	include: typeof appointmentDetailInclude;
+}>;
+
+export type AppointmentWithResponses = Appointment & { responses: Response[] };
 
 export const getAppointment = createServerFn()
 	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (session.data.id === null) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 		try {
 			const appointment = await prismaClient.appointment.findUnique({
-				include: {
-					nextAppointment: true,
-					placements: {
-						include: { player: true },
-					},
-					responses: {
-						include: { user: true },
-					},
-					transactions: {
-						include: { user: true },
-						orderBy: { createdAt: "desc" },
-					},
-				},
+				include: appointmentDetailInclude,
 				where: { id: data.id },
 			});
 			if (!appointment) {
-				return json<Return>(
-					{ message: t("Appointment not found") },
-					{
-						status: 404,
-					},
-				);
+				throw new Error(t("Appointment not found"));
 			}
-			return json<Return<typeof appointment>>(
-				{ data: appointment, message: t("Appointment found") },
-				{ status: 200 },
-			);
+			return { data: appointment, message: t("Appointment found") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -137,7 +132,7 @@ export const searchAppointments = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (session.data.id === null) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 		try {
 			const appointments = await prismaClient.appointment.findMany({
@@ -166,14 +161,10 @@ export const searchAppointments = createServerFn()
 					],
 				},
 			});
-			return json<Return<typeof appointments>>(
-				{ data: appointments, message: t("Appointments found") },
-				{ status: 200 },
-			);
+			return { data: appointments, message: t("Appointments found") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -190,7 +181,7 @@ export const getTransactionsPage = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 		try {
 			const where: Prisma.TransactionWhereInput = {
@@ -221,23 +212,13 @@ export const getTransactionsPage = createServerFn()
 				prismaClient.transaction.count({ where }),
 				prismaClient.transaction.count(),
 			]);
-			return json<
-				Return<{
-					transactions: typeof transactions;
-					matchedTotal: number;
-					grandTotal: number;
-				}>
-			>(
-				{
-					data: { grandTotal, matchedTotal, transactions },
-					message: t("Transactions found"),
-				},
-				{ status: 200 },
-			);
+			return {
+				data: { grandTotal, matchedTotal, transactions },
+				message: t("Transactions found"),
+			};
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -284,14 +265,10 @@ export const getAppointments = createServerFn()
 					},
 				},
 			});
-			return json<Return<typeof appointments>>(
-				{ data: appointments, message: t("Appointments found") },
-				{ status: 200 },
-			);
+			return { data: appointments, message: t("Appointments found") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -311,7 +288,7 @@ export const getAppointmentsPage = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 		const userId = session.data.id;
 
@@ -350,23 +327,13 @@ export const getAppointmentsPage = createServerFn()
 				}),
 			]);
 
-			return json<
-				Return<{
-					appointments: typeof appointments;
-					matchedTotal: number;
-					grandTotal: number;
-				}>
-			>(
-				{
-					data: { appointments, grandTotal, matchedTotal },
-					message: t("Appointments found"),
-				},
-				{ status: 200 },
-			);
+			return {
+				data: { appointments, grandTotal, matchedTotal },
+				message: t("Appointments found"),
+			};
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -411,7 +378,7 @@ export const updateAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		try {
@@ -460,14 +427,10 @@ export const updateAppointment = createServerFn()
 				scheduleAppointmentUpdatedNotification(appointment);
 			}
 
-			return json<Return<Appointment>>(
-				{ data: appointment, message: t("Appointment updated") },
-				{ status: 200 },
-			);
+			return { data: appointment, message: t("Appointment updated") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -476,7 +439,7 @@ export const deleteAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		try {
@@ -497,14 +460,10 @@ export const deleteAppointment = createServerFn()
 				return appointment;
 			});
 			cancelAppointmentUpdatedNotification(appointment.id);
-			return json<Return<Appointment>>(
-				{ data: appointment, message: t("Appointment deleted") },
-				{ status: 200 },
-			);
+			return { data: appointment, message: t("Appointment deleted") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -513,7 +472,7 @@ export const createResponse = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		try {
@@ -533,14 +492,10 @@ export const createResponse = createServerFn()
 					},
 				},
 			});
-			return json<Return<Response>>(
-				{ data: response, message: t("Response created") },
-				{ status: 200 },
-			);
+			return { data: response, message: t("Response created") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -573,14 +528,10 @@ export const getNextAppointments = createServerFn().handler(async () => {
 				type: AppointmentType.TOURNAMENT,
 			},
 		});
-		return json<Return<typeof appointments>>(
-			{ data: appointments, message: t("Appointments found") },
-			{ status: 200 },
-		);
+		return { data: appointments, message: t("Appointments found") };
 	} catch (e) {
 		console.error(e);
-		const error = e as Error;
-		return json<Return>({ message: error.message }, { status: 400 });
+		throw new Error((e as Error).message);
 	}
 });
 
@@ -609,14 +560,10 @@ export const getUserAppointments = createServerFn()
 					type: AppointmentType.TOURNAMENT,
 				},
 			});
-			return json<Return<typeof appointments>>(
-				{ data: appointments, message: t("Appointments found") },
-				{ status: 200 },
-			);
+			return { data: appointments, message: t("Appointments found") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -653,14 +600,10 @@ export const getUserOpenAppointments = createServerFn()
 					type: AppointmentType.TOURNAMENT,
 				},
 			});
-			return json<Return<typeof appointments>>(
-				{ data: appointments, message: t("Appointments found") },
-				{ status: 200 },
-			);
+			return { data: appointments, message: t("Appointments found") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -669,7 +612,7 @@ export const getCalendarAppointments = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (session.data.id === null) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 		try {
 			const start = new Date(data.start);
@@ -692,14 +635,10 @@ export const getCalendarAppointments = createServerFn()
 				title: a.title,
 				type: a.type,
 			}));
-			return json<Return<typeof calAppointments>>(
-				{ data: calAppointments, message: t("Appointments found") },
-				{ status: 200 },
-			);
+			return { data: calAppointments, message: t("Appointments found") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -749,19 +688,15 @@ export const importHolidays = createServerFn()
 				});
 				count++;
 			}
-			return json<Return>(
-				{
-					message:
-						count === 1
-							? t("1 appointment created")
-							: t("{0} Appointments created", count.toString()),
-				},
-				{ status: 200 },
-			);
+			return {
+				message:
+					count === 1
+						? t("1 appointment created")
+						: t("{0} Appointments created", count.toString()),
+			};
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -770,7 +705,7 @@ export const publishAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		try {
@@ -810,14 +745,10 @@ export const publishAppointment = createServerFn()
 					}),
 				});
 			}
-			return json<Return<Appointment>>(
-				{ data: appointment, message: t("Appointment published") },
-				{ status: 200 },
-			);
+			return { data: appointment, message: t("Appointment published") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -826,7 +757,7 @@ export const unpublishAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		try {
@@ -854,14 +785,10 @@ export const unpublishAppointment = createServerFn()
 				}
 				return appointment;
 			});
-			return json<Return<Appointment>>(
-				{ data: appointment, message: t("Appointment unpublished") },
-				{ status: 200 },
-			);
+			return { data: appointment, message: t("Appointment unpublished") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -870,7 +797,7 @@ export const restoreAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 
 		try {
@@ -890,13 +817,9 @@ export const restoreAppointment = createServerFn()
 				});
 				return appointment;
 			});
-			return json<Return<Appointment>>(
-				{ data: appointment, message: t("Appointment restored") },
-				{ status: 200 },
-			);
+			return { data: appointment, message: t("Appointment restored") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});

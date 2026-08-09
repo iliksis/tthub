@@ -1,27 +1,18 @@
-import {
-	createServerFn,
-	createServerOnlyFn,
-	json,
-} from "@tanstack/react-start";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import webpush from "web-push";
 import { prismaClient } from "@/lib/db";
-import type { Subscription } from "@/lib/prisma/client";
 import { useAppSession } from "@/lib/session";
 import { t } from "@/lib/text";
-import type { Return } from "./types";
 
 export const createNotificationSubscription = createServerFn({ method: "POST" })
 	.validator((d: { subscription: PushSubscriptionJSON; device: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 		if (!data.subscription.keys || !data.subscription.endpoint) {
-			return json<Return>(
-				{ message: t("Invalid subscription") },
-				{ status: 400 },
-			);
+			throw new Error(t("Invalid subscription"));
 		}
 		try {
 			const subscription = await prismaClient.subscription.create({
@@ -33,14 +24,10 @@ export const createNotificationSubscription = createServerFn({ method: "POST" })
 					userId: session.data.id,
 				},
 			});
-			return json<Return<Subscription>>(
-				{ data: subscription, message: t("Subscription created") },
-				{ status: 200 },
-			);
+			return { data: subscription, message: t("Subscription created") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -49,7 +36,7 @@ export const tryGetSubscription = createServerFn({ method: "GET" })
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 		try {
 			const subscription = await prismaClient.subscription.findUnique({
@@ -58,21 +45,12 @@ export const tryGetSubscription = createServerFn({ method: "GET" })
 				},
 			});
 			if (!subscription) {
-				return json<Return>(
-					{ message: t("Subscription not found") },
-					{
-						status: 404,
-					},
-				);
+				throw new Error(t("Subscription not found"));
 			}
-			return json<Return<Subscription>>(
-				{ data: subscription, message: t("Subscription found") },
-				{ status: 200 },
-			);
+			return { data: subscription, message: t("Subscription found") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -80,7 +58,7 @@ export const getAllSubscriptions = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 		try {
 			const subscriptions = await prismaClient.subscription.findMany({
@@ -88,14 +66,10 @@ export const getAllSubscriptions = createServerFn({ method: "GET" }).handler(
 					userId: session.data.id,
 				},
 			});
-			return json<Return<Subscription[]>>(
-				{ data: subscriptions, message: t("Subscriptions found") },
-				{ status: 200 },
-			);
+			return { data: subscriptions, message: t("Subscriptions found") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	},
 );
@@ -105,7 +79,7 @@ export const deleteNotificationSubscription = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 		try {
 			const settings = await prismaClient.notificationSettings.findUnique({
@@ -131,14 +105,10 @@ export const deleteNotificationSubscription = createServerFn({ method: "POST" })
 					id: data.id,
 				},
 			});
-			return json<Return>(
-				{ message: t("Subscription deleted") },
-				{ status: 200 },
-			);
+			return { message: t("Subscription deleted") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -153,7 +123,7 @@ export const updateNotificationSettings = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 		try {
 			await prismaClient.notificationSettings.upsert({
@@ -174,11 +144,10 @@ export const updateNotificationSettings = createServerFn({ method: "POST" })
 					},
 				},
 			});
-			return json<Return>({ message: t("Settings updated") }, { status: 200 });
+			return { message: t("Settings updated") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -187,7 +156,7 @@ export const getNotificationSettings = createServerFn({ method: "GET" })
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 		try {
 			const notificationSettings =
@@ -199,14 +168,10 @@ export const getNotificationSettings = createServerFn({ method: "GET" })
 						},
 					},
 				});
-			return json<Return<typeof notificationSettings>>(
-				{ data: notificationSettings, message: t("Settings found") },
-				{ status: 200 },
-			);
+			return { data: notificationSettings, message: t("Settings found") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	});
 
@@ -214,7 +179,7 @@ export const sendTestNotification = createServerFn({ method: "POST" }).handler(
 	async () => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			return json<Return>({ message: t("Unauthorized") }, { status: 401 });
+			throw new Error(t("Unauthorized"));
 		}
 		try {
 			webpush.setVapidDetails(
@@ -244,14 +209,10 @@ export const sendTestNotification = createServerFn({ method: "POST" }).handler(
 				);
 			}
 
-			return json<Return>(
-				{ message: t("Notifications sent") },
-				{ status: 200 },
-			);
+			return { message: t("Notifications sent") };
 		} catch (e) {
 			console.error(e);
-			const error = e as Error;
-			return json<Return>({ message: error.message }, { status: 400 });
+			throw new Error((e as Error).message);
 		}
 	},
 );
