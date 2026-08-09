@@ -13,7 +13,7 @@ import { t } from "@/lib/text";
 import { roleBadgeVariant, roleLabel } from "@/lib/utils";
 
 const updateSession = createServerFn({ method: "POST" })
-	.inputValidator((d: { name: string }) => d)
+	.validator((d: { name: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		await session.update({ ...session.data, name: data.name });

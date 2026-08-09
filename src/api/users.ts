@@ -25,7 +25,7 @@ export const fetchUsers = createServerFn({ method: "GET" }).handler(
 );
 
 export const updateUserRole = createServerFn({ method: "POST" })
-	.inputValidator((d: { id: string; role: Role }) => d)
+	.validator((d: { id: string; role: Role }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("ADMIN");
 		if (!isAuthorized) {
@@ -62,7 +62,7 @@ export const updateUserRole = createServerFn({ method: "POST" })
 	});
 
 export const updateUserInformation = createServerFn({ method: "POST" })
-	.inputValidator(
+	.validator(
 		(d: {
 			id: string;
 			name: string;
@@ -106,7 +106,7 @@ export const updateUserInformation = createServerFn({ method: "POST" })
 	});
 
 export const createUser = createServerFn({ method: "POST" })
-	.inputValidator((d: { userName: string; name: string; role: Role }) => d)
+	.validator((d: { userName: string; name: string; role: Role }) => d)
 	.handler(async ({ data }) => {
 		const isAuthenticated = await useIsRole("ADMIN");
 		if (!isAuthenticated) {
@@ -137,7 +137,7 @@ export const createUser = createServerFn({ method: "POST" })
 	});
 
 export const createUserFromInvitation = createServerFn({ method: "POST" })
-	.inputValidator(
+	.validator(
 		(d: { invitationId: string; password: string; confirmPassword: string }) =>
 			d,
 	)
@@ -201,7 +201,7 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 	});
 
 export const deleteUser = createServerFn({ method: "POST" })
-	.inputValidator((d: { id: string }) => d)
+	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("ADMIN");
 		if (!isAuthorized) {
@@ -233,7 +233,7 @@ export const deleteUser = createServerFn({ method: "POST" })
 	});
 
 export const updatePasswordFromReset = createServerFn({ method: "POST" })
-	.inputValidator(
+	.validator(
 		(d: { resetId: string; password: string; confirmPassword: string }) => d,
 	)
 	.handler(async ({ data }) => {
@@ -335,7 +335,7 @@ export const getFeedConfig = createServerFn({ method: "GET" }).handler(
 );
 
 export const updateFeedConfig = createServerFn({ method: "POST" })
-	.inputValidator((d: FeedConfig) => d)
+	.validator((d: FeedConfig) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data?.id) {

@@ -5,7 +5,7 @@ import { t } from "@/lib/text";
 import type { Return } from "./types";
 
 export const searchPlayers = createServerFn()
-	.inputValidator((d: { query?: string }) => d)
+	.validator((d: { query?: string }) => d)
 	.handler(async ({ data }) => {
 		try {
 			const players = await prismaClient.player.findMany({
@@ -47,7 +47,7 @@ export const getPlayers = createServerFn({ method: "GET" }).handler(
 );
 
 export const createPlayer = createServerFn({ method: "POST" })
-	.inputValidator((d: { name: string; year: number; qttr: number }) => d)
+	.validator((d: { name: string; year: number; qttr: number }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
@@ -74,7 +74,7 @@ export const createPlayer = createServerFn({ method: "POST" })
 	});
 
 export const getPlayer = createServerFn()
-	.inputValidator((d: { id: string }) => d)
+	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		try {
 			const player = await prismaClient.player.findUnique({
@@ -110,7 +110,7 @@ export const getPlayer = createServerFn()
 	});
 
 export const updatePlayer = createServerFn()
-	.inputValidator(
+	.validator(
 		(d: {
 			id: string;
 			name: string;
@@ -144,7 +144,7 @@ export const updatePlayer = createServerFn()
 	});
 
 export const deletePlayer = createServerFn()
-	.inputValidator((d: { id: string }) => d)
+	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {

@@ -11,9 +11,7 @@ import { t } from "@/lib/text";
 import type { Return } from "./types";
 
 export const createNotificationSubscription = createServerFn({ method: "POST" })
-	.inputValidator(
-		(d: { subscription: PushSubscriptionJSON; device: string }) => d,
-	)
+	.validator((d: { subscription: PushSubscriptionJSON; device: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
@@ -47,7 +45,7 @@ export const createNotificationSubscription = createServerFn({ method: "POST" })
 	});
 
 export const tryGetSubscription = createServerFn({ method: "GET" })
-	.inputValidator((d: { authKey: string }) => d)
+	.validator((d: { authKey: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
@@ -103,7 +101,7 @@ export const getAllSubscriptions = createServerFn({ method: "GET" }).handler(
 );
 
 export const deleteNotificationSubscription = createServerFn({ method: "POST" })
-	.inputValidator((d: { id: string }) => d)
+	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
@@ -145,7 +143,7 @@ export const deleteNotificationSubscription = createServerFn({ method: "POST" })
 	});
 
 export const updateNotificationSettings = createServerFn({ method: "POST" })
-	.inputValidator(
+	.validator(
 		(d: {
 			subscriptionId: string;
 			changedAppointment: boolean;
@@ -185,7 +183,7 @@ export const updateNotificationSettings = createServerFn({ method: "POST" })
 	});
 
 export const getNotificationSettings = createServerFn({ method: "GET" })
-	.inputValidator((d: { subscriptionId: string }) => d)
+	.validator((d: { subscriptionId: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {

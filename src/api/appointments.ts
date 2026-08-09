@@ -32,7 +32,7 @@ type ICreateAppointment =
 			status: AppointmentStatus;
 	  };
 export const createAppointment = createServerFn()
-	.inputValidator((d: ICreateAppointment) => d)
+	.validator((d: ICreateAppointment) => d)
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
@@ -90,7 +90,7 @@ export const createAppointment = createServerFn()
 	});
 
 export const getAppointment = createServerFn()
-	.inputValidator((d: { id: string }) => d)
+	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (session.data.id === null) {
@@ -133,7 +133,7 @@ export const getAppointment = createServerFn()
 	});
 
 export const searchAppointments = createServerFn()
-	.inputValidator((d: { query?: string }) => d)
+	.validator((d: { query?: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (session.data.id === null) {
@@ -178,7 +178,7 @@ export const searchAppointments = createServerFn()
 	});
 
 export const getTransactionsPage = createServerFn()
-	.inputValidator(
+	.validator(
 		(d: {
 			skip: number;
 			take: number;
@@ -242,7 +242,7 @@ export const getTransactionsPage = createServerFn()
 	});
 
 export const getAppointments = createServerFn()
-	.inputValidator(
+	.validator(
 		(d: {
 			title?: string;
 			location?: string;
@@ -296,7 +296,7 @@ export const getAppointments = createServerFn()
 	});
 
 export const getAppointmentsPage = createServerFn()
-	.inputValidator(
+	.validator(
 		(d: {
 			query?: string;
 			type?: AppointmentType;
@@ -407,7 +407,7 @@ function cancelAppointmentUpdatedNotification(appointmentId: string) {
 }
 
 export const updateAppointment = createServerFn()
-	.inputValidator((d: { id: string; updates: Partial<Appointment> }) => d)
+	.validator((d: { id: string; updates: Partial<Appointment> }) => d)
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
@@ -472,7 +472,7 @@ export const updateAppointment = createServerFn()
 	});
 
 export const deleteAppointment = createServerFn()
-	.inputValidator((d: { id: string }) => d)
+	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
@@ -509,7 +509,7 @@ export const deleteAppointment = createServerFn()
 	});
 
 export const createResponse = createServerFn()
-	.inputValidator((d: { appointmentId: string; response: ResponseType }) => d)
+	.validator((d: { appointmentId: string; response: ResponseType }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
@@ -585,7 +585,7 @@ export const getNextAppointments = createServerFn().handler(async () => {
 });
 
 export const getUserAppointments = createServerFn()
-	.inputValidator((d: { userId: string }) => d)
+	.validator((d: { userId: string }) => d)
 	.handler(async ({ data }) => {
 		try {
 			const appointments = await prismaClient.appointment.findMany({
@@ -625,7 +625,7 @@ export const getUserAppointments = createServerFn()
 // treats as the same non-committal state, e.g. appointments/Card.tsx's
 // `?? "MAYBE"` fallback for a missing response).
 export const getUserOpenAppointments = createServerFn()
-	.inputValidator((d: { userId: string }) => d)
+	.validator((d: { userId: string }) => d)
 	.handler(async ({ data }) => {
 		try {
 			const now = new Date();
@@ -665,7 +665,7 @@ export const getUserOpenAppointments = createServerFn()
 	});
 
 export const getCalendarAppointments = createServerFn()
-	.inputValidator((d: { start: Date; end: Date }) => d)
+	.validator((d: { start: Date; end: Date }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (session.data.id === null) {
@@ -704,7 +704,7 @@ export const getCalendarAppointments = createServerFn()
 	});
 
 export const importHolidays = createServerFn()
-	.inputValidator(
+	.validator(
 		(d: {
 			country: string;
 			subdivision?: string;
@@ -766,7 +766,7 @@ export const importHolidays = createServerFn()
 	});
 
 export const publishAppointment = createServerFn()
-	.inputValidator((d: { id: string }) => d)
+	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
@@ -822,7 +822,7 @@ export const publishAppointment = createServerFn()
 	});
 
 export const unpublishAppointment = createServerFn()
-	.inputValidator((d: { id: string }) => d)
+	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
@@ -866,7 +866,7 @@ export const unpublishAppointment = createServerFn()
 	});
 
 export const restoreAppointment = createServerFn()
-	.inputValidator((d: { id: string }) => d)
+	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {

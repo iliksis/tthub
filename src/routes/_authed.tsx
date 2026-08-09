@@ -6,7 +6,7 @@ import { useAppSession } from "@/lib/session";
 import { t } from "@/lib/text";
 
 export const loginFn = createServerFn({ method: "POST" })
-	.inputValidator((d: { userName: string; password: string }) => d)
+	.validator((d: { userName: string; password: string }) => d)
 	.handler(async ({ data }) => {
 		const user = await prismaClient.user.findUnique({
 			where: {

@@ -144,7 +144,7 @@ export type UserInvitationGroupByOutputType = {
   _max: UserInvitationMaxAggregateOutputType | null
 }
 
-type GetUserInvitationGroupByPayload<T extends UserInvitationGroupByArgs> = Prisma.PrismaPromise<
+export type GetUserInvitationGroupByPayload<T extends UserInvitationGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<UserInvitationGroupByOutputType, T['by']> &
       {
@@ -1012,6 +1012,11 @@ export type UserInvitationFindManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Skip the first `n` UserInvitations.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of UserInvitations.
+   */
   distinct?: Prisma.UserInvitationScalarFieldEnum | Prisma.UserInvitationScalarFieldEnum[]
 }
 

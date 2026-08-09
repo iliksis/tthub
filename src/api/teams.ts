@@ -5,7 +5,7 @@ import { t } from "@/lib/text";
 import type { Return } from "./types";
 
 export const searchTeams = createServerFn()
-	.inputValidator((d: { query?: string }) => d)
+	.validator((d: { query?: string }) => d)
 	.handler(async ({ data }) => {
 		try {
 			const teams = await prismaClient.team.findMany({
@@ -48,7 +48,7 @@ export const getTeams = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const createTeam = createServerFn({ method: "POST" })
-	.inputValidator((d: { title: string; league: string }) => d)
+	.validator((d: { title: string; league: string }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
@@ -74,7 +74,7 @@ export const createTeam = createServerFn({ method: "POST" })
 	});
 
 export const getTeam = createServerFn()
-	.inputValidator((d: { id: string }) => d)
+	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		try {
 			const team = await prismaClient.team.findUnique({
@@ -101,7 +101,7 @@ export const getTeam = createServerFn()
 	});
 
 export const updateTeam = createServerFn()
-	.inputValidator((d: { id: string; title: string; league: string }) => d)
+	.validator((d: { id: string; title: string; league: string }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
@@ -130,7 +130,7 @@ export const updateTeam = createServerFn()
 	});
 
 export const deleteTeam = createServerFn()
-	.inputValidator((d: { id: string }) => d)
+	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {

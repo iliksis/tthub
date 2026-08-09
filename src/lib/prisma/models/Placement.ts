@@ -158,7 +158,7 @@ export type PlacementGroupByOutputType = {
   _max: PlacementMaxAggregateOutputType | null
 }
 
-type GetPlacementGroupByPayload<T extends PlacementGroupByArgs> = Prisma.PrismaPromise<
+export type GetPlacementGroupByPayload<T extends PlacementGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<PlacementGroupByOutputType, T['by']> &
       {
@@ -1247,6 +1247,11 @@ export type PlacementFindManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Skip the first `n` Placements.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Placements.
+   */
   distinct?: Prisma.PlacementScalarFieldEnum | Prisma.PlacementScalarFieldEnum[]
 }
 

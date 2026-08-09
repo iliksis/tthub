@@ -158,7 +158,7 @@ export type FeedConfigGroupByOutputType = {
   _max: FeedConfigMaxAggregateOutputType | null
 }
 
-type GetFeedConfigGroupByPayload<T extends FeedConfigGroupByArgs> = Prisma.PrismaPromise<
+export type GetFeedConfigGroupByPayload<T extends FeedConfigGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<FeedConfigGroupByOutputType, T['by']> &
       {
@@ -1076,6 +1076,11 @@ export type FeedConfigFindManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Skip the first `n` FeedConfigs.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of FeedConfigs.
+   */
   distinct?: Prisma.FeedConfigScalarFieldEnum | Prisma.FeedConfigScalarFieldEnum[]
 }
 
