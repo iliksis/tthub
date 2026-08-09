@@ -28,9 +28,9 @@ export function StandingsTable({ standings }: StandingsTableProps) {
 				<TableRow className="hover:bg-transparent">
 					<TableHead className="w-px text-right">{t("Rank")}</TableHead>
 					<TableHead>{t("Team")}</TableHead>
-					<TableHead className="text-right">S</TableHead>
-					<TableHead className="text-right">U</TableHead>
-					<TableHead className="text-right">N</TableHead>
+					<TableHead className="hidden text-right sm:table-cell">S</TableHead>
+					<TableHead className="hidden text-right sm:table-cell">U</TableHead>
+					<TableHead className="hidden text-right sm:table-cell">N</TableHead>
 					<TableHead className="text-right">{t("Matches")}</TableHead>
 					<TableHead className="text-right">{t("Points")}</TableHead>
 				</TableRow>
@@ -39,10 +39,18 @@ export function StandingsTable({ standings }: StandingsTableProps) {
 				{standings.map((standing) => (
 					<TableRow key={standing.id} className="hover:bg-background">
 						<TableCell className="w-px text-right">{standing.rank}</TableCell>
-						<TableCell>{standing.teamName}</TableCell>
-						<TableCell className="text-right">{standing.wins}</TableCell>
-						<TableCell className="text-right">{standing.undecided}</TableCell>
-						<TableCell className="text-right">{standing.losses}</TableCell>
+						<TableCell className="max-w-0 truncate">
+							{standing.teamName}
+						</TableCell>
+						<TableCell className="hidden text-right sm:table-cell">
+							{standing.wins}
+						</TableCell>
+						<TableCell className="hidden text-right sm:table-cell">
+							{standing.undecided}
+						</TableCell>
+						<TableCell className="hidden text-right sm:table-cell">
+							{standing.losses}
+						</TableCell>
 						<TableCell className="text-right">
 							{standing.matchesWon}:{standing.matchesLost}
 						</TableCell>

@@ -159,11 +159,11 @@ function RouteComponent() {
 					/>
 				</div>
 				<div className="mt-4 grid lg:grid-cols-[1.7fr_1fr] grid-rows-1 items-start gap-6">
-					<div>
+					<div className="min-w-0">
 						<div className="mb-2 font-medium text-sm">{t("Standings")}</div>
 						<StandingsTable standings={team.standings} />
 					</div>
-					<div>
+					<div className="min-w-0">
 						<div className="mb-2 flex items-center justify-between">
 							<span className="font-medium text-sm">
 								{showAllMatches ? t("Matches") : t("Next Matches")}
