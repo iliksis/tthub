@@ -1480,7 +1480,10 @@ export const AppointmentScalarFieldEnum = {
   link: 'link',
   type: 'type',
   status: 'status',
-  nextAppointmentId: 'nextAppointmentId'
+  nextAppointmentId: 'nextAppointmentId',
+  ownTeamId: 'ownTeamId',
+  homeTeam: 'homeTeam',
+  awayTeam: 'awayTeam'
 } as const
 
 export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
@@ -1513,7 +1516,8 @@ export const TeamScalarFieldEnum = {
   createdAt: 'createdAt',
   title: 'title',
   league: 'league',
-  placement: 'placement'
+  placement: 'placement',
+  clickTTTeamId: 'clickTTTeamId'
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
