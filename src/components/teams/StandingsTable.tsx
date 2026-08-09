@@ -8,17 +8,12 @@ import {
 } from "@/components/ui/table";
 import type { Standing } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
-import { cn } from "@/lib/utils";
 
 type StandingsTableProps = {
 	standings: Standing[];
-	ownTeamName?: string;
 };
 
-export function StandingsTable({
-	standings,
-	ownTeamName,
-}: StandingsTableProps) {
+export function StandingsTable({ standings }: StandingsTableProps) {
 	if (standings.length === 0) {
 		return (
 			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
@@ -42,10 +37,7 @@ export function StandingsTable({
 			</TableHeader>
 			<TableBody>
 				{standings.map((standing) => (
-					<TableRow
-						key={standing.id}
-						className={cn(standing.teamName === ownTeamName && "bg-muted/50")}
-					>
+					<TableRow key={standing.id} className="hover:bg-background">
 						<TableCell className="w-px text-right">{standing.rank}</TableCell>
 						<TableCell>{standing.teamName}</TableCell>
 						<TableCell className="text-right">{standing.wins}</TableCell>
