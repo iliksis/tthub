@@ -6,6 +6,7 @@ export const t = (key: TextKey | (string & {}), ...params: string[]) =>
 	format(key in texts ? texts[key as TextKey] : `${key} 🐧`, ...params);
 
 const texts = {
+	"(optional)": "(optional)",
 	"{0} Appointments created": "{0} Termine erstellt",
 	"{0} appointments answered": "{0} Termine beantwortet",
 	"{0} appointments deleted": "{0} Termine gelöscht",
@@ -150,10 +151,12 @@ const texts = {
 	"Get a notification when an accepted appointment was changed":
 		"Erhalte eine Benachrichtigung, wenn ein akzeptierter Termin geändert wurde",
 	"Grant Permission": "Benachrichtigunen erlauben",
+	Hidden: "Ausgeblendet",
 	History: "Verlauf",
 	Holiday: "Ferien",
 	"Holidays and myTischtennis data": "Feiertage und myTischtennis-Daten",
 	Import: "Importieren",
+	"Import Disabled": "Import deaktiviert",
 	"Import Holidays": "Ferien/Feiertage importieren",
 	"Importer not found": "Importer nicht gefunden",
 	"Importers found": "Importer gefunden",
@@ -290,6 +293,7 @@ const texts = {
 	"Show deleted?": "Gelöschte anzeigen?",
 	ShowAll: "Zeige alle",
 	Start: "Start",
+	"Start Import": "Import starten",
 	StartDate: "Start",
 	Status: "Status",
 	Subdivision: "Region",
@@ -312,6 +316,7 @@ const texts = {
 		"Die eingegebenen Passwörter stimmen nicht überein",
 	"This address doesn't exist or has been moved.":
 		"Diese Adresse existiert nicht oder wurde verschoben.",
+	"This field is required": "Dieses Feld ist erforderlich",
 	Time: "Zeit",
 	Title: "Titel",
 	To: "Bis",
@@ -347,6 +352,7 @@ const texts = {
 	"User Management": "Benutzerverwaltung",
 	"User Name": "Benutzername",
 	"User updated": "Benutzer aktualisiert",
+	"Visible to editors": "Für Editor:innen sichtbar",
 	"Year of birth": "Geburtsjahr",
 	"Year of birth must be set": "Geburtsjahr muss gesetzt sein",
 	"You cannot change your own role":

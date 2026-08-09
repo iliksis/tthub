@@ -85,29 +85,8 @@ export const runImport = createServerFn()
 		}
 	});
 
-export const getAvailableImporters = createServerFn().handler(async () => {
-	const session = await requireEditor();
-	if (!session) {
-		throw new Error(t("Unauthorized"));
-	}
-
-	const enabled = await Promise.all(
-		listImporters().map(async (importer) => ({
-			enabled: await isImporterEnabled(importer.id),
-			importer,
-		})),
-	);
-
-	return {
-		data: enabled
-			.filter((entry) => entry.enabled)
-			.map(({ importer }) => importer),
-		message: t("Importers found"),
-	};
-});
-
 export const getImporterSettings = createServerFn().handler(async () => {
-	const session = await requireAdmin();
+	const session = await requireEditor();
 	if (!session) {
 		throw new Error(t("Unauthorized"));
 	}

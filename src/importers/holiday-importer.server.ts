@@ -5,10 +5,10 @@ import { AppointmentType } from "@/lib/prisma/enums";
 import type { ImporterDefinition } from "./types";
 
 const configSchema = z.object({
-	country: z.string().min(1),
-	endDate: z.string().min(1),
-	startDate: z.string().min(1),
-	subdivision: z.string().optional(),
+	country: z.string().min(1).describe("Land"),
+	endDate: z.string().min(1).describe("Ende"),
+	startDate: z.string().min(1).describe("Start"),
+	subdivision: z.string().optional().describe("Region"),
 });
 
 export const holidayImporter = {

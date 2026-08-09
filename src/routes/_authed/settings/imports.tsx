@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Holiday } from "open-holiday-js";
-import { getAvailableImporters, getImporterSettings } from "@/api/imports";
-import { HolidayImport } from "@/components/imports/HolidayImport";
+import { getImporterSettings } from "@/api/imports";
 import { ImporterAvailability } from "@/components/imports/ImporterAvailability";
-import { MyTTImport } from "@/components/imports/MyTTImport";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import { t } from "@/lib/text";
 
 export const Route = createFileRoute("/_authed/settings/imports")({
@@ -31,43 +27,17 @@ export const Route = createFileRoute("/_authed/settings/imports")({
 		meta: [{ title: t("Imports") }],
 	}),
 	loader: async ({ context }) => {
-		const api = new Holiday();
-		const [countries, availableImportersRes, importerSettingsRes] =
-			await Promise.all([
-				api.getCountries(),
-				getAvailableImporters(),
-				context.user?.role === "ADMIN" ? getImporterSettings() : undefined,
-			]);
+		const isAdmin = context.user?.role === "ADMIN";
+		const { data } = await getImporterSettings();
 		return {
-			availableImporters: availableImportersRes.data,
-			countries: countries.map((c) => ({
-				code: c.isoCode,
-				title: c.name[0].text,
-			})),
-			importerSettings: importerSettingsRes?.data,
+			canManage: isAdmin,
+			importers: data,
 		};
 	},
 });
 
 function RouteComponent() {
-	const { countries, availableImporters, importerSettings } =
-		Route.useLoaderData();
+	const { importers, canManage } = Route.useLoaderData();
 
-	const holidayEnabled = availableImporters.some(
-		(importer) => importer.id === "holiday",
-	);
-
-	return (
-		<>
-			{holidayEnabled && <HolidayImport countries={countries} />}
-			<Separator className="my-4" />
-			<MyTTImport />
-			{importerSettings && (
-				<>
-					<Separator className="my-4" />
-					<ImporterAvailability importers={importerSettings} />
-				</>
-			)}
-		</>
-	);
+	return <ImporterAvailability importers={importers} canManage={canManage} />;
 }

@@ -34,6 +34,13 @@ export type ImportResult = {
 	nextCursor?: string;
 };
 
+export type ImporterConfigField = {
+	key: string;
+	label: string;
+	required: boolean;
+	type: "text" | "date";
+};
+
 export type ImporterDefinition<TConfig extends z.ZodType = z.ZodType> = {
 	id: string;
 	version: string;
