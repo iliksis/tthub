@@ -82,6 +82,11 @@ export type Player = Prisma.PlayerModel
  */
 export type Team = Prisma.TeamModel
 /**
+ * Model Standing
+ * 
+ */
+export type Standing = Prisma.StandingModel
+/**
  * Model Placement
  * 
  */

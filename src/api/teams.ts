@@ -75,6 +75,7 @@ export const getTeam = createServerFn()
 						where: { deletedAt: null },
 					},
 					players: true,
+					standings: { orderBy: { rank: "asc" } },
 				},
 				where: { id: data.id },
 			});

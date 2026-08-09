@@ -59,6 +59,7 @@ export const ModelName = {
   Response: 'Response',
   Player: 'Player',
   Team: 'Team',
+  Standing: 'Standing',
   Placement: 'Placement',
   Transaction: 'Transaction',
   Subscription: 'Subscription',
@@ -173,6 +174,26 @@ export const TeamScalarFieldEnum = {
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
+
+
+export const StandingScalarFieldEnum = {
+  id: 'id',
+  updatedAt: 'updatedAt',
+  teamId: 'teamId',
+  rank: 'rank',
+  teamName: 'teamName',
+  wins: 'wins',
+  draws: 'draws',
+  undecided: 'undecided',
+  losses: 'losses',
+  matchesWon: 'matchesWon',
+  matchesLost: 'matchesLost',
+  diff: 'diff',
+  pointsWon: 'pointsWon',
+  pointsLost: 'pointsLost'
+} as const
+
+export type StandingScalarFieldEnum = (typeof StandingScalarFieldEnum)[keyof typeof StandingScalarFieldEnum]
 
 
 export const PlacementScalarFieldEnum = {

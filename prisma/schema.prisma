@@ -126,6 +126,27 @@ model Team {
   clickTTGroupId String?       @unique
   players        Player[]
   appointments   Appointment[]
+  standings      Standing[]
+}
+
+model Standing {
+  id          String   @id @default(nanoid(6))
+  updatedAt   DateTime @updatedAt
+  teamId      String
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  rank        Int
+  teamName    String
+  wins        Int
+  draws       Int
+  undecided   Int
+  losses      Int
+  matchesWon  Int
+  matchesLost Int
+  diff        Int
+  pointsWon   Int
+  pointsLost  Int
+
+  @@unique([teamId, teamName])
 }
 
 model Placement {

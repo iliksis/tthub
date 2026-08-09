@@ -12,6 +12,7 @@ import { List } from "@/components/appointments/List";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlayerRosterRow } from "@/components/teams/PlayerRosterRow";
+import { StandingsTable } from "@/components/teams/StandingsTable";
 import { TeamForm } from "@/components/teams/TeamForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -162,6 +163,10 @@ function RouteComponent() {
 					<div className="mb-2 font-medium text-sm">{t("Matches")}</div>
 					<List appointments={team.appointments} />
 				</div>
+				<div className="mt-4">
+					<div className="mb-2 font-medium text-sm">{t("Standings")}</div>
+					<StandingsTable standings={team.standings} />
+				</div>
 				{canEdit && (
 					<div className="fab">
 						<Button
@@ -205,6 +210,10 @@ function RouteComponent() {
 				<div className="mt-4">
 					<div className="mb-2 font-medium text-sm">{t("Matches")}</div>
 					<List appointments={team.appointments} />
+				</div>
+				<div className="mt-4">
+					<div className="mb-2 font-medium text-sm">{t("Standings")}</div>
+					<StandingsTable standings={team.standings} />
 				</div>
 			</div>
 

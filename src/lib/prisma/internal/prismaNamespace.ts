@@ -405,6 +405,7 @@ export const ModelName = {
   Response: 'Response',
   Player: 'Player',
   Team: 'Team',
+  Standing: 'Standing',
   Placement: 'Placement',
   Transaction: 'Transaction',
   Subscription: 'Subscription',
@@ -425,7 +426,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "feedConfig" | "userInvitation" | "passwordReset" | "appointment" | "response" | "player" | "team" | "placement" | "transaction" | "subscription" | "importerSetting" | "notificationSettings"
+    modelProps: "user" | "feedConfig" | "userInvitation" | "passwordReset" | "appointment" | "response" | "player" | "team" | "standing" | "placement" | "transaction" | "subscription" | "importerSetting" | "notificationSettings"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1021,6 +1022,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Standing: {
+      payload: Prisma.$StandingPayload<ExtArgs>
+      fields: Prisma.StandingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StandingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StandingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>
+        }
+        findFirst: {
+          args: Prisma.StandingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StandingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>
+        }
+        findMany: {
+          args: Prisma.StandingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>[]
+        }
+        create: {
+          args: Prisma.StandingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>
+        }
+        createMany: {
+          args: Prisma.StandingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StandingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>[]
+        }
+        delete: {
+          args: Prisma.StandingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>
+        }
+        update: {
+          args: Prisma.StandingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>
+        }
+        deleteMany: {
+          args: Prisma.StandingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StandingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StandingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>[]
+        }
+        upsert: {
+          args: Prisma.StandingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>
+        }
+        aggregate: {
+          args: Prisma.StandingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStanding>
+        }
+        groupBy: {
+          args: Prisma.StandingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StandingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StandingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StandingCountAggregateOutputType> | number
+        }
+      }
+    }
     Placement: {
       payload: Prisma.$PlacementPayload<ExtArgs>
       fields: Prisma.PlacementFieldRefs
@@ -1523,6 +1598,26 @@ export const TeamScalarFieldEnum = {
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
 
 
+export const StandingScalarFieldEnum = {
+  id: 'id',
+  updatedAt: 'updatedAt',
+  teamId: 'teamId',
+  rank: 'rank',
+  teamName: 'teamName',
+  wins: 'wins',
+  draws: 'draws',
+  undecided: 'undecided',
+  losses: 'losses',
+  matchesWon: 'matchesWon',
+  matchesLost: 'matchesLost',
+  diff: 'diff',
+  pointsWon: 'pointsWon',
+  pointsLost: 'pointsLost'
+} as const
+
+export type StandingScalarFieldEnum = (typeof StandingScalarFieldEnum)[keyof typeof StandingScalarFieldEnum]
+
+
 export const PlacementScalarFieldEnum = {
   createdAt: 'createdAt',
   playerId: 'playerId',
@@ -1865,6 +1960,7 @@ export type GlobalOmitConfig = {
   response?: Prisma.ResponseOmit
   player?: Prisma.PlayerOmit
   team?: Prisma.TeamOmit
+  standing?: Prisma.StandingOmit
   placement?: Prisma.PlacementOmit
   transaction?: Prisma.TransactionOmit
   subscription?: Prisma.SubscriptionOmit
