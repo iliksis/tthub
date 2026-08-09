@@ -98,6 +98,11 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 										{configField.label}
 										{!configField.required && ` ${t("(optional)")}`}:
 									</Label>
+									{configField.description && (
+										<p className="text-muted-foreground text-xs">
+											{configField.description}
+										</p>
+									)}
 									<Input
 										id={field.name}
 										aria-invalid={!field.state.meta.isValid}

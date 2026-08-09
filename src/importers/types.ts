@@ -37,6 +37,7 @@ export type ImportResult = {
 export type ImporterConfigField = {
 	key: string;
 	label: string;
+	description?: string;
 	required: boolean;
 	type: "text" | "date";
 };

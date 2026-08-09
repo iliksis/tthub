@@ -4,11 +4,15 @@ import { z } from "zod";
 import { AppointmentType } from "@/lib/prisma/enums";
 import type { ImporterDefinition } from "./types";
 
+// biome-ignore assist/source/useSortedKeys: defines the sort order in the import dialog
 const configSchema = z.object({
-	country: z.string().min(1).describe("Land"),
-	endDate: z.string().min(1).describe("Ende"),
-	startDate: z.string().min(1).describe("Start"),
-	subdivision: z.string().optional().describe("Region"),
+	country: z.string().min(1).describe("Land|ISO-3166-1-Ländercode, z. B. DE"),
+	startDate: z.string().min(1).describe("Start|Erster Tag des Importzeitraums"),
+	endDate: z.string().min(1).describe("Ende|Letzter Tag des Importzeitraums"),
+	subdivision: z
+		.string()
+		.optional()
+		.describe("Region|ISO-3166-2-Regionscode, z. B. DE-BY (optional)"),
 });
 
 export const holidayImporter = {

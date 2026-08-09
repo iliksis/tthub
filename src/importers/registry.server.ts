@@ -8,12 +8,18 @@ const importers = [
 ] as const satisfies readonly ImporterDefinition[];
 
 function extractConfigFields(shape: z.ZodRawShape): ImporterConfigField[] {
-	return Object.entries(shape).map(([key, fieldSchema]) => ({
-		key,
-		label: fieldSchema.description ?? key,
-		required: !fieldSchema.isOptional(),
-		type: /date$/i.test(key) ? "date" : "text",
-	}));
+	return Object.entries(shape).map(([key, fieldSchema]) => {
+		// A field's .describe() is "Label" or "Label|Description" — the pipe
+		// separates the short form label from the longer helper text.
+		const [label, description] = (fieldSchema.description ?? key).split("|");
+		return {
+			description,
+			key,
+			label,
+			required: !fieldSchema.isOptional(),
+			type: /date$/i.test(key) ? "date" : "text",
+		};
+	});
 }
 
 export function listImporters() {
