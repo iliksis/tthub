@@ -31,7 +31,7 @@ export function StandingsTable({
 		<Table>
 			<TableHeader>
 				<TableRow className="hover:bg-transparent">
-					<TableHead className="text-right">{t("Rank")}</TableHead>
+					<TableHead className="w-px text-right">{t("Rank")}</TableHead>
 					<TableHead>{t("Team")}</TableHead>
 					<TableHead className="text-right">S</TableHead>
 					<TableHead className="text-right">U</TableHead>
@@ -46,7 +46,7 @@ export function StandingsTable({
 						key={standing.id}
 						className={cn(standing.teamName === ownTeamName && "bg-muted/50")}
 					>
-						<TableCell className="text-right">{standing.rank}</TableCell>
+						<TableCell className="w-px text-right">{standing.rank}</TableCell>
 						<TableCell>{standing.teamName}</TableCell>
 						<TableCell className="text-right">{standing.wins}</TableCell>
 						<TableCell className="text-right">{standing.undecided}</TableCell>

@@ -4,14 +4,14 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { EditIcon, Trash2Icon, UsersIcon } from "lucide-react";
+import { EditIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { deleteTeam, getTeam, updateTeam } from "@/api/teams";
 import { List } from "@/components/appointments/List";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
-import { PlayerRosterRow } from "@/components/teams/PlayerRosterRow";
+import { NextMatchesRail } from "@/components/teams/NextMatchesRail";
 import { StandingsTable } from "@/components/teams/StandingsTable";
 import { TeamForm } from "@/components/teams/TeamForm";
 import { Badge } from "@/components/ui/badge";
@@ -69,6 +69,7 @@ function RouteComponent() {
 
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [isDeleting, setIsDeleting] = React.useState(false);
+	const [showAllMatches, setShowAllMatches] = React.useState(false);
 	const deleteTeamServerFn = useServerFn(deleteTeam);
 
 	const updateTeamMutation = useMutation({
@@ -141,58 +142,8 @@ function RouteComponent() {
 				)}
 			</div>
 
-			{/* Mobile / tablet layout */}
-			<div className="lg:hidden">
-				<div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-					<span className="text-muted-foreground text-sm">{team.league}</span>
-					{team.placement && <Badge variant="default">{team.placement}</Badge>}
-				</div>
-				{sortedPlayers.length === 0 ? (
-					<div className="flex flex-col items-center gap-2 rounded-lg bg-card p-8 text-center text-muted-foreground">
-						<UsersIcon className="size-5" />
-						{t("No items found")}
-					</div>
-				) : (
-					<div className="flex flex-col gap-2.5">
-						{sortedPlayers.map((player) => (
-							<PlayerRosterRow key={player.id} player={player} variant="card" />
-						))}
-					</div>
-				)}
-				<div className="mt-4">
-					<div className="mb-2 font-medium text-sm">{t("Matches")}</div>
-					<List appointments={team.appointments} />
-				</div>
-				<div className="mt-4">
-					<div className="mb-2 font-medium text-sm">{t("Standings")}</div>
-					<StandingsTable standings={team.standings} />
-				</div>
-				{canEdit && (
-					<div className="fab">
-						<Button
-							variant="secondary"
-							size="icon-lg"
-							type="button"
-							title={t("Update team")}
-							onClick={onEdit}
-						>
-							<EditIcon className="size-4" />
-						</Button>
-						<Button
-							variant="secondary"
-							size="icon-lg"
-							type="button"
-							title={t("Delete team")}
-							onClick={onOpenDelete}
-						>
-							<Trash2Icon className="size-4" />
-						</Button>
-					</div>
-				)}
-			</div>
-
 			{/* Desktop layout: roster-first, league table demoted to a placeholder strip */}
-			<div className="hidden lg:block">
+			<div>
 				<div className="rounded-lg bg-card">
 					<DetailsList
 						items={sortedPlayers}
@@ -207,13 +158,35 @@ function RouteComponent() {
 						}}
 					/>
 				</div>
-				<div className="mt-4">
-					<div className="mb-2 font-medium text-sm">{t("Matches")}</div>
-					<List appointments={team.appointments} />
-				</div>
-				<div className="mt-4">
-					<div className="mb-2 font-medium text-sm">{t("Standings")}</div>
-					<StandingsTable standings={team.standings} />
+				<div className="mt-4 grid lg:grid-cols-[1.7fr_1fr] grid-rows-1 items-start gap-6">
+					<div>
+						<div className="mb-2 font-medium text-sm">{t("Standings")}</div>
+						<StandingsTable standings={team.standings} />
+					</div>
+					<div>
+						<div className="mb-2 flex items-center justify-between">
+							<span className="font-medium text-sm">
+								{showAllMatches ? t("Matches") : t("Next Matches")}
+							</span>
+							{showAllMatches && (
+								<button
+									type="button"
+									onClick={() => setShowAllMatches(false)}
+									className="text-primary text-xs hover:underline"
+								>
+									{t("Show fewer")}
+								</button>
+							)}
+						</div>
+						{showAllMatches ? (
+							<List appointments={team.appointments} />
+						) : (
+							<NextMatchesRail
+								appointments={team.appointments}
+								onShowAll={() => setShowAllMatches(true)}
+							/>
+						)}
+					</div>
 				</div>
 			</div>
 
