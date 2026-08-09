@@ -218,7 +218,11 @@ function RouteComponent() {
 							});
 						}}
 						submitLabel={t("Update")}
-						defaultValues={{ league: team.league ?? "", title: team.title }}
+						defaultValues={{
+							clickTTTeamId: team.clickTTTeamId ?? "",
+							league: team.league ?? "",
+							title: team.title,
+						}}
 					/>
 					<DeleteModal
 						label={t("Are you sure you want to delete this team?")}

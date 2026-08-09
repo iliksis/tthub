@@ -39,7 +39,9 @@ export const getTeams = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const createTeam = createServerFn({ method: "POST" })
-	.validator((d: { title: string; league: string }) => d)
+	.validator(
+		(d: { title: string; league: string; clickTTTeamId?: string }) => d,
+	)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
@@ -49,6 +51,7 @@ export const createTeam = createServerFn({ method: "POST" })
 		try {
 			const team = await prismaClient.team.create({
 				data: {
+					clickTTTeamId: data.clickTTTeamId || null,
 					league: data.league,
 					title: data.title,
 				},
@@ -79,7 +82,14 @@ export const getTeam = createServerFn()
 	});
 
 export const updateTeam = createServerFn()
-	.validator((d: { id: string; title: string; league: string }) => d)
+	.validator(
+		(d: {
+			id: string;
+			title: string;
+			league: string;
+			clickTTTeamId?: string;
+		}) => d,
+	)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
@@ -89,6 +99,7 @@ export const updateTeam = createServerFn()
 		try {
 			const team = await prismaClient.team.update({
 				data: {
+					clickTTTeamId: data.clickTTTeamId || null,
 					league: data.league,
 					title: data.title,
 				},
