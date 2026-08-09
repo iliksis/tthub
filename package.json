@@ -78,7 +78,7 @@
     "jsdom": "27.4.0",
     "tsx": "^4.23.11",
     "typescript": "5.9.3",
-    "vite": "7.3.1",
+    "vite": "7.3.6",
     "vite-plugin-mkcert": "^1.17.12",
     "vitest": "^4.1.10",
     "web-vitals": "5.1.0"
