@@ -18,12 +18,12 @@ type TeamFormProps = {
 	defaultValues?: {
 		title: string;
 		league: string;
-		clickTTTeamId: string;
+		clickTTGroupId: string;
 	};
 	onSubmit: (updates: {
 		title: string;
 		league: string;
-		clickTTTeamId: string;
+		clickTTGroupId: string;
 	}) => Promise<void>;
 };
 
@@ -31,7 +31,7 @@ export const TeamForm = ({
 	open,
 	onClose,
 	submitLabel,
-	defaultValues = { clickTTTeamId: "", league: "", title: "" },
+	defaultValues = { clickTTGroupId: "", league: "", title: "" },
 	onSubmit,
 }: TeamFormProps) => {
 	const form = useForm({
@@ -95,10 +95,10 @@ export const TeamForm = ({
 						</form.Field>
 					</div>
 					<div>
-						<form.Field name="clickTTTeamId">
+						<form.Field name="clickTTGroupId">
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("click-TT Team Id")}:</Label>
+									<Label htmlFor={field.name}>{t("click-TT Group Id")}:</Label>
 									<Input
 										id={field.name}
 										aria-invalid={!field.state.meta.isValid}

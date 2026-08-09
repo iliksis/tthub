@@ -1517,7 +1517,7 @@ export const TeamScalarFieldEnum = {
   title: 'title',
   league: 'league',
   placement: 'placement',
-  clickTTTeamId: 'clickTTTeamId'
+  clickTTGroupId: 'clickTTGroupId'
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]

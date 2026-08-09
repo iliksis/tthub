@@ -30,7 +30,7 @@ export type TeamMinAggregateOutputType = {
   title: string | null
   league: string | null
   placement: string | null
-  clickTTTeamId: string | null
+  clickTTGroupId: string | null
 }
 
 export type TeamMaxAggregateOutputType = {
@@ -39,7 +39,7 @@ export type TeamMaxAggregateOutputType = {
   title: string | null
   league: string | null
   placement: string | null
-  clickTTTeamId: string | null
+  clickTTGroupId: string | null
 }
 
 export type TeamCountAggregateOutputType = {
@@ -48,7 +48,7 @@ export type TeamCountAggregateOutputType = {
   title: number
   league: number
   placement: number
-  clickTTTeamId: number
+  clickTTGroupId: number
   _all: number
 }
 
@@ -59,7 +59,7 @@ export type TeamMinAggregateInputType = {
   title?: true
   league?: true
   placement?: true
-  clickTTTeamId?: true
+  clickTTGroupId?: true
 }
 
 export type TeamMaxAggregateInputType = {
@@ -68,7 +68,7 @@ export type TeamMaxAggregateInputType = {
   title?: true
   league?: true
   placement?: true
-  clickTTTeamId?: true
+  clickTTGroupId?: true
 }
 
 export type TeamCountAggregateInputType = {
@@ -77,7 +77,7 @@ export type TeamCountAggregateInputType = {
   title?: true
   league?: true
   placement?: true
-  clickTTTeamId?: true
+  clickTTGroupId?: true
   _all?: true
 }
 
@@ -159,7 +159,7 @@ export type TeamGroupByOutputType = {
   title: string
   league: string | null
   placement: string | null
-  clickTTTeamId: string | null
+  clickTTGroupId: string | null
   _count: TeamCountAggregateOutputType | null
   _min: TeamMinAggregateOutputType | null
   _max: TeamMaxAggregateOutputType | null
@@ -189,7 +189,7 @@ export type TeamWhereInput = {
   title?: Prisma.StringFilter<"Team"> | string
   league?: Prisma.StringNullableFilter<"Team"> | string | null
   placement?: Prisma.StringNullableFilter<"Team"> | string | null
-  clickTTTeamId?: Prisma.StringNullableFilter<"Team"> | string | null
+  clickTTGroupId?: Prisma.StringNullableFilter<"Team"> | string | null
   players?: Prisma.PlayerListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
 }
@@ -200,14 +200,14 @@ export type TeamOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   league?: Prisma.SortOrderInput | Prisma.SortOrder
   placement?: Prisma.SortOrderInput | Prisma.SortOrder
-  clickTTTeamId?: Prisma.SortOrderInput | Prisma.SortOrder
+  clickTTGroupId?: Prisma.SortOrderInput | Prisma.SortOrder
   players?: Prisma.PlayerOrderByRelationAggregateInput
   appointments?: Prisma.AppointmentOrderByRelationAggregateInput
 }
 
 export type TeamWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  clickTTTeamId?: string
+  clickTTGroupId?: string
   AND?: Prisma.TeamWhereInput | Prisma.TeamWhereInput[]
   OR?: Prisma.TeamWhereInput[]
   NOT?: Prisma.TeamWhereInput | Prisma.TeamWhereInput[]
@@ -217,7 +217,7 @@ export type TeamWhereUniqueInput = Prisma.AtLeast<{
   placement?: Prisma.StringNullableFilter<"Team"> | string | null
   players?: Prisma.PlayerListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
-}, "id" | "clickTTTeamId">
+}, "id" | "clickTTGroupId">
 
 export type TeamOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -225,7 +225,7 @@ export type TeamOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   league?: Prisma.SortOrderInput | Prisma.SortOrder
   placement?: Prisma.SortOrderInput | Prisma.SortOrder
-  clickTTTeamId?: Prisma.SortOrderInput | Prisma.SortOrder
+  clickTTGroupId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.TeamCountOrderByAggregateInput
   _max?: Prisma.TeamMaxOrderByAggregateInput
   _min?: Prisma.TeamMinOrderByAggregateInput
@@ -240,7 +240,7 @@ export type TeamScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"Team"> | string
   league?: Prisma.StringNullableWithAggregatesFilter<"Team"> | string | null
   placement?: Prisma.StringNullableWithAggregatesFilter<"Team"> | string | null
-  clickTTTeamId?: Prisma.StringNullableWithAggregatesFilter<"Team"> | string | null
+  clickTTGroupId?: Prisma.StringNullableWithAggregatesFilter<"Team"> | string | null
 }
 
 export type TeamCreateInput = {
@@ -249,7 +249,7 @@ export type TeamCreateInput = {
   title: string
   league?: string | null
   placement?: string | null
-  clickTTTeamId?: string | null
+  clickTTGroupId?: string | null
   players?: Prisma.PlayerCreateNestedManyWithoutTeamInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutOwnTeamInput
 }
@@ -260,7 +260,7 @@ export type TeamUncheckedCreateInput = {
   title: string
   league?: string | null
   placement?: string | null
-  clickTTTeamId?: string | null
+  clickTTGroupId?: string | null
   players?: Prisma.PlayerUncheckedCreateNestedManyWithoutTeamInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOwnTeamInput
 }
@@ -271,7 +271,7 @@ export type TeamUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  clickTTTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   players?: Prisma.PlayerUpdateManyWithoutTeamNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutOwnTeamNestedInput
 }
@@ -282,7 +282,7 @@ export type TeamUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  clickTTTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   players?: Prisma.PlayerUncheckedUpdateManyWithoutTeamNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOwnTeamNestedInput
 }
@@ -293,7 +293,7 @@ export type TeamCreateManyInput = {
   title: string
   league?: string | null
   placement?: string | null
-  clickTTTeamId?: string | null
+  clickTTGroupId?: string | null
 }
 
 export type TeamUpdateManyMutationInput = {
@@ -302,7 +302,7 @@ export type TeamUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  clickTTTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type TeamUncheckedUpdateManyInput = {
@@ -311,7 +311,7 @@ export type TeamUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  clickTTTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type TeamNullableScalarRelationFilter = {
@@ -325,7 +325,7 @@ export type TeamCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   league?: Prisma.SortOrder
   placement?: Prisma.SortOrder
-  clickTTTeamId?: Prisma.SortOrder
+  clickTTGroupId?: Prisma.SortOrder
 }
 
 export type TeamMaxOrderByAggregateInput = {
@@ -334,7 +334,7 @@ export type TeamMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   league?: Prisma.SortOrder
   placement?: Prisma.SortOrder
-  clickTTTeamId?: Prisma.SortOrder
+  clickTTGroupId?: Prisma.SortOrder
 }
 
 export type TeamMinOrderByAggregateInput = {
@@ -343,7 +343,7 @@ export type TeamMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   league?: Prisma.SortOrder
   placement?: Prisma.SortOrder
-  clickTTTeamId?: Prisma.SortOrder
+  clickTTGroupId?: Prisma.SortOrder
 }
 
 export type TeamCreateNestedOneWithoutAppointmentsInput = {
@@ -384,7 +384,7 @@ export type TeamCreateWithoutAppointmentsInput = {
   title: string
   league?: string | null
   placement?: string | null
-  clickTTTeamId?: string | null
+  clickTTGroupId?: string | null
   players?: Prisma.PlayerCreateNestedManyWithoutTeamInput
 }
 
@@ -394,7 +394,7 @@ export type TeamUncheckedCreateWithoutAppointmentsInput = {
   title: string
   league?: string | null
   placement?: string | null
-  clickTTTeamId?: string | null
+  clickTTGroupId?: string | null
   players?: Prisma.PlayerUncheckedCreateNestedManyWithoutTeamInput
 }
 
@@ -420,7 +420,7 @@ export type TeamUpdateWithoutAppointmentsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  clickTTTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   players?: Prisma.PlayerUpdateManyWithoutTeamNestedInput
 }
 
@@ -430,7 +430,7 @@ export type TeamUncheckedUpdateWithoutAppointmentsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  clickTTTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   players?: Prisma.PlayerUncheckedUpdateManyWithoutTeamNestedInput
 }
 
@@ -440,7 +440,7 @@ export type TeamCreateWithoutPlayersInput = {
   title: string
   league?: string | null
   placement?: string | null
-  clickTTTeamId?: string | null
+  clickTTGroupId?: string | null
   appointments?: Prisma.AppointmentCreateNestedManyWithoutOwnTeamInput
 }
 
@@ -450,7 +450,7 @@ export type TeamUncheckedCreateWithoutPlayersInput = {
   title: string
   league?: string | null
   placement?: string | null
-  clickTTTeamId?: string | null
+  clickTTGroupId?: string | null
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOwnTeamInput
 }
 
@@ -476,7 +476,7 @@ export type TeamUpdateWithoutPlayersInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  clickTTTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   appointments?: Prisma.AppointmentUpdateManyWithoutOwnTeamNestedInput
 }
 
@@ -486,7 +486,7 @@ export type TeamUncheckedUpdateWithoutPlayersInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  clickTTTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOwnTeamNestedInput
 }
 
@@ -536,7 +536,7 @@ export type TeamSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   title?: boolean
   league?: boolean
   placement?: boolean
-  clickTTTeamId?: boolean
+  clickTTGroupId?: boolean
   players?: boolean | Prisma.Team$playersArgs<ExtArgs>
   appointments?: boolean | Prisma.Team$appointmentsArgs<ExtArgs>
   _count?: boolean | Prisma.TeamCountOutputTypeDefaultArgs<ExtArgs>
@@ -548,7 +548,7 @@ export type TeamSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   title?: boolean
   league?: boolean
   placement?: boolean
-  clickTTTeamId?: boolean
+  clickTTGroupId?: boolean
 }, ExtArgs["result"]["team"]>
 
 export type TeamSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -557,7 +557,7 @@ export type TeamSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   title?: boolean
   league?: boolean
   placement?: boolean
-  clickTTTeamId?: boolean
+  clickTTGroupId?: boolean
 }, ExtArgs["result"]["team"]>
 
 export type TeamSelectScalar = {
@@ -566,10 +566,10 @@ export type TeamSelectScalar = {
   title?: boolean
   league?: boolean
   placement?: boolean
-  clickTTTeamId?: boolean
+  clickTTGroupId?: boolean
 }
 
-export type TeamOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "title" | "league" | "placement" | "clickTTTeamId", ExtArgs["result"]["team"]>
+export type TeamOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "title" | "league" | "placement" | "clickTTGroupId", ExtArgs["result"]["team"]>
 export type TeamInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   players?: boolean | Prisma.Team$playersArgs<ExtArgs>
   appointments?: boolean | Prisma.Team$appointmentsArgs<ExtArgs>
@@ -590,7 +590,7 @@ export type $TeamPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     title: string
     league: string | null
     placement: string | null
-    clickTTTeamId: string | null
+    clickTTGroupId: string | null
   }, ExtArgs["result"]["team"]>
   composites: {}
 }
@@ -1021,7 +1021,7 @@ export interface TeamFieldRefs {
   readonly title: Prisma.FieldRef<"Team", 'String'>
   readonly league: Prisma.FieldRef<"Team", 'String'>
   readonly placement: Prisma.FieldRef<"Team", 'String'>
-  readonly clickTTTeamId: Prisma.FieldRef<"Team", 'String'>
+  readonly clickTTGroupId: Prisma.FieldRef<"Team", 'String'>
 }
     
 

@@ -120,7 +120,7 @@ const texts = {
 	"Create new link": "Erstelle neuen Link",
 	"Create new user": "Neuen Benutzer erstellen",
 	Created: "Erstellt",
-	"click-TT Team Id": "click-TT Team-ID",
+	"click-TT Group Id": "click-TT Gruppen-ID",
 	Dashboard: "Dashboard",
 	Date: "Datum",
 	"Date & Time": "Datum & Zeit",

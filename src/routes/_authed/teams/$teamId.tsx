@@ -219,7 +219,7 @@ function RouteComponent() {
 						}}
 						submitLabel={t("Update")}
 						defaultValues={{
-							clickTTTeamId: team.clickTTTeamId ?? "",
+							clickTTGroupId: team.clickTTGroupId ?? "",
 							league: team.league ?? "",
 							title: team.title,
 						}}

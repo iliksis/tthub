@@ -123,7 +123,7 @@ model Team {
   title          String
   league         String?
   placement      String?
-  clickTTTeamId  String?       @unique
+  clickTTGroupId String?       @unique
   players        Player[]
   appointments   Appointment[]
 }

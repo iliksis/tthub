@@ -22,12 +22,12 @@ export const clickTTImporter = {
 		const clubName = process.env.CLICKTT_CLUB_NAME;
 
 		const teams = await prismaClient.team.findMany({
-			where: { clickTTTeamId: { not: null } },
+			where: { clickTTGroupId: { not: null } },
 		});
 
 		const teamSchedules = await Promise.all(
 			teams.map(async (team) => {
-				const res = await fetch(`${baseUrl}&group=${team.clickTTTeamId}`);
+				const res = await fetch(`${baseUrl}&group=${team.clickTTGroupId}`);
 				const data = await res.arrayBuffer();
 				const schedule = await parseClickTTPdf(data);
 				const { matches } = filterClickTTScheduleByClub(schedule, clubName);
@@ -47,8 +47,8 @@ export const clickTTImporter = {
 				const result = await emit({
 					appointmentType: AppointmentType.TEAM_MATCH,
 					externalId: createTeamMatchAppointmentId(
-						// biome-ignore lint/style/noNonNullAssertion: filtered by clickTTTeamId not-null above
-						team.clickTTTeamId!,
+						// biome-ignore lint/style/noNonNullAssertion: filtered by clickTTGroupId not-null above
+						team.clickTTGroupId!,
 						match.home,
 						match.away,
 					),
