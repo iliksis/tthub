@@ -21,7 +21,7 @@ import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import { AppointmentType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import { cn, isDayInPast } from "@/lib/utils";
+import { cn, isDayInPast, isInformationalAppointmentType } from "@/lib/utils";
 import type { DetailsListColumn } from "../DetailsList";
 
 type AppointmentWithResponses = Appointment & { responses: Response[] };
@@ -122,7 +122,7 @@ export const getAppointmentColumns = (
 					key: "response",
 					label: "",
 					render: (item: Appointment & { responses: Response[] }) => {
-						if (item.type === AppointmentType.HOLIDAY) return null;
+						if (isInformationalAppointmentType(item.type)) return null;
 						const userResponse = getUserResponse(item, userId);
 						const isAccepted = userResponse === "ACCEPT";
 						const isDeclined = userResponse === "DECLINE";
@@ -227,7 +227,7 @@ export const List = ({ appointments }: ListProps) => {
 											{item.location && ` · ${item.location}`}
 										</div>
 									</div>
-									{item.type !== AppointmentType.HOLIDAY && (
+									{!isInformationalAppointmentType(item.type) && (
 										<Badge
 											variant={
 												isAccepted
@@ -262,7 +262,9 @@ export const filterSchema = z.object({
 	query: z.string().optional(),
 	response: z.enum(["ACCEPT", "MAYBE", "DECLINE", "NONE"]).optional(),
 	skip: z.number().int().nonnegative().optional(),
-	type: z.enum(["TOURNAMENT", "TOURNAMENT_DE", "HOLIDAY"]).optional(),
+	type: z
+		.enum(["TOURNAMENT", "TOURNAMENT_DE", "HOLIDAY", "TEAM_MATCH"])
+		.optional(),
 });
 type FiltersProps = z.infer<typeof filterSchema>;
 
@@ -271,6 +273,7 @@ const typeOptions: { value: string; label: string }[] = [
 	{ label: t("Tournament"), value: AppointmentType.TOURNAMENT },
 	{ label: t("Tournament (Germany)"), value: AppointmentType.TOURNAMENT_DE },
 	{ label: t("Holiday"), value: AppointmentType.HOLIDAY },
+	{ label: t("Team Match"), value: AppointmentType.TEAM_MATCH },
 ];
 
 const responseOptions: { value: string; label: string }[] = [

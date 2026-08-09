@@ -27,6 +27,7 @@ const responseTypeOrder: ResponseType[] = ["ACCEPT", "MAYBE", "DECLINE"];
 
 const appointmentTypeMeta: Record<AppointmentType, { label: string }> = {
 	HOLIDAY: { label: t("Holiday") },
+	TEAM_MATCH: { label: t("Team Match") },
 	TOURNAMENT: { label: t("Tournament") },
 	TOURNAMENT_DE: { label: t("Tournament (Germany)") },
 };
@@ -34,6 +35,7 @@ const appointmentTypeOrder: AppointmentType[] = [
 	"TOURNAMENT",
 	"TOURNAMENT_DE",
 	"HOLIDAY",
+	"TEAM_MATCH",
 ];
 
 function Tile({

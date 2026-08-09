@@ -60,6 +60,7 @@ import {
 	createGoogleMapsLink,
 	dateToInputValue,
 	isEditorOrAdmin,
+	isInformationalAppointmentType,
 } from "@/lib/utils";
 
 // biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
@@ -95,6 +96,7 @@ export const Route = createFileRoute("/_authed/appts/$apptId")({
 function typeLabel(type: string) {
 	if (type === AppointmentType.HOLIDAY) return t("Holiday");
 	if (type === AppointmentType.TOURNAMENT_DE) return t("Tournament (Germany)");
+	if (type === AppointmentType.TEAM_MATCH) return t("Team Match");
 	return t("Tournament");
 }
 
@@ -148,7 +150,7 @@ function RouteComponent() {
 	if (!appointment) return <div>{t("Appointment not found.")}</div>;
 
 	const isDeleted = appointment.deletedAt !== null;
-	const isHoliday = appointment.type === AppointmentType.HOLIDAY;
+	const isHoliday = isInformationalAppointmentType(appointment.type);
 	const isPublished = appointment.status === AppointmentStatus.PUBLISHED;
 	const isTournament = appointment.type === AppointmentType.TOURNAMENT;
 	const myResponse = appointment.responses.find((r) => r.userId === user?.id);

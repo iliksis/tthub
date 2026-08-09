@@ -36,7 +36,7 @@ model FeedConfig {
   user                    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   includeResponseTypes    String?          // Comma-separated: ACCEPT,MAYBE,DECLINE
   includeDraftStatus      Boolean          @default(false)
-  includeAppointmentTypes String?          // Comma-separated: TOURNAMENT,TOURNAMENT_DE,HOLIDAY
+  includeAppointmentTypes String?          // Comma-separated: TOURNAMENT,TOURNAMENT_DE,HOLIDAY,TEAM_MATCH
 }
 
 model UserInvitation {

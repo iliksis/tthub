@@ -59,7 +59,12 @@ import {
 	ResponseType,
 } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import { cn, isDayInPast, isEditorOrAdmin } from "@/lib/utils";
+import {
+	cn,
+	isDayInPast,
+	isEditorOrAdmin,
+	isInformationalAppointmentType,
+} from "@/lib/utils";
 
 const BATCH_SIZE = 25;
 
@@ -146,6 +151,7 @@ export const Route = createFileRoute("/_authed/appts/")({
 function typeLabel(type: string) {
 	if (type === AppointmentType.HOLIDAY) return t("Holiday");
 	if (type === AppointmentType.TOURNAMENT_DE) return t("Tournament (Germany)");
+	if (type === AppointmentType.TEAM_MATCH) return t("Team Match");
 	return t("Tournament");
 }
 
@@ -388,7 +394,7 @@ function RouteComponent() {
 
 const isBulkEligible = (appointment: AppointmentWithResponses) =>
 	appointment.deletedAt === null &&
-	appointment.type !== AppointmentType.HOLIDAY;
+	!isInformationalAppointmentType(appointment.type);
 
 type SplitViewBulkAction = {
 	key: string;
@@ -505,7 +511,7 @@ const AppointmentSplitView = ({
 	// batch of appointments is a personal action, not a management one.
 	const onBulkRespond = (response: ResponseType) => {
 		const targets = selectedAppointments.filter(
-			(a) => a.type !== AppointmentType.HOLIDAY,
+			(a) => !isInformationalAppointmentType(a.type),
 		);
 		const userId = user?.id;
 		if (targets.length === 0 || !userId) return;
@@ -578,10 +584,19 @@ const AppointmentSplitView = ({
 	};
 
 	const onDuplicate = async (items: AppointmentWithResponses[]) => {
-		if (items.length === 0) return;
+		// Team matches are import-managed, not manually authored, so they
+		// aren't duplicable through this create-appointment flow.
+		const duplicable = items.filter(
+			(
+				a,
+			): a is AppointmentWithResponses & {
+				type: "TOURNAMENT" | "TOURNAMENT_DE" | "HOLIDAY";
+			} => a.type !== AppointmentType.TEAM_MATCH,
+		);
+		if (duplicable.length === 0) return;
 		try {
 			const results = await Promise.all(
-				items.map((a) => {
+				duplicable.map((a) => {
 					const shortTitle = `${a.shortTitle} (Kopie)`;
 					const title = `${a.title} (Kopie)`;
 					if (a.type === AppointmentType.HOLIDAY) {
@@ -696,7 +711,7 @@ const AppointmentSplitView = ({
 	];
 
 	const hasRespondableSelection = selectedAppointments.some(
-		(a) => a.type !== AppointmentType.HOLIDAY,
+		(a) => !isInformationalAppointmentType(a.type),
 	);
 
 	const bulkActions: SplitViewBulkAction[] = [
@@ -850,7 +865,7 @@ const AppointmentSplitView = ({
 												<span
 													className={cn(
 														"size-1.5 shrink-0 rounded-full",
-														a.type === AppointmentType.HOLIDAY
+														isInformationalAppointmentType(a.type)
 															? "bg-muted-foreground"
 															: a.status === AppointmentStatus.PUBLISHED
 																? "bg-success"
@@ -953,7 +968,7 @@ function AppointmentDetailContent({
 	myResponse: Response | undefined;
 	onRespond: (response: ResponseType) => () => Promise<void>;
 }) {
-	const isHoliday = appointment.type === AppointmentType.HOLIDAY;
+	const isInformational = isInformationalAppointmentType(appointment.type);
 	const isPublished = appointment.status === AppointmentStatus.PUBLISHED;
 	const isMultipleDays =
 		appointment.endDate != null &&
@@ -964,7 +979,7 @@ function AppointmentDetailContent({
 		<>
 			<div className="mb-3 flex items-center gap-2">
 				<Badge variant="outline">{typeLabel(appointment.type)}</Badge>
-				{!isHoliday && (
+				{!isInformational && (
 					<Badge variant={isPublished ? "success" : "warning"}>
 						{isPublished ? t("Published") : t("Draft")}
 					</Badge>
@@ -988,7 +1003,7 @@ function AppointmentDetailContent({
 					</div>
 				)}
 			</div>
-			{!isHoliday && (
+			{!isInformational && (
 				<div className="mt-4 flex gap-2">
 					<Button
 						type="button"
