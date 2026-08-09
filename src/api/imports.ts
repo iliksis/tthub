@@ -6,6 +6,19 @@ import { TransactionType } from "@/lib/prisma/enums";
 import { requireAdmin, requireEditor } from "@/lib/session";
 import { t } from "@/lib/text";
 
+type ImportJob = {
+	status: "running" | "done" | "error";
+	imported: number;
+	skipped: number;
+	total?: number;
+	message?: string;
+};
+
+// In-memory only: import jobs are short-lived and progress doesn't need to
+// survive a server restart, so a DB table would be overkill.
+const importJobs = new Map<string, ImportJob>();
+const IMPORT_JOB_TTL_MS = 5 * 60 * 1000;
+
 async function isImporterEnabled(importerId: string) {
 	const setting = await prismaClient.importerSetting.findUnique({
 		where: { importerId },
@@ -59,30 +72,70 @@ export const runImport = createServerFn()
 			throw new Error(t("Unauthorized"));
 		}
 
-		try {
-			const importer = getImporter(data.importerId);
-			if (!importer || !(await isImporterEnabled(importer.id))) {
-				throw new Error(t("Importer not found"));
-			}
+		const importer = getImporter(data.importerId);
+		if (!importer || !(await isImporterEnabled(importer.id))) {
+			throw new Error(t("Importer not found"));
+		}
 
-			const result = await importer.run({
-				config: data.config,
-				emit: (entity) => persistEntity(entity, session.id),
-				log: (level, message) => console[level](`[${importer.id}] ${message}`),
-				secrets: {},
-			});
+		const jobId = crypto.randomUUID();
+		importJobs.set(jobId, { imported: 0, skipped: 0, status: "running" });
 
-			return {
-				data: result,
-				message:
+		// Not awaited: the client polls getImportProgress for updates instead of
+		// blocking on a single request for the whole (potentially long) import.
+		void (async () => {
+			const job = importJobs.get(jobId);
+			if (!job) return;
+
+			try {
+				const result = await importer.run({
+					config: data.config,
+					emit: async (entity) => {
+						const entityResult = await persistEntity(entity, session.id);
+						if (entityResult.status === "imported") {
+							job.imported++;
+						} else {
+							job.skipped++;
+						}
+						return entityResult;
+					},
+					log: (level, message) =>
+						console[level](`[${importer.id}] ${message}`),
+					secrets: {},
+					setTotal: (total) => {
+						job.total = total;
+					},
+				});
+				job.status = "done";
+				job.message =
 					result.imported === 1
 						? t("1 appointment created")
-						: t("{0} Appointments created", result.imported.toString()),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
+						: t("{0} Appointments created", result.imported.toString());
+			} catch (e) {
+				console.error(e);
+				job.status = "error";
+				job.message = (e as Error).message;
+			} finally {
+				setTimeout(() => importJobs.delete(jobId), IMPORT_JOB_TTL_MS);
+			}
+		})();
+
+		return { data: { jobId }, message: t("Import started") };
+	});
+
+export const getImportProgress = createServerFn()
+	.validator((d: { jobId: string }) => d)
+	.handler(async ({ data }) => {
+		const session = await requireEditor();
+		if (!session) {
+			throw new Error(t("Unauthorized"));
 		}
+
+		const job = importJobs.get(data.jobId);
+		if (!job) {
+			throw new Error(t("Import not found"));
+		}
+
+		return { data: job, message: "" };
 	});
 
 export const getImporterSettings = createServerFn().handler(async () => {

@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import * as React from "react";
 import { toast } from "sonner";
-import { runImport } from "@/api/imports";
+import { getImportProgress, runImport } from "@/api/imports";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -27,6 +27,16 @@ type ImportDialogProps = {
 	onClose: () => void;
 };
 
+type ImportProgress = {
+	status: "running" | "done" | "error";
+	imported: number;
+	skipped: number;
+	total?: number;
+	message?: string;
+};
+
+const PROGRESS_POLL_INTERVAL_MS = 500;
+
 const toDefaultValues = (configFields: ImporterConfigField[]) =>
 	Object.fromEntries(configFields.map((field) => [field.key, ""])) as Record<
 		string,
@@ -34,16 +44,55 @@ const toDefaultValues = (configFields: ImporterConfigField[]) =>
 	>;
 
 export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
+	const [jobId, setJobId] = React.useState<string | null>(null);
+	const [progress, setProgress] = React.useState<ImportProgress | null>(null);
+
 	const importMutation = useMutation({
 		fn: runImport,
 		onError: (err) => {
 			toast.error(err.message);
 		},
 		onSuccess: async (ctx) => {
-			toast.success(ctx.data.message);
-			onClose();
+			setProgress({ imported: 0, skipped: 0, status: "running" });
+			setJobId(ctx.data.data.jobId);
 		},
 	});
+
+	// Polls job progress while an import is running, so the card shows how
+	// many entities have already been created and how many are left.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: onClose is stable per open dialog
+	React.useEffect(() => {
+		if (!jobId) return;
+
+		let cancelled = false;
+		const interval = setInterval(async () => {
+			try {
+				const { data } = await getImportProgress({ data: { jobId } });
+				if (cancelled) return;
+				setProgress(data);
+				if (data.status !== "running") {
+					clearInterval(interval);
+					setJobId(null);
+					if (data.status === "done") {
+						toast.success(data.message ?? t("Import started"));
+						onClose();
+					} else {
+						toast.error(data.message ?? t("Import not found"));
+					}
+				}
+			} catch (err) {
+				if (cancelled) return;
+				clearInterval(interval);
+				setJobId(null);
+				toast.error((err as Error).message);
+			}
+		}, PROGRESS_POLL_INTERVAL_MS);
+
+		return () => {
+			cancelled = true;
+			clearInterval(interval);
+		};
+	}, [jobId]);
 
 	const form = useForm({
 		defaultValues: toDefaultValues(importer?.configFields ?? []),
@@ -61,8 +110,12 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 	React.useEffect(() => {
 		if (importer) {
 			form.reset(toDefaultValues(importer.configFields));
+			setProgress(null);
+			setJobId(null);
 		}
 	}, [importer?.id]);
+
+	const isImporting = jobId !== null;
 
 	return (
 		<Dialog
@@ -106,6 +159,7 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 									<Input
 										id={field.name}
 										aria-invalid={!field.state.meta.isValid}
+										disabled={isImporting}
 										type={configField.type}
 										name={field.name}
 										value={field.state.value}
@@ -122,6 +176,33 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 						</form.Field>
 					))}
 				</form>
+				{progress && (
+					<div className="flex flex-col gap-1.5">
+						<div className="h-2 overflow-hidden rounded-full bg-muted">
+							<div
+								className="h-full rounded-full bg-primary transition-[width] duration-200 ease-out"
+								style={{
+									width: progress.total
+										? `${Math.min(100, (progress.imported / progress.total) * 100)}%`
+										: progress.status === "running"
+											? "100%"
+											: "0%",
+								}}
+							/>
+						</div>
+						<p className="text-muted-foreground text-xs">
+							{progress.total
+								? t(
+										"{0} of {1} imported",
+										progress.imported.toString(),
+										progress.total.toString(),
+									)
+								: t("Loading…")}
+							{progress.skipped > 0 &&
+								` · ${t("{0} skipped", progress.skipped.toString())}`}
+						</p>
+					</div>
+				)}
 				<DialogFooter>
 					<DialogClose render={<Button variant="outline" />}>
 						{t("Close")}
@@ -132,14 +213,16 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 						{([canSubmit, isSubmitting]) => (
 							<Button
 								type="submit"
-								disabled={!canSubmit || isSubmitting}
+								disabled={!canSubmit || isSubmitting || isImporting}
 								onClick={(e) => {
 									e.preventDefault();
 									e.stopPropagation();
 									form.handleSubmit();
 								}}
 							>
-								{isSubmitting ? t("Loading…") : t("Start Import")}
+								{isImporting || isSubmitting
+									? t("Loading…")
+									: t("Start Import")}
 							</Button>
 						)}
 					</form.Subscribe>
