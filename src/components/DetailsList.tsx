@@ -1,11 +1,15 @@
 import {
 	type ColumnDef,
+	columnSizingFeature,
+	createSortedRowModel,
 	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
+	type RowData,
 	type RowSelectionState,
+	rowSelectionFeature,
+	rowSortingFeature,
 	type SortingState,
-	useReactTable,
+	tableFeatures,
+	useTable,
 } from "@tanstack/react-table";
 import { ChevronDown, ChevronsDownUp, ChevronUp } from "lucide-react";
 import React from "react";
@@ -28,6 +32,13 @@ import {
 } from "@/components/ui/table";
 import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
+
+const features = tableFeatures({
+	columnSizingFeature,
+	rowSelectionFeature,
+	rowSortingFeature,
+	sortedRowModel: createSortedRowModel(),
+});
 
 export type DetailsListColumn<T> = {
 	key: string;
@@ -84,7 +95,7 @@ const commandBarButtonVariant = (
 	return "ghost" as const;
 };
 
-export function DetailsList<T>({
+export function DetailsList<T extends RowData>({
 	items,
 	columns,
 	getItemId,
@@ -104,8 +115,8 @@ export function DetailsList<T>({
 	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
 	// Convert custom columns to TanStack Table column definitions
-	const tableColumns = React.useMemo<ColumnDef<T>[]>(() => {
-		const cols: ColumnDef<T>[] = [];
+	const tableColumns = React.useMemo<ColumnDef<typeof features, T>[]>(() => {
+		const cols: ColumnDef<typeof features, T>[] = [];
 
 		// Add selection column if needed
 		if (selectMode !== "none") {
@@ -123,7 +134,9 @@ export function DetailsList<T>({
 						return (
 							<Checkbox
 								checked={table.getIsAllRowsSelected()}
-								indeterminate={table.getIsSomeRowsSelected()}
+								indeterminate={
+									table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()
+								}
 								onCheckedChange={(checked) =>
 									table.toggleAllRowsSelected(checked === true)
 								}
@@ -148,7 +161,7 @@ export function DetailsList<T>({
 				minSize: column.minWidth
 					? Number.parseInt(column.minWidth, 10)
 					: undefined,
-				sortingFn: column.sortFn
+				sortFn: column.sortFn
 					? // biome-ignore lint/style/noNonNullAssertion: Cannot be null here
 						(rowA, rowB) => column.sortFn!(rowA.original, rowB.original)
 					: undefined,
@@ -158,18 +171,17 @@ export function DetailsList<T>({
 		return cols;
 	}, [columns, selectMode]);
 
-	const table = useReactTable({
+	const table = useTable({
 		columns: tableColumns,
 		data: items,
 		enableMultiRowSelection: selectMode === "multiple",
 		enableRowSelection: selectMode !== "none",
-		getCoreRowModel: getCoreRowModel(),
+		features,
 		getRowId: (row) => getItemId(row),
 		// When sorting is controlled, the parent is responsible for fetching
 		// the data in the requested order (e.g. server-side sort across a
 		// paginated dataset) rather than the table resorting whatever rows
 		// happen to be loaded client-side.
-		getSortedRowModel: controlledSorting ? undefined : getSortedRowModel(),
 		manualSorting: !!controlledSorting,
 		onRowSelectionChange: (updater) => {
 			if (selectMode === "single") {
@@ -360,7 +372,7 @@ export function DetailsList<T>({
 					{table.getRowModel().rows.map((row) => {
 						const children = (
 							<>
-								{row.getVisibleCells().map((cell) => {
+								{row.getAllCells().map((cell) => {
 									const align = columns.find(
 										(c) => c.key === cell.column.id,
 									)?.align;
