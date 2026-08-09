@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
-import type { Appointment, Prisma, Response } from "@/lib/prisma/client";
+import type { Appointment, Prisma, Response, Team } from "@/lib/prisma/client";
 import {
 	AppointmentStatus,
 	AppointmentType,
@@ -86,6 +86,7 @@ export const createAppointment = createServerFn()
 
 const appointmentDetailInclude = {
 	nextAppointment: true,
+	ownTeam: true,
 	placements: {
 		include: { player: true },
 	},
@@ -102,7 +103,10 @@ export type AppointmentDetail = Prisma.AppointmentGetPayload<{
 	include: typeof appointmentDetailInclude;
 }>;
 
-export type AppointmentWithResponses = Appointment & { responses: Response[] };
+export type AppointmentWithResponses = Appointment & {
+	responses: Response[];
+	ownTeam: Team | null;
+};
 
 export const getAppointment = createServerFn()
 	.validator((d: { id: string }) => d)
@@ -236,7 +240,7 @@ export const getAppointments = createServerFn()
 	.handler(async ({ data }) => {
 		try {
 			const appointments = await prismaClient.appointment.findMany({
-				include: { responses: true },
+				include: { ownTeam: true, responses: true },
 				orderBy: data.orderBy,
 				where: {
 					deletedAt: data.withDeleted ? undefined : null,
@@ -314,7 +318,7 @@ export const getAppointmentsPage = createServerFn()
 
 			const [appointments, matchedTotal, grandTotal] = await Promise.all([
 				prismaClient.appointment.findMany({
-					include: { responses: true },
+					include: { ownTeam: true, responses: true },
 					orderBy: { startDate: "desc" },
 					skip: data.skip,
 					take: data.take,

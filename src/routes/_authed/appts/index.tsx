@@ -16,6 +16,7 @@ import {
 	ListIcon,
 	MapPinIcon,
 	RotateCcwIcon,
+	ShieldIcon,
 	Trash2Icon,
 } from "lucide-react";
 import React from "react";
@@ -625,6 +626,7 @@ const AppointmentSplitView = ({
 			);
 			const created: AppointmentWithResponses[] = results.map((result) => ({
 				...result.data,
+				ownTeam: null,
 				responses: [] as Response[],
 			}));
 			onAppointmentsChange((prev) =>
@@ -1000,6 +1002,18 @@ function AppointmentDetailContent({
 					<div className="flex items-center gap-1.5 text-muted-foreground">
 						<MapPinIcon className="size-3.5 shrink-0" />
 						{appointment.location}
+					</div>
+				)}
+				{appointment.ownTeam && (
+					<div className="flex items-center gap-1.5 text-muted-foreground">
+						<ShieldIcon className="size-3.5 shrink-0" />
+						<Link
+							to="/teams/$teamId"
+							params={{ teamId: appointment.ownTeam.id }}
+							className="text-primary hover:underline"
+						>
+							{appointment.ownTeam.title}
+						</Link>
 					</div>
 				)}
 			</div>

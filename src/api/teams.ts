@@ -68,7 +68,14 @@ export const getTeam = createServerFn()
 	.handler(async ({ data }) => {
 		try {
 			const team = await prismaClient.team.findUnique({
-				include: { players: true },
+				include: {
+					appointments: {
+						include: { ownTeam: true, responses: true },
+						orderBy: { startDate: "asc" },
+						where: { deletedAt: null },
+					},
+					players: true,
+				},
 				where: { id: data.id },
 			});
 			if (!team) {

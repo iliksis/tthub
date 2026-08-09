@@ -18,13 +18,16 @@ import {
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
-import type { Appointment, Response } from "@/lib/prisma/client";
+import type { Appointment, Response, Team } from "@/lib/prisma/client";
 import { AppointmentType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { cn, isDayInPast, isInformationalAppointmentType } from "@/lib/utils";
 import type { DetailsListColumn } from "../DetailsList";
 
-type AppointmentWithResponses = Appointment & { responses: Response[] };
+type AppointmentWithResponses = Appointment & {
+	responses: Response[];
+	ownTeam: Team | null;
+};
 
 type ListProps = {
 	appointments: AppointmentWithResponses[];

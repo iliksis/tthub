@@ -4,10 +4,11 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { EditIcon, Trash2Icon, TrophyIcon, UsersIcon } from "lucide-react";
+import { EditIcon, Trash2Icon, UsersIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { deleteTeam, getTeam, updateTeam } from "@/api/teams";
+import { List } from "@/components/appointments/List";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlayerRosterRow } from "@/components/teams/PlayerRosterRow";
@@ -157,9 +158,9 @@ function RouteComponent() {
 						))}
 					</div>
 				)}
-				<div className="mt-4 flex items-center gap-3 rounded-lg border border-border/60 border-dashed p-4 text-muted-foreground text-sm">
-					<TrophyIcon className="size-4 shrink-0" />
-					{t("League table and fixtures are not available yet.")}
+				<div className="mt-4">
+					<div className="mb-2 font-medium text-sm">{t("Matches")}</div>
+					<List appointments={team.appointments} />
 				</div>
 				{canEdit && (
 					<div className="fab">
@@ -201,9 +202,9 @@ function RouteComponent() {
 						}}
 					/>
 				</div>
-				<div className="mt-4 flex items-center gap-3 rounded-lg border border-border/60 border-dashed p-4 text-muted-foreground text-sm">
-					<TrophyIcon className="size-4 shrink-0" />
-					{t("League table and fixtures are not available yet.")}
+				<div className="mt-4">
+					<div className="mb-2 font-medium text-sm">{t("Matches")}</div>
+					<List appointments={team.appointments} />
 				</div>
 			</div>
 

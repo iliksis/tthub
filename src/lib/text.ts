@@ -195,6 +195,7 @@ const texts = {
 	Logout: "Abmelden",
 	"Manage club members and invitations":
 		"Vereinsmitglieder und Einladungen verwalten",
+	Matches: "Spiele",
 	Max: "Max",
 	Maybe: "Vielleicht",
 	Min: "Min",

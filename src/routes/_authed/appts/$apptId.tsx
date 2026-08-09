@@ -391,6 +391,19 @@ function RouteComponent() {
 								)}
 							</div>
 						)}
+						{appointment.ownTeam && (
+							<div className="col-span-2">
+								<div className="mb-1 text-muted-foreground text-xs uppercase">
+									{t("Team")}
+								</div>
+								<Link
+									to="/teams/$teamId"
+									params={{ teamId: appointment.ownTeam.id }}
+								>
+									{appointment.ownTeam.title}
+								</Link>
+							</div>
+						)}
 					</div>
 
 					{!isHoliday && appointment.location && (
@@ -593,6 +606,19 @@ function RouteComponent() {
 										{t("No location set")}
 									</span>
 								)}
+							</div>
+						)}
+						{appointment.ownTeam && (
+							<div>
+								<div className="mb-1 text-muted-foreground text-xs uppercase">
+									{t("Team")}
+								</div>
+								<Link
+									to="/teams/$teamId"
+									params={{ teamId: appointment.ownTeam.id }}
+								>
+									{appointment.ownTeam.title}
+								</Link>
 							</div>
 						)}
 					</div>
