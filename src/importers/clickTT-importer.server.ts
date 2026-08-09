@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { parseClickTTPdf } from "@/lib/clickTTpdf";
+import {
+	createTeamMatchAppointmentId,
+	filterClickTTScheduleByClub,
+	parseClickTTMatchDate,
+	parseClickTTPdf,
+} from "@/lib/clickTTpdf";
+import { prismaClient } from "@/lib/db";
+import { AppointmentType } from "@/lib/prisma/enums";
 import type { ImporterDefinition } from "./types";
 
 const configSchema = z.object({});
@@ -10,38 +17,62 @@ export const clickTTImporter = {
 	id: "clickTT",
 	name: "ClickTT",
 
-	async run({ config, emit, log, setTotal }) {
-		const res = await fetch(
-			"https://bttv.click-tt.de/cgi-bin/WebObjects/nuLigaDokumentTTDE.woa/wa/nuDokument?dokument=ScheduleReportFOP&group=524271",
+	async run({ emit, log, setTotal }) {
+		const baseUrl = process.env.CLICKTT_SCHEDULE_URL;
+		const clubName = process.env.CLICKTT_CLUB_NAME;
+
+		const teams = await prismaClient.team.findMany({
+			where: { clickTTTeamId: { not: null } },
+		});
+
+		const teamSchedules = await Promise.all(
+			teams.map(async (team) => {
+				const res = await fetch(`${baseUrl}&group=${team.clickTTTeamId}`);
+				const data = await res.arrayBuffer();
+				const schedule = await parseClickTTPdf(data);
+				const { matches } = filterClickTTScheduleByClub(schedule, clubName);
+				return { matches, team };
+			}),
 		);
-		const data = await res.arrayBuffer();
-		const { matches, standings } = await parseClickTTPdf(data);
+
+		setTotal(
+			teamSchedules.reduce((total, { matches }) => total + matches.length, 0),
+		);
+
+		let imported = 0;
+		let updated = 0;
+		let skipped = 0;
+		for (const { matches, team } of teamSchedules) {
+			for (const match of matches) {
+				const result = await emit({
+					appointmentType: AppointmentType.TEAM_MATCH,
+					externalId: createTeamMatchAppointmentId(
+						// biome-ignore lint/style/noNonNullAssertion: filtered by clickTTTeamId not-null above
+						team.clickTTTeamId!,
+						match.home,
+						match.away,
+					),
+					startsAt: parseClickTTMatchDate(match).toISOString(),
+					teamMatch: {
+						awayTeam: match.away,
+						homeTeam: match.home,
+						ownTeamId: team.id,
+					},
+					title: `${match.home} - ${match.away}`,
+					type: "event",
+				});
+				if (result.status === "imported") imported++;
+				else if (result.status === "updated") updated++;
+				else skipped++;
+			}
+		}
+
 		log(
 			"info",
-			`Parsed ${matches.length} matches and ${standings.length} standings`,
+			`Imported ${imported} matches, updated ${updated}, skipped ${skipped}`,
 		);
 
-		// let imported = 0;
-		// let skipped = 0;
-		// for (const holiday of [...schoolHolidays, ...publicHolidays]) {
-		// 	const result = await emit({
-		// 		appointmentType: AppointmentType.HOLIDAY,
-		// 		endsAt: holiday.endDate.toISOString(),
-		// 		externalId: holiday.id,
-		// 		startsAt: holiday.startDate.toISOString(),
-		// 		title: holiday.name[0].text,
-		// 		type: "event",
-		// 	});
-		// 	if (result.status === "imported") {
-		// 		imported++;
-		// 	} else {
-		// 		skipped++;
-		// 	}
-		// }
-
-		// log("info", `Imported ${imported} holidays, skipped ${skipped}`);
-
-		return { imported: 0, skipped: 0 };
+		return { imported, skipped };
 	},
 	version: "1.0.0",
 } satisfies ImporterDefinition<typeof configSchema>;
