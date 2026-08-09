@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
 export type ClickTTStanding = {
@@ -85,6 +86,39 @@ export function filterClickTTScheduleByClub(
 		),
 		standings: schedule.standings.filter((s) => s.team === clubName),
 	};
+}
+
+/**
+ * Deterministic Appointment id for a team match, derived from the team's
+ * click-TT group (so re-imports update the same row instead of creating a
+ * duplicate when only the match date changes) and the two team names.
+ */
+export function createTeamMatchAppointmentId(
+	clickTTGroupId: string,
+	home: string,
+	away: string,
+): string {
+	return createHash("sha1")
+		.update(`${clickTTGroupId}:${home}:${away}`)
+		.digest("base64url")
+		.slice(0, 12);
+}
+
+/** Combines a match's "dd.mm.yyyy" date and "hh:mm" time into a Date. */
+export function parseClickTTMatchDate(match: ClickTTMatch): Date {
+	const dateMatch = match.date.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+	if (!dateMatch) {
+		throw new Error(`Unrecognized match date: "${match.date}"`);
+	}
+	const [, day, month, year] = dateMatch;
+	const [hour, minute] = match.time.split(":");
+	return new Date(
+		Number(year),
+		Number(month) - 1,
+		Number(day),
+		Number(hour),
+		Number(minute),
+	);
 }
 
 function splitColumns(items: TextItem[]): {
