@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getImporter, listImporters } from "@/importers/registry.server";
 import type { EmitResult, ImportEntity } from "@/importers/types";
 import { prismaClient } from "@/lib/db";
+import type { Prisma } from "@/lib/prisma/client";
 import { TransactionType } from "@/lib/prisma/enums";
 import { requireAdmin, requireEditor } from "@/lib/session";
 import { t } from "@/lib/text";
@@ -9,6 +10,7 @@ import { t } from "@/lib/text";
 type ImportJob = {
 	status: "running" | "done" | "error";
 	imported: number;
+	updated: number;
 	skipped: number;
 	total?: number;
 	message?: string;
@@ -37,31 +39,59 @@ async function persistEntity(
 	const existingAppointment = await prismaClient.appointment.findUnique({
 		where: { id: entity.externalId },
 	});
-	if (existingAppointment) {
+
+	if (!existingAppointment) {
+		await prismaClient.$transaction(async (tx) => {
+			const appointment = await tx.appointment.create({
+				data: {
+					awayTeam: entity.teamMatch?.awayTeam,
+					endDate: entity.endsAt ? new Date(entity.endsAt) : null,
+					homeTeam: entity.teamMatch?.homeTeam,
+					id: entity.externalId,
+					ownTeamId: entity.teamMatch?.ownTeamId,
+					shortTitle: entity.title,
+					startDate: new Date(entity.startsAt),
+					title: entity.title,
+					type: entity.appointmentType,
+				},
+			});
+			await tx.transaction.create({
+				data: {
+					appointmentId: appointment.id,
+					type: TransactionType.CREATE,
+					userId,
+				},
+			});
+		});
+		return { status: "imported" };
+	}
+
+	const startDate = new Date(entity.startsAt);
+	if (existingAppointment.startDate.valueOf() === startDate.valueOf()) {
 		return { status: "skipped" };
 	}
 
 	await prismaClient.$transaction(async (tx) => {
-		const appointment = await tx.appointment.create({
-			data: {
-				endDate: entity.endsAt ? new Date(entity.endsAt) : null,
-				id: entity.externalId,
-				shortTitle: entity.title,
-				startDate: new Date(entity.startsAt),
-				title: entity.title,
-				type: entity.appointmentType,
-			},
+		const appointment = await tx.appointment.update({
+			data: { startDate },
+			where: { id: entity.externalId },
 		});
 		await tx.transaction.create({
 			data: {
 				appointmentId: appointment.id,
-				type: TransactionType.CREATE,
+				changes: {
+					startDate: {
+						new: appointment.startDate,
+						old: existingAppointment.startDate,
+					},
+				} as Prisma.InputJsonValue,
+				type: TransactionType.UPDATE,
 				userId,
 			},
 		});
 	});
 
-	return { status: "imported" };
+	return { status: "updated" };
 }
 
 export const runImport = createServerFn()
@@ -78,7 +108,12 @@ export const runImport = createServerFn()
 		}
 
 		const jobId = crypto.randomUUID();
-		importJobs.set(jobId, { imported: 0, skipped: 0, status: "running" });
+		importJobs.set(jobId, {
+			imported: 0,
+			skipped: 0,
+			status: "running",
+			updated: 0,
+		});
 
 		// Not awaited: the client polls getImportProgress for updates instead of
 		// blocking on a single request for the whole (potentially long) import.
@@ -93,6 +128,8 @@ export const runImport = createServerFn()
 						const entityResult = await persistEntity(entity, session.id);
 						if (entityResult.status === "imported") {
 							job.imported++;
+						} else if (entityResult.status === "updated") {
+							job.updated++;
 						} else {
 							job.skipped++;
 						}
@@ -106,10 +143,12 @@ export const runImport = createServerFn()
 					},
 				});
 				job.status = "done";
-				job.message =
-					result.imported === 1
-						? t("1 appointment created")
-						: t("{0} Appointments created", result.imported.toString());
+				job.message = t(
+					"{0} created, {1} updated, {2} skipped",
+					result.imported.toString(),
+					job.updated.toString(),
+					result.skipped.toString(),
+				);
 			} catch (e) {
 				console.error(e);
 				job.status = "error";

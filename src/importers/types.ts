@@ -11,6 +11,7 @@ export type ImportEntity =
 			startsAt: string;
 			endsAt?: string;
 			metadata?: Record<string, unknown>;
+			teamMatch?: { ownTeamId: string; homeTeam: string; awayTeam: string };
 	  }
 	| {
 			type: "data";
@@ -18,7 +19,7 @@ export type ImportEntity =
 			payload: Record<string, unknown>;
 	  };
 
-export type EmitResult = { status: "imported" | "skipped" };
+export type EmitResult = { status: "imported" | "updated" | "skipped" };
 
 export type ImportContext = {
 	config: Record<string, unknown>;

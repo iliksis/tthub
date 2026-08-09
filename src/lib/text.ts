@@ -16,6 +16,8 @@ const texts = {
 	"{0} appointments selected": "{0} Termine ausgewählt",
 	"{0} appointments unpublished": "{0} Termine zurückgezogen",
 	"{0} changed": "{0} geändert",
+	"{0} created, {1} updated, {2} skipped":
+		"{0} erstellt, {1} aktualisiert, {2} übersprungen",
 	"{0} fields changed": "{0} Felder geändert",
 	"{0} invited": "{0} eingeladen",
 	"{0} more": "{0} weitere",
@@ -24,6 +26,7 @@ const texts = {
 	"{0} of {1} imported": "{0} von {1} importiert",
 	"{0} players": "{0} Spieler:innen",
 	"{0} skipped": "{0} übersprungen",
+	"{0} updated": "{0} aktualisiert",
 	"1 appointment answered": "1 Termin beantwortet",
 	"1 appointment created": "1 Termin erstellt",
 	"1 appointment deleted": "1 Termin gelöscht",

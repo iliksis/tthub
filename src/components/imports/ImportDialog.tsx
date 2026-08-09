@@ -30,6 +30,7 @@ type ImportDialogProps = {
 type ImportProgress = {
 	status: "running" | "done" | "error";
 	imported: number;
+	updated: number;
 	skipped: number;
 	total?: number;
 	message?: string;
@@ -53,7 +54,7 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 			toast.error(err.message);
 		},
 		onSuccess: async (ctx) => {
-			setProgress({ imported: 0, skipped: 0, status: "running" });
+			setProgress({ imported: 0, skipped: 0, status: "running", updated: 0 });
 			setJobId(ctx.data.data.jobId);
 		},
 	});
@@ -198,6 +199,8 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 										progress.total.toString(),
 									)
 								: t("Loading…")}
+							{progress.updated > 0 &&
+								` · ${t("{0} updated", progress.updated.toString())}`}
 							{progress.skipped > 0 &&
 								` · ${t("{0} skipped", progress.skipped.toString())}`}
 						</p>
