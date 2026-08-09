@@ -154,6 +154,7 @@ const texts = {
 	"Holidays and myTischtennis data": "Feiertage und myTischtennis-Daten",
 	Import: "Importieren",
 	"Import Holidays": "Ferien/Feiertage importieren",
+	"Importer not found": "Importer nicht gefunden",
 	Imports: "Importe",
 	"Include draft appointments": "Entwurfs-Termine hinzufügen",
 	"Incorrect user name or password":

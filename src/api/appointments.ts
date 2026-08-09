@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { Holiday } from "open-holiday-js";
 import { prismaClient } from "@/lib/db";
 import type { Appointment, Prisma, Response } from "@/lib/prisma/client";
 import {
@@ -636,64 +635,6 @@ export const getCalendarAppointments = createServerFn()
 				type: a.type,
 			}));
 			return { data: calAppointments, message: t("Appointments found") };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
-
-export const importHolidays = createServerFn()
-	.validator(
-		(d: {
-			country: string;
-			subdivision?: string;
-			startDate: string;
-			endDate: string;
-		}) => d,
-	)
-	.handler(async ({ data }) => {
-		try {
-			const api = new Holiday();
-			const schoolHolidays = await api.getSchoolHolidays(
-				data.country,
-				new Date(data.startDate),
-				new Date(data.endDate),
-				data.subdivision,
-			);
-			const publicHolidays = await api.getPublicHolidays(
-				data.country,
-				new Date(data.startDate),
-				new Date(data.endDate),
-				data.subdivision,
-			);
-			let count = 0;
-			for (const holiday of [...schoolHolidays, ...publicHolidays]) {
-				const existingAppointment = await prismaClient.appointment.findFirst({
-					where: {
-						id: holiday.id,
-					},
-				});
-				if (existingAppointment) {
-					continue;
-				}
-				await prismaClient.appointment.create({
-					data: {
-						endDate: holiday.endDate,
-						id: holiday.id,
-						shortTitle: holiday.name[0].text,
-						startDate: holiday.startDate,
-						title: holiday.name[0].text,
-						type: AppointmentType.HOLIDAY,
-					},
-				});
-				count++;
-			}
-			return {
-				message:
-					count === 1
-						? t("1 appointment created")
-						: t("{0} Appointments created", count.toString()),
-			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);

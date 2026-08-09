@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { Holiday } from "open-holiday-js";
 import { toast } from "sonner";
-import { importHolidays } from "@/api/appointments";
+import { runImport } from "@/api/imports";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +38,7 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 	const router = useRouter();
 
 	const importMutation = useMutation({
-		fn: importHolidays,
+		fn: runImport,
 		onError: (err) => {
 			toast.error(err.message);
 		},
@@ -58,10 +58,13 @@ export const HolidayImport = ({ countries }: HolidayImportProps) => {
 		onSubmit: async ({ value }) => {
 			await importMutation.mutate({
 				data: {
-					country: value.country,
-					endDate: value.endDate,
-					startDate: value.startDate,
-					subdivision: value.subdivision,
+					config: {
+						country: value.country,
+						endDate: value.endDate,
+						startDate: value.startDate,
+						subdivision: value.subdivision,
+					},
+					importerId: "holiday",
 				},
 			});
 		},
