@@ -77,6 +77,7 @@ const texts = {
 		"Bist du sicher, dass du diese Spieler:in löschen möchtest?",
 	"Are you sure you want to delete this team?":
 		"Bist du sicher, dass du dieses Team löschen möchtest?",
+	"Available Importers": "Verfügbare Importe",
 	Back: "Zurück",
 	"Back to dashboard": "Zum Dashboard",
 	Bavaria: "Bayern",
@@ -155,6 +156,7 @@ const texts = {
 	Import: "Importieren",
 	"Import Holidays": "Ferien/Feiertage importieren",
 	"Importer not found": "Importer nicht gefunden",
+	"Importers found": "Importer gefunden",
 	Imports: "Importe",
 	"Include draft appointments": "Entwurfs-Termine hinzufügen",
 	"Incorrect user name or password":

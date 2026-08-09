@@ -8,7 +8,12 @@ const importers = [
 ] as const satisfies readonly ImporterDefinition[];
 
 export function listImporters() {
-	return importers.map(({ configSchema, ...importer }) => importer);
+	return importers.map(({ id, name, description, version }) => ({
+		description,
+		id,
+		name,
+		version,
+	}));
 }
 
 export function getImporter(id: string) {

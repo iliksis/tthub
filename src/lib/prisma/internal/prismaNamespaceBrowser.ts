@@ -62,6 +62,7 @@ export const ModelName = {
   Placement: 'Placement',
   Transaction: 'Transaction',
   Subscription: 'Subscription',
+  ImporterSetting: 'ImporterSetting',
   NotificationSettings: 'NotificationSettings'
 } as const
 
@@ -203,6 +204,14 @@ export const SubscriptionScalarFieldEnum = {
 } as const
 
 export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
+
+
+export const ImporterSettingScalarFieldEnum = {
+  importerId: 'importerId',
+  enabled: 'enabled'
+} as const
+
+export type ImporterSettingScalarFieldEnum = (typeof ImporterSettingScalarFieldEnum)[keyof typeof ImporterSettingScalarFieldEnum]
 
 
 export const NotificationSettingsScalarFieldEnum = {

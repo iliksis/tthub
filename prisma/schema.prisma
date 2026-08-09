@@ -162,6 +162,11 @@ model Subscription {
   notificationSettings NotificationSettings[]
 }
 
+model ImporterSetting {
+  importerId String  @id
+  enabled    Boolean @default(true)
+}
+
 model NotificationSettings {
   userId             String
   user               User         @relation(fields: [userId], references: [id])

@@ -73,6 +73,11 @@ export type Transaction = Prisma.TransactionModel
  */
 export type Subscription = Prisma.SubscriptionModel
 /**
+ * Model ImporterSetting
+ * 
+ */
+export type ImporterSetting = Prisma.ImporterSettingModel
+/**
  * Model NotificationSettings
  * 
  */
