@@ -88,6 +88,14 @@ export const clickTTImporter = {
 			if (standings.length > 0) {
 				await persistStandings(team.id, standings);
 				standingsUpdated++;
+
+				const ownStanding = standings.find((s) => s.team.startsWith(clubName));
+				if (ownStanding && ownStanding.rank.toString() !== team.placement) {
+					await prismaClient.team.update({
+						data: { placement: ownStanding.rank.toString() },
+						where: { id: team.id },
+					});
+				}
 			}
 			for (const match of matches) {
 				const result = await emit({
