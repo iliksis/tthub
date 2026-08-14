@@ -75,16 +75,22 @@ export async function parseClickTTPdf(
 	};
 }
 
-/** Narrows a parsed schedule down to standings/matches involving one club. */
+/**
+ * Narrows a parsed schedule down to standings/matches involving one club.
+ * Team names carry a per-team Roman numeral suffix (e.g. "SB Versbach II"),
+ * so this matches by prefix rather than exact equality.
+ */
 export function filterClickTTScheduleByClub(
 	schedule: ClickTTSchedule,
 	clubName: string,
 ): ClickTTSchedule {
+	const isClubTeam = (team: string) =>
+		team === clubName || team.startsWith(`${clubName} `);
 	return {
 		matches: schedule.matches.filter(
-			(m) => m.home === clubName || m.away === clubName,
+			(m) => isClubTeam(m.home) || isClubTeam(m.away),
 		),
-		standings: schedule.standings.filter((s) => s.team === clubName),
+		standings: schedule.standings.filter((s) => isClubTeam(s.team)),
 	};
 }
 
