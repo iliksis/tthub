@@ -275,7 +275,6 @@ const typeOptions: { value: string; label: string }[] = [
 	{ label: t("All types"), value: "ALL" },
 	{ label: t("Tournament"), value: AppointmentType.TOURNAMENT },
 	{ label: t("Tournament (Germany)"), value: AppointmentType.TOURNAMENT_DE },
-	{ label: t("Holiday"), value: AppointmentType.HOLIDAY },
 	{ label: t("Team Match"), value: AppointmentType.TEAM_MATCH },
 ];
 

@@ -298,6 +298,7 @@ export const getAppointmentsPage = createServerFn()
 		try {
 			const where: Prisma.AppointmentWhereInput = {
 				deletedAt: data.withDeleted ? undefined : null,
+				NOT: { type: AppointmentType.HOLIDAY },
 				OR: [
 					{ title: { contains: data.query ?? "" } },
 					{ shortTitle: { contains: data.query ?? "" } },
@@ -326,7 +327,10 @@ export const getAppointmentsPage = createServerFn()
 				}),
 				prismaClient.appointment.count({ where }),
 				prismaClient.appointment.count({
-					where: { deletedAt: data.withDeleted ? undefined : null },
+					where: {
+						deletedAt: data.withDeleted ? undefined : null,
+						NOT: { type: AppointmentType.HOLIDAY },
+					},
 				}),
 			]);
 
