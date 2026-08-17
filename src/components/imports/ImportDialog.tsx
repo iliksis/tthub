@@ -32,9 +32,14 @@ type ImportProgress = {
 	imported: number;
 	updated: number;
 	skipped: number;
-	total?: number;
 	message?: string;
 };
+
+const IndeterminateProgressBar = () => (
+	<div className="h-2 overflow-hidden rounded-full bg-muted">
+		<div className="h-full w-1/3 animate-[indeterminate-progress_1.2s_ease-in-out_infinite] rounded-full bg-primary" />
+	</div>
+);
 
 const PROGRESS_POLL_INTERVAL_MS = 500;
 
@@ -59,9 +64,8 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 		},
 	});
 
-	// Polls job progress while an import is running, so the card shows how
-	// many entities have already been created and how many are left.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: onClose is stable per open dialog
+	// Polls job progress while an import is running. The dialog stays open
+	// once the job finishes so the user can see the resulting metrics.
 	React.useEffect(() => {
 		if (!jobId) return;
 
@@ -74,10 +78,7 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 				if (data.status !== "running") {
 					clearInterval(interval);
 					setJobId(null);
-					if (data.status === "done") {
-						toast.success(data.message ?? t("Import started"));
-						onClose();
-					} else {
+					if (data.status === "error") {
 						toast.error(data.message ?? t("Import not found"));
 					}
 				}
@@ -127,108 +128,95 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 		>
 			<DialogContent>
 				<DialogTitle>{importer?.name}</DialogTitle>
-				<form
-					className="flex flex-col gap-4"
-					onSubmit={(e) => {
-						e.preventDefault();
-						e.stopPropagation();
-						form.handleSubmit();
-					}}
-				>
-					{importer?.configFields.map((configField) => (
-						<form.Field
-							key={configField.key}
-							name={configField.key}
-							validators={{
-								onChange: ({ value }) =>
-									configField.required && value.trim().length === 0
-										? t("This field is required")
-										: undefined,
-							}}
-						>
-							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>
-										{configField.label}
-										{!configField.required && ` ${t("(optional)")}`}:
-									</Label>
-									{configField.description && (
-										<p className="text-muted-foreground text-xs">
-											{configField.description}
-										</p>
-									)}
-									<Input
-										id={field.name}
-										aria-invalid={!field.state.meta.isValid}
-										disabled={isImporting}
-										type={configField.type}
-										name={field.name}
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-									{!field.state.meta.isValid && (
-										<p className="text-destructive text-sm">
-											{field.state.meta.errors.join(", ")}
-										</p>
-									)}
-								</fieldset>
-							)}
-						</form.Field>
-					))}
-				</form>
-				{progress && (
-					<div className="flex flex-col gap-1.5">
-						<div className="h-2 overflow-hidden rounded-full bg-muted">
-							<div
-								className="h-full rounded-full bg-primary transition-[width] duration-200 ease-out"
-								style={{
-									width: progress.total
-										? `${Math.min(100, (progress.imported / progress.total) * 100)}%`
-										: progress.status === "running"
-											? "100%"
-											: "0%",
+				{progress?.status === "done" ? (
+					<p className="text-muted-foreground text-sm">
+						{t("{0} created", progress.imported.toString())}
+						{` · ${t("{0} updated", progress.updated.toString())}`}
+						{` · ${t("{0} skipped", progress.skipped.toString())}`}
+					</p>
+				) : (
+					<form
+						className="flex flex-col gap-4"
+						onSubmit={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							form.handleSubmit();
+						}}
+					>
+						{importer?.configFields.map((configField) => (
+							<form.Field
+								key={configField.key}
+								name={configField.key}
+								validators={{
+									onChange: ({ value }) =>
+										configField.required && value.trim().length === 0
+											? t("This field is required")
+											: undefined,
 								}}
-							/>
-						</div>
-						<p className="text-muted-foreground text-xs">
-							{progress.total
-								? t(
-										"{0} of {1} imported",
-										progress.imported.toString(),
-										progress.total.toString(),
-									)
-								: t("Loading…")}
-							{progress.updated > 0 &&
-								` · ${t("{0} updated", progress.updated.toString())}`}
-							{progress.skipped > 0 &&
-								` · ${t("{0} skipped", progress.skipped.toString())}`}
-						</p>
-					</div>
+							>
+								{(field) => (
+									<fieldset className="flex flex-col gap-1.5">
+										<Label htmlFor={field.name}>
+											{configField.label}
+											{!configField.required && ` ${t("(optional)")}`}:
+										</Label>
+										{configField.description && (
+											<p className="text-muted-foreground text-xs">
+												{configField.description}
+											</p>
+										)}
+										<Input
+											id={field.name}
+											aria-invalid={!field.state.meta.isValid}
+											disabled={isImporting}
+											type={configField.type}
+											name={field.name}
+											value={field.state.value}
+											onBlur={field.handleBlur}
+											onChange={(e) => field.handleChange(e.target.value)}
+										/>
+										{!field.state.meta.isValid && (
+											<p className="text-destructive text-sm">
+												{field.state.meta.errors.join(", ")}
+											</p>
+										)}
+									</fieldset>
+								)}
+							</form.Field>
+						))}
+					</form>
+				)}
+				{progress?.status === "running" && <IndeterminateProgressBar />}
+				{progress?.status === "error" && (
+					<p className="text-destructive text-sm">
+						{progress.message ?? t("Import not found")}
+					</p>
 				)}
 				<DialogFooter>
 					<DialogClose render={<Button variant="outline" />}>
 						{t("Close")}
 					</DialogClose>
-					<form.Subscribe
-						selector={(state) => [state.canSubmit, state.isSubmitting]}
-					>
-						{([canSubmit, isSubmitting]) => (
-							<Button
-								type="submit"
-								disabled={!canSubmit || isSubmitting || isImporting}
-								onClick={(e) => {
-									e.preventDefault();
-									e.stopPropagation();
-									form.handleSubmit();
-								}}
-							>
-								{isImporting || isSubmitting
-									? t("Loading…")
-									: t("Start Import")}
-							</Button>
-						)}
-					</form.Subscribe>
+					{progress?.status !== "done" && (
+						<form.Subscribe
+							selector={(state) => [state.canSubmit, state.isSubmitting]}
+						>
+							{([canSubmit, isSubmitting]) => (
+								<Button
+									type="submit"
+									disabled={!canSubmit || isSubmitting || isImporting}
+									onClick={(e) => {
+										e.preventDefault();
+										e.stopPropagation();
+										form.handleSubmit();
+									}}
+								>
+									{isImporting || isSubmitting
+										? t("Loading…")
+										: t("Start Import")}
+								</Button>
+							)}
+						</form.Subscribe>
+					)}
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

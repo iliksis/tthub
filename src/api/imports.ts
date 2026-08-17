@@ -12,7 +12,6 @@ type ImportJob = {
 	imported: number;
 	updated: number;
 	skipped: number;
-	total?: number;
 	message?: string;
 };
 
@@ -138,9 +137,6 @@ export const runImport = createServerFn()
 					log: (level, message) =>
 						console[level](`[${importer.id}] ${message}`),
 					secrets: {},
-					setTotal: (total) => {
-						job.total = total;
-					},
 				});
 				job.status = "done";
 				job.message = t(

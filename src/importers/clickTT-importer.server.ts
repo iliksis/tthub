@@ -58,7 +58,7 @@ export const clickTTImporter = {
 	id: "clickTT",
 	name: "ClickTT",
 
-	async run({ emit, log, setTotal }) {
+	async run({ emit, log }) {
 		const baseUrl = process.env.CLICKTT_SCHEDULE_URL;
 		const clubName = process.env.CLICKTT_CLUB_NAME;
 
@@ -74,10 +74,6 @@ export const clickTTImporter = {
 				const { matches } = filterClickTTScheduleByClub(schedule, clubName);
 				return { matches, standings: schedule.standings, team };
 			}),
-		);
-
-		setTotal(
-			teamSchedules.reduce((total, { matches }) => total + matches.length, 0),
 		);
 
 		let imported = 0;

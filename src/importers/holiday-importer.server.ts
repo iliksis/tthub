@@ -21,7 +21,7 @@ export const holidayImporter = {
 	id: "holiday",
 	name: "Holidays",
 
-	async run({ config, emit, log, setTotal }) {
+	async run({ config, emit, log }) {
 		const { country, subdivision, startDate, endDate } =
 			configSchema.parse(config);
 		const api = new Holiday();
@@ -40,8 +40,6 @@ export const holidayImporter = {
 				subdivision,
 			),
 		]);
-
-		setTotal(schoolHolidays.length + publicHolidays.length);
 
 		let imported = 0;
 		let skipped = 0;

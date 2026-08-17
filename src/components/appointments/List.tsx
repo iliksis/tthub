@@ -1,5 +1,9 @@
 import { Link, useRouteContext, useRouter } from "@tanstack/react-router";
-import { SlidersHorizontalIcon } from "lucide-react";
+import {
+	ArrowDownWideNarrowIcon,
+	ArrowUpNarrowWideIcon,
+	SlidersHorizontalIcon,
+} from "lucide-react";
 import React from "react";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
@@ -8,18 +12,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link as EntityLink } from "@/components/ui/link";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import type { Appointment, Response, Team } from "@/lib/prisma/client";
-import { AppointmentType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { cn, isDayInPast, isInformationalAppointmentType } from "@/lib/utils";
 import type { DetailsListColumn } from "../DetailsList";
@@ -263,28 +259,36 @@ export const filterSchema = z.object({
 	dateTo: z.string().optional(),
 	deleted: z.boolean().optional(),
 	query: z.string().optional(),
-	response: z.enum(["ACCEPT", "MAYBE", "DECLINE", "NONE"]).optional(),
+	responses: z.array(z.enum(["ACCEPT", "MAYBE", "DECLINE", "NONE"])).optional(),
 	skip: z.number().int().nonnegative().optional(),
-	type: z
-		.enum(["TOURNAMENT", "TOURNAMENT_DE", "HOLIDAY", "TEAM_MATCH"])
-		.optional(),
+	sortDir: z.enum(["asc", "desc"]).optional(),
+	teamIds: z.array(z.string()).optional(),
+	typeGroup: z.enum(["TOURNAMENT", "TEAM_MATCH"]).optional(),
 });
 type FiltersProps = z.infer<typeof filterSchema>;
 
-const typeOptions: { value: string; label: string }[] = [
-	{ label: t("All types"), value: "ALL" },
-	{ label: t("Tournament"), value: AppointmentType.TOURNAMENT },
-	{ label: t("Tournament (Germany)"), value: AppointmentType.TOURNAMENT_DE },
-	{ label: t("Team Match"), value: AppointmentType.TEAM_MATCH },
+type TypeGroup = NonNullable<FiltersProps["typeGroup"]> | "ALL";
+type ResponseFilterValue = NonNullable<FiltersProps["responses"]>[number];
+
+const typeGroupTabs: { key: TypeGroup; label: string }[] = [
+	{ key: "ALL", label: t("All") },
+	{ key: "TOURNAMENT", label: t("Tournaments") },
+	{ key: "TEAM_MATCH", label: t("Team matches") },
 ];
 
-const responseOptions: { value: string; label: string }[] = [
-	{ label: t("All responses"), value: "ALL" },
+const responseOptions: { value: ResponseFilterValue; label: string }[] = [
 	{ label: t("Accepted"), value: "ACCEPT" },
 	{ label: t("Maybe"), value: "MAYBE" },
 	{ label: t("Declined"), value: "DECLINE" },
 	{ label: t("No response"), value: "NONE" },
 ];
+
+function toggleInList<T>(list: T[] | undefined, value: T): T[] | undefined {
+	const set = new Set(list ?? []);
+	if (set.has(value)) set.delete(value);
+	else set.add(value);
+	return set.size > 0 ? [...set] : undefined;
+}
 
 // Shared by InlineFilters (desktop) and MobileFilters (mobile) — every field
 // applies immediately; text search is debounced so typing doesn't fire a
@@ -318,10 +322,27 @@ const useAppointmentLiveFilters = (props: FiltersProps) => {
 		return () => clearTimeout(timeout);
 	}, [queryInput]);
 
+	const setTypeGroup = (key: TypeGroup) =>
+		navigate({
+			responses: undefined,
+			teamIds: undefined,
+			typeGroup: key === "ALL" ? undefined : key,
+		});
+
+	const toggleResponse = (value: ResponseFilterValue) =>
+		navigate({ responses: toggleInList(props.responses, value) });
+
+	const toggleTeam = (teamId: string) =>
+		navigate({ teamIds: toggleInList(props.teamIds, teamId) });
+
+	const toggleSortDir = () =>
+		navigate({ sortDir: props.sortDir === "asc" ? undefined : "asc" });
+
 	const hasActiveFilters =
 		!!props.query ||
-		!!props.type ||
-		!!props.response ||
+		!!props.typeGroup ||
+		!!props.responses?.length ||
+		!!props.teamIds?.length ||
 		!!props.dateFrom ||
 		!!props.dateTo ||
 		!!props.deleted;
@@ -331,119 +352,240 @@ const useAppointmentLiveFilters = (props: FiltersProps) => {
 		router.navigate({ replace: true, search: {}, to: "." });
 	};
 
-	return { hasActiveFilters, navigate, onClear, queryInput, setQueryInput };
+	return {
+		hasActiveFilters,
+		navigate,
+		onClear,
+		queryInput,
+		setQueryInput,
+		setTypeGroup,
+		toggleResponse,
+		toggleSortDir,
+		toggleTeam,
+	};
 };
 
-export const InlineFilters = (props: FiltersProps) => {
-	const { hasActiveFilters, navigate, onClear, queryInput, setQueryInput } =
-		useAppointmentLiveFilters(props);
+// The segmented type switch shared by both layouts. Full-width equal-split
+// buttons read fine at any viewport width down to a single mobile column,
+// since there are only ever three of them.
+function TypeGroupTabs({
+	value,
+	onChange,
+}: {
+	value: TypeGroup;
+	onChange: (key: TypeGroup) => void;
+}) {
+	return (
+		<div className="flex w-full rounded-md border p-0.5 text-sm sm:w-fit">
+			{typeGroupTabs.map((tab) => (
+				<button
+					key={tab.key}
+					type="button"
+					onClick={() => onChange(tab.key)}
+					className={cn(
+						"flex-1 rounded-[calc(var(--radius-md)-2px)] px-3 py-1.5 font-medium transition-colors sm:flex-none",
+						value === tab.key
+							? "bg-primary text-primary-foreground"
+							: "text-muted-foreground hover:bg-muted hover:text-foreground",
+					)}
+				>
+					{tab.label}
+				</button>
+			))}
+		</div>
+	);
+}
+
+function FilterPill({
+	active,
+	onClick,
+	children,
+}: {
+	active: boolean;
+	onClick: () => void;
+	children: React.ReactNode;
+}) {
+	return (
+		<button
+			type="button"
+			aria-pressed={active}
+			onClick={onClick}
+			className={cn(
+				"rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+				active
+					? "border-primary bg-primary text-primary-foreground"
+					: "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
+			)}
+		>
+			{children}
+		</button>
+	);
+}
+
+// Date-only sort: a single button toggles ascending/descending, matching
+// what the design round settled on — no field picker, since date is the
+// only sortable dimension this list needs.
+function SortButton({
+	dir,
+	onToggle,
+}: {
+	dir: FiltersProps["sortDir"];
+	onToggle: () => void;
+}) {
+	const isAscending = dir === "asc";
+	return (
+		<Button
+			type="button"
+			variant="outline"
+			size="sm"
+			className="shrink-0"
+			onClick={onToggle}
+			aria-label={`${t("Date")}: ${isAscending ? t("Ascending") : t("Descending")}`}
+		>
+			{isAscending ? (
+				<ArrowUpNarrowWideIcon className="size-3.5" />
+			) : (
+				<ArrowDownWideNarrowIcon className="size-3.5" />
+			)}
+			{t("Date")}
+		</Button>
+	);
+}
+
+export const InlineFilters = (props: FiltersProps & { teams: Team[] }) => {
+	const { teams, ...search } = props;
+	const {
+		hasActiveFilters,
+		navigate,
+		onClear,
+		queryInput,
+		setQueryInput,
+		setTypeGroup,
+		toggleResponse,
+		toggleSortDir,
+		toggleTeam,
+	} = useAppointmentLiveFilters(search);
+
+	const typeGroup: TypeGroup = search.typeGroup ?? "ALL";
 
 	return (
-		<div className="flex flex-wrap items-center gap-3">
-			<Input
-				className="w-56"
-				placeholder={t("Search appointment or person...")}
-				value={queryInput}
-				onChange={(e) => setQueryInput(e.target.value)}
-			/>
-			<Select
-				value={props.type ?? "ALL"}
-				onValueChange={(v) =>
-					navigate({
-						type: v === "ALL" ? undefined : (v as FiltersProps["type"]),
-					})
-				}
-			>
-				<SelectTrigger size="sm" className="w-40">
-					<SelectValue />
-				</SelectTrigger>
-				<SelectContent>
-					{typeOptions.map((option) => (
-						<SelectItem key={option.value} value={option.value}>
-							{option.label}
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
-			<Select
-				value={props.response ?? "ALL"}
-				onValueChange={(v) =>
-					navigate({
-						response: v === "ALL" ? undefined : (v as FiltersProps["response"]),
-					})
-				}
-			>
-				<SelectTrigger size="sm" className="w-40">
-					<SelectValue />
-				</SelectTrigger>
-				<SelectContent>
-					{responseOptions.map((option) => (
-						<SelectItem key={option.value} value={option.value}>
-							{option.label}
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
-			<div className="flex items-center gap-2">
-				<Label className="text-muted-foreground text-xs">{t("From")}</Label>
+		<div className="flex flex-col gap-3">
+			<div className="flex flex-wrap items-center gap-3">
+				<TypeGroupTabs value={typeGroup} onChange={setTypeGroup} />
 				<Input
-					type="date"
-					className="w-36"
-					value={props.dateFrom ?? ""}
-					onChange={(e) => navigate({ dateFrom: e.target.value || undefined })}
+					className="w-56"
+					placeholder={t("Search appointment or person...")}
+					value={queryInput}
+					onChange={(e) => setQueryInput(e.target.value)}
 				/>
-				<Label className="text-muted-foreground text-xs">{t("To")}</Label>
-				<Input
-					type="date"
-					className="w-36"
-					value={props.dateTo ?? ""}
-					onChange={(e) => navigate({ dateTo: e.target.value || undefined })}
-				/>
+				<div className="flex items-center gap-2">
+					<Label className="text-muted-foreground text-xs">{t("From")}</Label>
+					<Input
+						type="date"
+						className="w-36"
+						value={search.dateFrom ?? ""}
+						onChange={(e) =>
+							navigate({ dateFrom: e.target.value || undefined })
+						}
+					/>
+					<Label className="text-muted-foreground text-xs">{t("To")}</Label>
+					<Input
+						type="date"
+						className="w-36"
+						value={search.dateTo ?? ""}
+						onChange={(e) => navigate({ dateTo: e.target.value || undefined })}
+					/>
+				</div>
+				<label
+					htmlFor="inline-filters-deleted"
+					className="flex items-center gap-2 text-sm text-muted-foreground"
+				>
+					<Checkbox
+						id="inline-filters-deleted"
+						checked={search.deleted ?? false}
+						onCheckedChange={(checked) =>
+							navigate({ deleted: checked === true ? true : undefined })
+						}
+					/>
+					{t("Show deleted?")}
+				</label>
+				<SortButton dir={search.sortDir} onToggle={toggleSortDir} />
+				{hasActiveFilters && (
+					<Button type="button" size="sm" variant="secondary" onClick={onClear}>
+						{t("Clear")}
+					</Button>
+				)}
 			</div>
-			<label
-				htmlFor="inline-filters-deleted"
-				className="flex items-center gap-2 text-sm text-muted-foreground"
-			>
-				<Checkbox
-					id="inline-filters-deleted"
-					checked={props.deleted ?? false}
-					onCheckedChange={(checked) =>
-						navigate({ deleted: checked === true ? true : undefined })
-					}
-				/>
-				{t("Show deleted?")}
-			</label>
-			{hasActiveFilters && (
-				<Button type="button" size="sm" variant="secondary" onClick={onClear}>
-					{t("Clear")}
-				</Button>
+
+			{typeGroup === "TOURNAMENT" && (
+				<div className="flex flex-wrap items-center gap-1.5">
+					<span className="text-muted-foreground text-xs">
+						{t("My response")}:
+					</span>
+					{responseOptions.map((opt) => (
+						<FilterPill
+							key={opt.value}
+							active={!!search.responses?.includes(opt.value)}
+							onClick={() => toggleResponse(opt.value)}
+						>
+							{opt.label}
+						</FilterPill>
+					))}
+				</div>
+			)}
+
+			{typeGroup === "TEAM_MATCH" && teams.length > 0 && (
+				<div className="flex flex-wrap items-center gap-1.5">
+					<span className="text-muted-foreground text-xs">{t("Team")}:</span>
+					{teams.map((team) => (
+						<FilterPill
+							key={team.id}
+							active={!!search.teamIds?.includes(team.id)}
+							onClick={() => toggleTeam(team.id)}
+						>
+							{team.title}
+						</FilterPill>
+					))}
+				</div>
 			)}
 		</div>
 	);
 };
 
 // Mobile: a search bar that's always visible and filters as you type, plus
-// a secondary sheet for the fields people reach for less often (type,
-// response, date range, show deleted). Both apply immediately — no
-// batching behind an Apply button.
-export const MobileFilters = (props: FiltersProps) => {
-	const { navigate, queryInput, setQueryInput } =
-		useAppointmentLiveFilters(props);
+// a secondary sheet for everything else — type group, contextual pills,
+// sort, date range, show deleted. All apply immediately, no Apply button.
+export const MobileFilters = (props: FiltersProps & { teams: Team[] }) => {
+	const { teams, ...search } = props;
+	const {
+		navigate,
+		queryInput,
+		setQueryInput,
+		setTypeGroup,
+		toggleResponse,
+		toggleSortDir,
+		toggleTeam,
+	} = useAppointmentLiveFilters(search);
 	const [sheetOpen, setSheetOpen] = React.useState(false);
+	const typeGroup: TypeGroup = search.typeGroup ?? "ALL";
 	const secondaryActive =
-		!!props.type ||
-		!!props.response ||
-		!!props.dateFrom ||
-		!!props.dateTo ||
-		!!props.deleted;
+		!!search.typeGroup ||
+		!!search.responses?.length ||
+		!!search.teamIds?.length ||
+		!!search.dateFrom ||
+		!!search.dateTo ||
+		!!search.deleted ||
+		!!search.sortDir;
 
 	const clearSecondary = () =>
 		navigate({
 			dateFrom: undefined,
 			dateTo: undefined,
 			deleted: undefined,
-			response: undefined,
-			type: undefined,
+			responses: undefined,
+			sortDir: undefined,
+			teamIds: undefined,
+			typeGroup: undefined,
 		});
 
 	const prefersReducedMotion = usePrefersReducedMotion();
@@ -505,68 +647,57 @@ export const MobileFilters = (props: FiltersProps) => {
 						<div className="h-1.5 w-9 rounded-full bg-muted-foreground/30" />
 					</div>
 					<div className="flex flex-col gap-4 px-4 pb-6">
-						<div className="grid grid-cols-2 gap-3">
+						<fieldset className="flex flex-col gap-1.5">
+							<Label>{t("Type")}</Label>
+							<TypeGroupTabs value={typeGroup} onChange={setTypeGroup} />
+						</fieldset>
+
+						{typeGroup === "TOURNAMENT" && (
 							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor="mobile-filters-type">
-									{t("Appointment type")}
-								</Label>
-								<Select
-									value={props.type ?? "ALL"}
-									onValueChange={(v) =>
-										navigate({
-											type:
-												v === "ALL" ? undefined : (v as FiltersProps["type"]),
-										})
-									}
-								>
-									<SelectTrigger id="mobile-filters-type" className="w-full">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										{typeOptions.map((option) => (
-											<SelectItem key={option.value} value={option.value}>
-												{option.label}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+								<Label>{t("My response")}</Label>
+								<div className="flex flex-wrap gap-1.5">
+									{responseOptions.map((opt) => (
+										<FilterPill
+											key={opt.value}
+											active={!!search.responses?.includes(opt.value)}
+											onClick={() => toggleResponse(opt.value)}
+										>
+											{opt.label}
+										</FilterPill>
+									))}
+								</div>
 							</fieldset>
+						)}
+
+						{typeGroup === "TEAM_MATCH" && teams.length > 0 && (
 							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor="mobile-filters-response">{t("Response")}</Label>
-								<Select
-									value={props.response ?? "ALL"}
-									onValueChange={(v) =>
-										navigate({
-											response:
-												v === "ALL"
-													? undefined
-													: (v as FiltersProps["response"]),
-										})
-									}
-								>
-									<SelectTrigger
-										id="mobile-filters-response"
-										className="w-full"
-									>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										{responseOptions.map((option) => (
-											<SelectItem key={option.value} value={option.value}>
-												{option.label}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+								<Label>{t("Team")}</Label>
+								<div className="flex flex-wrap gap-1.5">
+									{teams.map((team) => (
+										<FilterPill
+											key={team.id}
+											active={!!search.teamIds?.includes(team.id)}
+											onClick={() => toggleTeam(team.id)}
+										>
+											{team.title}
+										</FilterPill>
+									))}
+								</div>
 							</fieldset>
-						</div>
+						)}
+
+						<fieldset className="flex flex-col gap-1.5">
+							<Label>{t("Sort")}</Label>
+							<SortButton dir={search.sortDir} onToggle={toggleSortDir} />
+						</fieldset>
+
 						<div className="grid grid-cols-2 gap-3">
 							<fieldset className="flex flex-col gap-1.5">
 								<Label htmlFor="mobile-filters-from">{t("From")}</Label>
 								<Input
 									id="mobile-filters-from"
 									type="date"
-									value={props.dateFrom ?? ""}
+									value={search.dateFrom ?? ""}
 									onChange={(e) =>
 										navigate({ dateFrom: e.target.value || undefined })
 									}
@@ -577,7 +708,7 @@ export const MobileFilters = (props: FiltersProps) => {
 								<Input
 									id="mobile-filters-to"
 									type="date"
-									value={props.dateTo ?? ""}
+									value={search.dateTo ?? ""}
 									onChange={(e) =>
 										navigate({ dateTo: e.target.value || undefined })
 									}
@@ -590,7 +721,7 @@ export const MobileFilters = (props: FiltersProps) => {
 						>
 							<Checkbox
 								id="mobile-filters-deleted"
-								checked={props.deleted ?? false}
+								checked={search.deleted ?? false}
 								onCheckedChange={(checked) =>
 									navigate({ deleted: checked === true ? true : undefined })
 								}

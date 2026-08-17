@@ -279,11 +279,13 @@ export const getAppointmentsPage = createServerFn()
 	.validator(
 		(d: {
 			query?: string;
-			type?: AppointmentType;
-			response?: ResponseType | "NONE";
+			typeGroup?: "TOURNAMENT" | "TEAM_MATCH";
+			responses?: (ResponseType | "NONE")[];
+			teamIds?: string[];
 			dateFrom?: Date;
 			dateTo?: Date;
 			withDeleted?: boolean;
+			sortDir?: "asc" | "desc";
 			skip: number;
 			take: number;
 		}) => d,
@@ -296,31 +298,70 @@ export const getAppointmentsPage = createServerFn()
 		const userId = session.data.id;
 
 		try {
+			const responseTypes = (data.responses ?? []).filter(
+				(r): r is ResponseType => r !== "NONE",
+			);
+			const wantsNoResponse = (data.responses ?? []).includes("NONE");
+			// "no response" and specific response types can't both be expressed
+			// through the `responses` relation filter at once (one is `none`,
+			// the other `some`), so that combination goes into its own `OR`
+			// clause instead — kept separate from the query-text `OR` below via
+			// `AND` so Prisma doesn't have to merge two ORs into one.
+			const mixedResponseFilter = wantsNoResponse && responseTypes.length > 0;
+
 			const where: Prisma.AppointmentWhereInput = {
+				AND: [
+					{
+						OR: [
+							{ title: { contains: data.query ?? "" } },
+							{ shortTitle: { contains: data.query ?? "" } },
+							{ location: { contains: data.query ?? "" } },
+						],
+					},
+					mixedResponseFilter
+						? {
+								OR: [
+									{ responses: { none: { userId } } },
+									{
+										responses: {
+											some: { responseType: { in: responseTypes }, userId },
+										},
+									},
+								],
+							}
+						: {},
+				],
 				deletedAt: data.withDeleted ? undefined : null,
 				NOT: { type: AppointmentType.HOLIDAY },
-				OR: [
-					{ title: { contains: data.query ?? "" } },
-					{ shortTitle: { contains: data.query ?? "" } },
-					{ location: { contains: data.query ?? "" } },
-				],
-				responses:
-					data.response === "NONE"
+				ownTeamId:
+					data.teamIds && data.teamIds.length > 0
+						? { in: data.teamIds }
+						: undefined,
+				responses: mixedResponseFilter
+					? undefined
+					: wantsNoResponse
 						? { none: { userId } }
-						: data.response
-							? { some: { responseType: data.response, userId } }
+						: responseTypes.length > 0
+							? { some: { responseType: { in: responseTypes }, userId } }
 							: undefined,
 				startDate: {
 					gte: data.dateFrom,
 					lte: data.dateTo,
 				},
-				type: data.type,
+				type:
+					data.typeGroup === "TOURNAMENT"
+						? {
+								in: [AppointmentType.TOURNAMENT, AppointmentType.TOURNAMENT_DE],
+							}
+						: data.typeGroup === "TEAM_MATCH"
+							? AppointmentType.TEAM_MATCH
+							: undefined,
 			};
 
 			const [appointments, matchedTotal, grandTotal] = await Promise.all([
 				prismaClient.appointment.findMany({
 					include: { ownTeam: true, responses: true },
-					orderBy: { startDate: "desc" },
+					orderBy: { startDate: data.sortDir ?? "desc" },
 					skip: data.skip,
 					take: data.take,
 					where,

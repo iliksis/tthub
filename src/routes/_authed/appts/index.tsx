@@ -33,6 +33,7 @@ import {
 	restoreAppointment,
 	unpublishAppointment,
 } from "@/api/appointments";
+import { getTeams } from "@/api/teams";
 import {
 	filterSchema,
 	getAppointmentColumns,
@@ -112,28 +113,34 @@ export const Route = createFileRoute("/_authed/appts/")({
 	loaderDeps: ({ search }) => ({ ...search }),
 	loader: async ({ deps }) => {
 		const skip = deps.skip ?? 0;
-		const response = await getAppointmentsPage({
-			data: {
-				dateFrom: deps.dateFrom ? new Date(deps.dateFrom) : undefined,
-				dateTo: deps.dateTo ? new Date(deps.dateTo) : undefined,
-				query: deps.query,
-				response: deps.response,
-				skip,
-				take: BATCH_SIZE,
-				type: deps.type,
-				withDeleted: deps.deleted,
-			},
-		});
+		const [response, teamsResponse] = await Promise.all([
+			getAppointmentsPage({
+				data: {
+					dateFrom: deps.dateFrom ? new Date(deps.dateFrom) : undefined,
+					dateTo: deps.dateTo ? new Date(deps.dateTo) : undefined,
+					query: deps.query,
+					responses: deps.responses,
+					skip,
+					sortDir: deps.sortDir,
+					take: BATCH_SIZE,
+					teamIds: deps.teamIds,
+					typeGroup: deps.typeGroup,
+					withDeleted: deps.deleted,
+				},
+			}),
+			getTeams(),
+		]);
 		const data = response.data ?? {
 			appointments: [],
 			grandTotal: 0,
 			matchedTotal: 0,
 		};
+		const teams = teamsResponse.data ?? [];
 		const calendar =
 			deps.view === "calendar"
 				? await loadCalendarData(deps.month, deps.year)
 				: null;
-		return { ...data, calendar, skip };
+		return { ...data, calendar, skip, teams };
 	},
 	errorComponent: () => {
 		return (
@@ -180,6 +187,7 @@ function RouteComponent() {
 		grandTotal,
 		skip,
 		calendar,
+		teams,
 	} = Route.useLoaderData();
 	const search = Route.useSearch();
 	const router = useRouter();
@@ -251,7 +259,7 @@ function RouteComponent() {
 					)
 				) : (
 					<>
-						<MobileFilters {...search} />
+						<MobileFilters {...search} teams={teams} />
 						<List appointments={items} />
 						<LoadMoreFooter
 							itemCount={items.length}
@@ -371,7 +379,7 @@ function RouteComponent() {
 					)
 				) : (
 					<>
-						<InlineFilters {...search} />
+						<InlineFilters {...search} teams={teams} />
 						<AppointmentSplitView
 							appointments={items}
 							onAppointmentsChange={setItems}

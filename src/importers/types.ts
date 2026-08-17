@@ -27,7 +27,6 @@ export type ImportContext = {
 	cursor?: string;
 	emit: (entity: ImportEntity) => Promise<EmitResult>;
 	log: (level: "info" | "warn" | "error", message: string) => void;
-	setTotal: (total: number) => void;
 };
 
 export type ImportResult = {
