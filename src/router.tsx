@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/tanstackstart-react";
 import { createRouter } from "@tanstack/react-router";
 import { ErrorPage } from "@/components/ErrorPage";
 
@@ -13,16 +12,6 @@ export const getRouter = () => {
 		routeTree,
 		scrollRestoration: true,
 	});
-
-	if (!router.isServer) {
-		Sentry.init({
-			debug: import.meta.env.DEV,
-			dsn: import.meta.env.VITE_SENTRY_DSN,
-			environment: import.meta.env.MODE,
-			integrations: [],
-			tunnel: "/sentry-tunnel",
-		});
-	}
 
 	return router;
 };

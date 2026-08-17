@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-TTHub is a personal table tennis club management app (teams, players, tournament appointments, RSVPs, placements, calendar feed, web push notifications). Built with TanStack Start (React 19, file-based routing, SSR server functions), Prisma (SQLite via better-sqlite3 driver adapter), Tailwind CSS v4 + shadcn/ui ("new-york" style), Vitest, and Playwright. Deployed via Docker/Fly.io with Sentry error tracking.
+TTHub is a personal table tennis club management app (teams, players, tournament appointments, RSVPs, placements, calendar feed, web push notifications). Built with TanStack Start (React 19, file-based routing, SSR server functions), Prisma (SQLite via better-sqlite3 driver adapter), Tailwind CSS v4 + shadcn/ui ("new-york" style), Vitest, and Playwright. Deployed via Docker/Fly.io. Unhandled errors show a fallback page where users can copy diagnostic details to share with an admin (`src/components/ErrorPage.tsx`) instead of an automated error-tracking service.
 
 ## Commands
 

@@ -10,7 +10,6 @@ Personal table tennis management application for organizing teams, players and t
 - TanStack Form
 - Vitest + Playwright
 - Biome
-- Sentry
 - Docker + Fly.io
 
 ## Getting Started
@@ -33,8 +32,6 @@ Create a `.env.local` file with the following variables:
 ```env
 DATABASE_URL="file:./prisma/dev.db"
 SESSION_SECRET="your-secret-key"
-SENTRY_DSN="your-sentry-dsn" # Optional
-VITE_SENTRY_HOST="sentry-host-address"
 VAPID_PUBLIC_KEY="your-vapid-public-key"
 VAPID_PRIVATE_KEY="your-vapid-private-key"
 ```

@@ -101,6 +101,7 @@ const texts = {
 	"Confirm Password": "Passwort bestätigen",
 	Continue: "Weiter",
 	Copy: "Kopieren",
+	"Copy error details": "Fehlerdetails kopieren",
 	"Copy Invitation Link": "Einladungslink kopieren",
 	"Copy Links": "Links kopieren",
 	"Copy link": "Link kopieren",
@@ -136,6 +137,7 @@ const texts = {
 	Editor: "Editor:in",
 	End: "Ende",
 	EndDate: "Ende",
+	"Error details copied to clipboard": "Fehlerdetails kopiert",
 	Expired: "Abgelaufen",
 	"Feed config loaded": "Feed-Konfiguration geladen",
 	"Feed Settings updated": "Feed-Einstellungen aktualisiert",
@@ -231,6 +233,8 @@ const texts = {
 		"Zurücksetzungslink in die Zwischenablage kopiert",
 	"Password reset request not found":
 		"Anfrage zum Zurücksetzen des Passworts nicht gefunden",
+	"Paste the details when contacting an admin about this error":
+		"Füge die Details ein, wenn du dich wegen dieses Fehlers an eine Admin-Person wendest",
 	Pending: "Ausstehend",
 	"Pending appointments": "Offene Termine",
 	Person: "Person",
