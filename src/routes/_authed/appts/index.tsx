@@ -16,6 +16,7 @@ import {
 	ListIcon,
 	MapPinIcon,
 	RotateCcwIcon,
+	ShieldIcon,
 	Trash2Icon,
 } from "lucide-react";
 import React from "react";
@@ -32,6 +33,7 @@ import {
 	restoreAppointment,
 	unpublishAppointment,
 } from "@/api/appointments";
+import { getTeams } from "@/api/teams";
 import {
 	filterSchema,
 	getAppointmentColumns,
@@ -59,7 +61,12 @@ import {
 	ResponseType,
 } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import { cn, isDayInPast, isEditorOrAdmin } from "@/lib/utils";
+import {
+	cn,
+	isDayInPast,
+	isEditorOrAdmin,
+	isInformationalAppointmentType,
+} from "@/lib/utils";
 
 const BATCH_SIZE = 25;
 
@@ -106,28 +113,32 @@ export const Route = createFileRoute("/_authed/appts/")({
 	loaderDeps: ({ search }) => ({ ...search }),
 	loader: async ({ deps }) => {
 		const skip = deps.skip ?? 0;
-		const response = await getAppointmentsPage({
-			data: {
-				dateFrom: deps.dateFrom ? new Date(deps.dateFrom) : undefined,
-				dateTo: deps.dateTo ? new Date(deps.dateTo) : undefined,
-				query: deps.query,
-				response: deps.response,
-				skip,
-				take: BATCH_SIZE,
-				type: deps.type,
-				withDeleted: deps.deleted,
-			},
-		});
+		const [response, teamsResponse] = await Promise.all([
+			getAppointmentsPage({
+				data: {
+					query: deps.query,
+					responses: deps.responses,
+					skip,
+					sortDir: deps.sortDir,
+					take: BATCH_SIZE,
+					teamIds: deps.teamIds,
+					typeGroup: deps.typeGroup,
+					withDeleted: deps.deleted,
+				},
+			}),
+			getTeams(),
+		]);
 		const data = response.data ?? {
 			appointments: [],
 			grandTotal: 0,
 			matchedTotal: 0,
 		};
+		const teams = teamsResponse.data ?? [];
 		const calendar =
 			deps.view === "calendar"
 				? await loadCalendarData(deps.month, deps.year)
 				: null;
-		return { ...data, calendar, skip };
+		return { ...data, calendar, skip, teams };
 	},
 	errorComponent: () => {
 		return (
@@ -146,6 +157,7 @@ export const Route = createFileRoute("/_authed/appts/")({
 function typeLabel(type: string) {
 	if (type === AppointmentType.HOLIDAY) return t("Holiday");
 	if (type === AppointmentType.TOURNAMENT_DE) return t("Tournament (Germany)");
+	if (type === AppointmentType.TEAM_MATCH) return t("Team Match");
 	return t("Tournament");
 }
 
@@ -173,6 +185,7 @@ function RouteComponent() {
 		grandTotal,
 		skip,
 		calendar,
+		teams,
 	} = Route.useLoaderData();
 	const search = Route.useSearch();
 	const router = useRouter();
@@ -244,7 +257,7 @@ function RouteComponent() {
 					)
 				) : (
 					<>
-						<MobileFilters {...search} />
+						<MobileFilters {...search} teams={teams} />
 						<List appointments={items} />
 						<LoadMoreFooter
 							itemCount={items.length}
@@ -364,7 +377,7 @@ function RouteComponent() {
 					)
 				) : (
 					<>
-						<InlineFilters {...search} />
+						<InlineFilters {...search} teams={teams} />
 						<AppointmentSplitView
 							appointments={items}
 							onAppointmentsChange={setItems}
@@ -388,7 +401,7 @@ function RouteComponent() {
 
 const isBulkEligible = (appointment: AppointmentWithResponses) =>
 	appointment.deletedAt === null &&
-	appointment.type !== AppointmentType.HOLIDAY;
+	!isInformationalAppointmentType(appointment.type);
 
 type SplitViewBulkAction = {
 	key: string;
@@ -505,7 +518,7 @@ const AppointmentSplitView = ({
 	// batch of appointments is a personal action, not a management one.
 	const onBulkRespond = (response: ResponseType) => {
 		const targets = selectedAppointments.filter(
-			(a) => a.type !== AppointmentType.HOLIDAY,
+			(a) => !isInformationalAppointmentType(a.type),
 		);
 		const userId = user?.id;
 		if (targets.length === 0 || !userId) return;
@@ -578,10 +591,19 @@ const AppointmentSplitView = ({
 	};
 
 	const onDuplicate = async (items: AppointmentWithResponses[]) => {
-		if (items.length === 0) return;
+		// Team matches are import-managed, not manually authored, so they
+		// aren't duplicable through this create-appointment flow.
+		const duplicable = items.filter(
+			(
+				a,
+			): a is AppointmentWithResponses & {
+				type: "TOURNAMENT" | "TOURNAMENT_DE" | "HOLIDAY";
+			} => a.type !== AppointmentType.TEAM_MATCH,
+		);
+		if (duplicable.length === 0) return;
 		try {
 			const results = await Promise.all(
-				items.map((a) => {
+				duplicable.map((a) => {
 					const shortTitle = `${a.shortTitle} (Kopie)`;
 					const title = `${a.title} (Kopie)`;
 					if (a.type === AppointmentType.HOLIDAY) {
@@ -610,6 +632,7 @@ const AppointmentSplitView = ({
 			);
 			const created: AppointmentWithResponses[] = results.map((result) => ({
 				...result.data,
+				ownTeam: null,
 				responses: [] as Response[],
 			}));
 			onAppointmentsChange((prev) =>
@@ -696,7 +719,7 @@ const AppointmentSplitView = ({
 	];
 
 	const hasRespondableSelection = selectedAppointments.some(
-		(a) => a.type !== AppointmentType.HOLIDAY,
+		(a) => !isInformationalAppointmentType(a.type),
 	);
 
 	const bulkActions: SplitViewBulkAction[] = [
@@ -850,7 +873,7 @@ const AppointmentSplitView = ({
 												<span
 													className={cn(
 														"size-1.5 shrink-0 rounded-full",
-														a.type === AppointmentType.HOLIDAY
+														isInformationalAppointmentType(a.type)
 															? "bg-muted-foreground"
 															: a.status === AppointmentStatus.PUBLISHED
 																? "bg-success"
@@ -953,7 +976,7 @@ function AppointmentDetailContent({
 	myResponse: Response | undefined;
 	onRespond: (response: ResponseType) => () => Promise<void>;
 }) {
-	const isHoliday = appointment.type === AppointmentType.HOLIDAY;
+	const isInformational = isInformationalAppointmentType(appointment.type);
 	const isPublished = appointment.status === AppointmentStatus.PUBLISHED;
 	const isMultipleDays =
 		appointment.endDate != null &&
@@ -964,7 +987,7 @@ function AppointmentDetailContent({
 		<>
 			<div className="mb-3 flex items-center gap-2">
 				<Badge variant="outline">{typeLabel(appointment.type)}</Badge>
-				{!isHoliday && (
+				{!isInformational && (
 					<Badge variant={isPublished ? "success" : "warning"}>
 						{isPublished ? t("Published") : t("Draft")}
 					</Badge>
@@ -987,8 +1010,20 @@ function AppointmentDetailContent({
 						{appointment.location}
 					</div>
 				)}
+				{appointment.ownTeam && (
+					<div className="flex items-center gap-1.5 text-muted-foreground">
+						<ShieldIcon className="size-3.5 shrink-0" />
+						<Link
+							to="/teams/$teamId"
+							params={{ teamId: appointment.ownTeam.id }}
+							className="text-primary hover:underline"
+						>
+							{appointment.ownTeam.title}
+						</Link>
+					</div>
+				)}
 			</div>
-			{!isHoliday && (
+			{!isInformational && (
 				<div className="mt-4 flex gap-2">
 					<Button
 						type="button"

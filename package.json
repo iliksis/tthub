@@ -48,6 +48,7 @@
     "mustache": "4.2.0",
     "node-device-detector": "^2.2.7",
     "open-holiday-js": "1.0.3",
+    "pdfjs-dist": "^4.10.38",
     "prisma": "^7.9.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

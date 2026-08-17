@@ -34,6 +34,8 @@ DATABASE_URL="file:./prisma/dev.db"
 SESSION_SECRET="your-secret-key"
 VAPID_PUBLIC_KEY="your-vapid-public-key"
 VAPID_PRIVATE_KEY="your-vapid-private-key"
+CLICKTT_SCHEDULE_URL="https://bttv.click-tt.de/cgi-bin/WebObjects/nuLigaDokumentTTDE.woa/wa/nuDokument?dokument=ScheduleReportFOP"
+CLICKTT_CLUB_NAME="Your Club Name"
 ```
 
 Generate VAPID keys for web push notifications:

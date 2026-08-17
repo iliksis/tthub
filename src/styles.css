@@ -201,3 +201,12 @@ dialog {
 		opacity: 1;
 	}
 }
+
+@keyframes indeterminate-progress {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(250%);
+	}
+}

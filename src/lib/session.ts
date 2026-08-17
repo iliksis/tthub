@@ -46,3 +46,13 @@ export const requireEditor = async (): Promise<
 	if (!isAuthorized || !session.id) return null;
 	return { ...session, id: session.id };
 };
+
+// Same as requireEditor but for ADMIN-only mutations.
+export const requireAdmin = async (): Promise<
+	(Partial<SessionUser> & { id: string }) | null
+> => {
+	const isAuthorized = await useIsRole("ADMIN");
+	const { data: session } = await useAppSession();
+	if (!isAuthorized || !session.id) return null;
+	return { ...session, id: session.id };
+};

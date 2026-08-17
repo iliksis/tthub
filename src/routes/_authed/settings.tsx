@@ -40,7 +40,7 @@ type SettingsSection = {
 	description: string;
 	icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 	isHidden?: (role: User["role"]) => boolean;
-	// CalendarFeed/HolidayImport already render their own heading — skip the
+	// CalendarFeed/ImporterAvailability already render their own heading — skip the
 	// wrapper Card header for these so it isn't duplicated underneath it.
 	hasOwnHeading?: boolean;
 };
@@ -187,7 +187,14 @@ function SettingsLayout() {
 
 			{/* Content pane is shared — a single Outlet, not duplicated per
 			    breakpoint, since sections hold real forms/fetches/mutations. */}
-			<Card className="min-w-0 flex-1 bg-background py-0 lg:bg-card lg:py-6">
+			<Card
+				className={cn(
+					"min-w-0 flex-1 bg-background py-0",
+					active.href === "/settings/imports"
+						? "bg-background ring-0"
+						: "lg:bg-card lg:py-6",
+				)}
+			>
 				{!active.hasOwnHeading && (
 					<CardHeader>
 						<CardTitle>{active.label}</CardTitle>

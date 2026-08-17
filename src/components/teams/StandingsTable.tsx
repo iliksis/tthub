@@ -1,0 +1,65 @@
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import type { Standing } from "@/lib/prisma/client";
+import { t } from "@/lib/text";
+
+type StandingsTableProps = {
+	standings: Standing[];
+};
+
+export function StandingsTable({ standings }: StandingsTableProps) {
+	if (standings.length === 0) {
+		return (
+			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
+				{t("No standings imported yet.")}
+			</div>
+		);
+	}
+
+	return (
+		<Table>
+			<TableHeader>
+				<TableRow className="hover:bg-transparent">
+					<TableHead className="w-px text-right">{t("Rank")}</TableHead>
+					<TableHead>{t("Team")}</TableHead>
+					<TableHead className="hidden text-right sm:table-cell">S</TableHead>
+					<TableHead className="hidden text-right sm:table-cell">U</TableHead>
+					<TableHead className="hidden text-right sm:table-cell">N</TableHead>
+					<TableHead className="text-right">{t("Matches")}</TableHead>
+					<TableHead className="text-right">{t("Points")}</TableHead>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{standings.map((standing) => (
+					<TableRow key={standing.id} className="hover:bg-background">
+						<TableCell className="w-px text-right">{standing.rank}</TableCell>
+						<TableCell className="max-w-0 truncate">
+							{standing.teamName}
+						</TableCell>
+						<TableCell className="hidden text-right sm:table-cell">
+							{standing.wins}
+						</TableCell>
+						<TableCell className="hidden text-right sm:table-cell">
+							{standing.undecided}
+						</TableCell>
+						<TableCell className="hidden text-right sm:table-cell">
+							{standing.losses}
+						</TableCell>
+						<TableCell className="text-right">
+							{standing.matchesWon}:{standing.matchesLost}
+						</TableCell>
+						<TableCell className="text-right">
+							{standing.pointsWon}:{standing.pointsLost}
+						</TableCell>
+					</TableRow>
+				))}
+			</TableBody>
+		</Table>
+	);
+}

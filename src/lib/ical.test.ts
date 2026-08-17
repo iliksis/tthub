@@ -32,13 +32,16 @@ describe("IcalGenerator", () => {
 			} as any;
 
 			const appointment: Appointment = {
+				awayTeam: null,
 				createdAt: new Date(),
 				deletedAt: null,
 				endDate: new Date("2026-01-20T11:00:00Z"),
+				homeTeam: null,
 				id: "appt-123",
 				link: null,
 				location: "Test Location",
 				nextAppointmentId: null,
+				ownTeamId: null,
 				shortTitle: "Test",
 				startDate: new Date("2026-01-20T10:00:00Z"),
 				status: AppointmentStatus.PUBLISHED,
@@ -71,13 +74,16 @@ describe("IcalGenerator", () => {
 			} as any;
 
 			const appointment1: Appointment = {
+				awayTeam: null,
 				createdAt: new Date(),
 				deletedAt: null,
 				endDate: null,
+				homeTeam: null,
 				id: "appt-1",
 				link: null,
 				location: "Location 1",
 				nextAppointmentId: null,
+				ownTeamId: null,
 				shortTitle: "E1",
 				startDate: new Date("2026-01-20T10:00:00Z"),
 				status: AppointmentStatus.PUBLISHED,
@@ -86,13 +92,16 @@ describe("IcalGenerator", () => {
 			};
 
 			const appointment2: Appointment = {
+				awayTeam: null,
 				createdAt: new Date(),
 				deletedAt: null,
 				endDate: null,
+				homeTeam: null,
 				id: "appt-2",
 				link: null,
 				location: "Location 2",
 				nextAppointmentId: null,
+				ownTeamId: null,
 				shortTitle: "E2",
 				startDate: new Date("2026-01-21T10:00:00Z"),
 				status: AppointmentStatus.PUBLISHED,

@@ -58,6 +58,11 @@ export type Player = Prisma.PlayerModel
  */
 export type Team = Prisma.TeamModel
 /**
+ * Model Standing
+ * 
+ */
+export type Standing = Prisma.StandingModel
+/**
  * Model Placement
  * 
  */
@@ -72,6 +77,11 @@ export type Transaction = Prisma.TransactionModel
  * 
  */
 export type Subscription = Prisma.SubscriptionModel
+/**
+ * Model ImporterSetting
+ * 
+ */
+export type ImporterSetting = Prisma.ImporterSettingModel
 /**
  * Model NotificationSettings
  * 
