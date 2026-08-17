@@ -3,15 +3,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "set NODE_OPTIONS=--import ./instrument.server.mjs && vite dev --port 3000",
-    "build": "vite build && cp instrument.server.mjs .output/server",
+    "dev": "vite dev --port 3000",
+    "build": "vite build",
     "serve": "vite preview",
     "test": "vitest run",
     "test:e2e": "npm run test:e2e:setup && playwright test",
     "test:e2e:setup": "npm run test:e2e:db:reset && npm run test:e2e:db:seed",
     "test:e2e:db:reset": "set DATABASE_URL=file:./prisma/test.db && npx prisma migrate deploy",
     "test:e2e:db:seed": "set DATABASE_URL=file:./prisma/test.db && npx tsx prisma/seed.ts",
-    "test:e2e:server": "set DATABASE_URL=file:./prisma/test.db && set NODE_OPTIONS=--import ./instrument.server.mjs && vite dev --port 3001",
+    "test:e2e:server": "set DATABASE_URL=file:./prisma/test.db && vite dev --port 3001",
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check",
@@ -23,13 +23,12 @@
     "db:seed": "dotenv -e .env.local -- prisma db seed",
     "db:format": "dotenv -e .env.local -- prisma format",
     "generateVapidKeys": "node --import ./generateVapidKeys.js",
-    "start": "node --import ./.output/server/instrument.server.mjs .output/server/index.mjs"
+    "start": "node .output/server/index.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
     "@prisma/adapter-better-sqlite3": "^7.9.1",
     "@prisma/client": "^7.9.1",
-    "@sentry/tanstackstart-react": "^10.69.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/match-sorter-utils": "8.19.4",
     "@tanstack/nitro-v2-vite-plugin": "^1.155.0",

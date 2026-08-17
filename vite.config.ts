@@ -9,6 +9,9 @@ import { nitroV2Plugin } from '@tanstack/nitro-v2-vite-plugin'
 import mkcert from 'vite-plugin-mkcert'
 
 const config = defineConfig({
+  build: {
+    sourcemap: true,
+  },
   plugins: [
 	mkcert(),
     devtools(),
