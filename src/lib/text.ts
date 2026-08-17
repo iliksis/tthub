@@ -154,7 +154,6 @@ const texts = {
 	"Feed settings updated": "Feed-Einstellungen aktualisiert",
 	"Feed URL copied to clipboard": "Feed-URL kopiert",
 	Filters: "Filter",
-	From: "Von",
 	Germany: "Deutschland",
 	"Get a notification when a new appointment is created":
 		"Erhalte eine Benachrichtigung, wenn ein neuer Termin erstellt wird",
@@ -296,6 +295,7 @@ const texts = {
 	Search: "Suche",
 	"Search Appointments": "Termine suchen",
 	"Search appointment or person...": "Termin oder Person suchen…",
+	"Search appointment...": "Termin suchen…",
 	"Search Players": "Spieler:innen suchen",
 	"Search Teams": "Teams suchen",
 	"Select a row to see details": "Zeile auswählen, um Details zu sehen",
@@ -342,7 +342,6 @@ const texts = {
 	"This field is required": "Dieses Feld ist erforderlich",
 	Time: "Zeit",
 	Title: "Titel",
-	To: "Bis",
 	Today: "Heute",
 	Tomorrow: "Morgen",
 	Tournament: "Turnier",

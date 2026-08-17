@@ -255,8 +255,6 @@ export const List = ({ appointments }: ListProps) => {
 };
 
 export const filterSchema = z.object({
-	dateFrom: z.string().optional(),
-	dateTo: z.string().optional(),
 	deleted: z.boolean().optional(),
 	query: z.string().optional(),
 	responses: z.array(z.enum(["ACCEPT", "MAYBE", "DECLINE", "NONE"])).optional(),
@@ -343,8 +341,6 @@ const useAppointmentLiveFilters = (props: FiltersProps) => {
 		!!props.typeGroup ||
 		!!props.responses?.length ||
 		!!props.teamIds?.length ||
-		!!props.dateFrom ||
-		!!props.dateTo ||
 		!!props.deleted;
 
 	const onClear = () => {
@@ -474,28 +470,10 @@ export const InlineFilters = (props: FiltersProps & { teams: Team[] }) => {
 				<TypeGroupTabs value={typeGroup} onChange={setTypeGroup} />
 				<Input
 					className="w-56"
-					placeholder={t("Search appointment or person...")}
+					placeholder={t("Search appointment...")}
 					value={queryInput}
 					onChange={(e) => setQueryInput(e.target.value)}
 				/>
-				<div className="flex items-center gap-2">
-					<Label className="text-muted-foreground text-xs">{t("From")}</Label>
-					<Input
-						type="date"
-						className="w-36"
-						value={search.dateFrom ?? ""}
-						onChange={(e) =>
-							navigate({ dateFrom: e.target.value || undefined })
-						}
-					/>
-					<Label className="text-muted-foreground text-xs">{t("To")}</Label>
-					<Input
-						type="date"
-						className="w-36"
-						value={search.dateTo ?? ""}
-						onChange={(e) => navigate({ dateTo: e.target.value || undefined })}
-					/>
-				</div>
 				<label
 					htmlFor="inline-filters-deleted"
 					className="flex items-center gap-2 text-sm text-muted-foreground"
@@ -572,15 +550,11 @@ export const MobileFilters = (props: FiltersProps & { teams: Team[] }) => {
 		!!search.typeGroup ||
 		!!search.responses?.length ||
 		!!search.teamIds?.length ||
-		!!search.dateFrom ||
-		!!search.dateTo ||
 		!!search.deleted ||
 		!!search.sortDir;
 
 	const clearSecondary = () =>
 		navigate({
-			dateFrom: undefined,
-			dateTo: undefined,
 			deleted: undefined,
 			responses: undefined,
 			sortDir: undefined,
@@ -597,7 +571,7 @@ export const MobileFilters = (props: FiltersProps & { teams: Team[] }) => {
 		<div className="flex flex-col gap-1.5">
 			<div className="flex items-center gap-2">
 				<Input
-					placeholder={t("Search appointment or person...")}
+					placeholder={t("Search appointment...")}
 					value={queryInput}
 					onChange={(e) => setQueryInput(e.target.value)}
 					className="flex-1"
@@ -691,30 +665,6 @@ export const MobileFilters = (props: FiltersProps & { teams: Team[] }) => {
 							<SortButton dir={search.sortDir} onToggle={toggleSortDir} />
 						</fieldset>
 
-						<div className="grid grid-cols-2 gap-3">
-							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor="mobile-filters-from">{t("From")}</Label>
-								<Input
-									id="mobile-filters-from"
-									type="date"
-									value={search.dateFrom ?? ""}
-									onChange={(e) =>
-										navigate({ dateFrom: e.target.value || undefined })
-									}
-								/>
-							</fieldset>
-							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor="mobile-filters-to">{t("To")}</Label>
-								<Input
-									id="mobile-filters-to"
-									type="date"
-									value={search.dateTo ?? ""}
-									onChange={(e) =>
-										navigate({ dateTo: e.target.value || undefined })
-									}
-								/>
-							</fieldset>
-						</div>
 						<label
 							htmlFor="mobile-filters-deleted"
 							className="flex items-center gap-2 text-sm text-muted-foreground"

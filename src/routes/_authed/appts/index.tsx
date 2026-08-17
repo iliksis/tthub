@@ -116,8 +116,6 @@ export const Route = createFileRoute("/_authed/appts/")({
 		const [response, teamsResponse] = await Promise.all([
 			getAppointmentsPage({
 				data: {
-					dateFrom: deps.dateFrom ? new Date(deps.dateFrom) : undefined,
-					dateTo: deps.dateTo ? new Date(deps.dateTo) : undefined,
 					query: deps.query,
 					responses: deps.responses,
 					skip,

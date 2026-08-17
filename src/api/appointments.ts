@@ -282,8 +282,6 @@ export const getAppointmentsPage = createServerFn()
 			typeGroup?: "TOURNAMENT" | "TEAM_MATCH";
 			responses?: (ResponseType | "NONE")[];
 			teamIds?: string[];
-			dateFrom?: Date;
-			dateTo?: Date;
 			withDeleted?: boolean;
 			sortDir?: "asc" | "desc";
 			skip: number;
@@ -344,10 +342,6 @@ export const getAppointmentsPage = createServerFn()
 						: responseTypes.length > 0
 							? { some: { responseType: { in: responseTypes }, userId } }
 							: undefined,
-				startDate: {
-					gte: data.dateFrom,
-					lte: data.dateTo,
-				},
 				type:
 					data.typeGroup === "TOURNAMENT"
 						? {
