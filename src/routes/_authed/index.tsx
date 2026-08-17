@@ -1,17 +1,6 @@
-import {
-	createFileRoute,
-	useRouteContext,
-	useRouter,
-} from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import {
-	CalendarDaysIcon,
-	CheckIcon,
-	MapPinIcon,
-	UsersIcon,
-	UsersRoundIcon,
-	XIcon,
-} from "lucide-react";
+import { UsersIcon, UsersRoundIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -22,15 +11,12 @@ import {
 } from "@/api/appointments";
 import { getPlayers } from "@/api/players";
 import { getTeams } from "@/api/teams";
-import { Card } from "@/components/appointments/Card";
+import { AppointmentCard } from "@/components/appointments/AppointmentCard";
 import { PendingPile } from "@/components/appointments/PendingPile";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Link } from "@/components/ui/link";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import type { ResponseType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed/")({
 	component: App,
@@ -149,7 +135,7 @@ function App() {
 					{upcomingAppointments.length > 0 ? (
 						<div className="flex flex-col gap-2.5">
 							{upcomingAppointments.map((a) => (
-								<Card key={a.id} appointment={a} />
+								<AppointmentCard key={a.id} appointment={a} />
 							))}
 						</div>
 					) : (
@@ -164,7 +150,12 @@ function App() {
 			<div className="hidden lg:grid lg:grid-cols-[1fr_320px] lg:items-start lg:gap-6">
 				<div className="flex min-w-0 flex-col gap-6">
 					{next ? (
-						<HeroCard appointment={next} onResponse={onResponse} />
+						<AppointmentCard
+							appointment={next}
+							size="lg"
+							responseMode="actions"
+							onRespond={(id, response) => onResponse(id, response)()}
+						/>
 					) : (
 						<div className="rounded-xl bg-card p-6 text-muted-foreground">
 							{t("No appointments in the next 4 weeks")}
@@ -182,7 +173,7 @@ function App() {
 						{userAppointments && userAppointments.length > 0 ? (
 							<div className="flex flex-col gap-3">
 								{userAppointments.map((a) => (
-									<Card key={a.id} appointment={a} />
+									<AppointmentCard key={a.id} appointment={a} />
 								))}
 							</div>
 						) : (
@@ -224,10 +215,12 @@ function App() {
 						{openAppointments && openAppointments.length > 0 ? (
 							<div className="flex flex-col gap-3">
 								{openAppointments.map((a) => (
-									<PendingResponseItem
+									<AppointmentCard
 										key={a.id}
 										appointment={a}
-										onResponse={onResponse}
+										size="sm"
+										responseMode="actions"
+										onRespond={(id, response) => onResponse(id, response)()}
 									/>
 								))}
 							</div>
@@ -242,137 +235,3 @@ function App() {
 		</>
 	);
 }
-
-type HeroCardProps = {
-	appointment: Appointment & { responses?: Response[] };
-	onResponse: (
-		appointmentId: string,
-		response: ResponseType,
-	) => () => Promise<void>;
-};
-const HeroCard = ({ appointment, onResponse }: HeroCardProps) => {
-	const { user } = useRouteContext({ from: "__root__" });
-	const userResponse = appointment.responses?.find(
-		(r) => r.userId === user?.id,
-	)?.responseType;
-	const isAccepted = userResponse === "ACCEPT";
-	const isDeclined = userResponse === "DECLINE";
-
-	return (
-		<div className="rounded-xl bg-card p-6">
-			<div className="mb-2 text-xs font-bold uppercase tracking-wide">
-				{t("Next Appointment")}
-			</div>
-			<div className="flex flex-wrap items-end justify-between gap-4">
-				<div className="min-w-0">
-					<h1 className="mb-2 font-bold text-2xl">
-						<Link to={`/appts/$apptId`} params={{ apptId: appointment.id }}>
-							{appointment.title}
-						</Link>
-					</h1>
-					<div className="flex flex-wrap gap-4 text-muted-foreground text-sm">
-						<span className="flex items-center gap-1.5">
-							<CalendarDaysIcon className="size-4" />
-							{new Date(appointment.startDate).toLocaleDateString("de-DE", {
-								day: "2-digit",
-								month: "short",
-								year: "numeric",
-							})}{" "}
-							·{" "}
-							{new Date(appointment.startDate).toLocaleTimeString("de-DE", {
-								timeStyle: "short",
-							})}
-						</span>
-						{appointment.location && (
-							<span className="flex items-center gap-1.5">
-								<MapPinIcon className="size-4" />
-								{appointment.location}
-							</span>
-						)}
-					</div>
-				</div>
-				<div className="flex shrink-0 gap-2">
-					<Button
-						type="button"
-						variant="ghost"
-						className={cn(
-							"border",
-							isAccepted
-								? "border-success bg-success text-success-foreground hover:bg-success/90"
-								: "border-success/30 text-success hover:bg-success/15 hover:text-success",
-						)}
-						onClick={onResponse(appointment.id, "ACCEPT")}
-					>
-						{t("Accept")}
-					</Button>
-					<Button
-						type="button"
-						variant="ghost"
-						className={cn(
-							"border",
-							isDeclined
-								? "border-destructive bg-destructive text-white hover:bg-destructive/90"
-								: "border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive",
-						)}
-						onClick={onResponse(appointment.id, "DECLINE")}
-					>
-						{t("Decline")}
-					</Button>
-				</div>
-			</div>
-		</div>
-	);
-};
-
-type PendingResponseItemProps = {
-	appointment: Appointment;
-	onResponse: (
-		appointmentId: string,
-		response: ResponseType,
-	) => () => Promise<void>;
-};
-const PendingResponseItem = ({
-	appointment,
-	onResponse,
-}: PendingResponseItemProps) => {
-	return (
-		<div className="flex items-center gap-3 border-t border-border/40 pt-3 first:border-t-0 first:pt-0">
-			<div className="min-w-0 flex-1">
-				<div className="truncate font-medium text-sm">{appointment.title}</div>
-				<div className="text-muted-foreground text-xs">
-					{new Date(appointment.startDate).toLocaleDateString("de-DE", {
-						day: "2-digit",
-						month: "2-digit",
-						year: "2-digit",
-					})}{" "}
-					·{" "}
-					{new Date(appointment.startDate).toLocaleTimeString("de-DE", {
-						timeStyle: "short",
-					})}
-				</div>
-			</div>
-			<div className="flex shrink-0 gap-1.5">
-				<Button
-					type="button"
-					variant="ghost"
-					size="icon-sm"
-					className="border border-success/30 text-success hover:bg-success/15 hover:text-success"
-					title={t("Accept")}
-					onClick={onResponse(appointment.id, "ACCEPT")}
-				>
-					<CheckIcon />
-				</Button>
-				<Button
-					type="button"
-					variant="ghost"
-					size="icon-sm"
-					className="border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive"
-					title={t("Decline")}
-					onClick={onResponse(appointment.id, "DECLINE")}
-				>
-					<XIcon />
-				</Button>
-			</div>
-		</div>
-	);
-};

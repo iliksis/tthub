@@ -1,6 +1,6 @@
 import type { AppointmentWithResponses } from "@/api/appointments";
 import { t } from "@/lib/text";
-import { Card } from "../appointments/Card";
+import { AppointmentCard } from "../appointments/AppointmentCard";
 
 type NextMatchesRailProps = {
 	appointments: AppointmentWithResponses[];
@@ -29,7 +29,7 @@ export function NextMatchesRail({
 	return (
 		<div className="flex flex-col gap-2.5">
 			{upcoming.map((appointment) => (
-				<Card key={appointment.id} appointment={appointment} />
+				<AppointmentCard key={appointment.id} appointment={appointment} />
 			))}
 			<div className="p-2 pt-1.5">
 				<button
