@@ -223,6 +223,7 @@ export const MobilePlayerFilters = ({
 					variant="outline"
 					size="icon"
 					className="relative shrink-0"
+					aria-label={t("Filters")}
 					onClick={() => setSheetOpen(true)}
 				>
 					<SlidersHorizontalIcon className="size-4" />

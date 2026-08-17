@@ -327,6 +327,7 @@ function RouteComponent() {
 								variant="ghost"
 								size="icon"
 								className="size-8"
+								aria-label={t("Download")}
 								onClick={onDownloadIcal}
 							>
 								<DownloadIcon className="size-4" />
@@ -336,6 +337,7 @@ function RouteComponent() {
 									variant="ghost"
 									size="icon"
 									className="size-8"
+									aria-label={t("Edit")}
 									onClick={onStartEdit}
 								>
 									<PencilIcon className="size-4" />
@@ -346,6 +348,7 @@ function RouteComponent() {
 									variant="ghost"
 									size="icon"
 									className="size-8 text-destructive hover:text-destructive"
+									aria-label={t("Delete")}
 									disabled={isDeleted}
 									onClick={onOpenDelete}
 								>
