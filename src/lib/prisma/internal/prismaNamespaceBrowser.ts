@@ -59,9 +59,11 @@ export const ModelName = {
   Response: 'Response',
   Player: 'Player',
   Team: 'Team',
+  Standing: 'Standing',
   Placement: 'Placement',
   Transaction: 'Transaction',
   Subscription: 'Subscription',
+  ImporterSetting: 'ImporterSetting',
   NotificationSettings: 'NotificationSettings'
 } as const
 
@@ -131,7 +133,10 @@ export const AppointmentScalarFieldEnum = {
   link: 'link',
   type: 'type',
   status: 'status',
-  nextAppointmentId: 'nextAppointmentId'
+  nextAppointmentId: 'nextAppointmentId',
+  ownTeamId: 'ownTeamId',
+  homeTeam: 'homeTeam',
+  awayTeam: 'awayTeam'
 } as const
 
 export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
@@ -164,10 +169,31 @@ export const TeamScalarFieldEnum = {
   createdAt: 'createdAt',
   title: 'title',
   league: 'league',
-  placement: 'placement'
+  placement: 'placement',
+  clickTTGroupId: 'clickTTGroupId'
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
+
+
+export const StandingScalarFieldEnum = {
+  id: 'id',
+  updatedAt: 'updatedAt',
+  teamId: 'teamId',
+  rank: 'rank',
+  teamName: 'teamName',
+  wins: 'wins',
+  draws: 'draws',
+  undecided: 'undecided',
+  losses: 'losses',
+  matchesWon: 'matchesWon',
+  matchesLost: 'matchesLost',
+  diff: 'diff',
+  pointsWon: 'pointsWon',
+  pointsLost: 'pointsLost'
+} as const
+
+export type StandingScalarFieldEnum = (typeof StandingScalarFieldEnum)[keyof typeof StandingScalarFieldEnum]
 
 
 export const PlacementScalarFieldEnum = {
@@ -203,6 +229,14 @@ export const SubscriptionScalarFieldEnum = {
 } as const
 
 export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
+
+
+export const ImporterSettingScalarFieldEnum = {
+  importerId: 'importerId',
+  enabled: 'enabled'
+} as const
+
+export type ImporterSettingScalarFieldEnum = (typeof ImporterSettingScalarFieldEnum)[keyof typeof ImporterSettingScalarFieldEnum]
 
 
 export const NotificationSettingsScalarFieldEnum = {

@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { Holiday } from "open-holiday-js";
 import { prismaClient } from "@/lib/db";
-import type { Appointment, Prisma, Response } from "@/lib/prisma/client";
+import type { Appointment, Prisma, Response, Team } from "@/lib/prisma/client";
 import {
 	AppointmentStatus,
 	AppointmentType,
@@ -87,6 +86,7 @@ export const createAppointment = createServerFn()
 
 const appointmentDetailInclude = {
 	nextAppointment: true,
+	ownTeam: true,
 	placements: {
 		include: { player: true },
 	},
@@ -103,7 +103,10 @@ export type AppointmentDetail = Prisma.AppointmentGetPayload<{
 	include: typeof appointmentDetailInclude;
 }>;
 
-export type AppointmentWithResponses = Appointment & { responses: Response[] };
+export type AppointmentWithResponses = Appointment & {
+	responses: Response[];
+	ownTeam: Team | null;
+};
 
 export const getAppointment = createServerFn()
 	.validator((d: { id: string }) => d)
@@ -237,7 +240,7 @@ export const getAppointments = createServerFn()
 	.handler(async ({ data }) => {
 		try {
 			const appointments = await prismaClient.appointment.findMany({
-				include: { responses: true },
+				include: { ownTeam: true, responses: true },
 				orderBy: data.orderBy,
 				where: {
 					deletedAt: data.withDeleted ? undefined : null,
@@ -276,11 +279,11 @@ export const getAppointmentsPage = createServerFn()
 	.validator(
 		(d: {
 			query?: string;
-			type?: AppointmentType;
-			response?: ResponseType | "NONE";
-			dateFrom?: Date;
-			dateTo?: Date;
+			typeGroup?: "TOURNAMENT" | "TEAM_MATCH";
+			responses?: (ResponseType | "NONE")[];
+			teamIds?: string[];
 			withDeleted?: boolean;
+			sortDir?: "asc" | "desc";
 			skip: number;
 			take: number;
 		}) => d,
@@ -293,37 +296,76 @@ export const getAppointmentsPage = createServerFn()
 		const userId = session.data.id;
 
 		try {
+			const responseTypes = (data.responses ?? []).filter(
+				(r): r is ResponseType => r !== "NONE",
+			);
+			const wantsNoResponse = (data.responses ?? []).includes("NONE");
+			// "no response" and specific response types can't both be expressed
+			// through the `responses` relation filter at once (one is `none`,
+			// the other `some`), so that combination goes into its own `OR`
+			// clause instead — kept separate from the query-text `OR` below via
+			// `AND` so Prisma doesn't have to merge two ORs into one.
+			const mixedResponseFilter = wantsNoResponse && responseTypes.length > 0;
+
 			const where: Prisma.AppointmentWhereInput = {
-				deletedAt: data.withDeleted ? undefined : null,
-				OR: [
-					{ title: { contains: data.query ?? "" } },
-					{ shortTitle: { contains: data.query ?? "" } },
-					{ location: { contains: data.query ?? "" } },
+				AND: [
+					{
+						OR: [
+							{ title: { contains: data.query ?? "" } },
+							{ shortTitle: { contains: data.query ?? "" } },
+							{ location: { contains: data.query ?? "" } },
+						],
+					},
+					mixedResponseFilter
+						? {
+								OR: [
+									{ responses: { none: { userId } } },
+									{
+										responses: {
+											some: { responseType: { in: responseTypes }, userId },
+										},
+									},
+								],
+							}
+						: {},
 				],
-				responses:
-					data.response === "NONE"
+				deletedAt: data.withDeleted ? undefined : null,
+				NOT: { type: AppointmentType.HOLIDAY },
+				ownTeamId:
+					data.teamIds && data.teamIds.length > 0
+						? { in: data.teamIds }
+						: undefined,
+				responses: mixedResponseFilter
+					? undefined
+					: wantsNoResponse
 						? { none: { userId } }
-						: data.response
-							? { some: { responseType: data.response, userId } }
+						: responseTypes.length > 0
+							? { some: { responseType: { in: responseTypes }, userId } }
 							: undefined,
-				startDate: {
-					gte: data.dateFrom,
-					lte: data.dateTo,
-				},
-				type: data.type,
+				type:
+					data.typeGroup === "TOURNAMENT"
+						? {
+								in: [AppointmentType.TOURNAMENT, AppointmentType.TOURNAMENT_DE],
+							}
+						: data.typeGroup === "TEAM_MATCH"
+							? AppointmentType.TEAM_MATCH
+							: undefined,
 			};
 
 			const [appointments, matchedTotal, grandTotal] = await Promise.all([
 				prismaClient.appointment.findMany({
-					include: { responses: true },
-					orderBy: { startDate: "desc" },
+					include: { ownTeam: true, responses: true },
+					orderBy: { startDate: data.sortDir ?? "desc" },
 					skip: data.skip,
 					take: data.take,
 					where,
 				}),
 				prismaClient.appointment.count({ where }),
 				prismaClient.appointment.count({
-					where: { deletedAt: data.withDeleted ? undefined : null },
+					where: {
+						deletedAt: data.withDeleted ? undefined : null,
+						NOT: { type: AppointmentType.HOLIDAY },
+					},
 				}),
 			]);
 
@@ -636,64 +678,6 @@ export const getCalendarAppointments = createServerFn()
 				type: a.type,
 			}));
 			return { data: calAppointments, message: t("Appointments found") };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
-
-export const importHolidays = createServerFn()
-	.validator(
-		(d: {
-			country: string;
-			subdivision?: string;
-			startDate: string;
-			endDate: string;
-		}) => d,
-	)
-	.handler(async ({ data }) => {
-		try {
-			const api = new Holiday();
-			const schoolHolidays = await api.getSchoolHolidays(
-				data.country,
-				new Date(data.startDate),
-				new Date(data.endDate),
-				data.subdivision,
-			);
-			const publicHolidays = await api.getPublicHolidays(
-				data.country,
-				new Date(data.startDate),
-				new Date(data.endDate),
-				data.subdivision,
-			);
-			let count = 0;
-			for (const holiday of [...schoolHolidays, ...publicHolidays]) {
-				const existingAppointment = await prismaClient.appointment.findFirst({
-					where: {
-						id: holiday.id,
-					},
-				});
-				if (existingAppointment) {
-					continue;
-				}
-				await prismaClient.appointment.create({
-					data: {
-						endDate: holiday.endDate,
-						id: holiday.id,
-						shortTitle: holiday.name[0].text,
-						startDate: holiday.startDate,
-						title: holiday.name[0].text,
-						type: AppointmentType.HOLIDAY,
-					},
-				});
-				count++;
-			}
-			return {
-				message:
-					count === 1
-						? t("1 appointment created")
-						: t("{0} Appointments created", count.toString()),
-			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);

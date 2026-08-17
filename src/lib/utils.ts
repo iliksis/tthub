@@ -2,12 +2,19 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import type { FileRouteTypes } from "@/routeTree.gen";
 import type { UserInvitation } from "./prisma/client";
-import { Role } from "./prisma/enums";
+import { AppointmentType, Role } from "./prisma/enums";
 import { t } from "./text";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
+
+/**
+ * Appointment types that don't participate in the draft/publish workflow or
+ * response tracking (imported/auto-generated, always visible as-is).
+ */
+export const isInformationalAppointmentType = (type: AppointmentType) =>
+	type === AppointmentType.HOLIDAY || type === AppointmentType.TEAM_MATCH;
 
 const expirationDays = 3;
 export const isInvitationExpired = (invitation: UserInvitation) => {

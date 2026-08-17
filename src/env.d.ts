@@ -14,6 +14,8 @@ declare global {
 			readonly DATABASE_URL: string;
 			readonly SESSION_PASSWORD: string;
 			readonly VAPID_PRIVATE_KEY: string;
+			readonly CLICKTT_SCHEDULE_URL: string;
+			readonly CLICKTT_CLUB_NAME: string;
 		}
 	}
 }

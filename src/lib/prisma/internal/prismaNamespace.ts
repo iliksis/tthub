@@ -405,9 +405,11 @@ export const ModelName = {
   Response: 'Response',
   Player: 'Player',
   Team: 'Team',
+  Standing: 'Standing',
   Placement: 'Placement',
   Transaction: 'Transaction',
   Subscription: 'Subscription',
+  ImporterSetting: 'ImporterSetting',
   NotificationSettings: 'NotificationSettings'
 } as const
 
@@ -424,7 +426,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "feedConfig" | "userInvitation" | "passwordReset" | "appointment" | "response" | "player" | "team" | "placement" | "transaction" | "subscription" | "notificationSettings"
+    modelProps: "user" | "feedConfig" | "userInvitation" | "passwordReset" | "appointment" | "response" | "player" | "team" | "standing" | "placement" | "transaction" | "subscription" | "importerSetting" | "notificationSettings"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1020,6 +1022,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Standing: {
+      payload: Prisma.$StandingPayload<ExtArgs>
+      fields: Prisma.StandingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StandingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StandingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>
+        }
+        findFirst: {
+          args: Prisma.StandingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StandingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>
+        }
+        findMany: {
+          args: Prisma.StandingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>[]
+        }
+        create: {
+          args: Prisma.StandingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>
+        }
+        createMany: {
+          args: Prisma.StandingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StandingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>[]
+        }
+        delete: {
+          args: Prisma.StandingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>
+        }
+        update: {
+          args: Prisma.StandingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>
+        }
+        deleteMany: {
+          args: Prisma.StandingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StandingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StandingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>[]
+        }
+        upsert: {
+          args: Prisma.StandingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StandingPayload>
+        }
+        aggregate: {
+          args: Prisma.StandingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStanding>
+        }
+        groupBy: {
+          args: Prisma.StandingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StandingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StandingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StandingCountAggregateOutputType> | number
+        }
+      }
+    }
     Placement: {
       payload: Prisma.$PlacementPayload<ExtArgs>
       fields: Prisma.PlacementFieldRefs
@@ -1242,6 +1318,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ImporterSetting: {
+      payload: Prisma.$ImporterSettingPayload<ExtArgs>
+      fields: Prisma.ImporterSettingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ImporterSettingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImporterSettingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ImporterSettingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImporterSettingPayload>
+        }
+        findFirst: {
+          args: Prisma.ImporterSettingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImporterSettingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ImporterSettingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImporterSettingPayload>
+        }
+        findMany: {
+          args: Prisma.ImporterSettingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImporterSettingPayload>[]
+        }
+        create: {
+          args: Prisma.ImporterSettingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImporterSettingPayload>
+        }
+        createMany: {
+          args: Prisma.ImporterSettingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ImporterSettingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImporterSettingPayload>[]
+        }
+        delete: {
+          args: Prisma.ImporterSettingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImporterSettingPayload>
+        }
+        update: {
+          args: Prisma.ImporterSettingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImporterSettingPayload>
+        }
+        deleteMany: {
+          args: Prisma.ImporterSettingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ImporterSettingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ImporterSettingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImporterSettingPayload>[]
+        }
+        upsert: {
+          args: Prisma.ImporterSettingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImporterSettingPayload>
+        }
+        aggregate: {
+          args: Prisma.ImporterSettingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateImporterSetting>
+        }
+        groupBy: {
+          args: Prisma.ImporterSettingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImporterSettingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ImporterSettingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImporterSettingCountAggregateOutputType> | number
+        }
+      }
+    }
     NotificationSettings: {
       payload: Prisma.$NotificationSettingsPayload<ExtArgs>
       fields: Prisma.NotificationSettingsFieldRefs
@@ -1405,7 +1555,10 @@ export const AppointmentScalarFieldEnum = {
   link: 'link',
   type: 'type',
   status: 'status',
-  nextAppointmentId: 'nextAppointmentId'
+  nextAppointmentId: 'nextAppointmentId',
+  ownTeamId: 'ownTeamId',
+  homeTeam: 'homeTeam',
+  awayTeam: 'awayTeam'
 } as const
 
 export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
@@ -1438,10 +1591,31 @@ export const TeamScalarFieldEnum = {
   createdAt: 'createdAt',
   title: 'title',
   league: 'league',
-  placement: 'placement'
+  placement: 'placement',
+  clickTTGroupId: 'clickTTGroupId'
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
+
+
+export const StandingScalarFieldEnum = {
+  id: 'id',
+  updatedAt: 'updatedAt',
+  teamId: 'teamId',
+  rank: 'rank',
+  teamName: 'teamName',
+  wins: 'wins',
+  draws: 'draws',
+  undecided: 'undecided',
+  losses: 'losses',
+  matchesWon: 'matchesWon',
+  matchesLost: 'matchesLost',
+  diff: 'diff',
+  pointsWon: 'pointsWon',
+  pointsLost: 'pointsLost'
+} as const
+
+export type StandingScalarFieldEnum = (typeof StandingScalarFieldEnum)[keyof typeof StandingScalarFieldEnum]
 
 
 export const PlacementScalarFieldEnum = {
@@ -1477,6 +1651,14 @@ export const SubscriptionScalarFieldEnum = {
 } as const
 
 export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
+
+
+export const ImporterSettingScalarFieldEnum = {
+  importerId: 'importerId',
+  enabled: 'enabled'
+} as const
+
+export type ImporterSettingScalarFieldEnum = (typeof ImporterSettingScalarFieldEnum)[keyof typeof ImporterSettingScalarFieldEnum]
 
 
 export const NotificationSettingsScalarFieldEnum = {
@@ -1778,9 +1960,11 @@ export type GlobalOmitConfig = {
   response?: Prisma.ResponseOmit
   player?: Prisma.PlayerOmit
   team?: Prisma.TeamOmit
+  standing?: Prisma.StandingOmit
   placement?: Prisma.PlacementOmit
   transaction?: Prisma.TransactionOmit
   subscription?: Prisma.SubscriptionOmit
+  importerSetting?: Prisma.ImporterSettingOmit
   notificationSettings?: Prisma.NotificationSettingsOmit
 }
 

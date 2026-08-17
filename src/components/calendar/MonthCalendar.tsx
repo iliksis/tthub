@@ -47,6 +47,11 @@ export const categoryStyle: Record<
 		gradient: "bg-gradient-to-br from-primary to-primary/70",
 		solidText: "text-primary-foreground",
 	},
+	TEAM_MATCH: {
+		dot: "bg-warning",
+		gradient: "bg-gradient-to-br from-warning to-warning/70",
+		solidText: "text-warning-foreground",
+	},
 	TOURNAMENT: {
 		dot: "bg-success",
 		gradient: "bg-gradient-to-br from-success to-success/70",

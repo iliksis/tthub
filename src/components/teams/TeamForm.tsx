@@ -18,15 +18,20 @@ type TeamFormProps = {
 	defaultValues?: {
 		title: string;
 		league: string;
+		clickTTGroupId: string;
 	};
-	onSubmit: (updates: { title: string; league: string }) => Promise<void>;
+	onSubmit: (updates: {
+		title: string;
+		league: string;
+		clickTTGroupId: string;
+	}) => Promise<void>;
 };
 
 export const TeamForm = ({
 	open,
 	onClose,
 	submitLabel,
-	defaultValues = { league: "", title: "" },
+	defaultValues = { clickTTGroupId: "", league: "", title: "" },
 	onSubmit,
 }: TeamFormProps) => {
 	const form = useForm({
@@ -80,6 +85,23 @@ export const TeamForm = ({
 										id={field.name}
 										aria-invalid={!field.state.meta.isValid}
 										minLength={2}
+										name={field.name}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+					<div>
+						<form.Field name="clickTTGroupId">
+							{(field) => (
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{t("click-TT Group Id")}:</Label>
+									<Input
+										id={field.name}
+										aria-invalid={!field.state.meta.isValid}
 										name={field.name}
 										value={field.state.value}
 										onBlur={field.handleBlur}
