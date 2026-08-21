@@ -13,7 +13,7 @@ import {
 } from "@tanstack/react-table";
 import { ChevronDown, ChevronsDownUp, ChevronUp } from "lucide-react";
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
@@ -254,10 +254,11 @@ export function DetailsList<T extends RowData>({
 										<DropdownMenu key={commandItem.key}>
 											<DropdownMenuTrigger
 												render={
-													<Button
+													<button
 														type="button"
-														size="sm"
-														variant={variant}
+														className={cn(
+															buttonVariants({ size: "sm", variant }),
+														)}
 														disabled={isDisabled}
 														title={commandItem.label}
 													/>

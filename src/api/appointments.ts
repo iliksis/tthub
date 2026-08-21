@@ -306,6 +306,8 @@ export const getAppointmentsPage = createServerFn()
 			// clause instead — kept separate from the query-text `OR` below via
 			// `AND` so Prisma doesn't have to merge two ORs into one.
 			const mixedResponseFilter = wantsNoResponse && responseTypes.length > 0;
+			const todayStart = new Date();
+			todayStart.setHours(0, 0, 0, 0);
 
 			const where: Prisma.AppointmentWhereInput = {
 				AND: [
@@ -342,6 +344,7 @@ export const getAppointmentsPage = createServerFn()
 						: responseTypes.length > 0
 							? { some: { responseType: { in: responseTypes }, userId } }
 							: undefined,
+				startDate: { gte: todayStart },
 				type:
 					data.typeGroup === "TOURNAMENT"
 						? {
@@ -355,7 +358,7 @@ export const getAppointmentsPage = createServerFn()
 			const [appointments, matchedTotal, grandTotal] = await Promise.all([
 				prismaClient.appointment.findMany({
 					include: { ownTeam: true, responses: true },
-					orderBy: { startDate: data.sortDir ?? "desc" },
+					orderBy: { startDate: data.sortDir ?? "asc" },
 					skip: data.skip,
 					take: data.take,
 					where,
@@ -365,6 +368,7 @@ export const getAppointmentsPage = createServerFn()
 					where: {
 						deletedAt: data.withDeleted ? undefined : null,
 						NOT: { type: AppointmentType.HOLIDAY },
+						startDate: { gte: todayStart },
 					},
 				}),
 			]);

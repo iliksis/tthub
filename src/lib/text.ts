@@ -46,6 +46,7 @@ const texts = {
 	"Active Subscriptions": "Geräte mit aktivierten Benachrichtigungen",
 	"Add a new event to the club calendar":
 		"Neues Ereignis zum Vereinskalender hinzufügen",
+	"Add filter": "Filter hinzufügen",
 	"Add participant": "Teilnehmer:in hinzufügen",
 	Administrator: "Administrator:in",
 	Adult: "Erwachsen",
@@ -175,6 +176,7 @@ const texts = {
 	"Importer not found": "Importer nicht gefunden",
 	"Importers found": "Importer gefunden",
 	Imports: "Importe",
+	"Incl. deleted": "Inkl. gelöschte",
 	"Include draft appointments": "Entwurfs-Termine hinzufügen",
 	"Incorrect user name or password":
 		"Falscher Benutzername oder falsches Passwort",
@@ -299,6 +301,8 @@ const texts = {
 	Save: "Speichern",
 	Search: "Suche",
 	"Search Appointments": "Termine suchen",
+	"Search appointment or add filter...":
+		"Termin suchen oder Filter hinzufügen…",
 	"Search appointment or person...": "Termin oder Person suchen…",
 	"Search appointment...": "Termin suchen…",
 	"Search Players": "Spieler:innen suchen",
