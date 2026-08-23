@@ -8,6 +8,7 @@ export const t = (key: TextKey | (string & {}), ...params: string[]) =>
 const texts = {
 	"(optional)": "(optional)",
 	"{0} Appointments created": "{0} Termine erstellt",
+	"{0} accepted": "{0} zugesagt",
 	"{0} appointments answered": "{0} Termine beantwortet",
 	"{0} appointments deleted": "{0} Termine gelöscht",
 	"{0} appointments duplicated": "{0} Termine dupliziert",
@@ -287,6 +288,7 @@ const texts = {
 	QTTR: "QTTR",
 	"QTTR must be set (0 is allowed)": "QTTR muss gesetzt sein (0 ist erlaubt)",
 	Rank: "Platz",
+	"Recent activity": "Letzte Aktivität",
 	"Reset Password": "Passwort zurücksetzen",
 	Response: "Antwort",
 	"Response created": "Antwort erstellt",
@@ -384,6 +386,7 @@ const texts = {
 	"User Name": "Benutzername",
 	"User updated": "Benutzer aktualisiert",
 	"Visible to editors": "Für Editor:innen sichtbar",
+	"Welcome back, {0}": "Willkommen zurück, {0}",
 	"Year of birth": "Geburtsjahr",
 	"Year of birth must be set": "Geburtsjahr muss gesetzt sein",
 	"You cannot change your own role":

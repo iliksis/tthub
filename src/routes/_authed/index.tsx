@@ -1,22 +1,76 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { UsersIcon, UsersRoundIcon } from "lucide-react";
-import { useState } from "react";
+import {
+	ActivityIcon,
+	CalendarDaysIcon,
+	CheckIcon,
+	GlobeIcon,
+	PartyPopperIcon,
+	TrendingUpIcon,
+	TrophyIcon,
+	UsersIcon,
+} from "lucide-react";
+import type { ComponentType, ReactNode } from "react";
 import { toast } from "sonner";
 import {
 	createResponse,
 	getNextAppointments,
-	getUserAppointments,
+	getRecentTransactions,
 	getUserOpenAppointments,
 } from "@/api/appointments";
 import { getPlayers } from "@/api/players";
 import { getTeams } from "@/api/teams";
-import { AppointmentCard } from "@/components/appointments/AppointmentCard";
-import { PendingPile } from "@/components/appointments/PendingPile";
 import { Badge } from "@/components/ui/badge";
-import type { Appointment, Response } from "@/lib/prisma/client";
-import type { ResponseType } from "@/lib/prisma/enums";
+import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
+import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
+import { transactionActionBadge } from "@/lib/transactionLabels";
+import { cn, formatRelativeTime } from "@/lib/utils";
+
+const RECENT_ACTIVITY_TAKE = 5;
+
+// Inverted (tinted background + colored text) instead of the solid fill the
+// Badge component defaults to for success/info — keeps the activity feed calm.
+const invertedBadgeClass: Record<string, string> = {
+	destructive: "bg-destructive/10 text-destructive",
+	info: "bg-info/10 text-info",
+	success: "bg-success/10 text-success",
+};
+
+const dateFmt = (d: Date | string) =>
+	new Date(d).toLocaleDateString("de-DE", {
+		day: "2-digit",
+		month: "short",
+		weekday: "short",
+	});
+const openDateFmt = (d: Date | string) =>
+	new Date(d).toLocaleDateString("de-DE", {
+		day: "2-digit",
+		month: "short",
+	});
+const timeFmt = (d: Date | string) =>
+	new Date(d).toLocaleTimeString("de-DE", { timeStyle: "short" });
+const isMultiDay = (startDate: Date | string, endDate: Date | string | null) =>
+	endDate !== null &&
+	new Date(startDate).toDateString() !== new Date(endDate).toDateString();
+const rangeFmt = (startDate: Date | string, endDate: Date | string | null) =>
+	isMultiDay(startDate, endDate) && endDate
+		? `${openDateFmt(startDate)}-${openDateFmt(endDate)}`
+		: dateFmt(startDate);
+const shortRangeFmt = (
+	startDate: Date | string,
+	endDate: Date | string | null,
+) =>
+	isMultiDay(startDate, endDate) && endDate
+		? `${new Date(startDate).getDate()}.-${openDateFmt(endDate)}`
+		: dateFmt(startDate);
+const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
+	HOLIDAY: PartyPopperIcon,
+	TEAM_MATCH: UsersIcon,
+	TOURNAMENT: TrophyIcon,
+	TOURNAMENT_DE: GlobeIcon,
+};
 
 export const Route = createFileRoute("/_authed/")({
 	component: App,
@@ -28,36 +82,51 @@ export const Route = createFileRoute("/_authed/")({
 			throw new Error(t("Unauthorized"));
 		}
 
-		const [nextRes, userRes, openRes, playersRes, teamsRes] = await Promise.all(
-			[
+		const [nextRes, openRes, playersRes, teamsRes, transactionsRes] =
+			await Promise.all([
 				getNextAppointments(),
-				getUserAppointments({ data: { userId: context.user.id } }),
 				getUserOpenAppointments({
 					data: { userId: context.user.id },
 				}),
 				getPlayers(),
 				getTeams(),
-			],
-		);
+				getRecentTransactions({ data: { take: RECENT_ACTIVITY_TAKE } }),
+			]);
 
 		return {
 			nextAppointments: nextRes.data,
 			openAppointments: openRes.data,
 			playerCount: playersRes.data?.length ?? 0,
-			teamCount: teamsRes.data?.length ?? 0,
-			userAppointments: userRes.data,
+			recentActivity: transactionsRes.data ?? [],
+			teams: teamsRes.data ?? [],
 		};
 	},
 });
 
+type SectionProps = {
+	title: string;
+	icon: ComponentType<{ className?: string }>;
+	children: ReactNode;
+};
+
+function Section({ title, icon: Icon, children }: SectionProps) {
+	return (
+		<div>
+			<div className="mb-3 flex items-center gap-2.5">
+				<Icon className="size-4 text-foreground" />
+				<span className="font-bold text-xs uppercase tracking-wider">
+					{title}
+				</span>
+				<span className="h-px flex-1 bg-border" />
+			</div>
+			{children}
+		</div>
+	);
+}
+
 function App() {
-	const {
-		nextAppointments,
-		userAppointments,
-		openAppointments,
-		playerCount,
-		teamCount,
-	} = Route.useLoaderData();
+	const { nextAppointments, openAppointments, teams, recentActivity } =
+		Route.useLoaderData();
 	const router = useRouter();
 	const createResponseServerFn = useServerFn(createResponse);
 
@@ -73,155 +142,120 @@ function App() {
 			}
 		};
 
-	const [next] = nextAppointments ?? [];
-
-	const [initialPendingCount] = useState(openAppointments?.length ?? 0);
-	const resolvedCount = initialPendingCount - (openAppointments?.length ?? 0);
-
-	const upcoming = new Map<string, Appointment & { responses?: Response[] }>();
-	for (const a of [
-		...(nextAppointments ?? []),
-		...(userAppointments ?? []),
-		...(openAppointments ?? []),
-	]) {
-		upcoming.set(a.id, a);
-	}
-	const upcomingAppointments = [...upcoming.values()].sort(
-		(a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-	);
-
 	return (
-		<>
-			{/* Mobile / tablet layout */}
-			<div className="flex flex-col gap-5 lg:hidden">
-				<div className="flex gap-2">
-					<div className="flex flex-1 items-center gap-2 rounded-xl bg-card px-3 py-2.5">
-						<UsersIcon className="size-4 text-muted-foreground" />
-						<span className="font-bold text-sm">{playerCount}</span>
-						<span className="text-muted-foreground text-xs">
-							{t("Players")}
-						</span>
-					</div>
-					<div className="flex flex-1 items-center gap-2 rounded-xl bg-card px-3 py-2.5">
-						<UsersRoundIcon className="size-4 text-muted-foreground" />
-						<span className="font-bold text-sm">{teamCount}</span>
-						<span className="text-muted-foreground text-xs">{t("Teams")}</span>
-					</div>
-				</div>
-
-				<div>
-					<div className="mb-2 flex items-center justify-between">
-						<h2 className="font-bold text-sm">{t("Pending appointments")}</h2>
-						{initialPendingCount > 0 && (
-							<span className="text-muted-foreground text-xs">
-								{t(
-									"{0} of {1} answered",
-									resolvedCount.toString(),
-									initialPendingCount.toString(),
-								)}
-							</span>
-						)}
-					</div>
-					<PendingPile
-						appointments={openAppointments ?? []}
-						onRespond={(appointmentId, response) =>
-							onResponse(appointmentId, response)()
-						}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2.5">
-					<h2 className="font-bold text-sm">{t("Upcoming appointments")}</h2>
-					{upcomingAppointments.length > 0 ? (
-						<div className="flex flex-col gap-2.5">
-							{upcomingAppointments.map((a) => (
-								<AppointmentCard key={a.id} appointment={a} />
-							))}
-						</div>
-					) : (
-						<div className="rounded-xl bg-card px-4 py-6 text-center text-muted-foreground text-sm">
-							{t("You have no appointments")}
-						</div>
-					)}
-				</div>
+		<div className="flex flex-col gap-8">
+			<div>
+				<h1 className="font-bold text-lg hidden lg:block">{t("Dashboard")}</h1>
 			</div>
 
-			{/* Desktop layout */}
-			<div className="hidden lg:grid lg:grid-cols-[1fr_320px] lg:items-start lg:gap-6">
-				<div className="flex min-w-0 flex-col gap-6">
-					{next ? (
-						<AppointmentCard
-							appointment={next}
-							size="lg"
-							responseMode="actions"
-							onRespond={(id, response) => onResponse(id, response)()}
-						/>
-					) : (
-						<div className="rounded-xl bg-card p-6 text-muted-foreground">
-							{t("No appointments in the next 4 weeks")}
-						</div>
-					)}
-					<div className="flex flex-col gap-3">
-						<div className="flex items-center gap-2">
-							<h3 className="flex-1 font-bold text-sm">
-								{t("Your appointments")}
-							</h3>
-							{userAppointments && userAppointments.length > 0 && (
-								<Badge variant="secondary">{userAppointments.length}</Badge>
-							)}
-						</div>
-						{userAppointments && userAppointments.length > 0 ? (
-							<div className="flex flex-col gap-3">
-								{userAppointments.map((a) => (
-									<AppointmentCard key={a.id} appointment={a} />
-								))}
-							</div>
+			<div className="grid gap-10 lg:grid-cols-[1fr_340px]">
+				<div className="min-w-0 lg:col-start-1 lg:row-start-1 lg:row-span-2">
+					<Section title={t("Upcoming appointments")} icon={CalendarDaysIcon}>
+						{nextAppointments.length > 0 ? (
+							<>
+								<table className="hidden w-full border-collapse text-sm lg:table">
+									<tbody>
+										{nextAppointments.map((a) => {
+											const TypeIcon = typeIcon[a.type];
+											return (
+												<tr key={a.id} className="border-border/60 border-b">
+													<td className="w-32 py-2.5 text-muted-foreground">
+														{rangeFmt(a.startDate, a.endDate)}
+													</td>
+													<td className="w-16 py-2.5 text-muted-foreground">
+														{timeFmt(a.startDate)}
+													</td>
+													<td className="py-2.5 font-medium">
+														<Link to="/appts/$apptId" params={{ apptId: a.id }}>
+															{a.shortTitle}
+														</Link>
+													</td>
+													<td className="py-2.5 text-right text-muted-foreground">
+														{a.location}
+													</td>
+													<td className="w-8 py-2.5 text-right">
+														<TypeIcon className="ml-auto size-3.5 text-muted-foreground" />
+													</td>
+												</tr>
+											);
+										})}
+									</tbody>
+								</table>
+								<div className="flex flex-col lg:hidden">
+									{nextAppointments.map((a) => {
+										const TypeIcon = typeIcon[a.type];
+										return (
+											<div
+												key={a.id}
+												className="flex items-center gap-2.5 border-border/60 border-b py-2.5 text-sm last:border-b-0"
+											>
+												<TypeIcon className="size-3.5 shrink-0 text-muted-foreground" />
+												<span className="w-20 shrink-0 text-muted-foreground text-xs">
+													{shortRangeFmt(a.startDate, a.endDate)}
+												</span>
+												<span className="w-10 shrink-0 text-muted-foreground text-xs">
+													{timeFmt(a.startDate)}
+												</span>
+												<Link
+													to="/appts/$apptId"
+													params={{ apptId: a.id }}
+													className="min-w-0 flex-1 truncate font-medium"
+												>
+													{a.shortTitle}
+												</Link>
+											</div>
+										);
+									})}
+								</div>
+							</>
 						) : (
-							<div className="rounded-xl bg-card px-4 py-6 text-center text-muted-foreground text-sm">
+							<div className="text-muted-foreground text-sm">
 								{t("You have no appointments")}
 							</div>
 						)}
-					</div>
+					</Section>
 				</div>
 
-				<div className="flex min-w-0 flex-col gap-6">
-					<div className="rounded-xl bg-card p-4">
-						<h3 className="mb-3 font-bold text-sm">{t("Club at a glance")}</h3>
-						<div className="flex flex-col gap-2 text-sm">
-							<div className="flex justify-between">
-								<span className="flex items-center gap-1.5 text-muted-foreground">
-									<UsersIcon className="size-4" /> {t("Players")}
-								</span>
-								<span className="font-bold">{playerCount}</span>
-							</div>
-							<div className="flex justify-between">
-								<span className="flex items-center gap-1.5 text-muted-foreground">
-									<UsersRoundIcon className="size-4" /> {t("Teams")}
-								</span>
-								<span className="font-bold">{teamCount}</span>
-							</div>
-						</div>
-					</div>
-
-					<div className="rounded-xl bg-card p-4">
-						<div className="mb-3 flex items-center gap-2">
-							<h3 className="flex-1 font-bold text-sm">
-								{t("Pending appointments")}
-							</h3>
-							{openAppointments && openAppointments.length > 0 && (
-								<Badge variant="warning">{openAppointments.length}</Badge>
-							)}
-						</div>
+				<div className="min-w-0 lg:col-start-2 lg:row-start-1">
+					<Section title={t("Pending appointments")} icon={CheckIcon}>
 						{openAppointments && openAppointments.length > 0 ? (
-							<div className="flex flex-col gap-3">
+							<div className="flex flex-col">
 								{openAppointments.map((a) => (
-									<AppointmentCard
+									<div
 										key={a.id}
-										appointment={a}
-										size="sm"
-										responseMode="actions"
-										onRespond={(id, response) => onResponse(id, response)()}
-									/>
+										className="flex items-center justify-between gap-2 border-border/60 border-b py-2 text-sm"
+									>
+										<div className="flex min-w-0 items-center gap-2">
+											<span className="shrink-0 text-muted-foreground text-xs">
+												{openDateFmt(a.startDate)}
+											</span>
+											<Link
+												to="/appts/$apptId"
+												params={{ apptId: a.id }}
+												className="min-w-0 truncate"
+											>
+												{a.shortTitle}
+											</Link>
+										</div>
+										<div className="flex shrink-0 gap-1">
+											<Button
+												size="xs"
+												variant="outline"
+												className="border-success/30 text-success hover:bg-success/15"
+												onClick={onResponse(a.id, "ACCEPT")}
+											>
+												{t("Accept")}
+											</Button>
+											<Button
+												size="xs"
+												variant="outline"
+												className="border-destructive/30 text-destructive hover:bg-destructive/15"
+												onClick={onResponse(a.id, "DECLINE")}
+											>
+												{t("Decline")}
+											</Button>
+										</div>
+									</div>
 								))}
 							</div>
 						) : (
@@ -229,9 +263,101 @@ function App() {
 								{t("You responded to all appointments")}
 							</div>
 						)}
-					</div>
+					</Section>
+				</div>
+
+				<div className="min-w-0 lg:col-start-2 lg:row-start-2">
+					<Section title={t("Recent activity")} icon={ActivityIcon}>
+						{recentActivity.length > 0 ? (
+							<div className="flex flex-col gap-2.5">
+								{recentActivity.map((tx) => {
+									const badge = transactionActionBadge(tx.type);
+									return (
+										<div
+											key={tx.id}
+											className="flex items-center gap-2 text-xs"
+										>
+											<Badge
+												variant={badge.variant}
+												className={cn(
+													"shrink-0",
+													invertedBadgeClass[badge.variant],
+												)}
+											>
+												{badge.label}
+											</Badge>
+											<span className="min-w-0 flex-1 truncate text-muted-foreground">
+												<span className="font-medium text-foreground">
+													{tx.user?.name ?? "—"}
+												</span>{" "}
+												·{" "}
+												<Link
+													to="/appts/$apptId"
+													params={{ apptId: tx.appointment.id }}
+												>
+													{tx.appointment.shortTitle}
+												</Link>
+											</span>
+											<span className="shrink-0 text-muted-foreground">
+												{formatRelativeTime(tx.createdAt)}
+											</span>
+										</div>
+									);
+								})}
+							</div>
+						) : (
+							<div className="text-muted-foreground text-sm">—</div>
+						)}
+					</Section>
 				</div>
 			</div>
-		</>
+
+			<Section title={t("Standings")} icon={TrendingUpIcon}>
+				<div className="grid gap-x-8 gap-y-6 lg:grid-cols-3">
+					{teams.map((team, i) => (
+						<div
+							key={team.id}
+							className={cn(
+								"min-w-0",
+								i > 0 &&
+									"border-border/60 pt-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8",
+							)}
+						>
+							<div className="mb-2 flex items-baseline justify-between gap-2">
+								<Link
+									to="/teams/$teamId"
+									params={{ teamId: team.id }}
+									className="font-medium text-sm"
+								>
+									{team.title}
+								</Link>
+								<span className="text-muted-foreground text-xs">
+									{team.league}
+								</span>
+							</div>
+							{team.standings.length > 0 ? (
+								<table className="w-full border-collapse text-sm">
+									<tbody>
+										{team.standings.map((s) => (
+											<tr key={s.id} className="border-border/40 border-b">
+												<td className="w-5 py-1.5 text-muted-foreground">
+													{s.rank}
+												</td>
+												<td className="truncate py-1.5">{s.teamName}</td>
+												<td className="py-1.5 text-right">{s.pointsWon}</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							) : (
+								<div className="text-muted-foreground text-xs">
+									{t("No standings imported yet.")}
+								</div>
+							)}
+						</div>
+					))}
+				</div>
+			</Section>
+		</div>
 	);
 }

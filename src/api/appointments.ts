@@ -225,6 +225,28 @@ export const getTransactionsPage = createServerFn()
 		}
 	});
 
+// Lightweight, non-editor-gated feed for the dashboard's "recent activity"
+// widget — unlike getTransactionsPage, every logged-in user may see it.
+export const getRecentTransactions = createServerFn({ method: "GET" })
+	.validator((d: { take: number }) => d)
+	.handler(async ({ data }) => {
+		const session = await useAppSession();
+		if (!session.data.id) {
+			throw new Error(t("Unauthorized"));
+		}
+		try {
+			const transactions = await prismaClient.transaction.findMany({
+				include: { appointment: true, user: true },
+				orderBy: { createdAt: "desc" },
+				take: data.take,
+			});
+			return { data: transactions, message: t("Transactions found") };
+		} catch (e) {
+			console.error(e);
+			throw new Error((e as Error).message);
+		}
+	});
+
 export const getAppointments = createServerFn()
 	.validator(
 		(d: {
@@ -552,7 +574,7 @@ export const getNextAppointments = createServerFn().handler(async () => {
 		const fourWeeks = new Date(now.getTime() + 86400000 * 28);
 		const appointments = await prismaClient.appointment.findMany({
 			include: {
-				responses: true,
+				responses: { include: { user: true } },
 			},
 			orderBy: {
 				startDate: "asc",
@@ -571,7 +593,7 @@ export const getNextAppointments = createServerFn().handler(async () => {
 					},
 				],
 				deletedAt: null,
-				type: AppointmentType.TOURNAMENT,
+				NOT: { type: AppointmentType.HOLIDAY },
 			},
 		});
 		return { data: appointments, message: t("Appointments found") };
