@@ -697,6 +697,7 @@ export const getCalendarAppointments = createServerFn()
 			const calAppointments = appointments.map((a) => ({
 				end: a.endDate ?? a.startDate,
 				id: a.id,
+				location: a.location,
 				shortTitle: a.shortTitle,
 				start: a.startDate,
 				title: a.title,

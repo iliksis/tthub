@@ -8,7 +8,6 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import {
 	CalendarDaysIcon,
-	CalendarPlusIcon,
 	CheckIcon,
 	CircleQuestionMarkIcon,
 	GlobeIcon,
@@ -49,12 +48,7 @@ import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
 import { buildMonthGrid } from "@/lib/calendarGrid";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import {
-	cn,
-	isDayInPast,
-	isEditorOrAdmin,
-	isInformationalAppointmentType,
-} from "@/lib/utils";
+import { cn, isDayInPast, isInformationalAppointmentType } from "@/lib/utils";
 
 const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
 	HOLIDAY: PartyPopperIcon,
@@ -207,6 +201,7 @@ function toCalendarAppointments(
 	return items.map((item) => ({
 		end: item.endDate ?? item.startDate,
 		id: item.id,
+		location: item.location,
 		shortTitle: item.shortTitle,
 		start: item.startDate,
 		title: item.title,
@@ -215,23 +210,22 @@ function toCalendarAppointments(
 }
 
 // Drives the two-way sync between the scrollable list and the rail calendar:
-// an IntersectionObserver reports whichever month header is topmost inside
-// the list's own scroll container, and `scrollToMonth` (called from the
-// calendar's prev/next/today) scrolls that header into view. A short
-// suppression window after a programmatic scroll stops the observer from
-// fighting the smooth-scroll animation it just triggered. Calendar content
-// for the active month comes straight from the already-loaded `items` — no
-// separate server round-trip — so switching months is instant either way.
+// an IntersectionObserver reports whichever month header is topmost in the
+// page's normal scroll, and `scrollToMonth` (called from the calendar's
+// prev/next/today) scrolls that header into view. A short suppression window
+// after a programmatic scroll stops the observer from fighting the
+// smooth-scroll animation it just triggered. Calendar content for the active
+// month comes straight from the already-loaded `items` — no separate server
+// round-trip — so switching months is instant either way.
 function useScrollSyncedMonth(
 	groups: { key: string; year: number; monthIndex: number }[],
 ) {
-	const listRef = React.useRef<HTMLDivElement>(null);
 	// The sticky `<h2>` header itself — watched by the IntersectionObserver
 	// below to detect which month is topmost as the user scrolls.
 	const headerRefs = React.useRef(new Map<string, HTMLElement>());
 	// The group's plain, non-sticky wrapper `<div>` — used by `scrollToMonth`
-	// to compute a jump target. Its `offsetTop` is unaffected by scroll state;
-	// the header's own `offsetTop`/rect are NOT (see the comment below).
+	// to compute a jump target. Its position is unaffected by scroll state;
+	// the header's own is NOT (see the comment below).
 	const groupRefs = React.useRef(new Map<string, HTMLElement>());
 	const suppressRef = React.useRef(false);
 	const [active, setActive] = React.useState(
@@ -266,8 +260,6 @@ function useScrollSyncedMonth(
 	const registerGroup = React.useRef(makeRegister(groupRefs)).current;
 
 	React.useEffect(() => {
-		const root = listRef.current;
-		if (!root) return;
 		const observer = new IntersectionObserver(
 			(entries) => {
 				if (suppressRef.current) return;
@@ -279,7 +271,7 @@ function useScrollSyncedMonth(
 				const match = groups.find((g) => g.key === topKey);
 				if (match) setActive(match);
 			},
-			{ root, rootMargin: "-1px 0px -97% 0px", threshold: 0 },
+			{ rootMargin: "-1px 0px -97% 0px", threshold: 0 },
 		);
 		for (const el of headerRefs.current.values()) observer.observe(el);
 		return () => observer.disconnect();
@@ -294,19 +286,16 @@ function useScrollSyncedMonth(
 		};
 		setActive(match);
 		const el = groupRefs.current.get(key);
-		const root = listRef.current;
-		if (el && root) {
+		if (el) {
 			// `el` is the group's plain (non-sticky) wrapper, not the `<h2>`
-			// header — a `position: sticky` element's own `offsetTop` turns out
-			// to reflect its *current stuck* position once scrolled past, not
-			// its true static one (confirmed: reads back as whatever `scrollTop`
-			// already was), so it silently breaks once scrolling has been
-			// clamped near the list's end. The wrapper is never sticky, so its
-			// `offsetTop` is always the correct absolute target — `root` is
-			// `relative` (below) so it's the `offsetParent` this resolves
-			// against.
+			// header — a `position: sticky` element's own rect turns out to
+			// reflect its *current stuck* position once scrolled past, not its
+			// true static one (confirmed: reads back as wherever the page
+			// already scrolled to), so it silently breaks once scrolling has
+			// been clamped near the list's end. The wrapper is never sticky, so
+			// its position is always the correct absolute target.
 			suppressRef.current = true;
-			root.scrollTo({ top: el.offsetTop });
+			window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY });
 			requestAnimationFrame(() => {
 				requestAnimationFrame(() => {
 					suppressRef.current = false;
@@ -315,7 +304,7 @@ function useScrollSyncedMonth(
 		}
 	};
 
-	return { active, listRef, registerGroup, registerHeader, scrollToMonth };
+	return { active, registerGroup, registerHeader, scrollToMonth };
 }
 
 function RouteComponent() {
@@ -330,8 +319,6 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const router = useRouter();
 	const isNavigating = useRouterState({ select: (s) => s.isLoading });
-	const { user } = useRouteContext({ from: "__root__" });
-	const canEdit = isEditorOrAdmin(user?.role);
 	const isCalendarView = search.view === "calendar";
 
 	const navigateToMonth = (target: Date) => {
@@ -377,7 +364,7 @@ function RouteComponent() {
 	// or navigating the calendar are both instant and never trigger the
 	// route's loading state.
 	const monthGroups = React.useMemo(() => groupByMonth(items), [items]);
-	const { active, listRef, registerGroup, registerHeader, scrollToMonth } =
+	const { active, registerGroup, registerHeader, scrollToMonth } =
 		useScrollSyncedMonth(monthGroups);
 	const calendarAppointments = React.useMemo(
 		() => toCalendarAppointments(items),
@@ -460,19 +447,17 @@ function RouteComponent() {
 				</Link>
 			</nav>
 
-			{/* Desktop layout: scrollable list on the left, filters + a
-			    scroll-synced calendar in a rail on the right. The whole section is
-			    capped to the viewport height (matching NavigationWrapper's `p-4`)
-			    so it never causes an outer/page scrollbar — only the list and rail
-			    below scroll internally, in sync (see useScrollSyncedMonth). */}
+			{/* Desktop layout: list on the left, filters + a scroll-synced
+			    calendar sticky in a rail on the right. This scrolls with the
+			    normal page scrollbar rather than an inner scroll container (see
+			    useScrollSyncedMonth). */}
 			<div
 				className={cn(
 					"hidden lg:flex lg:flex-col lg:gap-4",
 					isNavigating && "pointer-events-none opacity-60",
 				)}
-				style={{ height: "calc(100vh - 2rem)" }}
 			>
-				<div className="flex shrink-0 items-center gap-3">
+				<div className="flex items-center gap-3">
 					<div className="flex flex-1 items-baseline gap-2">
 						<h1 className="font-bold text-lg">{t("Appointments")}</h1>
 						<p className="text-muted-foreground text-sm">
@@ -483,18 +468,9 @@ function RouteComponent() {
 							)}
 						</p>
 					</div>
-					{canEdit && (
-						<Button render={<Link to="/create" />}>
-							<CalendarPlusIcon className="size-4" />
-							{t("Create appointment")}
-						</Button>
-					)}
 				</div>
-				<div className="flex min-h-0 flex-1 gap-6">
-					<div
-						ref={listRef}
-						className="relative min-w-0 flex-1 overflow-y-auto pr-2"
-					>
+				<div className="flex gap-6">
+					<div className="w-xl shrink-0">
 						<AppointmentTimeline
 							groups={monthGroups}
 							registerGroup={registerGroup}
@@ -512,7 +488,7 @@ function RouteComponent() {
 							}
 						/>
 					</div>
-					<div className="flex w-[380px] shrink-0 flex-col gap-4 overflow-y-auto">
+					<div className="sticky top-6 flex min-w-95 flex-1 shrink-0 flex-col gap-4 self-start">
 						<div className="shrink-0">
 							<CommandBarFilters {...search} teams={teams} />
 						</div>

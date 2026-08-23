@@ -1,4 +1,13 @@
+import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 import { Link } from "@tanstack/react-router";
+import {
+	CalendarDaysIcon,
+	GlobeIcon,
+	MapPinIcon,
+	PartyPopperIcon,
+	TrophyIcon,
+	UsersIcon,
+} from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -14,6 +23,7 @@ import {
 	weekdayLabels,
 } from "@/lib/calendarGrid";
 import type { AppointmentType } from "@/lib/prisma/enums";
+import { cn } from "@/lib/utils";
 import { CalendarToolbar } from "./CalendarToolbar";
 
 export type CalendarAppointment = {
@@ -23,6 +33,14 @@ export type CalendarAppointment = {
 	start: Date;
 	end: Date;
 	type: AppointmentType;
+	location: string | null;
+};
+
+const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
+	HOLIDAY: PartyPopperIcon,
+	TEAM_MATCH: UsersIcon,
+	TOURNAMENT: TrophyIcon,
+	TOURNAMENT_DE: GlobeIcon,
 };
 
 // Fixed height regardless of content: a day-number row plus a fixed number
@@ -66,6 +84,14 @@ export const categoryStyle: Record<
 
 const formatTime = (date: Date) =>
 	date.toLocaleTimeString("de-DE", { timeStyle: "short" });
+
+const formatDate = (date: Date) =>
+	date.toLocaleDateString("de-DE", { day: "2-digit", month: "short" });
+
+const formatTiming = (event: CalendarAppointment) =>
+	isSingleDayEvent(event)
+		? `${formatTime(event.start)} – ${formatTime(event.end)}`
+		: `${formatDate(event.start)} – ${formatDate(event.end)}`;
 
 type MonthCalendarProps = {
 	appointments: CalendarAppointment[];
@@ -170,39 +196,61 @@ export const MonthCalendar = ({
 
 						{visibleBars.map((bar) => {
 							const style = categoryStyle[bar.event.type];
-							if (isSingleDayEvent(bar.event)) {
-								return (
-									<Link
-										key={bar.event.id}
-										to="/appts/$apptId"
-										params={{ apptId: bar.event.id }}
-										style={{
-											gridColumn: bar.startCol + 1,
-											gridRow: bar.lane + 2,
-										}}
-										className="mx-1 flex h-[26px] items-center gap-2 truncate rounded-lg px-2 text-[11px] font-medium text-foreground"
-									>
-										<span
-											className={`size-2 shrink-0 rounded-full ${style.dot}`}
-										/>
-										<span className="truncate">{bar.event.shortTitle}</span>
-									</Link>
-								);
-							}
+							const Icon = typeIcon[bar.event.type];
 							return (
-								<Link
-									key={bar.event.id}
-									to="/appts/$apptId"
-									params={{ apptId: bar.event.id }}
-									title={bar.event.title}
-									style={{
-										gridColumn: `${bar.startCol + 1} / ${bar.endCol + 2}`,
-										gridRow: bar.lane + 2,
-									}}
-									className={`mx-1 flex h-[26px] items-center truncate rounded-lg px-2 text-[11px] font-semibold ${style.gradient} ${style.solidText} ${bar.isTrueStart ? "" : "rounded-l-none"} ${bar.isTrueEnd ? "" : "rounded-r-none"}`}
-								>
-									{bar.isTrueStart ? bar.event.shortTitle : ""}
-								</Link>
+								<TooltipPrimitive.Root key={bar.event.id}>
+									<TooltipPrimitive.Trigger
+										render={
+											<Link
+												to="/appts/$apptId"
+												params={{ apptId: bar.event.id }}
+												style={{
+													gridColumn: `${bar.startCol + 1} / ${bar.endCol + 2}`,
+													gridRow: bar.lane + 2,
+												}}
+												className={`mx-1 flex h-[26px] items-center truncate rounded-lg px-2 text-[11px] font-semibold ${style.gradient} ${style.solidText} ${bar.isTrueStart ? "" : "rounded-l-none"} ${bar.isTrueEnd ? "" : "rounded-r-none"}`}
+											/>
+										}
+									>
+										{bar.isTrueStart ? bar.event.shortTitle : ""}
+									</TooltipPrimitive.Trigger>
+									<TooltipPrimitive.Portal>
+										<TooltipPrimitive.Positioner
+											side="top"
+											sideOffset={6}
+											className="z-50"
+										>
+											<TooltipPrimitive.Popup className="w-56 origin-(--transform-origin) rounded-xl border border-border/60 bg-popover p-3 text-popover-foreground shadow-lg data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95 data-[state=delayed-open]:animate-in data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:animate-out">
+												<div className="flex items-start gap-2">
+													<span
+														className={cn(
+															"flex size-6 shrink-0 items-center justify-center rounded-full",
+															style.gradient,
+															style.solidText,
+														)}
+													>
+														<Icon className="size-3.5" />
+													</span>
+													<div className="min-w-0 flex-1">
+														<div className="text-sm font-semibold leading-tight">
+															{bar.event.title}
+														</div>
+														<div className="mt-1 flex items-center gap-1 text-muted-foreground text-xs">
+															<CalendarDaysIcon className="size-3" />
+															{formatTiming(bar.event)}
+														</div>
+														{bar.event.location && (
+															<div className="mt-0.5 flex items-center gap-1 text-muted-foreground text-xs">
+																<MapPinIcon className="size-3" />
+																{bar.event.location}
+															</div>
+														)}
+													</div>
+												</div>
+											</TooltipPrimitive.Popup>
+										</TooltipPrimitive.Positioner>
+									</TooltipPrimitive.Portal>
+								</TooltipPrimitive.Root>
 							);
 						})}
 
