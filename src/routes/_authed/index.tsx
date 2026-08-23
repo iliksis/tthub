@@ -30,14 +30,6 @@ import { cn, formatRelativeTime } from "@/lib/utils";
 
 const RECENT_ACTIVITY_TAKE = 5;
 
-// Inverted (tinted background + colored text) instead of the solid fill the
-// Badge component defaults to for success/info — keeps the activity feed calm.
-const invertedBadgeClass: Record<string, string> = {
-	destructive: "bg-destructive/10 text-destructive",
-	info: "bg-info/10 text-info",
-	success: "bg-success/10 text-success",
-};
-
 const dateFmt = (d: Date | string) =>
 	new Date(d).toLocaleDateString("de-DE", {
 		day: "2-digit",
@@ -279,10 +271,8 @@ function App() {
 										>
 											<Badge
 												variant={badge.variant}
-												className={cn(
-													"shrink-0",
-													invertedBadgeClass[badge.variant],
-												)}
+												inverted
+												className="shrink-0"
 											>
 												{badge.label}
 											</Badge>
