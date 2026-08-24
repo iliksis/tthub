@@ -25,6 +25,7 @@ const texts = {
 	"{0} more": "{0} weitere",
 	"{0} of {1} answered": "{0} von {1} beantwortet",
 	"{0} of {1} events": "{0} von {1} Ereignissen",
+	"{0} of {1} players": "{0} von {1} Spieler:innen",
 	"{0} players": "{0} Spieler:innen",
 	"{0} skipped": "{0} übersprungen",
 	"{0} updated": "{0} aktualisiert",
@@ -291,6 +292,8 @@ const texts = {
 	Published: "Veröffentlicht",
 	QTTR: "QTTR",
 	"QTTR must be set (0 is allowed)": "QTTR muss gesetzt sein (0 ist erlaubt)",
+	"QTTR ≤ {0}": "QTTR ≤ {0}",
+	"QTTR ≥ {0}": "QTTR ≥ {0}",
 	Rank: "Platz",
 	"Recent activity": "Letzte Aktivität",
 	"Reset Password": "Passwort zurücksetzen",
@@ -313,6 +316,8 @@ const texts = {
 	"Search appointment or person...": "Termin oder Person suchen…",
 	"Search appointment...": "Termin suchen…",
 	"Search Players": "Spieler:innen suchen",
+	"Search players or add filter...":
+		"Spieler:in suchen oder Filter hinzufügen…",
 	"Search Teams": "Teams suchen",
 	"Select a row to see details": "Zeile auswählen, um Details zu sehen",
 	"Select a search type or use shortcuts":

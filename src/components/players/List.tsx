@@ -1,9 +1,14 @@
 import { useRouter } from "@tanstack/react-router";
 import { DetailsList } from "@/components/DetailsList";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Link } from "@/components/ui/link";
 import type { Player, Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
-import { calculateAgeGroup } from "@/lib/utils";
+import {
+	calculateAgeGroup,
+	createColorForUserId,
+	shortenUserName,
+} from "@/lib/utils";
 
 type ListProps = {
 	players: (Player & { team: Team | null })[];
@@ -26,29 +31,50 @@ export const List = ({ players }: ListProps) => {
 	};
 
 	return (
-		<div className="min-w-0 overflow-x-auto rounded-lg bg-card">
+		<div className="min-w-0 overflow-x-auto">
 			<DetailsList
 				items={players}
 				columns={[
 					{
 						key: "name",
 						label: t("Name"),
-						render: (item) => (
-							<Link
-								to="/players/$playerId"
-								params={{ playerId: item.id }}
-								onClick={(e) => e.stopPropagation()}
-							>
-								{item.name}
-							</Link>
-						),
+						render: (item) => {
+							const color = createColorForUserId(item.id);
+							return (
+								<div className="flex items-center gap-2.5">
+									<Avatar size="sm" className="shrink-0">
+										<AvatarFallback
+											style={{
+												backgroundColor: color.backgroundColor,
+												color: color.foregroundColor,
+											}}
+										>
+											{shortenUserName(item.name)}
+										</AvatarFallback>
+									</Avatar>
+									<Link
+										to="/players/$playerId"
+										params={{ playerId: item.id }}
+										onClick={(e) => e.stopPropagation()}
+										className="font-medium"
+									>
+										{item.name}
+									</Link>
+								</div>
+							);
+						},
 						sortable: true,
 						sortFn: (a, b) => a.name.localeCompare(b.name),
 					},
 					{
 						key: "ageGroup",
 						label: t("Age Group"),
-						render: (item) => calculateAgeGroup(item.year),
+						render: (item) => (
+							<span className="text-muted-foreground">
+								{calculateAgeGroup(item.year)}{" "}
+								<span className="text-xs">· {item.year}</span>
+							</span>
+						),
 						sortable: true,
 						sortFn: (a, b) =>
 							calculateAgeGroup(a.year).localeCompare(
@@ -56,9 +82,12 @@ export const List = ({ players }: ListProps) => {
 							),
 					},
 					{
+						align: "right",
 						key: "qttr",
 						label: t("QTTR"),
-						render: (item) => item.qttr,
+						render: (item) => (
+							<span className="font-semibold tabular-nums">{item.qttr}</span>
+						),
 						sortable: true,
 						sortFn: (a, b) => a.qttr - b.qttr,
 					},
@@ -67,13 +96,17 @@ export const List = ({ players }: ListProps) => {
 						label: t("Team"),
 						render: (item) =>
 							item.team && (
-								<Link
-									to="/teams/$teamId"
-									params={{ teamId: item.team.id }}
-									onClick={(e) => e.stopPropagation()}
-								>
-									{item.team.title}
-								</Link>
+								<div className="flex items-center gap-1.5 text-muted-foreground">
+									<Link
+										to="/teams/$teamId"
+										params={{ teamId: item.team.id }}
+										onClick={(e) => e.stopPropagation()}
+										className="text-foreground"
+									>
+										{item.team.title}
+									</Link>
+									{item.team.league && <span>· {item.team.league}</span>}
+								</div>
 							),
 						sortable: true,
 						sortFn: (a, b) => {

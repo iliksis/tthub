@@ -1,29 +1,16 @@
 import { Link, useRouteContext, useRouter } from "@tanstack/react-router";
 import {
 	CircleQuestionMarkIcon,
-	PlusIcon,
-	SearchIcon,
 	SlidersHorizontalIcon,
 	UserCheckIcon,
 	UserXIcon,
-	XIcon,
 } from "lucide-react";
 import React from "react";
 import { z } from "zod";
+import { FilterBar, type FilterBarSegment } from "@/components/FilterBar";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-	DropdownMenu,
-	DropdownMenuCheckboxItem,
-	DropdownMenuContent,
-	DropdownMenuGroup,
-	DropdownMenuLabel,
-	DropdownMenuRadioGroup,
-	DropdownMenuRadioItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -320,16 +307,18 @@ function FilterPill({
 	);
 }
 
-type FilterToken = { key: string; label: string; onRemove: () => void };
-
-// Desktop filter bar: active filters render as removable tokens inline with
-// the search input, everything else (type, response, team, deleted) lives
-// behind a single "Add filter" menu so the table gets the full page width
-// instead of a permanent row of controls.
+// Desktop filter bar — a segmented toolbar built on the shared FilterBar:
+// search, then one segment per filter dimension (type, and whichever of
+// response/team applies to the selected type), plus a plain toggle segment
+// for "show deleted". FilterBar owns the dropdown wiring, active-state
+// styling, and the removable-token row (a segment can't show per-value
+// removal on its own, e.g. which of several selected responses to drop) —
+// this component only declares what the segments are.
 export const CommandBarFilters = (props: FiltersProps & { teams: Team[] }) => {
 	const { teams, ...search } = props;
 	const {
 		navigate,
+		onClear,
 		queryInput,
 		setQueryInput,
 		setTypeGroup,
@@ -339,143 +328,58 @@ export const CommandBarFilters = (props: FiltersProps & { teams: Team[] }) => {
 
 	const typeGroup: TypeGroup = search.typeGroup ?? "ALL";
 
-	const tokens: FilterToken[] = [];
-	if (search.typeGroup) {
-		const tab = typeGroupTabs.find((t) => t.key === search.typeGroup);
-		if (tab) {
-			tokens.push({
-				key: "type",
+	const segments: FilterBarSegment[] = [
+		{
+			key: "type",
+			label: t("Type"),
+			onChange: (v) => setTypeGroup(v as TypeGroup),
+			options: typeGroupTabs.map((tab) => ({
 				label: tab.label,
-				onRemove: () => setTypeGroup("ALL"),
-			});
-		}
-	}
-	for (const value of search.responses ?? []) {
-		const opt = responseOptions.find((o) => o.value === value);
-		if (opt) {
-			tokens.push({
-				key: `response-${value}`,
-				label: opt.label,
-				onRemove: () => toggleResponse(value),
-			});
-		}
-	}
-	for (const teamId of search.teamIds ?? []) {
-		const team = teams.find((tm) => tm.id === teamId);
-		if (team) {
-			tokens.push({
-				key: `team-${teamId}`,
-				label: team.title,
-				onRemove: () => toggleTeam(teamId),
-			});
-		}
-	}
-	if (search.deleted) {
-		tokens.push({
-			key: "deleted",
-			label: t("Incl. deleted"),
-			onRemove: () => navigate({ deleted: undefined }),
+				value: tab.key,
+			})),
+			type: "radio",
+			value: typeGroup,
+		},
+	];
+	if (typeGroup === "TOURNAMENT") {
+		segments.push({
+			key: "response",
+			label: t("My response"),
+			onToggle: (v) => toggleResponse(v as ResponseFilterValue),
+			options: responseOptions,
+			type: "checkbox",
+			values: search.responses ?? [],
 		});
 	}
+	if (typeGroup === "TEAM_MATCH" && teams.length > 0) {
+		segments.push({
+			key: "team",
+			label: t("Team"),
+			onToggle: toggleTeam,
+			options: teams.map((tm) => ({ label: tm.title, value: tm.id })),
+			type: "checkbox",
+			values: search.teamIds ?? [],
+		});
+	}
+	segments.push({
+		active: !!search.deleted,
+		key: "deleted",
+		label: t("Show deleted?"),
+		onToggle: () => navigate({ deleted: search.deleted ? undefined : true }),
+		tokenLabel: t("Incl. deleted"),
+		type: "toggle",
+	});
 
 	return (
-		<div className="flex flex-wrap items-center gap-1.5 rounded-lg bg-card px-2 py-1.5 shadow-sm">
-			<SearchIcon className="ml-1 size-4 shrink-0 text-muted-foreground" />
-			{tokens.map((token) => (
-				<Badge key={token.key} variant="secondary" className="gap-1 pr-1">
-					{token.label}
-					<button
-						type="button"
-						data-icon="inline-end"
-						className="flex items-center rounded-full p-0.5 hover:bg-accent"
-						aria-label={`${t("Clear")}: ${token.label}`}
-						onClick={token.onRemove}
-					>
-						<XIcon />
-					</button>
-				</Badge>
-			))}
-			<Input
-				className="h-7 min-w-40 flex-1 border-0 bg-transparent px-1 shadow-none focus-visible:ring-0"
-				placeholder={t("Search appointment or add filter...")}
-				value={queryInput}
-				onChange={(e) => setQueryInput(e.target.value)}
-			/>
-			<DropdownMenu>
-				<DropdownMenuTrigger
-					render={
-						<button
-							type="button"
-							className={cn(
-								buttonVariants({ size: "sm", variant: "outline" }),
-								"shrink-0",
-							)}
-						/>
-					}
-				>
-					<PlusIcon className="size-3.5" />
-					{t("Add filter")}
-				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end" className="w-56">
-					<DropdownMenuGroup>
-						<DropdownMenuLabel>{t("Type")}</DropdownMenuLabel>
-						<DropdownMenuRadioGroup
-							value={typeGroup}
-							onValueChange={(value) => setTypeGroup(value as TypeGroup)}
-						>
-							{typeGroupTabs.map((tab) => (
-								<DropdownMenuRadioItem key={tab.key} value={tab.key}>
-									{tab.label}
-								</DropdownMenuRadioItem>
-							))}
-						</DropdownMenuRadioGroup>
-					</DropdownMenuGroup>
-					{typeGroup === "TOURNAMENT" && (
-						<>
-							<DropdownMenuSeparator />
-							<DropdownMenuGroup>
-								<DropdownMenuLabel>{t("My response")}</DropdownMenuLabel>
-								{responseOptions.map((opt) => (
-									<DropdownMenuCheckboxItem
-										key={opt.value}
-										checked={!!search.responses?.includes(opt.value)}
-										onCheckedChange={() => toggleResponse(opt.value)}
-									>
-										{opt.label}
-									</DropdownMenuCheckboxItem>
-								))}
-							</DropdownMenuGroup>
-						</>
-					)}
-					{typeGroup === "TEAM_MATCH" && teams.length > 0 && (
-						<>
-							<DropdownMenuSeparator />
-							<DropdownMenuGroup>
-								<DropdownMenuLabel>{t("Team")}</DropdownMenuLabel>
-								{teams.map((team) => (
-									<DropdownMenuCheckboxItem
-										key={team.id}
-										checked={!!search.teamIds?.includes(team.id)}
-										onCheckedChange={() => toggleTeam(team.id)}
-									>
-										{team.title}
-									</DropdownMenuCheckboxItem>
-								))}
-							</DropdownMenuGroup>
-						</>
-					)}
-					<DropdownMenuSeparator />
-					<DropdownMenuCheckboxItem
-						checked={search.deleted ?? false}
-						onCheckedChange={(checked) =>
-							navigate({ deleted: checked === true ? true : undefined })
-						}
-					>
-						{t("Show deleted?")}
-					</DropdownMenuCheckboxItem>
-				</DropdownMenuContent>
-			</DropdownMenu>
-		</div>
+		<FilterBar
+			search={{
+				onChange: setQueryInput,
+				placeholder: t("Search appointment or add filter..."),
+				value: queryInput,
+			}}
+			segments={segments}
+			onReset={onClear}
+		/>
 	);
 };
 
