@@ -269,7 +269,7 @@ export function FilterBar({
 
 	return (
 		<div className={cn("flex flex-col gap-2", className)}>
-			<div className="flex flex-wrap items-stretch overflow-hidden border border-border [&>*:not(:last-child)]:border-border [&>*:not(:last-child)]:border-r">
+			<div className="flex flex-wrap items-stretch overflow-hidden rounded-lg border border-border [&>*:not(:last-child)]:border-border [&>*:not(:last-child)]:border-r">
 				<div className="flex min-w-48 flex-1 items-center gap-2 px-3">
 					<SearchIcon className="size-4 shrink-0 text-muted-foreground" />
 					<Input

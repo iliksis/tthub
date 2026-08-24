@@ -114,7 +114,7 @@ export const MonthCalendar = ({
 	const weeks = buildMonthGrid(year, monthIndex, today);
 
 	return (
-		<div className="overflow-hidden rounded-xl border border-border/40 bg-card text-card-foreground shadow-sm">
+		<div className="overflow-hidden rounded-lg border border-border/40 bg-card text-card-foreground shadow-sm">
 			<div className="px-5 pt-4 pb-3">
 				<CalendarToolbar
 					year={year}
@@ -208,7 +208,7 @@ export const MonthCalendar = ({
 													gridColumn: `${bar.startCol + 1} / ${bar.endCol + 2}`,
 													gridRow: bar.lane + 2,
 												}}
-												className={`mx-1 flex h-[26px] items-center truncate rounded-lg px-2 text-[11px] font-semibold ${style.gradient} ${style.solidText} ${bar.isTrueStart ? "" : "rounded-l-none"} ${bar.isTrueEnd ? "" : "rounded-r-none"}`}
+												className={`mx-1 flex h-6.5 items-center truncate rounded-lg px-2 text-[11px] font-semibold ${style.gradient} ${style.solidText} ${bar.isTrueStart ? "" : "rounded-l-none"} ${bar.isTrueEnd ? "" : "rounded-r-none"}`}
 											/>
 										}
 									>
@@ -266,7 +266,7 @@ export const MonthCalendar = ({
 													gridColumn: col + 1,
 													gridRow: OVERFLOW_ROW_INDEX,
 												}}
-												className="mx-1 h-[26px] rounded-lg px-2 text-left text-[10px] font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+												className="mx-1 h-6.5 rounded-lg px-2 text-left text-[10px] font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
 											/>
 										}
 									>

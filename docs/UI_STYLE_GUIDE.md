@@ -27,7 +27,7 @@ App-specific calendar tokens `--color-appointment-by`, `--color-tournament-de`, 
 
 ### Radius scale
 
-Base `--radius: 0.625rem`. Derived scale: `--radius-sm` (base − 4px), `--radius-md` (base − 2px), `--radius-lg` (= base), `--radius-xl` (base + 4px). Convention in practice:
+Base `--radius: 0.375rem` (`src\styles.css`). Derived scale: `--radius-sm` (base − 4px), `--radius-md` (base − 2px), `--radius-lg` (= base), `--radius-xl` (base + 4px). Convention in practice:
 - `rounded-md` — buttons, inputs, small controls
 - `rounded-lg` — panels, tables, dialogs, list containers
 - `rounded-xl` — cards, prominent panels (dashboard tiles, mobile calendar container)
