@@ -273,6 +273,7 @@ const texts = {
 	"Placement created": "Platzierung erstellt",
 	"Placement deleted": "Platzierung gelöscht",
 	"Placement updated": "Platzierung aktualisiert",
+	Placements: "Platzierungen",
 	Player: "Spieler:in",
 	"Player created": "Spieler:in erstellt",
 	"Player deleted": "Spieler:in gelöscht",

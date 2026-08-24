@@ -9,9 +9,9 @@ import React from "react";
 import { toast } from "sonner";
 import { deletePlayer, getPlayer, updatePlayer } from "@/api/players";
 import { getTeams } from "@/api/teams";
-import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlayerForm } from "@/components/players/PlayerForm";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
@@ -37,37 +37,29 @@ type Placement = NonNullable<
 	ReturnType<typeof Route.useLoaderData>["player"]
 >["placements"][number];
 
-const placementColumns: DetailsListColumn<Placement>[] = [
-	{
-		key: "date",
-		label: t("Date"),
-		render: (item) =>
-			new Date(item.appointment.startDate).toLocaleDateString("de-DE", {
-				day: "2-digit",
-				month: "2-digit",
-				year: "2-digit",
-			}),
-	},
-	{
-		key: "title",
-		label: t("Appointment"),
-		render: (item) => (
-			<Link to="/appts/$apptId" params={{ apptId: item.appointment.id }}>
-				{item.appointment.title}
-			</Link>
-		),
-	},
-	{
-		key: "category",
-		label: t("Category"),
-		render: (item) => item.category,
-	},
-	{
-		key: "placement",
-		label: t("Placement"),
-		render: (item) => item.placement,
-	},
-];
+const placementTone = (placement: string | null) => {
+	const rank = placement ? Number.parseInt(placement, 10) : Number.NaN;
+	if (rank === 1) return "success" as const;
+	if (rank === 2 || rank === 3) return "info" as const;
+	return "outline" as const;
+};
+
+const groupByYear = (placements: Placement[]) => {
+	const groups = new Map<number, Placement[]>();
+	for (const placement of placements) {
+		const year = new Date(placement.appointment.startDate).getFullYear();
+		if (!groups.has(year)) groups.set(year, []);
+		// biome-ignore lint/style/noNonNullAssertion: just set above
+		groups.get(year)!.push(placement);
+	}
+	return [...groups.entries()].sort((a, b) => b[0] - a[0]);
+};
+
+const formatShortDate = (date: Date | string) =>
+	new Date(date).toLocaleDateString("de-DE", {
+		day: "2-digit",
+		month: "2-digit",
+	});
 
 function RouteComponent() {
 	const router = useRouter();
@@ -93,6 +85,8 @@ function RouteComponent() {
 	});
 
 	if (!player) return <div>{t("An Error occurred")}</div>;
+
+	const yearGroups = groupByYear(player.placements);
 
 	const onEdit = () => {
 		setIsEditing(true);
@@ -123,46 +117,19 @@ function RouteComponent() {
 		}
 	};
 
-	const onItemClick = async (item: Placement) => {
-		await router.navigate({
-			params: { apptId: item.appointmentId },
-			to: "/appts/$apptId",
-		});
-	};
-
 	return (
-		<div className="grid grid-cols-1 gap-4 lg:grid-cols-[300px_1fr] lg:items-start lg:gap-6">
-			<div className="flex flex-col items-center lg:rounded-xl lg:bg-card lg:p-6 text-center lg:sticky lg:top-6">
-				<div className="font-bold text-lg hidden lg:block">{player.name}</div>
-				<div className="mb-4 text-muted-foreground text-sm self-start lg:self-center">
+		<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] lg:gap-8">
+			{/* Rail */}
+			<div className="py-4 lg:border-border/60 lg:border-r lg:py-8 lg:pr-8">
+				<h1 className="mt-0.5 font-bold text-2xl tracking-tight">
+					{player.name}
+				</h1>
+				<div className="mt-1 text-muted-foreground text-sm">
 					{calculateAgeGroup(player.year)} · {player.year}
 				</div>
-				<div className="mb-4 flex w-full gap-2">
-					<div className="flex-1 rounded-md bg-muted/50 p-3 text-left">
-						<div className="mb-1 text-muted-foreground text-xs">
-							{t("QTTR")}
-						</div>
-						<div className="font-semibold text-success text-sm">
-							{player.qttr}
-						</div>
-					</div>
-					<div className="flex-1 rounded-md bg-muted/50 p-3 text-left">
-						<div className="mb-1 text-muted-foreground text-xs">
-							{t("Team")}
-						</div>
-						<div className="font-semibold text-sm">
-							{player.team ? (
-								<Link to="/teams/$teamId" params={{ teamId: player.team.id }}>
-									{player.team.title}
-								</Link>
-							) : (
-								t("No team set")
-							)}
-						</div>
-					</div>
-				</div>
+
 				{canEdit && (
-					<div className="flex w-full gap-2">
+					<div className="mt-5 flex gap-2">
 						<Button
 							variant="outline"
 							size="sm"
@@ -183,16 +150,95 @@ function RouteComponent() {
 						</Button>
 					</div>
 				)}
+
+				<dl className="mt-6 flex flex-col divide-y divide-border/50 border-border/50 border-y text-sm">
+					<div className="flex items-center justify-between py-2.5">
+						<dt className="text-muted-foreground">{t("QTTR")}</dt>
+						<dd className="font-semibold text-success tabular-nums">
+							{player.qttr}
+						</dd>
+					</div>
+					<div className="flex items-center justify-between py-2.5">
+						<dt className="text-muted-foreground">{t("Team")}</dt>
+						<dd className="font-medium">
+							{player.team ? (
+								<Link to="/teams/$teamId" params={{ teamId: player.team.id }}>
+									{player.team.title}
+								</Link>
+							) : (
+								t("No team set")
+							)}
+						</dd>
+					</div>
+					{player.team?.league && (
+						<div className="flex items-center justify-between py-2.5">
+							<dt className="text-muted-foreground">{t("League")}</dt>
+							<dd className="font-medium">{player.team.league}</dd>
+						</div>
+					)}
+				</dl>
 			</div>
 
-			<div className="min-w-0 rounded-xl bg-card">
-				<DetailsList
-					items={player.placements}
-					getItemId={(item) => `${item.appointmentId}-${item.category}`}
-					columns={placementColumns}
-					onItemClick={onItemClick}
-					selectMode="none"
-				/>
+			{/* Full-width ledger */}
+			<div className="py-4 lg:py-8">
+				<h2 className="mb-1 font-semibold text-sm">{t("Placements")}</h2>
+				{yearGroups.length === 0 && (
+					<div className="py-8 text-center text-muted-foreground">
+						{t("No items found")}
+					</div>
+				)}
+				{yearGroups.map(([year, items]) => (
+					<div key={year} className="mt-3 border-border/60 border-t pt-2 pb-1">
+						<div className="mb-1 text-muted-foreground test-sm">{year}</div>
+						<div className="flex flex-col">
+							{items.map((item) => (
+								<Link
+									key={`${item.appointmentId}-${item.category}`}
+									to="/appts/$apptId"
+									params={{ apptId: item.appointmentId }}
+									className="block border-border/40 border-b py-2.5 text-foreground no-underline last:border-b-0 hover:bg-muted/50 hover:no-underline"
+								>
+									{/* Mobile: two stacked lines */}
+									<div className="flex flex-col gap-1 lg:hidden">
+										<div className="flex items-center justify-between gap-3">
+											<span className="truncate font-medium text-sm">
+												{item.appointment.title}
+											</span>
+											<Badge variant={placementTone(item.placement)}>
+												{item.placement ?? "–"}
+											</Badge>
+										</div>
+										<div className="flex items-center justify-between gap-3 text-muted-foreground text-xs">
+											<span className="tabular-nums">
+												{formatShortDate(item.appointment.startDate)}
+											</span>
+											<span className="truncate">{item.category}</span>
+										</div>
+									</div>
+
+									{/* Desktop: single row */}
+									<div className="hidden items-center gap-4 lg:grid lg:grid-cols-[100px_1fr_180px_100px]">
+										<span className="text-muted-foreground text-xs tabular-nums">
+											{formatShortDate(item.appointment.startDate)}
+										</span>
+										<span className="truncate font-medium text-sm">
+											{item.appointment.title}
+										</span>
+										<span className="text-muted-foreground text-sm">
+											{item.category}
+										</span>
+										<Badge
+											variant={placementTone(item.placement)}
+											className="justify-self-end"
+										>
+											{item.placement ?? "–"}
+										</Badge>
+									</div>
+								</Link>
+							))}
+						</div>
+					</div>
+				))}
 			</div>
 
 			{canEdit && (
