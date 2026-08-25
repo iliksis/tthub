@@ -8,7 +8,6 @@ export const t = (key: TextKey | (string & {}), ...params: string[]) =>
 const texts = {
 	"(optional)": "(optional)",
 	"{0} Appointments created": "{0} Termine erstellt",
-	"{0} accepted": "{0} zugesagt",
 	"{0} appointments answered": "{0} Termine beantwortet",
 	"{0} appointments deleted": "{0} Termine gelöscht",
 	"{0} appointments duplicated": "{0} Termine dupliziert",
@@ -48,7 +47,6 @@ const texts = {
 	"Active Subscriptions": "Geräte mit aktivierten Benachrichtigungen",
 	"Add a new event to the club calendar":
 		"Neues Ereignis zum Vereinskalender hinzufügen",
-	"Add filter": "Filter hinzufügen",
 	"Add participant": "Teilnehmer:in hinzufügen",
 	Administrator: "Administrator:in",
 	Adult: "Erwachsen",
@@ -398,7 +396,6 @@ const texts = {
 	"User Name": "Benutzername",
 	"User updated": "Benutzer aktualisiert",
 	"Visible to editors": "Für Editor:innen sichtbar",
-	"Welcome back, {0}": "Willkommen zurück, {0}",
 	"Year of birth": "Geburtsjahr",
 	"Year of birth must be set": "Geburtsjahr muss gesetzt sein",
 	"You cannot change your own role":
