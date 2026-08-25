@@ -190,24 +190,26 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 					</form.Field>
 				</Section>
 
-				<Section title={t("Configuration")}>
-					<form.Field name="includeDraftStatus">
-						{(field) => (
-							<div className="flex items-center gap-2">
-								<Checkbox
-									id={field.name}
-									checked={field.state.value}
-									onCheckedChange={(checked) =>
-										field.handleChange(checked === true)
-									}
-								/>
-								<Label htmlFor={field.name}>
-									{t("Include draft appointments")}
-								</Label>
-							</div>
-						)}
-					</form.Field>
-				</Section>
+				<div className="lg:col-span-2">
+					<Section title={t("Configuration")}>
+						<form.Field name="includeDraftStatus">
+							{(field) => (
+								<div className="flex items-center gap-2">
+									<Checkbox
+										id={field.name}
+										checked={field.state.value}
+										onCheckedChange={(checked) =>
+											field.handleChange(checked === true)
+										}
+									/>
+									<Label htmlFor={field.name}>
+										{t("Include draft appointments")}
+									</Label>
+								</div>
+							)}
+						</form.Field>
+					</Section>
+				</div>
 			</div>
 
 			<Button
