@@ -175,7 +175,7 @@ function SettingsLayout() {
 			{/* Content pane is shared — a single Outlet, not duplicated per
 			    breakpoint, since sections hold real forms/fetches/mutations. Each
 			    page renders its own Section header, so no generic title here. */}
-			<div className="min-w-0 flex-1 lg:col-start-2 lg:row-start-1">
+			<div className="min-w-0 flex-1">
 				<Outlet />
 			</div>
 		</div>
