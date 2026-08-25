@@ -266,6 +266,7 @@ export function FilterBar({
 	className?: string;
 }) {
 	const tokens = segments.flatMap(segmentTokens);
+	const hasActiveFilters = tokens.length > 0 || search.value.length > 0;
 
 	return (
 		<div className={cn("flex flex-col gap-2", className)}>
@@ -282,7 +283,7 @@ export function FilterBar({
 				{segments.map((segment) => (
 					<FilterBarSegmentButton key={segment.key} segment={segment} />
 				))}
-				{tokens.length > 0 && <FilterBarResetButton onReset={onReset} />}
+				{hasActiveFilters && <FilterBarResetButton onReset={onReset} />}
 			</div>
 		</div>
 	);
