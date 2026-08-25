@@ -1,16 +1,11 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
-	ActivityIcon,
-	CalendarDaysIcon,
-	CheckIcon,
 	GlobeIcon,
 	PartyPopperIcon,
-	TrendingUpIcon,
 	TrophyIcon,
 	UsersIcon,
 } from "lucide-react";
-import type { ComponentType, ReactNode } from "react";
 import { toast } from "sonner";
 import {
 	createResponse,
@@ -20,6 +15,7 @@ import {
 } from "@/api/appointments";
 import { getPlayers } from "@/api/players";
 import { getTeams } from "@/api/teams";
+import { Section } from "@/components/Section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
@@ -95,27 +91,6 @@ export const Route = createFileRoute("/_authed/")({
 	},
 });
 
-type SectionProps = {
-	title: string;
-	icon: ComponentType<{ className?: string }>;
-	children: ReactNode;
-};
-
-function Section({ title, icon: Icon, children }: SectionProps) {
-	return (
-		<div>
-			<div className="mb-3 flex items-center gap-2.5">
-				<Icon className="size-4 text-foreground" />
-				<span className="font-bold text-xs uppercase tracking-wider">
-					{title}
-				</span>
-				<span className="h-px flex-1 bg-border" />
-			</div>
-			{children}
-		</div>
-	);
-}
-
 function App() {
 	const { nextAppointments, openAppointments, teams, recentActivity } =
 		Route.useLoaderData();
@@ -142,7 +117,7 @@ function App() {
 
 			<div className="grid gap-10 lg:grid-cols-[1fr_340px]">
 				<div className="min-w-0 lg:col-start-1 lg:row-start-1 lg:row-span-2">
-					<Section title={t("Upcoming appointments")} icon={CalendarDaysIcon}>
+					<Section title={t("Upcoming appointments")}>
 						{nextAppointments.length > 0 ? (
 							<>
 								<table className="hidden w-full border-collapse text-sm lg:table">
@@ -209,7 +184,7 @@ function App() {
 				</div>
 
 				<div className="min-w-0 lg:col-start-2 lg:row-start-1">
-					<Section title={t("Pending appointments")} icon={CheckIcon}>
+					<Section title={t("Pending appointments")}>
 						{openAppointments && openAppointments.length > 0 ? (
 							<div className="flex flex-col">
 								{openAppointments.map((a) => (
@@ -259,7 +234,7 @@ function App() {
 				</div>
 
 				<div className="min-w-0 lg:col-start-2 lg:row-start-2">
-					<Section title={t("Recent activity")} icon={ActivityIcon}>
+					<Section title={t("Recent activity")}>
 						{recentActivity.length > 0 ? (
 							<div className="flex flex-col gap-2.5">
 								{recentActivity.map((tx) => {
@@ -302,7 +277,7 @@ function App() {
 				</div>
 			</div>
 
-			<Section title={t("Standings")} icon={TrendingUpIcon}>
+			<Section title={t("Standings")}>
 				<div className="grid gap-x-8 gap-y-6 lg:grid-cols-3">
 					{teams.map((team, i) => (
 						<div

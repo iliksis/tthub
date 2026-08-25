@@ -5,12 +5,12 @@ import {
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { EditIcon, Trash2Icon } from "lucide-react";
-import type { ReactNode } from "react";
 import React from "react";
 import { toast } from "sonner";
 import { deleteTeam, getTeam, updateTeam } from "@/api/teams";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
+import { Section } from "@/components/Section";
 import { StandingsTable } from "@/components/teams/StandingsTable";
 import { TeamForm } from "@/components/teams/TeamForm";
 import { Badge } from "@/components/ui/badge";
@@ -48,27 +48,6 @@ function formatMatchDateTime(date: Date | string) {
 		month: "short",
 		weekday: "short",
 	});
-}
-
-type SectionProps = {
-	title: string;
-	action?: ReactNode;
-	children: ReactNode;
-};
-
-function Section({ title, action, children }: SectionProps) {
-	return (
-		<div>
-			<div className="mb-3 flex items-center gap-2.5">
-				<span className="font-bold text-xs uppercase tracking-wider">
-					{title}
-				</span>
-				<span className="h-px flex-1 bg-border" />
-				{action}
-			</div>
-			{children}
-		</div>
-	);
 }
 
 function MatchList({ matches }: { matches: TeamMatch[] }) {
