@@ -585,9 +585,6 @@ export const getNextAppointments = createServerFn().handler(async () => {
 		now.setHours(0, 0, 0, 0);
 		const fourWeeks = new Date(now.getTime() + 86400000 * 28);
 		const appointments = await prismaClient.appointment.findMany({
-			include: {
-				responses: { include: { user: true } },
-			},
 			orderBy: {
 				startDate: "asc",
 			},
