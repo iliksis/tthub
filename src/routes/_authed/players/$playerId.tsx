@@ -194,7 +194,7 @@ function RouteComponent() {
 					)}
 					{yearGroups.map(([year, items]) => (
 						<div key={year} className="mt-3 border-border border-b pt-2 pb-1">
-							<div className="mb-1 text-muted-foreground test-sm">{year}</div>
+							<div className="mb-1 text-muted-foreground text-sm">{year}</div>
 							<div className="flex flex-col">
 								{items.map((item) => (
 									<AppointmentRow
