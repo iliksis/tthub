@@ -9,10 +9,10 @@ import React from "react";
 import { toast } from "sonner";
 import { deletePlayer, getPlayer, updatePlayer } from "@/api/players";
 import { getTeams } from "@/api/teams";
+import { AppointmentRow } from "@/components/AppointmentRow";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlayerForm } from "@/components/players/PlayerForm";
 import { Section } from "@/components/Section";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
@@ -55,12 +55,6 @@ const groupByYear = (placements: Placement[]) => {
 	}
 	return [...groups.entries()].sort((a, b) => b[0] - a[0]);
 };
-
-const formatShortDate = (date: Date | string) =>
-	new Date(date).toLocaleDateString("de-DE", {
-		day: "2-digit",
-		month: "2-digit",
-	});
 
 function RouteComponent() {
 	const router = useRouter();
@@ -203,49 +197,17 @@ function RouteComponent() {
 							<div className="mb-1 text-muted-foreground test-sm">{year}</div>
 							<div className="flex flex-col">
 								{items.map((item) => (
-									<Link
+									<AppointmentRow
 										key={`${item.appointmentId}-${item.category}`}
-										to="/appts/$apptId"
-										params={{ apptId: item.appointmentId }}
-										className="block border-border/40 border-b py-2.5 text-foreground no-underline last:border-b-0 hover:bg-muted/50 hover:no-underline"
-									>
-										{/* Mobile: two stacked lines */}
-										<div className="flex flex-col gap-1 lg:hidden">
-											<div className="flex items-center justify-between gap-3">
-												<span className="truncate font-medium text-sm">
-													{item.appointment.title}
-												</span>
-												<Badge variant={placementTone(item.placement)}>
-													{item.placement ?? "–"}
-												</Badge>
-											</div>
-											<div className="flex items-center justify-between gap-3 text-muted-foreground text-xs">
-												<span className="tabular-nums">
-													{formatShortDate(item.appointment.startDate)}
-												</span>
-												<span className="truncate">{item.category}</span>
-											</div>
-										</div>
-
-										{/* Desktop: single row */}
-										<div className="hidden items-center gap-4 lg:grid lg:grid-cols-[100px_1fr_180px_100px]">
-											<span className="text-muted-foreground text-xs tabular-nums">
-												{formatShortDate(item.appointment.startDate)}
-											</span>
-											<span className="truncate font-medium text-sm">
-												{item.appointment.title}
-											</span>
-											<span className="text-muted-foreground text-sm">
-												{item.category}
-											</span>
-											<Badge
-												variant={placementTone(item.placement)}
-												className="justify-self-end"
-											>
-												{item.placement ?? "–"}
-											</Badge>
-										</div>
-									</Link>
+										appointmentId={item.appointmentId}
+										title={item.appointment.title}
+										date={item.appointment.startDate}
+										secondary={item.category}
+										badge={{
+											label: item.placement ?? "–",
+											variant: placementTone(item.placement),
+										}}
+									/>
 								))}
 							</div>
 						</div>

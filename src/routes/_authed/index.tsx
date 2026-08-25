@@ -15,6 +15,7 @@ import {
 } from "@/api/appointments";
 import { getPlayers } from "@/api/players";
 import { getTeams } from "@/api/teams";
+import { AppointmentRow } from "@/components/AppointmentRow";
 import { Section } from "@/components/Section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,12 +27,6 @@ import { cn, formatRelativeTime } from "@/lib/utils";
 
 const RECENT_ACTIVITY_TAKE = 5;
 
-const dateFmt = (d: Date | string) =>
-	new Date(d).toLocaleDateString("de-DE", {
-		day: "2-digit",
-		month: "short",
-		weekday: "short",
-	});
 const openDateFmt = (d: Date | string) =>
 	new Date(d).toLocaleDateString("de-DE", {
 		day: "2-digit",
@@ -42,17 +37,13 @@ const timeFmt = (d: Date | string) =>
 const isMultiDay = (startDate: Date | string, endDate: Date | string | null) =>
 	endDate !== null &&
 	new Date(startDate).toDateString() !== new Date(endDate).toDateString();
-const rangeFmt = (startDate: Date | string, endDate: Date | string | null) =>
-	isMultiDay(startDate, endDate) && endDate
-		? `${openDateFmt(startDate)}-${openDateFmt(endDate)}`
-		: dateFmt(startDate);
 const shortRangeFmt = (
 	startDate: Date | string,
 	endDate: Date | string | null,
 ) =>
 	isMultiDay(startDate, endDate) && endDate
 		? `${new Date(startDate).getDate()}.-${openDateFmt(endDate)}`
-		: dateFmt(startDate);
+		: openDateFmt(startDate);
 const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
 	HOLIDAY: PartyPopperIcon,
 	TEAM_MATCH: UsersIcon,
@@ -119,62 +110,20 @@ function App() {
 				<div className="min-w-0 lg:col-start-1 lg:row-start-1 lg:row-span-2">
 					<Section title={t("Upcoming appointments")}>
 						{nextAppointments.length > 0 ? (
-							<>
-								<table className="hidden w-full border-collapse text-sm lg:table">
-									<tbody>
-										{nextAppointments.map((a) => {
-											const TypeIcon = typeIcon[a.type];
-											return (
-												<tr key={a.id} className="border-border/60 border-b">
-													<td className="w-32 py-2.5 text-muted-foreground">
-														{rangeFmt(a.startDate, a.endDate)}
-													</td>
-													<td className="w-16 py-2.5 text-muted-foreground">
-														{timeFmt(a.startDate)}
-													</td>
-													<td className="py-2.5 font-medium">
-														<Link to="/appts/$apptId" params={{ apptId: a.id }}>
-															{a.shortTitle}
-														</Link>
-													</td>
-													<td className="py-2.5 text-right text-muted-foreground">
-														{a.location}
-													</td>
-													<td className="w-8 py-2.5 text-right">
-														<TypeIcon className="ml-auto size-3.5 text-muted-foreground" />
-													</td>
-												</tr>
-											);
-										})}
-									</tbody>
-								</table>
-								<div className="flex flex-col lg:hidden">
-									{nextAppointments.map((a) => {
-										const TypeIcon = typeIcon[a.type];
-										return (
-											<div
-												key={a.id}
-												className="flex items-center gap-2.5 border-border/60 border-b py-2.5 text-sm last:border-b-0"
-											>
-												<TypeIcon className="size-3.5 shrink-0 text-muted-foreground" />
-												<span className="w-20 shrink-0 text-muted-foreground text-xs">
-													{shortRangeFmt(a.startDate, a.endDate)}
-												</span>
-												<span className="w-10 shrink-0 text-muted-foreground text-xs">
-													{timeFmt(a.startDate)}
-												</span>
-												<Link
-													to="/appts/$apptId"
-													params={{ apptId: a.id }}
-													className="min-w-0 flex-1 truncate font-medium"
-												>
-													{a.shortTitle}
-												</Link>
-											</div>
-										);
-									})}
-								</div>
-							</>
+							<div className="flex flex-col">
+								{nextAppointments.map((a) => (
+									<AppointmentRow
+										key={a.id}
+										appointmentId={a.id}
+										title={a.shortTitle}
+										date={a.startDate}
+										dateLabel={shortRangeFmt(a.startDate, a.endDate)}
+										time={timeFmt(a.startDate)}
+										location={a.location}
+										icon={typeIcon[a.type]}
+									/>
+								))}
+							</div>
 						) : (
 							<div className="text-muted-foreground text-sm">
 								{t("You have no appointments")}

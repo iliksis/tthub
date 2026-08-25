@@ -8,6 +8,7 @@ import { EditIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { deleteTeam, getTeam, updateTeam } from "@/api/teams";
+import { AppointmentRow } from "@/components/AppointmentRow";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Section } from "@/components/Section";
@@ -40,14 +41,8 @@ type TeamMatch = NonNullable<
 	ReturnType<typeof Route.useLoaderData>["team"]
 >["appointments"][number];
 
-function formatMatchDateTime(date: Date | string) {
-	return new Date(date).toLocaleString("de-DE", {
-		day: "2-digit",
-		hour: "2-digit",
-		minute: "2-digit",
-		month: "short",
-		weekday: "short",
-	});
+function formatMatchTime(date: Date | string) {
+	return new Date(date).toLocaleTimeString("de-DE", { timeStyle: "short" });
 }
 
 function MatchList({ matches }: { matches: TeamMatch[] }) {
@@ -61,24 +56,16 @@ function MatchList({ matches }: { matches: TeamMatch[] }) {
 
 	return (
 		<div className="flex flex-col">
-			{matches.map((match) => {
-				return (
-					<Link
-						key={match.id}
-						to="/appts/$apptId"
-						params={{ apptId: match.id }}
-						className="flex gap-3 border-border/60 border-b py-3 last:border-b-0"
-					>
-						<div className="min-w-0 flex-1">
-							<div className="truncate font-medium text-sm">{match.title}</div>
-							<div className="truncate text-muted-foreground text-xs">
-								{formatMatchDateTime(match.startDate)}
-								{match.location && ` · ${match.location}`}
-							</div>
-						</div>
-					</Link>
-				);
-			})}
+			{matches.map((match) => (
+				<AppointmentRow
+					key={match.id}
+					appointmentId={match.id}
+					title={match.title}
+					date={match.startDate}
+					time={formatMatchTime(match.startDate)}
+					location={match.location}
+				/>
+			))}
 		</div>
 	);
 }
