@@ -75,6 +75,17 @@ model Appointment {
   ownTeam              Team?              @relation(fields: [ownTeamId], references: [id], onDelete: SetNull)
   homeTeam             String?
   awayTeam             String?
+  seasonId             String?
+  season               Season?            @relation(fields: [seasonId], references: [id])
+}
+
+model Season {
+  id           String        @id @default(nanoid(6))
+  createdAt    DateTime      @default(now())
+  name         String
+  isActive     Boolean       @default(false)
+  teams        Team[]
+  appointments Appointment[]
 }
 
 enum AppointmentStatus {
@@ -106,14 +117,15 @@ enum ResponseType {
 }
 
 model Player {
-  id         String      @id @default(nanoid(6))
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id         String       @id @default(nanoid(6))
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
   name       String
   year       Int
   qttr       Int
   teamId     String?
-  team       Team?       @relation(fields: [teamId], references: [id])
+  team       Team?        @relation(fields: [teamId], references: [id])
+  teams      TeamPlayer[]
   placements Placement[]
 }
 
@@ -123,10 +135,27 @@ model Team {
   title          String
   league         String?
   placement      String?
-  clickTTGroupId String?       @unique
+  clickTTGroupId String?
+  seasonId       String?
+  season         Season?       @relation(fields: [seasonId], references: [id])
   players        Player[]
+  teamPlayers    TeamPlayer[]
   appointments   Appointment[]
   standings      Standing[]
+
+  @@unique([clickTTGroupId, seasonId])
+}
+
+model TeamPlayer {
+  id        String   @id @default(nanoid(6))
+  createdAt DateTime @default(now())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  seasonId  String
+
+  @@unique([playerId, seasonId])
 }
 
 model Standing {
