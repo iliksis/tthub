@@ -11,6 +11,7 @@ import { deletePlayer, getPlayer, updatePlayer } from "@/api/players";
 import { getTeams } from "@/api/teams";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlayerForm } from "@/components/players/PlayerForm";
+import { Section } from "@/components/Section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
@@ -120,13 +121,10 @@ function RouteComponent() {
 	return (
 		<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] lg:gap-8">
 			{/* Rail */}
-			<div className="py-4 lg:border-border/60 lg:border-r lg:py-8 lg:pr-8">
+			<div className="py-4 lg:py-8 lg:pr-8">
 				<h1 className="mt-0.5 font-bold text-2xl tracking-tight">
 					{player.name}
 				</h1>
-				<div className="mt-1 text-muted-foreground text-sm">
-					{calculateAgeGroup(player.year)} · {player.year}
-				</div>
 
 				{canEdit && (
 					<div className="mt-5 flex gap-2">
@@ -151,94 +149,108 @@ function RouteComponent() {
 					</div>
 				)}
 
-				<dl className="mt-6 flex flex-col divide-y divide-border/50 border-border/50 border-y text-sm">
-					<div className="flex items-center justify-between py-2.5">
-						<dt className="text-muted-foreground">{t("QTTR")}</dt>
-						<dd className="font-semibold text-success tabular-nums">
-							{player.qttr}
-						</dd>
-					</div>
-					<div className="flex items-center justify-between py-2.5">
-						<dt className="text-muted-foreground">{t("Team")}</dt>
-						<dd className="font-medium">
-							{player.team ? (
-								<Link to="/teams/$teamId" params={{ teamId: player.team.id }}>
-									{player.team.title}
-								</Link>
-							) : (
-								t("No team set")
+				<div className="mt-6">
+					<Section title={t("Details")}>
+						<dl className="flex flex-col text-sm">
+							<div className="flex items-center justify-between py-2.5 border-b border-border/60">
+								<dt className="text-muted-foreground">{t("Year of birth")}</dt>
+								<dd className="font-medium">
+									{player.year} ({calculateAgeGroup(player.year)})
+								</dd>
+							</div>
+							<div className="flex items-center justify-between py-2.5 border-b border-border/60">
+								<dt className="text-muted-foreground">{t("QTTR")}</dt>
+								<dd className="font-semibold text-success tabular-nums">
+									{player.qttr}
+								</dd>
+							</div>
+							<div className="flex items-center justify-between py-2.5 border-b border-border/60">
+								<dt className="text-muted-foreground">{t("Team")}</dt>
+								<dd className="font-medium">
+									{player.team ? (
+										<Link
+											to="/teams/$teamId"
+											params={{ teamId: player.team.id }}
+										>
+											{player.team.title}
+										</Link>
+									) : (
+										t("No team set")
+									)}
+								</dd>
+							</div>
+							{player.team?.league && (
+								<div className="flex items-center justify-between py-2.5 border-b border-border/60">
+									<dt className="text-muted-foreground">{t("League")}</dt>
+									<dd className="font-medium">{player.team.league}</dd>
+								</div>
 							)}
-						</dd>
-					</div>
-					{player.team?.league && (
-						<div className="flex items-center justify-between py-2.5">
-							<dt className="text-muted-foreground">{t("League")}</dt>
-							<dd className="font-medium">{player.team.league}</dd>
-						</div>
-					)}
-				</dl>
+						</dl>
+					</Section>
+				</div>
 			</div>
 
 			{/* Full-width ledger */}
 			<div className="py-4 lg:py-8">
-				<h2 className="mb-1 font-semibold text-sm">{t("Placements")}</h2>
-				{yearGroups.length === 0 && (
-					<div className="py-8 text-center text-muted-foreground">
-						{t("No items found")}
-					</div>
-				)}
-				{yearGroups.map(([year, items]) => (
-					<div key={year} className="mt-3 border-border/60 border-t pt-2 pb-1">
-						<div className="mb-1 text-muted-foreground test-sm">{year}</div>
-						<div className="flex flex-col">
-							{items.map((item) => (
-								<Link
-									key={`${item.appointmentId}-${item.category}`}
-									to="/appts/$apptId"
-									params={{ apptId: item.appointmentId }}
-									className="block border-border/40 border-b py-2.5 text-foreground no-underline last:border-b-0 hover:bg-muted/50 hover:no-underline"
-								>
-									{/* Mobile: two stacked lines */}
-									<div className="flex flex-col gap-1 lg:hidden">
-										<div className="flex items-center justify-between gap-3">
+				<Section title={t("Placements")}>
+					{yearGroups.length === 0 && (
+						<div className="py-8 text-center text-muted-foreground">
+							{t("No items found")}
+						</div>
+					)}
+					{yearGroups.map(([year, items]) => (
+						<div key={year} className="mt-3 border-border border-b pt-2 pb-1">
+							<div className="mb-1 text-muted-foreground test-sm">{year}</div>
+							<div className="flex flex-col">
+								{items.map((item) => (
+									<Link
+										key={`${item.appointmentId}-${item.category}`}
+										to="/appts/$apptId"
+										params={{ apptId: item.appointmentId }}
+										className="block border-border/40 border-b py-2.5 text-foreground no-underline last:border-b-0 hover:bg-muted/50 hover:no-underline"
+									>
+										{/* Mobile: two stacked lines */}
+										<div className="flex flex-col gap-1 lg:hidden">
+											<div className="flex items-center justify-between gap-3">
+												<span className="truncate font-medium text-sm">
+													{item.appointment.title}
+												</span>
+												<Badge variant={placementTone(item.placement)}>
+													{item.placement ?? "–"}
+												</Badge>
+											</div>
+											<div className="flex items-center justify-between gap-3 text-muted-foreground text-xs">
+												<span className="tabular-nums">
+													{formatShortDate(item.appointment.startDate)}
+												</span>
+												<span className="truncate">{item.category}</span>
+											</div>
+										</div>
+
+										{/* Desktop: single row */}
+										<div className="hidden items-center gap-4 lg:grid lg:grid-cols-[100px_1fr_180px_100px]">
+											<span className="text-muted-foreground text-xs tabular-nums">
+												{formatShortDate(item.appointment.startDate)}
+											</span>
 											<span className="truncate font-medium text-sm">
 												{item.appointment.title}
 											</span>
-											<Badge variant={placementTone(item.placement)}>
+											<span className="text-muted-foreground text-sm">
+												{item.category}
+											</span>
+											<Badge
+												variant={placementTone(item.placement)}
+												className="justify-self-end"
+											>
 												{item.placement ?? "–"}
 											</Badge>
 										</div>
-										<div className="flex items-center justify-between gap-3 text-muted-foreground text-xs">
-											<span className="tabular-nums">
-												{formatShortDate(item.appointment.startDate)}
-											</span>
-											<span className="truncate">{item.category}</span>
-										</div>
-									</div>
-
-									{/* Desktop: single row */}
-									<div className="hidden items-center gap-4 lg:grid lg:grid-cols-[100px_1fr_180px_100px]">
-										<span className="text-muted-foreground text-xs tabular-nums">
-											{formatShortDate(item.appointment.startDate)}
-										</span>
-										<span className="truncate font-medium text-sm">
-											{item.appointment.title}
-										</span>
-										<span className="text-muted-foreground text-sm">
-											{item.category}
-										</span>
-										<Badge
-											variant={placementTone(item.placement)}
-											className="justify-self-end"
-										>
-											{item.placement ?? "–"}
-										</Badge>
-									</div>
-								</Link>
-							))}
+									</Link>
+								))}
+							</div>
 						</div>
-					</div>
-				))}
+					))}
+				</Section>
 			</div>
 
 			{canEdit && (
