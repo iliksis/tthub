@@ -25,7 +25,7 @@ const badgeVariants = cva(
 			},
 		],
 		defaultVariants: {
-			inverted: false,
+			inverted: true,
 			variant: "default",
 		},
 		variants: {
