@@ -8,10 +8,10 @@ import { EditIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { deleteTeam, getTeam, updateTeam } from "@/api/teams";
-import { List } from "@/components/appointments/List";
+import { AppointmentRow } from "@/components/AppointmentRow";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
-import { NextMatchesRail } from "@/components/teams/NextMatchesRail";
+import { Section } from "@/components/Section";
 import { StandingsTable } from "@/components/teams/StandingsTable";
 import { TeamForm } from "@/components/teams/TeamForm";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,39 @@ export const Route = createFileRoute("/_authed/teams/$teamId")({
 type TeamPlayer = NonNullable<
 	ReturnType<typeof Route.useLoaderData>["team"]
 >["players"][number];
+
+type TeamMatch = NonNullable<
+	ReturnType<typeof Route.useLoaderData>["team"]
+>["appointments"][number];
+
+function formatMatchTime(date: Date | string) {
+	return new Date(date).toLocaleTimeString("de-DE", { timeStyle: "short" });
+}
+
+function MatchList({ matches }: { matches: TeamMatch[] }) {
+	if (matches.length === 0) {
+		return (
+			<div className="py-8 text-center text-muted-foreground">
+				{t("No upcoming matches")}
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex flex-col">
+			{matches.map((match) => (
+				<AppointmentRow
+					key={match.id}
+					appointmentId={match.id}
+					title={match.title}
+					date={match.startDate}
+					time={formatMatchTime(match.startDate)}
+					location={match.location}
+				/>
+			))}
+		</div>
+	);
+}
 
 const rosterColumns: DetailsListColumn<TeamPlayer>[] = [
 	{
@@ -69,7 +102,6 @@ function RouteComponent() {
 
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [isDeleting, setIsDeleting] = React.useState(false);
-	const [showAllMatches, setShowAllMatches] = React.useState(false);
 	const deleteTeamServerFn = useServerFn(deleteTeam);
 
 	const updateTeamMutation = useMutation({
@@ -114,6 +146,9 @@ function RouteComponent() {
 	};
 
 	const sortedPlayers = [...team.players].sort((a, b) => b.qttr - a.qttr);
+	const upcomingMatches = team.appointments.filter(
+		(a) => new Date(a.startDate).getTime() >= Date.now(),
+	);
 
 	return (
 		<div>
@@ -142,52 +177,31 @@ function RouteComponent() {
 				)}
 			</div>
 
-			{/* Desktop layout: roster-first, league table demoted to a placeholder strip */}
-			<div>
-				<div className="rounded-lg bg-card">
-					<DetailsList
-						items={sortedPlayers}
-						getItemId={(item) => item.id}
-						columns={rosterColumns}
-						selectMode="none"
-						onItemClick={async (item) => {
-							await router.navigate({
-								params: { playerId: item.id },
-								to: "/players/$playerId",
-							});
-						}}
-					/>
-				</div>
-				<div className="mt-4 grid lg:grid-cols-[1.7fr_1fr] grid-rows-1 items-start gap-6">
-					<div className="min-w-0">
-						<div className="mb-2 font-medium text-sm">{t("Standings")}</div>
-						<StandingsTable standings={team.standings} />
+			<div className="flex flex-col gap-8">
+				<Section title={t("Roster")}>
+					<div className="overflow-x-auto">
+						<DetailsList
+							items={sortedPlayers}
+							getItemId={(item) => item.id}
+							columns={rosterColumns}
+							selectMode="none"
+							onItemClick={async (item) => {
+								await router.navigate({
+									params: { playerId: item.id },
+									to: "/players/$playerId",
+								});
+							}}
+						/>
 					</div>
-					<div className="min-w-0">
-						<div className="mb-2 flex items-center justify-between">
-							<span className="font-medium text-sm">
-								{showAllMatches ? t("Matches") : t("Next Matches")}
-							</span>
-							{showAllMatches && (
-								<button
-									type="button"
-									onClick={() => setShowAllMatches(false)}
-									className="text-primary text-xs hover:underline"
-								>
-									{t("Show fewer")}
-								</button>
-							)}
-						</div>
-						{showAllMatches ? (
-							<List appointments={team.appointments} />
-						) : (
-							<NextMatchesRail
-								appointments={team.appointments}
-								onShowAll={() => setShowAllMatches(true)}
-							/>
-						)}
-					</div>
-				</div>
+				</Section>
+
+				<Section title={t("Standings")}>
+					<StandingsTable standings={team.standings} />
+				</Section>
+
+				<Section title={t("Next Matches")}>
+					<MatchList matches={upcomingMatches} />
+				</Section>
 			</div>
 
 			{canEdit && (

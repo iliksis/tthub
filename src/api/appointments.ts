@@ -178,7 +178,6 @@ export const getTransactionsPage = createServerFn()
 			take: number;
 			type?: TransactionType;
 			query?: string;
-			sortDirection?: "asc" | "desc";
 		}) => d,
 	)
 	.handler(async ({ data }) => {
@@ -207,7 +206,7 @@ export const getTransactionsPage = createServerFn()
 						appointment: true,
 						user: true,
 					},
-					orderBy: { createdAt: data.sortDirection ?? "desc" },
+					orderBy: { createdAt: "desc" },
 					skip: data.skip,
 					take: data.take,
 					where,
@@ -219,6 +218,38 @@ export const getTransactionsPage = createServerFn()
 				data: { grandTotal, matchedTotal, transactions },
 				message: t("Transactions found"),
 			};
+		} catch (e) {
+			console.error(e);
+			throw new Error((e as Error).message);
+		}
+	});
+
+// Lightweight, non-editor-gated feed for the dashboard's "recent activity"
+// widget — unlike getTransactionsPage, every logged-in user may see it. To
+// keep that safe, it selects only the handful of fields the widget renders
+// instead of the editor-only journal's full records: no `changes` (the
+// audit diff, which can contain sensitive edit details) and no other
+// appointment/user fields.
+export const getRecentTransactions = createServerFn({ method: "GET" })
+	.validator((d: { take: number }) => d)
+	.handler(async ({ data }) => {
+		const session = await useAppSession();
+		if (!session.data.id) {
+			throw new Error(t("Unauthorized"));
+		}
+		try {
+			const transactions = await prismaClient.transaction.findMany({
+				orderBy: { createdAt: "desc" },
+				select: {
+					appointment: { select: { id: true, shortTitle: true } },
+					createdAt: true,
+					id: true,
+					type: true,
+					user: { select: { name: true } },
+				},
+				take: data.take,
+			});
+			return { data: transactions, message: t("Transactions found") };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -306,6 +337,8 @@ export const getAppointmentsPage = createServerFn()
 			// clause instead — kept separate from the query-text `OR` below via
 			// `AND` so Prisma doesn't have to merge two ORs into one.
 			const mixedResponseFilter = wantsNoResponse && responseTypes.length > 0;
+			const todayStart = new Date();
+			todayStart.setHours(0, 0, 0, 0);
 
 			const where: Prisma.AppointmentWhereInput = {
 				AND: [
@@ -342,6 +375,10 @@ export const getAppointmentsPage = createServerFn()
 						: responseTypes.length > 0
 							? { some: { responseType: { in: responseTypes }, userId } }
 							: undefined,
+				// Only upcoming appointments show by default; a `withDeleted` search
+				// is for finding/restoring a soft-deleted appointment regardless of
+				// when it was, so it isn't restricted to today-or-later.
+				startDate: data.withDeleted ? undefined : { gte: todayStart },
 				type:
 					data.typeGroup === "TOURNAMENT"
 						? {
@@ -355,7 +392,7 @@ export const getAppointmentsPage = createServerFn()
 			const [appointments, matchedTotal, grandTotal] = await Promise.all([
 				prismaClient.appointment.findMany({
 					include: { ownTeam: true, responses: true },
-					orderBy: { startDate: data.sortDir ?? "desc" },
+					orderBy: { startDate: data.sortDir ?? "asc" },
 					skip: data.skip,
 					take: data.take,
 					where,
@@ -365,6 +402,7 @@ export const getAppointmentsPage = createServerFn()
 					where: {
 						deletedAt: data.withDeleted ? undefined : null,
 						NOT: { type: AppointmentType.HOLIDAY },
+						startDate: data.withDeleted ? undefined : { gte: todayStart },
 					},
 				}),
 			]);
@@ -547,9 +585,6 @@ export const getNextAppointments = createServerFn().handler(async () => {
 		now.setHours(0, 0, 0, 0);
 		const fourWeeks = new Date(now.getTime() + 86400000 * 28);
 		const appointments = await prismaClient.appointment.findMany({
-			include: {
-				responses: true,
-			},
 			orderBy: {
 				startDate: "asc",
 			},
@@ -567,7 +602,7 @@ export const getNextAppointments = createServerFn().handler(async () => {
 					},
 				],
 				deletedAt: null,
-				type: AppointmentType.TOURNAMENT,
+				NOT: { type: AppointmentType.HOLIDAY },
 			},
 		});
 		return { data: appointments, message: t("Appointments found") };
@@ -672,6 +707,7 @@ export const getCalendarAppointments = createServerFn()
 			const calAppointments = appointments.map((a) => ({
 				end: a.endDate ?? a.startDate,
 				id: a.id,
+				location: a.location,
 				shortTitle: a.shortTitle,
 				start: a.startDate,
 				title: a.title,

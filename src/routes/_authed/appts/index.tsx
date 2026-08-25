@@ -8,65 +8,61 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import {
 	CalendarDaysIcon,
-	CalendarPlusIcon,
-	CheckCircle2Icon,
-	ChevronDownIcon,
-	CopyIcon,
-	EyeOffIcon,
+	CheckIcon,
+	CircleQuestionMarkIcon,
+	GlobeIcon,
 	ListIcon,
 	MapPinIcon,
-	RotateCcwIcon,
-	ShieldIcon,
-	Trash2Icon,
+	PartyPopperIcon,
+	TrophyIcon,
+	UserCheckIcon,
+	UsersIcon,
+	UserXIcon,
+	XIcon,
 } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
 	type AppointmentWithResponses,
-	createAppointment,
 	createResponse,
-	deleteAppointment,
 	getAppointmentsPage,
 	getCalendarAppointments,
-	publishAppointment,
-	restoreAppointment,
-	unpublishAppointment,
 } from "@/api/appointments";
 import { getTeams } from "@/api/teams";
 import {
+	CommandBarFilters,
 	filterSchema,
-	getAppointmentColumns,
-	InlineFilters,
-	List,
+	getUserResponse,
 	MobileFilters,
 } from "@/components/appointments/List";
 import { LoadMoreFooter } from "@/components/appointments/LoadMoreFooter";
 import { MobileCalendar } from "@/components/calendar/MobileCalendar";
 import type { CalendarAppointment } from "@/components/calendar/MonthCalendar";
 import { MonthCalendar } from "@/components/calendar/MonthCalendar";
-import { DetailsList } from "@/components/DetailsList";
-import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { TableCell, TableRow } from "@/components/ui/table";
+import { Link as EntityLink } from "@/components/ui/link";
 import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
 import { buildMonthGrid } from "@/lib/calendarGrid";
-import type { Response } from "@/lib/prisma/client";
-import {
-	AppointmentStatus,
-	AppointmentType,
-	ResponseType,
-} from "@/lib/prisma/enums";
+import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
-import {
-	cn,
-	isDayInPast,
-	isEditorOrAdmin,
-	isInformationalAppointmentType,
-} from "@/lib/utils";
+import { cn, isDayInPast, isInformationalAppointmentType } from "@/lib/utils";
+
+const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
+	HOLIDAY: PartyPopperIcon,
+	TEAM_MATCH: UsersIcon,
+	TOURNAMENT: TrophyIcon,
+	TOURNAMENT_DE: GlobeIcon,
+};
+
+const typeIconColor: Record<AppointmentType, string> = {
+	HOLIDAY: "text-primary",
+	TEAM_MATCH: "text-warning",
+	TOURNAMENT: "text-success",
+	TOURNAMENT_DE: "text-info",
+};
 
 const BATCH_SIZE = 25;
 
@@ -154,28 +150,161 @@ export const Route = createFileRoute("/_authed/appts/")({
 	}),
 });
 
-function typeLabel(type: string) {
-	if (type === AppointmentType.HOLIDAY) return t("Holiday");
-	if (type === AppointmentType.TOURNAMENT_DE) return t("Tournament (Germany)");
-	if (type === AppointmentType.TEAM_MATCH) return t("Team Match");
-	return t("Tournament");
-}
-
-function formatDateTime(date: Date | string) {
-	return new Date(date).toLocaleString("de-DE", {
-		day: "2-digit",
-		hour: "2-digit",
-		minute: "2-digit",
-		month: "short",
-		weekday: "short",
-	});
-}
-
 function monthLabel(date: Date | string) {
 	return new Date(date).toLocaleDateString("de-DE", {
 		month: "long",
 		year: "numeric",
 	});
+}
+
+type MonthGroup = {
+	key: string;
+	label: string;
+	year: number;
+	monthIndex: number;
+	items: AppointmentWithResponses[];
+};
+
+function monthKey(date: Date | string) {
+	const d = new Date(date);
+	return `${d.getFullYear()}-${d.getMonth()}`;
+}
+
+function groupByMonth(items: AppointmentWithResponses[]): MonthGroup[] {
+	const groups: MonthGroup[] = [];
+	for (const item of items) {
+		const key = monthKey(item.startDate);
+		const last = groups.at(-1);
+		if (last && last.key === key) last.items.push(item);
+		else {
+			const d = new Date(item.startDate);
+			groups.push({
+				items: [item],
+				key,
+				label: monthLabel(item.startDate),
+				monthIndex: d.getMonth(),
+				year: d.getFullYear(),
+			});
+		}
+	}
+	return groups;
+}
+
+function addMonths(year: number, monthIndex: number, delta: number) {
+	const d = new Date(year, monthIndex + delta, 1);
+	return { monthIndex: d.getMonth(), year: d.getFullYear() };
+}
+
+function toCalendarAppointments(
+	items: AppointmentWithResponses[],
+): CalendarAppointment[] {
+	return items.map((item) => ({
+		end: item.endDate ?? item.startDate,
+		id: item.id,
+		location: item.location,
+		shortTitle: item.shortTitle,
+		start: item.startDate,
+		title: item.title,
+		type: item.type,
+	}));
+}
+
+// Drives the two-way sync between the scrollable list and the rail calendar:
+// an IntersectionObserver reports whichever month header is topmost in the
+// page's normal scroll, and `scrollToMonth` (called from the calendar's
+// prev/next/today) scrolls that header into view. A short suppression window
+// after a programmatic scroll stops the observer from fighting the
+// smooth-scroll animation it just triggered. Calendar content for the active
+// month comes straight from the already-loaded `items` — no separate server
+// round-trip — so switching months is instant either way.
+function useScrollSyncedMonth(
+	groups: { key: string; year: number; monthIndex: number }[],
+) {
+	// The sticky `<h2>` header itself — watched by the IntersectionObserver
+	// below to detect which month is topmost as the user scrolls.
+	const headerRefs = React.useRef(new Map<string, HTMLElement>());
+	// The group's plain, non-sticky wrapper `<div>` — used by `scrollToMonth`
+	// to compute a jump target. Its position is unaffected by scroll state;
+	// the header's own is NOT (see the comment below).
+	const groupRefs = React.useRef(new Map<string, HTMLElement>());
+	const suppressRef = React.useRef(false);
+	const [active, setActive] = React.useState(
+		() =>
+			groups[0] ?? {
+				key: "",
+				monthIndex: new Date().getMonth(),
+				year: new Date().getFullYear(),
+			},
+	);
+
+	// Cached per key so the same callback identity is passed to `ref` on every
+	// render — otherwise (an inline `(key) => (el) => ...` closure, recreated
+	// each render) React would tear down and re-attach every ref on every
+	// re-render (which `setActive` triggers), and under rapid clicks an entry
+	// could momentarily be missing right when it's needed.
+	function makeRegister(store: React.RefObject<Map<string, HTMLElement>>) {
+		const cache = new Map<string, (el: HTMLElement | null) => void>();
+		return (key: string) => {
+			let fn = cache.get(key);
+			if (!fn) {
+				fn = (el: HTMLElement | null) => {
+					if (el) store.current.set(key, el);
+					else store.current.delete(key);
+				};
+				cache.set(key, fn);
+			}
+			return fn;
+		};
+	}
+	const registerHeader = React.useRef(makeRegister(headerRefs)).current;
+	const registerGroup = React.useRef(makeRegister(groupRefs)).current;
+
+	React.useEffect(() => {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (suppressRef.current) return;
+				const visible = entries
+					.filter((e) => e.isIntersecting)
+					.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+				const topKey = (visible[0]?.target as HTMLElement | undefined)?.dataset
+					.monthKey;
+				const match = groups.find((g) => g.key === topKey);
+				if (match) setActive(match);
+			},
+			{ rootMargin: "-1px 0px -97% 0px", threshold: 0 },
+		);
+		for (const el of headerRefs.current.values()) observer.observe(el);
+		return () => observer.disconnect();
+	}, [groups]);
+
+	const scrollToMonth = (year: number, monthIndex: number) => {
+		const key = `${year}-${monthIndex}`;
+		const match = groups.find((g) => g.key === key) ?? {
+			key,
+			monthIndex,
+			year,
+		};
+		setActive(match);
+		const el = groupRefs.current.get(key);
+		if (el) {
+			// `el` is the group's plain (non-sticky) wrapper, not the `<h2>`
+			// header — a `position: sticky` element's own rect turns out to
+			// reflect its *current stuck* position once scrolled past, not its
+			// true static one (confirmed: reads back as wherever the page
+			// already scrolled to), so it silently breaks once scrolling has
+			// been clamped near the list's end. The wrapper is never sticky, so
+			// its position is always the correct absolute target.
+			suppressRef.current = true;
+			window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY });
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
+					suppressRef.current = false;
+				});
+			});
+		}
+	};
+
+	return { active, registerGroup, registerHeader, scrollToMonth };
 }
 
 function RouteComponent() {
@@ -190,8 +319,6 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const router = useRouter();
 	const isNavigating = useRouterState({ select: (s) => s.isLoading });
-	const { user } = useRouteContext({ from: "__root__" });
-	const canEdit = isEditorOrAdmin(user?.role);
 	const isCalendarView = search.view === "calendar";
 
 	const navigateToMonth = (target: Date) => {
@@ -232,6 +359,18 @@ function RouteComponent() {
 		});
 	};
 
+	// Desktop's rail calendar is derived straight from the already-loaded
+	// `items` (no separate month-by-month server query) so scrolling the list
+	// or navigating the calendar are both instant and never trigger the
+	// route's loading state.
+	const monthGroups = React.useMemo(() => groupByMonth(items), [items]);
+	const { active, registerGroup, registerHeader, scrollToMonth } =
+		useScrollSyncedMonth(monthGroups);
+	const calendarAppointments = React.useMemo(
+		() => toCalendarAppointments(items),
+		[items],
+	);
+
 	return (
 		<>
 			{/* Mobile / tablet layout */}
@@ -258,14 +397,19 @@ function RouteComponent() {
 				) : (
 					<>
 						<MobileFilters {...search} teams={teams} />
-						<List appointments={items} />
-						<LoadMoreFooter
-							itemCount={items.length}
-							remaining={remaining}
-							matchedTotal={matchedTotal}
-							isNavigating={isNavigating}
-							batchSize={BATCH_SIZE}
-							onLoadMore={onLoadMore}
+						<AppointmentTimeline
+							groups={monthGroups}
+							onAppointmentsChange={setItems}
+							footer={
+								<LoadMoreFooter
+									itemCount={items.length}
+									remaining={remaining}
+									matchedTotal={matchedTotal}
+									isNavigating={isNavigating}
+									batchSize={BATCH_SIZE}
+									onLoadMore={onLoadMore}
+								/>
+							}
 						/>
 					</>
 				)}
@@ -303,7 +447,10 @@ function RouteComponent() {
 				</Link>
 			</nav>
 
-			{/* Desktop layout: master-detail + inline filters, or calendar */}
+			{/* Desktop layout: list on the left, filters + a scroll-synced
+			    calendar sticky in a rail on the right. This scrolls with the
+			    normal page scrollbar rather than an inner scroll container (see
+			    useScrollSyncedMonth). */}
 			<div
 				className={cn(
 					"hidden lg:flex lg:flex-col lg:gap-4",
@@ -313,73 +460,21 @@ function RouteComponent() {
 				<div className="flex items-center gap-3">
 					<div className="flex flex-1 items-baseline gap-2">
 						<h1 className="font-bold text-lg">{t("Appointments")}</h1>
-						{!isCalendarView && (
-							<p className="text-muted-foreground text-sm">
-								{t(
-									"{0} of {1} events",
-									matchedTotal.toString(),
-									grandTotal.toString(),
-								)}
-							</p>
-						)}
-					</div>
-					<div className="flex overflow-hidden rounded-md border text-sm">
-						<Link
-							to="."
-							search={(prev) => ({ ...prev, view: "list" })}
-							className={cn(
-								"px-3 py-1.5 font-medium",
-								isCalendarView
-									? "text-muted-foreground hover:bg-accent"
-									: "bg-primary text-primary-foreground",
+						<p className="text-muted-foreground text-sm">
+							{t(
+								"{0} of {1} events",
+								matchedTotal.toString(),
+								grandTotal.toString(),
 							)}
-						>
-							{t("List")}
-						</Link>
-						<Link
-							to="."
-							search={(prev) => ({ ...prev, view: "calendar" })}
-							className={cn(
-								"px-3 py-1.5 font-medium",
-								isCalendarView
-									? "bg-primary text-primary-foreground"
-									: "text-muted-foreground hover:bg-accent",
-							)}
-						>
-							{t("Calendar")}
-						</Link>
+						</p>
 					</div>
-					{canEdit && (
-						<Button render={<Link to="/create" />}>
-							<CalendarPlusIcon className="size-4" />
-							{t("Create appointment")}
-						</Button>
-					)}
 				</div>
-				{isCalendarView ? (
-					calendar && (
-						<MonthCalendar
-							appointments={calendar.appointments}
-							year={calendar.year}
-							monthIndex={calendar.monthIndex}
-							onPrevMonth={() =>
-								navigateToMonth(
-									new Date(calendar.year, calendar.monthIndex - 1, 1),
-								)
-							}
-							onNextMonth={() =>
-								navigateToMonth(
-									new Date(calendar.year, calendar.monthIndex + 1, 1),
-								)
-							}
-							onToday={() => navigateToMonth(new Date())}
-						/>
-					)
-				) : (
-					<>
-						<InlineFilters {...search} teams={teams} />
-						<AppointmentSplitView
-							appointments={items}
+				<div className="flex gap-6">
+					<div className="w-xl shrink-0">
+						<AppointmentTimeline
+							groups={monthGroups}
+							registerGroup={registerGroup}
+							registerHeader={registerHeader}
 							onAppointmentsChange={setItems}
 							footer={
 								<LoadMoreFooter
@@ -392,32 +487,162 @@ function RouteComponent() {
 								/>
 							}
 						/>
-					</>
-				)}
+					</div>
+					<div className="sticky top-6 flex min-w-95 flex-1 shrink-0 flex-col gap-4 self-start">
+						<div className="shrink-0">
+							<CommandBarFilters {...search} teams={teams} />
+						</div>
+						<MonthCalendar
+							appointments={calendarAppointments}
+							year={active.year}
+							monthIndex={active.monthIndex}
+							onPrevMonth={() => {
+								const prev = addMonths(active.year, active.monthIndex, -1);
+								scrollToMonth(prev.year, prev.monthIndex);
+							}}
+							onNextMonth={() => {
+								const next = addMonths(active.year, active.monthIndex, 1);
+								scrollToMonth(next.year, next.monthIndex);
+							}}
+							onToday={() => {
+								const now = new Date();
+								scrollToMonth(now.getFullYear(), now.getMonth());
+							}}
+						/>
+					</div>
+				</div>
 			</div>
 		</>
 	);
 }
 
-const isBulkEligible = (appointment: AppointmentWithResponses) =>
-	appointment.deletedAt === null &&
-	!isInformationalAppointmentType(appointment.type);
+function formatDate(date: Date | string) {
+	return new Date(date).toLocaleDateString("de-DE", {
+		day: "2-digit",
+		month: "2-digit",
+		year: "2-digit",
+	});
+}
 
-type SplitViewBulkAction = {
-	key: string;
-	label: string;
-	icon: React.ReactNode;
-	destructive?: boolean;
-	isDisabled: boolean;
-	onClick: () => void;
+function formatTime(date: Date | string) {
+	return new Date(date).toLocaleTimeString("de-DE", {
+		hour: "2-digit",
+		minute: "2-digit",
+	});
+}
+
+// Inline participation summary shown under the title: counts only reflect
+// responses that were actually recorded (there's no stored "invited" list
+// to divide by), so a category is omitted once it's zero and the whole line
+// disappears until at least one person has responded.
+const ParticipationSummary = ({
+	appointment,
+}: {
+	appointment: AppointmentWithResponses;
+}) => {
+	if (isInformationalAppointmentType(appointment.type)) return null;
+	let accept = 0;
+	let maybe = 0;
+	let decline = 0;
+	for (const response of appointment.responses) {
+		if (response.responseType === "ACCEPT") accept++;
+		else if (response.responseType === "MAYBE") maybe++;
+		else if (response.responseType === "DECLINE") decline++;
+	}
+	if (accept + maybe + decline === 0) return null;
+
+	return (
+		<div className="mt-0.5 flex items-center gap-2 text-xs">
+			{accept > 0 && (
+				<span className="inline-flex items-center gap-1 text-success">
+					<UserCheckIcon className="size-3" />
+					{accept}
+				</span>
+			)}
+			{maybe > 0 && (
+				<span className="inline-flex items-center gap-1 text-warning">
+					<CircleQuestionMarkIcon className="size-3" />
+					{maybe}
+				</span>
+			)}
+			{decline > 0 && (
+				<span className="inline-flex items-center gap-1 text-destructive">
+					<UserXIcon className="size-3" />
+					{decline}
+				</span>
+			)}
+		</div>
+	);
 };
 
-const AppointmentSplitView = ({
-	appointments,
+// Inline per-row response control: while the user's response is still open
+// (MAYBE, whether set explicitly or just defaulted because they haven't
+// answered yet) they get Accept/Decline buttons; once they've committed to
+// one, the buttons are replaced by a label so the row reads as settled.
+const ResponseCell = ({
+	appointment,
+	userId,
+	onRespond,
+}: {
+	appointment: AppointmentWithResponses;
+	userId: string | undefined;
+	onRespond: (appointmentId: string, response: ResponseType) => void;
+}) => {
+	if (isInformationalAppointmentType(appointment.type)) return null;
+	const userResponse = getUserResponse(appointment, userId);
+
+	if (userResponse === "ACCEPT" || userResponse === "DECLINE") {
+		return (
+			<Badge variant={userResponse === "ACCEPT" ? "success" : "destructive"}>
+				{userResponse === "ACCEPT" ? t("Accepted") : t("Declined")}
+			</Badge>
+		);
+	}
+
+	return (
+		<div className="flex justify-end gap-1.5">
+			<Button
+				type="button"
+				variant="ghost"
+				size="icon-sm"
+				title={t("Accept")}
+				className="border border-success/30 text-success hover:bg-success/15 hover:text-success"
+				onClick={(e) => {
+					e.stopPropagation();
+					onRespond(appointment.id, "ACCEPT");
+				}}
+			>
+				<CheckIcon />
+			</Button>
+			<Button
+				type="button"
+				variant="ghost"
+				size="icon-sm"
+				title={t("Decline")}
+				className="border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive"
+				onClick={(e) => {
+					e.stopPropagation();
+					onRespond(appointment.id, "DECLINE");
+				}}
+			>
+				<XIcon />
+			</Button>
+		</div>
+	);
+};
+
+const noopRegister = () => () => {};
+
+const AppointmentTimeline = ({
+	groups,
+	registerGroup = noopRegister,
+	registerHeader = noopRegister,
 	onAppointmentsChange,
 	footer,
 }: {
-	appointments: AppointmentWithResponses[];
+	groups: MonthGroup[];
+	registerGroup?: (key: string) => (el: HTMLElement | null) => void;
+	registerHeader?: (key: string) => (el: HTMLElement | null) => void;
 	onAppointmentsChange: React.Dispatch<
 		React.SetStateAction<AppointmentWithResponses[]>
 	>;
@@ -425,55 +650,13 @@ const AppointmentSplitView = ({
 }) => {
 	const { user } = useRouteContext({ from: "__root__" });
 	const router = useRouter();
-	const canEdit = isEditorOrAdmin(user?.role);
 	const createResponseServerFn = useServerFn(createResponse);
-	const publishAppointmentServerFn = useServerFn(publishAppointment);
-	const unpublishAppointmentServerFn = useServerFn(unpublishAppointment);
-	const deleteAppointmentServerFn = useServerFn(deleteAppointment);
-	const restoreAppointmentServerFn = useServerFn(restoreAppointment);
-	const createAppointmentServerFn = useServerFn(createAppointment);
-	const [selectedIds, setSelectedIds] = React.useState<Set<string>>(
-		() => new Set(appointments[0] ? [appointments[0].id] : []),
-	);
-	const [collapsedMonths, setCollapsedMonths] = React.useState<Set<string>>(
-		() => new Set(),
-	);
-	const [isConfirmingDelete, setIsConfirmingDelete] = React.useState(false);
 
-	const toggleMonth = (label: string) => {
-		setCollapsedMonths((prev) => {
-			const next = new Set(prev);
-			if (next.has(label)) next.delete(label);
-			else next.add(label);
-			return next;
-		});
-	};
-
-	const toggleSelected = (id: string) => {
-		setSelectedIds((prev) => {
-			const next = new Set(prev);
-			if (next.has(id)) next.delete(id);
-			else next.add(id);
-			return next;
-		});
-	};
-
-	const selectedAppointments = appointments.filter((a) =>
-		selectedIds.has(a.id),
-	);
-	const single =
-		selectedAppointments.length === 1 ? selectedAppointments[0] : undefined;
-	const myResponse = single?.responses.find((r) => r.userId === user?.id);
-
-	const onRespond = (response: ResponseType) => async () => {
-		if (!single) return;
+	const onRespond = async (appointmentId: string, response: ResponseType) => {
 		const userId = user?.id;
 		if (!userId) return;
 		try {
-			await createResponseServerFn({
-				data: { appointmentId: single.id, response },
-			});
-			const appointmentId = single.id;
+			await createResponseServerFn({ data: { appointmentId, response } });
 			onAppointmentsChange((prev) =>
 				prev.map((a) =>
 					a.id === appointmentId
@@ -493,199 +676,7 @@ const AppointmentSplitView = ({
 		}
 	};
 
-	// `router.invalidate()` alone doesn't refresh this page's `items` state —
-	// the parent only resyncs from loader data when the filters or `skip`
-	// change (see the comment in RouteComponent), which an invalidate-only
-	// refresh never does. So each bulk action also patches `items` directly
-	// for instant feedback; invalidate() still runs afterwards to keep the
-	// loader cache consistent for the next real navigation.
-	const runBulkAction = async (
-		calls: Promise<unknown>[],
-		successMessage: string,
-		applyLocalUpdate: () => void,
-	) => {
-		try {
-			await Promise.all(calls);
-			applyLocalUpdate();
-			toast.success(successMessage);
-			await router.invalidate();
-		} catch {
-			toast.error(t("An Error occurred"));
-		}
-	};
-
-	// Available to every user, not just editors/admins — responding to a
-	// batch of appointments is a personal action, not a management one.
-	const onBulkRespond = (response: ResponseType) => {
-		const targets = selectedAppointments.filter(
-			(a) => !isInformationalAppointmentType(a.type),
-		);
-		const userId = user?.id;
-		if (targets.length === 0 || !userId) return;
-		return runBulkAction(
-			targets.map((a) =>
-				createResponseServerFn({
-					data: { appointmentId: a.id, response },
-				}),
-			),
-			targets.length === 1
-				? t("1 appointment answered")
-				: t("{0} appointments answered", targets.length.toString()),
-			() => {
-				const ids = new Set(targets.map((a) => a.id));
-				onAppointmentsChange((prev) =>
-					prev.map((a) =>
-						ids.has(a.id)
-							? {
-									...a,
-									responses: [
-										...a.responses.filter((r) => r.userId !== userId),
-										{ appointmentId: a.id, responseType: response, userId },
-									],
-								}
-							: a,
-					),
-				);
-			},
-		);
-	};
-
-	const onPublish = (items: AppointmentWithResponses[]) => {
-		const targets = items.filter(
-			(a) => isBulkEligible(a) && a.status !== AppointmentStatus.PUBLISHED,
-		);
-		if (targets.length === 0) return;
-		const ids = new Set(targets.map((a) => a.id));
-		return runBulkAction(
-			targets.map((a) => publishAppointmentServerFn({ data: { id: a.id } })),
-			targets.length === 1
-				? t("1 appointment published")
-				: t("{0} appointments published", targets.length.toString()),
-			() =>
-				onAppointmentsChange((prev) =>
-					prev.map((a) =>
-						ids.has(a.id) ? { ...a, status: AppointmentStatus.PUBLISHED } : a,
-					),
-				),
-		);
-	};
-
-	const onUnpublish = (items: AppointmentWithResponses[]) => {
-		const targets = items.filter(
-			(a) => isBulkEligible(a) && a.status === AppointmentStatus.PUBLISHED,
-		);
-		if (targets.length === 0) return;
-		const ids = new Set(targets.map((a) => a.id));
-		return runBulkAction(
-			targets.map((a) => unpublishAppointmentServerFn({ data: { id: a.id } })),
-			targets.length === 1
-				? t("1 appointment unpublished")
-				: t("{0} appointments unpublished", targets.length.toString()),
-			() =>
-				onAppointmentsChange((prev) =>
-					prev.map((a) =>
-						ids.has(a.id) ? { ...a, status: AppointmentStatus.DRAFT } : a,
-					),
-				),
-		);
-	};
-
-	const onDuplicate = async (items: AppointmentWithResponses[]) => {
-		// Team matches are import-managed, not manually authored, so they
-		// aren't duplicable through this create-appointment flow.
-		const duplicable = items.filter(
-			(
-				a,
-			): a is AppointmentWithResponses & {
-				type: "TOURNAMENT" | "TOURNAMENT_DE" | "HOLIDAY";
-			} => a.type !== AppointmentType.TEAM_MATCH,
-		);
-		if (duplicable.length === 0) return;
-		try {
-			const results = await Promise.all(
-				duplicable.map((a) => {
-					const shortTitle = `${a.shortTitle} (Kopie)`;
-					const title = `${a.title} (Kopie)`;
-					if (a.type === AppointmentType.HOLIDAY) {
-						return createAppointmentServerFn({
-							data: {
-								endDate: a.endDate,
-								shortTitle,
-								startDate: a.startDate,
-								title,
-								type: AppointmentType.HOLIDAY,
-							},
-						});
-					}
-					return createAppointmentServerFn({
-						data: {
-							endDate: a.endDate,
-							location: a.location,
-							shortTitle,
-							startDate: a.startDate,
-							status: AppointmentStatus.DRAFT,
-							title,
-							type: a.type,
-						},
-					});
-				}),
-			);
-			const created: AppointmentWithResponses[] = results.map((result) => ({
-				...result.data,
-				ownTeam: null,
-				responses: [] as Response[],
-			}));
-			onAppointmentsChange((prev) =>
-				[...prev, ...created].sort(
-					(a, b) =>
-						new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-				),
-			);
-			toast.success(
-				created.length === 1
-					? t("1 appointment duplicated")
-					: t("{0} appointments duplicated", items.length.toString()),
-			);
-			await router.invalidate();
-		} catch {
-			toast.error(t("An Error occurred"));
-		}
-	};
-
-	const onRestore = (items: AppointmentWithResponses[]) => {
-		const targets = items.filter((a) => a.deletedAt !== null);
-		if (targets.length === 0) return;
-		const ids = new Set(targets.map((a) => a.id));
-		return runBulkAction(
-			targets.map((a) => restoreAppointmentServerFn({ data: { id: a.id } })),
-			targets.length === 1
-				? t("1 appointment restored")
-				: t("{0} appointments restored", targets.length.toString()),
-			() =>
-				onAppointmentsChange((prev) =>
-					prev.map((a) => (ids.has(a.id) ? { ...a, deletedAt: null } : a)),
-				),
-		);
-	};
-
-	const onDelete = (items: AppointmentWithResponses[]) => {
-		const targets = items.filter((a) => a.deletedAt === null);
-		if (targets.length === 0) return;
-		const ids = new Set(targets.map((a) => a.id));
-		const now = new Date();
-		return runBulkAction(
-			targets.map((a) => deleteAppointmentServerFn({ data: { id: a.id } })),
-			targets.length === 1
-				? t("1 appointment deleted")
-				: t("{0} appointments deleted", targets.length.toString()),
-			() =>
-				onAppointmentsChange((prev) =>
-					prev.map((a) => (ids.has(a.id) ? { ...a, deletedAt: now } : a)),
-				),
-		);
-	};
-
-	if (appointments.length === 0) {
+	if (groups.length === 0) {
 		return (
 			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
 				{t("No appointments found")}
@@ -693,389 +684,102 @@ const AppointmentSplitView = ({
 		);
 	}
 
-	// Sorting is disabled here (unlike the mobile list) because rows are
-	// grouped into month sections that assume the loader's chronological
-	// order; a user-driven column sort would desync the group headers from
-	// the visible row order.
-	const dataColumns = getAppointmentColumns(user?.id, {
-		includeResponseColumn: true,
-		sortable: false,
-	});
-	const columns = [
-		{
-			key: "select",
-			label: "",
-			minWidth: "40px",
-			render: (item: AppointmentWithResponses) => (
-				<Checkbox
-					checked={selectedIds.has(item.id)}
-					onCheckedChange={() => toggleSelected(item.id)}
-					onClick={(e) => e.stopPropagation()}
-					aria-label={item.shortTitle}
-				/>
-			),
-		},
-		...dataColumns,
-	];
-
-	const hasRespondableSelection = selectedAppointments.some(
-		(a) => !isInformationalAppointmentType(a.type),
-	);
-
-	const bulkActions: SplitViewBulkAction[] = [
-		{
-			icon: <CheckCircle2Icon className="size-4" />,
-			isDisabled: !selectedAppointments.some(
-				(a) => isBulkEligible(a) && a.status !== AppointmentStatus.PUBLISHED,
-			),
-			key: "publish",
-			label: t("Publish"),
-			onClick: () => onPublish(selectedAppointments),
-		},
-		{
-			icon: <EyeOffIcon className="size-4" />,
-			isDisabled: !selectedAppointments.some(
-				(a) => isBulkEligible(a) && a.status === AppointmentStatus.PUBLISHED,
-			),
-			key: "unpublish",
-			label: t("Unpublish"),
-			onClick: () => onUnpublish(selectedAppointments),
-		},
-		{
-			icon: <CopyIcon className="size-4" />,
-			isDisabled: selectedAppointments.length === 0,
-			key: "duplicate",
-			label: t("Duplicate"),
-			onClick: () => onDuplicate(selectedAppointments),
-		},
-		{
-			icon: <RotateCcwIcon className="size-4" />,
-			isDisabled: !selectedAppointments.some((a) => a.deletedAt !== null),
-			key: "restore",
-			label: t("Restore"),
-			onClick: () => onRestore(selectedAppointments),
-		},
-		{
-			destructive: true,
-			icon: <Trash2Icon className="size-4" />,
-			isDisabled: !selectedAppointments.some((a) => a.deletedAt === null),
-			key: "delete",
-			label: t("Delete"),
-			onClick: () => setIsConfirmingDelete(true),
-		},
-	];
-
 	return (
-		<>
-			<div className="grid grid-cols-[1fr_360px] items-start gap-4">
-				<div className="flex min-w-0 flex-col gap-3">
-					<div className="min-w-0 overflow-x-auto rounded-lg bg-card">
-						<DetailsList
-							items={appointments}
-							getItemId={(item) => item.id}
-							columns={columns}
-							onRenderRow={(item, children) => {
+		<div className="flex min-w-0 flex-col gap-3">
+			<div className="flex min-w-0 flex-col">
+				{groups.map((group) => (
+					<div key={group.key} ref={registerGroup(group.key)}>
+						{/* `sticky` (not a collapse toggle) marks the current section as
+						    you scroll — it also doubles as the IntersectionObserver
+						    target that drives the rail calendar via `registerHeader`.
+						    This wrapper (not the header) is what `scrollToMonth` reads
+						    the jump target from — see useScrollSyncedMonth. */}
+						<h2
+							ref={registerHeader(group.key)}
+							data-month-key={group.key}
+							className="sticky top-0 z-10 -mx-1 mb-2 bg-background px-1 py-2 font-semibold text-muted-foreground text-xs uppercase tracking-wide"
+						>
+							{group.label}
+						</h2>
+						<div className="flex min-w-0 flex-col pb-4">
+							{group.items.map((item, idx) => {
 								const inPast = isDayInPast(item.startDate);
 								const isDeleted = item.deletedAt !== null;
-								const index = appointments.findIndex((a) => a.id === item.id);
-								const previous = appointments[index - 1];
-								const label = monthLabel(item.startDate);
-								const showMonthHeader =
-									index === 0 || label !== monthLabel(previous.startDate);
-								const isCollapsed = collapsedMonths.has(label);
+								const Icon = typeIcon[item.type];
+								const isMultipleDays =
+									item.endDate !== null &&
+									new Date(item.startDate).getDate() !==
+										new Date(item.endDate).getDate();
 
 								return (
-									<React.Fragment key={item.id}>
-										{showMonthHeader && (
-											<TableRow
-												className="cursor-pointer hover:bg-transparent"
-												onClick={() => toggleMonth(label)}
-											>
-												<TableCell
-													colSpan={columns.length}
-													className="bg-muted/40 py-1.5 text-muted-foreground text-xs uppercase tracking-wide"
-												>
-													<span className="flex items-center gap-1.5 select-none">
-														<ChevronDownIcon
-															className={cn(
-																"size-3.5 transition-transform duration-200 ease-out",
-																isCollapsed && "-rotate-90",
-															)}
-														/>
-														{label}
-													</span>
-												</TableCell>
-											</TableRow>
-										)}
-										{/* `collapse` (visibility: collapse) hides the row without
-								    re-triggering the table's column-width calculation, unlike
-								    unmounting it or `display: none`, which would let the
-								    remaining visible rows resize the columns. */}
-										<TableRow
+									<div key={item.id} className="flex gap-4">
+										<div className="flex w-11 shrink-0 flex-col items-center pt-3">
+											<span className="font-bold text-lg leading-none">
+												{new Date(item.startDate).getDate()}
+											</span>
+											<span className="mt-0.5 text-[10px] text-muted-foreground uppercase">
+												{new Date(item.startDate).toLocaleDateString("de-DE", {
+													weekday: "short",
+												})}
+											</span>
+											{idx < group.items.length - 1 && (
+												<div className="mt-2 w-px flex-1 bg-border" />
+											)}
+										</div>
+										<div
 											className={cn(
-												"h-10 cursor-pointer",
-												selectedIds.has(item.id) && "bg-muted",
+												"flex min-w-0 max-w-xl flex-1 items-center gap-4 rounded-lg px-3 py-2.5 pb-5",
 												inPast && "opacity-65",
 												isDeleted && "text-destructive",
-												isCollapsed && "collapse",
 											)}
-											onClick={() => toggleSelected(item.id)}
 										>
-											{children}
-										</TableRow>
-									</React.Fragment>
-								);
-							}}
-							selectMode="none"
-						/>
-					</div>
-					{footer}
-				</div>
-				<div className="min-w-0 rounded-lg bg-card p-5">
-					{selectedIds.size === 0 ? (
-						<div className="text-muted-foreground text-sm">
-							{t("Select a row to see details")}
-						</div>
-					) : (
-						<div className="flex flex-col gap-3">
-							<div className="flex items-center justify-between">
-								<span className="font-semibold text-sm">
-									{single
-										? t("1 appointment selected")
-										: t(
-												"{0} appointments selected",
-												selectedIds.size.toString(),
-											)}
-								</span>
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									onClick={() => setSelectedIds(new Set())}
-								>
-									{t("Clear selection")}
-								</Button>
-							</div>
-							{single ? (
-								<AppointmentDetailContent
-									appointment={single}
-									myResponse={myResponse}
-									onRespond={onRespond}
-								/>
-							) : (
-								<>
-									<div className="flex max-h-48 flex-col overflow-y-auto rounded-md border p-1">
-										{selectedAppointments.map((a) => (
-											<div
-												key={a.id}
-												className="flex items-center gap-2 rounded-md px-1.5 py-1"
-											>
-												<span
-													className={cn(
-														"size-1.5 shrink-0 rounded-full",
-														isInformationalAppointmentType(a.type)
-															? "bg-muted-foreground"
-															: a.status === AppointmentStatus.PUBLISHED
-																? "bg-success"
-																: "bg-warning",
+											<div className="min-w-0 flex-1">
+												<div className="truncate">
+													<EntityLink
+														to="/appts/$apptId"
+														params={{ apptId: item.id }}
+													>
+														{item.shortTitle}
+													</EntityLink>
+												</div>
+												<div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
+													<span className="inline-flex items-center gap-1">
+														<Icon
+															className={cn(
+																"size-3.5",
+																typeIconColor[item.type],
+															)}
+														/>
+														{formatTime(item.startDate)}
+													</span>
+													{isMultipleDays && item.endDate && (
+														<span>– {formatDate(item.endDate)}</span>
 													)}
-												/>
-												<span className="min-w-0 flex-1 truncate text-sm">
-													{a.shortTitle}
-												</span>
-												<span className="shrink-0 text-muted-foreground text-xs">
-													{new Date(a.startDate).toLocaleDateString("de-DE", {
-														day: "2-digit",
-														month: "2-digit",
-													})}
-												</span>
+													{item.location && (
+														<span className="inline-flex items-center gap-1">
+															<MapPinIcon className="size-3" />
+															{item.location}
+														</span>
+													)}
+												</div>
+												<ParticipationSummary appointment={item} />
 											</div>
-										))}
+											<div className="shrink-0">
+												<ResponseCell
+													appointment={item}
+													userId={user?.id}
+													onRespond={onRespond}
+												/>
+											</div>
+										</div>
 									</div>
-									<div className="flex gap-2">
-										<Button
-											type="button"
-											variant="ghost"
-											size="sm"
-											className="flex-1 border border-success/30 text-success hover:bg-success/15 hover:text-success"
-											disabled={!hasRespondableSelection}
-											onClick={() => onBulkRespond(ResponseType.ACCEPT)}
-										>
-											{t("Accept")}
-										</Button>
-										<Button
-											type="button"
-											variant="ghost"
-											size="sm"
-											className="flex-1 border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning"
-											disabled={!hasRespondableSelection}
-											onClick={() => onBulkRespond(ResponseType.MAYBE)}
-										>
-											{t("Maybe")}
-										</Button>
-										<Button
-											type="button"
-											variant="ghost"
-											size="sm"
-											className="flex-1 border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive"
-											disabled={!hasRespondableSelection}
-											onClick={() => onBulkRespond(ResponseType.DECLINE)}
-										>
-											{t("Decline")}
-										</Button>
-									</div>
-								</>
-							)}
-							{canEdit && (
-								<div className="flex flex-col gap-2">
-									{bulkActions.map((action) => (
-										<Button
-											key={action.key}
-											type="button"
-											variant={action.destructive ? "destructive" : "outline"}
-											className="justify-start"
-											disabled={action.isDisabled}
-											onClick={action.onClick}
-										>
-											{action.icon}
-											{action.label}
-										</Button>
-									))}
-								</div>
-							)}
+								);
+							})}
 						</div>
-					)}
-				</div>
+					</div>
+				))}
 			</div>
-			<DeleteModal
-				label={
-					selectedAppointments.length === 1
-						? t("Are you sure you want to delete this appointment?")
-						: t(
-								"Are you sure you want to delete {0} appointments?",
-								selectedAppointments.length.toString(),
-							)
-				}
-				open={isConfirmingDelete}
-				onClose={() => setIsConfirmingDelete(false)}
-				onDelete={() => {
-					setIsConfirmingDelete(false);
-					onDelete(selectedAppointments);
-				}}
-			/>
-		</>
+			{footer}
+		</div>
 	);
 };
-
-function AppointmentDetailContent({
-	appointment,
-	myResponse,
-	onRespond,
-}: {
-	appointment: AppointmentWithResponses;
-	myResponse: Response | undefined;
-	onRespond: (response: ResponseType) => () => Promise<void>;
-}) {
-	const isInformational = isInformationalAppointmentType(appointment.type);
-	const isPublished = appointment.status === AppointmentStatus.PUBLISHED;
-	const isMultipleDays =
-		appointment.endDate != null &&
-		new Date(appointment.startDate).toDateString() !==
-			new Date(appointment.endDate).toDateString();
-
-	return (
-		<>
-			<div className="mb-3 flex items-center gap-2">
-				<Badge variant="outline">{typeLabel(appointment.type)}</Badge>
-				{!isInformational && (
-					<Badge variant={isPublished ? "success" : "warning"}>
-						{isPublished ? t("Published") : t("Draft")}
-					</Badge>
-				)}
-			</div>
-			<h3 className="mb-4 font-bold text-lg leading-snug">
-				{appointment.title}
-			</h3>
-			<div className="flex flex-col gap-2 text-sm">
-				<div className="flex items-center gap-1.5 text-muted-foreground">
-					<CalendarDaysIcon className="size-3.5 shrink-0" />
-					{formatDateTime(appointment.startDate)}
-					{isMultipleDays && appointment.endDate && (
-						<> – {formatDateTime(appointment.endDate)}</>
-					)}
-				</div>
-				{appointment.location && (
-					<div className="flex items-center gap-1.5 text-muted-foreground">
-						<MapPinIcon className="size-3.5 shrink-0" />
-						{appointment.location}
-					</div>
-				)}
-				{appointment.ownTeam && (
-					<div className="flex items-center gap-1.5 text-muted-foreground">
-						<ShieldIcon className="size-3.5 shrink-0" />
-						<Link
-							to="/teams/$teamId"
-							params={{ teamId: appointment.ownTeam.id }}
-							className="text-primary hover:underline"
-						>
-							{appointment.ownTeam.title}
-						</Link>
-					</div>
-				)}
-			</div>
-			{!isInformational && (
-				<div className="mt-4 flex gap-2">
-					<Button
-						type="button"
-						variant="ghost"
-						size="sm"
-						className={cn(
-							"flex-1 border border-success/30 text-success hover:bg-success/15 hover:text-success",
-							myResponse?.responseType === ResponseType.ACCEPT &&
-								"border-success bg-success text-success-foreground hover:bg-success/90 hover:text-success-foreground",
-						)}
-						onClick={onRespond(ResponseType.ACCEPT)}
-					>
-						{t("Accept")}
-					</Button>
-					<Button
-						type="button"
-						variant="ghost"
-						size="sm"
-						className={cn(
-							"flex-1 border border-warning/30 text-warning hover:bg-warning/15 hover:text-warning",
-							myResponse?.responseType === ResponseType.MAYBE &&
-								"border-warning bg-warning text-warning-foreground hover:bg-warning/90 hover:text-warning-foreground",
-						)}
-						onClick={onRespond(ResponseType.MAYBE)}
-					>
-						{t("Maybe")}
-					</Button>
-					<Button
-						type="button"
-						variant="ghost"
-						size="sm"
-						className={cn(
-							"flex-1 border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive",
-							myResponse?.responseType === ResponseType.DECLINE &&
-								"border-destructive bg-destructive text-white hover:bg-destructive/90",
-						)}
-						onClick={onRespond(ResponseType.DECLINE)}
-					>
-						{t("Decline")}
-					</Button>
-				</div>
-			)}
-			<Button
-				variant="outline"
-				size="sm"
-				className="mt-2 w-full"
-				render={
-					<Link to="/appts/$apptId" params={{ apptId: appointment.id }} />
-				}
-			>
-				{t("Open appointment")}
-			</Button>
-		</>
-	);
-}

@@ -1,15 +1,10 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
-import {
-	CalendarClockIcon,
-	CopyIcon,
-	LinkIcon,
-	ListFilterIcon,
-	SlidersHorizontalIcon,
-} from "lucide-react";
+import { CopyIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { type FeedConfig, updateFeedConfig } from "@/api/users";
+import { Section } from "@/components/Section";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -27,7 +22,7 @@ const responseTypeOrder: ResponseType[] = ["ACCEPT", "MAYBE", "DECLINE"];
 
 const appointmentTypeMeta: Record<AppointmentType, { label: string }> = {
 	HOLIDAY: { label: t("Holiday") },
-	TEAM_MATCH: { label: t("Team Match") },
+	TEAM_MATCH: { label: t("Team matches") },
 	TOURNAMENT: { label: t("Tournament") },
 	TOURNAMENT_DE: { label: t("Tournament (Germany)") },
 };
@@ -37,39 +32,6 @@ const appointmentTypeOrder: AppointmentType[] = [
 	"HOLIDAY",
 	"TEAM_MATCH",
 ];
-
-function Tile({
-	icon: Icon,
-	title,
-	description,
-	className,
-	children,
-}: {
-	icon: React.ComponentType<{ className?: string }>;
-	title: string;
-	description?: string;
-	className?: string;
-	children: React.ReactNode;
-}) {
-	return (
-		<div
-			className={`flex flex-col gap-4 rounded-lg border border-border/60 p-4 ${className ?? ""}`}
-		>
-			<div className="flex items-center gap-2">
-				<div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-					<Icon className="size-4" />
-				</div>
-				<div>
-					<div className="font-bold text-sm">{title}</div>
-					{description && (
-						<div className="text-muted-foreground text-xs">{description}</div>
-					)}
-				</div>
-			</div>
-			{children}
-		</div>
-	);
-}
 
 type CalendarFeedProps = {
 	feedId?: string;
@@ -145,37 +107,27 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 				form.handleSubmit();
 			}}
 		>
-			<div className="flex flex-col gap-1">
-				<h2 className="font-bold text-2xl">{t("Calendar Feed")}</h2>
-				<p className="text-muted-foreground text-sm">
-					{t(
-						"Subscribe to your personalized calendar feed to receive appointment updates in your calendar app",
-					)}
-				</p>
-			</div>
-
-			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+			<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 				{feedUrl && (
-					<Tile
-						icon={LinkIcon}
-						title={t("Your Feed URL")}
-						description={t(
-							"Use this URL in your calendar application to subscribe to your personal calendar feed.",
-						)}
-						className="lg:col-span-2"
-					>
-						<div className="flex gap-2">
-							<Input type="text" readOnly value={feedUrl} />
-							<Button type="button" onClick={handleCopyUrl}>
-								<CopyIcon />
-								{t("Copy")}
-							</Button>
-						</div>
-					</Tile>
+					<div className="lg:col-span-2">
+						<Section
+							title={t("Your Feed URL")}
+							description={t(
+								"Use this URL in your calendar application to subscribe to your personal calendar feed.",
+							)}
+						>
+							<div className="flex gap-2">
+								<Input type="text" readOnly value={feedUrl} />
+								<Button type="button" onClick={handleCopyUrl}>
+									<CopyIcon />
+									{t("Copy")}
+								</Button>
+							</div>
+						</Section>
+					</div>
 				)}
 
-				<Tile
-					icon={ListFilterIcon}
+				<Section
 					title={t("Response Types")}
 					description={t(
 						"Leave all unchecked to include all appointments regardless of response",
@@ -207,9 +159,9 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 							</div>
 						)}
 					</form.Field>
-				</Tile>
+				</Section>
 
-				<Tile icon={CalendarClockIcon} title={t("Appointment Types")}>
+				<Section title={t("Appointment Types")}>
 					<form.Field name="includeAppointmentTypes">
 						{(field) => (
 							<div className="flex flex-col gap-2">
@@ -236,30 +188,28 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 							</div>
 						)}
 					</form.Field>
-				</Tile>
+				</Section>
 
-				<Tile
-					icon={SlidersHorizontalIcon}
-					title={t("Configuration")}
-					className="lg:col-span-2"
-				>
-					<form.Field name="includeDraftStatus">
-						{(field) => (
-							<div className="flex items-center gap-2">
-								<Checkbox
-									id={field.name}
-									checked={field.state.value}
-									onCheckedChange={(checked) =>
-										field.handleChange(checked === true)
-									}
-								/>
-								<Label htmlFor={field.name}>
-									{t("Include draft appointments")}
-								</Label>
-							</div>
-						)}
-					</form.Field>
-				</Tile>
+				<div className="lg:col-span-2">
+					<Section title={t("Configuration")}>
+						<form.Field name="includeDraftStatus">
+							{(field) => (
+								<div className="flex items-center gap-2">
+									<Checkbox
+										id={field.name}
+										checked={field.state.value}
+										onCheckedChange={(checked) =>
+											field.handleChange(checked === true)
+										}
+									/>
+									<Label htmlFor={field.name}>
+										{t("Include draft appointments")}
+									</Label>
+								</div>
+							)}
+						</form.Field>
+					</Section>
+				</div>
 			</div>
 
 			<Button

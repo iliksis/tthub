@@ -27,7 +27,7 @@ App-specific calendar tokens `--color-appointment-by`, `--color-tournament-de`, 
 
 ### Radius scale
 
-Base `--radius: 0.625rem`. Derived scale: `--radius-sm` (base − 4px), `--radius-md` (base − 2px), `--radius-lg` (= base), `--radius-xl` (base + 4px). Convention in practice:
+Base `--radius: 0.375rem` (`src\styles.css`). Derived scale: `--radius-sm` (base − 4px), `--radius-md` (base − 2px), `--radius-lg` (= base), `--radius-xl` (base + 4px). Convention in practice:
 - `rounded-md` — buttons, inputs, small controls
 - `rounded-lg` — panels, tables, dialogs, list containers
 - `rounded-xl` — cards, prominent panels (dashboard tiles, mobile calendar container)
@@ -212,8 +212,6 @@ Field structure (`src/components/settings/Profile.tsx` is the clean reference):
     toast.error(data.message);
   },
   ```
-
-`src/components/settings/CalendarFeed.tsx` is a known inconsistency (raw `<div>` section headings and `<div className="block text-sm font-medium mb-2">` instead of `fieldset`/`Label`, plus manual array-toggle checkboxes) — treat it as legacy-in-progress, not a pattern to copy.
 
 ## 8. Toasts
 

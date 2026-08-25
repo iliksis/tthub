@@ -3,6 +3,7 @@ import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { updateUserInformation } from "@/api/users";
+import { Section } from "@/components/Section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,13 +86,10 @@ export const Profile = () => {
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-5">
-				<div className="flex flex-col gap-1">
-					<h2 className="font-semibold text-lg">{t("Profile & Security")}</h2>
-					<p className="text-muted-foreground text-sm">
-						{t("Update your name or set a new password.")}
-					</p>
-				</div>
+			<Section title={t("Profile & Security")}>
+				<p className="mb-4 text-muted-foreground text-sm">
+					{t("Update your name or set a new password.")}
+				</p>
 				<form
 					className="flex flex-col gap-4"
 					onSubmit={(e) => {
@@ -169,7 +167,7 @@ export const Profile = () => {
 						)}
 					</form.Subscribe>
 				</form>
-			</div>
+			</Section>
 		</div>
 	);
 };

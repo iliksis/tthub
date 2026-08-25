@@ -14,7 +14,10 @@ const config = defineConfig({
   },
   plugins: [
 	mkcert(),
-    devtools(),
+    // `injectSource` adds a `data-tsd-source` attribute to every JSX element
+    // for the devtools "click to open in editor" inspector. It was leaking
+    // into the URL as a stray search param on this route, so it's disabled.
+    devtools({ injectSource: { enabled: false } }),
     nitroV2Plugin(),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({

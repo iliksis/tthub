@@ -3,18 +3,14 @@ import {
 	useRouter,
 	useRouterState,
 } from "@tanstack/react-router";
-import type { SortingState } from "@tanstack/react-table";
+import { PencilIcon, PlusIcon, RotateCcwIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
 import { getTransactionsPage } from "@/api/appointments";
-import { JournalMobileRow } from "@/components/appointments/JournalMobileRow";
 import { LoadMoreFooter } from "@/components/appointments/LoadMoreFooter";
 import { TransactionDetail } from "@/components/appointments/TransactionDetail";
-import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Link } from "@/components/ui/link";
 import {
 	Select,
 	SelectContent,
@@ -23,7 +19,6 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { TableRow } from "@/components/ui/table";
 import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
@@ -48,7 +43,6 @@ const BATCH_SIZE = 25;
 const journalSearchSchema = z.object({
 	query: z.string().optional(),
 	skip: z.number().int().nonnegative().optional(),
-	sort: z.enum(["asc", "desc"]).optional(),
 	type: z.enum(["CREATE", "UPDATE", "DELETE", "RESTORE"]).optional(),
 });
 
@@ -63,7 +57,6 @@ export const Route = createFileRoute("/_authed/appts/journal")({
 			data: {
 				query: deps.query,
 				skip,
-				sortDirection: deps.sort,
 				take: BATCH_SIZE,
 				type: deps.type,
 			},
@@ -93,90 +86,119 @@ const typeFilters: { value: TransactionType | "ALL"; label: string }[] = [
 	{ label: t("Restored"), value: TransactionType.RESTORE },
 ];
 
-const getTransactionColumns =
-	(): DetailsListColumn<TransactionWithRelations>[] => [
-		{
-			key: "time",
-			label: t("Time"),
-			render: (item) => (
-				<span className="whitespace-nowrap text-muted-foreground text-xs">
+// Icon + past-participle shown inline in each row's sentence — distinct from
+// transactionActionBadge's capitalized labels, which read correctly only as
+// standalone badges, not mid-sentence.
+const actionIcon: Record<TransactionType, typeof PlusIcon> = {
+	CREATE: PlusIcon,
+	DELETE: Trash2Icon,
+	RESTORE: RotateCcwIcon,
+	UPDATE: PencilIcon,
+};
+const actionParticiple: Record<TransactionType, string> = {
+	CREATE: t("created"),
+	DELETE: t("deleted"),
+	RESTORE: t("restored"),
+	UPDATE: t("changed"),
+};
+const actionTextClass: Record<"success" | "destructive" | "info", string> = {
+	destructive: "text-destructive",
+	info: "text-info",
+	success: "text-success",
+};
+
+const dateHeaderFmt = (d: Date | string) =>
+	new Date(d).toLocaleDateString("de-DE", {
+		day: "2-digit",
+		month: "long",
+		weekday: "long",
+	});
+
+function groupByDay(items: TransactionWithRelations[]) {
+	const groups = new Map<string, TransactionWithRelations[]>();
+	for (const item of items) {
+		const key = new Date(item.createdAt).toDateString();
+		const list = groups.get(key) ?? [];
+		list.push(item);
+		groups.set(key, list);
+	}
+	return [...groups.entries()];
+}
+
+type TransactionRowProps = {
+	item: TransactionWithRelations;
+	isSelected: boolean;
+	isNew: boolean;
+	onClick: () => void;
+};
+
+function TransactionRow({
+	item,
+	isSelected,
+	isNew,
+	onClick,
+}: TransactionRowProps) {
+	const badge = transactionActionBadge(item.type);
+	const Icon = actionIcon[item.type];
+	const textClass = actionTextClass[badge.variant];
+	const fields = getChangedFields(item.changes as TransactionChanges | null);
+	const userColor = item.user ? createColorForUserId(item.user.id) : null;
+
+	return (
+		<button
+			type="button"
+			data-testid="journal-row"
+			onClick={onClick}
+			className={cn(
+				"relative flex w-full items-start gap-3 rounded-md py-2.5 pr-2 pl-5 text-left transition-colors",
+				isSelected ? "bg-muted" : "hover:bg-muted/40",
+				isNew && "fade-in slide-in-from-top-1 animate-in duration-200 ease-out",
+			)}
+		>
+			<span
+				className={cn(
+					"-left-2.5 absolute top-3 flex size-5 items-center justify-center rounded-full bg-background ring-4 ring-background",
+					textClass,
+				)}
+			>
+				<Icon className="size-3.5" />
+			</span>
+			<Avatar size="sm" className={cn("shrink-0", !item.user && "opacity-50")}>
+				<AvatarFallback
+					style={
+						userColor
+							? {
+									backgroundColor: userColor.backgroundColor,
+									color: userColor.foregroundColor,
+								}
+							: undefined
+					}
+				>
+					{item.user ? shortenUserName(item.user.name) : "—"}
+				</AvatarFallback>
+			</Avatar>
+			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
+				<div className="text-sm leading-snug">
+					<span className="font-medium">
+						{item.user?.name ?? t("Deleted user")}
+					</span>{" "}
+					{t("has")}{" "}
+					<span className="font-medium">{item.appointment.shortTitle}</span>{" "}
+					<span className={textClass}>{actionParticiple[item.type]}</span>
+					{fields.length > 0 && (
+						<span className="text-muted-foreground">
+							{" "}
+							({fields.join(", ")})
+						</span>
+					)}
+				</div>
+				<span className="text-muted-foreground text-xs">
 					{formatRelativeTime(item.createdAt)}
 				</span>
-			),
-			sortable: true,
-			sortFn: (a, b) =>
-				new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-		},
-		{
-			key: "person",
-			label: t("Person"),
-			render: (item) => {
-				if (!item.user) {
-					return (
-						<span className="text-muted-foreground text-sm">
-							{t("Deleted user")}
-						</span>
-					);
-				}
-				const color = createColorForUserId(item.user.id);
-				return (
-					<div className="flex items-center gap-2">
-						<Avatar size="sm" className="shrink-0">
-							<AvatarFallback
-								style={{
-									backgroundColor: color.backgroundColor,
-									color: color.foregroundColor,
-								}}
-							>
-								{shortenUserName(item.user.name)}
-							</AvatarFallback>
-						</Avatar>
-						<span className="text-sm">{item.user.name}</span>
-					</div>
-				);
-			},
-		},
-		{
-			key: "appointment",
-			label: t("Appointment"),
-			render: (item) => (
-				<Link
-					to="/appts/$apptId"
-					params={{ apptId: item.appointment.id }}
-					onClick={(e) => e.stopPropagation()}
-					className="truncate text-sm"
-				>
-					{item.appointment.shortTitle}
-				</Link>
-			),
-		},
-		{
-			key: "action",
-			label: t("Action"),
-			render: (item) => {
-				const badge = transactionActionBadge(item.type);
-				return <Badge variant={badge.variant}>{badge.label}</Badge>;
-			},
-		},
-		{
-			key: "changed",
-			label: t("Changed"),
-			render: (item) => {
-				const fields = getChangedFields(
-					item.changes as TransactionChanges | null,
-				);
-				return (
-					<span className="text-muted-foreground text-xs">
-						{fields.length === 1
-							? t("1 field changed")
-							: fields.length > 0
-								? t("{0} fields changed", fields.length.toString())
-								: "—"}
-					</span>
-				);
-			},
-		},
-	];
+			</div>
+		</button>
+	);
+}
 
 function RouteComponent() {
 	const {
@@ -198,7 +220,7 @@ function RouteComponent() {
 		() => setSelectedId(null),
 	);
 
-	const filterKey = `${search.query ?? ""}|${search.type ?? ""}|${search.sort ?? ""}`;
+	const filterKey = `${search.query ?? ""}|${search.type ?? ""}`;
 	const { items, appended } = useLoadMoreBatch(batch, skip, filterKey);
 	const newIds = React.useMemo(
 		() => new Set(appended.map((t) => t.id)),
@@ -220,7 +242,6 @@ function RouteComponent() {
 					replace: true,
 					search: {
 						query: queryInput || undefined,
-						sort: current.sort,
 						type: current.type,
 					},
 					to: ".",
@@ -235,7 +256,6 @@ function RouteComponent() {
 			replace: true,
 			search: {
 				query: search.query,
-				sort: search.sort,
 				type: value === "ALL" ? undefined : value,
 			},
 			to: ".",
@@ -248,27 +268,6 @@ function RouteComponent() {
 			search: {
 				query: search.query,
 				skip: items.length,
-				sort: search.sort,
-				type: search.type,
-			},
-			to: ".",
-		});
-	};
-
-	// Sorting is server-driven (see getTransactionsPage) since the list is
-	// loaded in batches: reordering only the rows already fetched would leave
-	// later "Load more" pages out of order. Toggling the header instead
-	// re-fetches from the start with the new order.
-	const sorting: SortingState =
-		search.sort != null ? [{ desc: search.sort === "desc", id: "time" }] : [];
-
-	const onSortingChange = (next: SortingState) => {
-		const timeSort = next.find((s) => s.id === "time");
-		router.navigate({
-			replace: true,
-			search: {
-				query: search.query,
-				sort: timeSort ? (timeSort.desc ? "desc" : "asc") : undefined,
 				type: search.type,
 			},
 			to: ".",
@@ -277,6 +276,7 @@ function RouteComponent() {
 
 	const selected = items.find((item) => item.id === selectedId) ?? null;
 	const remaining = matchedTotal - items.length;
+	const groups = groupByDay(items);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -315,63 +315,37 @@ function RouteComponent() {
 				</Select>
 			</div>
 
-			{/* Mobile layout: stacked card rows + a bottom-sheet detail view. */}
-			<div className="lg:hidden">
+			<div className="grid gap-6 lg:grid-cols-[1fr_360px]">
 				{items.length === 0 ? (
 					<div className="py-8 text-center text-muted-foreground">
 						{t("No items found")}
 					</div>
 				) : (
-					<div className="flex flex-col rounded-lg bg-card">
-						{items.map((item) => (
-							<JournalMobileRow
-								key={item.id}
-								transaction={item}
-								isSelected={item.id === selectedId}
-								isNew={!prefersReducedMotion && newIds.has(item.id)}
-								onClick={() =>
-									setSelectedId(item.id === selectedId ? null : item.id)
-								}
-							/>
+					<div className="flex flex-col">
+						{groups.map(([day, dayItems]) => (
+							<div key={day}>
+								<div className="sticky top-0 z-10 bg-background py-1.5 pl-3 font-bold text-muted-foreground text-xs uppercase tracking-wider">
+									{dateHeaderFmt(dayItems[0].createdAt)}
+								</div>
+								<div className="relative ml-3.5 flex flex-col border-border/60 border-l pb-2">
+									{dayItems.map((item) => (
+										<TransactionRow
+											key={item.id}
+											item={item}
+											isSelected={item.id === selectedId}
+											isNew={!prefersReducedMotion && newIds.has(item.id)}
+											onClick={() =>
+												setSelectedId(item.id === selectedId ? null : item.id)
+											}
+										/>
+									))}
+								</div>
+							</div>
 						))}
 					</div>
 				)}
-			</div>
 
-			{/* Table and detail rail are siblings in the same row, so they start
-			    flush with each other instead of the rail trailing the header. */}
-			<div className="hidden gap-4 lg:grid lg:grid-cols-[1fr_360px]">
-				<div className="flex min-w-0 flex-col gap-3 overflow-x-auto rounded-lg bg-card p-3">
-					<DetailsList
-						items={items}
-						getItemId={(item) => item.id}
-						columns={getTransactionColumns()}
-						sorting={sorting}
-						onSortingChange={onSortingChange}
-						onRenderRow={(item, children) => {
-							const isNew = !prefersReducedMotion && newIds.has(item.id);
-							return (
-								<TableRow
-									key={item.id}
-									data-testid="journal-row"
-									className={cn(
-										"h-11 cursor-pointer",
-										item.id === selectedId && "bg-muted",
-										isNew &&
-											"fade-in slide-in-from-top-1 animate-in duration-200 ease-out",
-									)}
-									onClick={() =>
-										setSelectedId(item.id === selectedId ? null : item.id)
-									}
-								>
-									{children}
-								</TableRow>
-							);
-						}}
-						selectMode="none"
-					/>
-				</div>
-				<div className="lg:sticky lg:top-6 lg:h-fit">
+				<div className="hidden lg:sticky lg:top-6 lg:block lg:h-fit">
 					{selected ? (
 						<div className="rounded-lg bg-card p-4">
 							<TransactionDetail transaction={selected} />

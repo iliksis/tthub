@@ -1,258 +1,23 @@
-import { Link, useRouteContext, useRouter } from "@tanstack/react-router";
-import {
-	ArrowDownWideNarrowIcon,
-	ArrowUpNarrowWideIcon,
-	SlidersHorizontalIcon,
-} from "lucide-react";
+import { useRouter } from "@tanstack/react-router";
+import { SlidersHorizontalIcon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
-import { Badge } from "@/components/ui/badge";
+import { FilterBar, type FilterBarSegment } from "@/components/FilterBar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link as EntityLink } from "@/components/ui/link";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import type { Appointment, Response, Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
-import { cn, isDayInPast, isInformationalAppointmentType } from "@/lib/utils";
-import type { DetailsListColumn } from "../DetailsList";
+import { cn } from "@/lib/utils";
 
-type AppointmentWithResponses = Appointment & {
-	responses: Response[];
-	ownTeam: Team | null;
-};
-
-type ListProps = {
-	appointments: AppointmentWithResponses[];
-};
-
-const getUserResponse = (
+export const getUserResponse = (
 	item: Appointment & { responses: Response[] },
 	userId: string | undefined,
 ) => item.responses?.find((r) => r.userId === userId)?.responseType ?? "MAYBE";
-
-export const getAppointmentColumns = (
-	userId: string | undefined,
-	{ includeResponseColumn = false, sortable = true } = {},
-): DetailsListColumn<Appointment & { responses: Response[] }>[] => [
-	// The response column already conveys status, so the leading dot is only
-	// needed when that column isn't present (the mobile list).
-	...(includeResponseColumn
-		? []
-		: [
-				{
-					key: "status",
-					label: "",
-					render: (item: Appointment & { responses: Response[] }) => {
-						const userResponse = getUserResponse(item, userId);
-						const isAccepted = userResponse === "ACCEPT";
-						const isDeclined = userResponse === "DECLINE";
-						return isAccepted ? (
-							<div className="size-2 rounded-full bg-success" />
-						) : isDeclined ? (
-							<div className="size-2 rounded-full bg-destructive" />
-						) : null;
-					},
-				},
-			]),
-	{
-		key: "title",
-		label: t("Title"),
-		render: (item) => (
-			<EntityLink
-				to="/appts/$apptId"
-				params={{ apptId: item.id }}
-				onClick={(e) => e.stopPropagation()}
-				className="truncate"
-			>
-				{item.shortTitle}
-			</EntityLink>
-		),
-		sortable,
-		sortFn: (a, b) => a.shortTitle.localeCompare(b.shortTitle),
-	},
-	{
-		key: "date",
-		label: t("Date"),
-		render: (item) => {
-			const isMultipleDays =
-				item.endDate !== null
-					? new Date(item.startDate).getDate() !==
-						new Date(item.endDate).getDate()
-					: false;
-
-			return (
-				<>
-					{new Date(item.startDate).toLocaleDateString("de-DE", {
-						day: "2-digit",
-						month: "2-digit",
-						year: "2-digit",
-					})}{" "}
-					{isMultipleDays && item.endDate && (
-						<>
-							{" "}
-							-{" "}
-							{new Date(item.endDate).toLocaleDateString("de-DE", {
-								day: "2-digit",
-								month: "2-digit",
-								year: "2-digit",
-							})}
-						</>
-					)}
-				</>
-			);
-		},
-		sortable,
-		sortFn: (a, b) =>
-			new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-	},
-	{
-		key: "location",
-		label: t("Location"),
-		render: (item) => item.location,
-	},
-	...(includeResponseColumn
-		? [
-				{
-					align: "right" as const,
-					key: "response",
-					label: "",
-					render: (item: Appointment & { responses: Response[] }) => {
-						if (isInformationalAppointmentType(item.type)) return null;
-						const userResponse = getUserResponse(item, userId);
-						const isAccepted = userResponse === "ACCEPT";
-						const isDeclined = userResponse === "DECLINE";
-						return (
-							<Badge
-								variant={
-									isAccepted
-										? "success"
-										: isDeclined
-											? "destructive"
-											: "warning"
-								}
-							>
-								{isAccepted
-									? t("Accepted")
-									: isDeclined
-										? t("Declined")
-										: t("Maybe")}
-							</Badge>
-						);
-					},
-				},
-			]
-		: []),
-];
-
-function formatDateTime(date: Date | string) {
-	return new Date(date).toLocaleString("de-DE", {
-		day: "2-digit",
-		hour: "2-digit",
-		minute: "2-digit",
-		month: "short",
-		weekday: "short",
-	});
-}
-
-function monthLabel(date: Date | string) {
-	return new Date(date).toLocaleDateString("de-DE", {
-		month: "long",
-		year: "numeric",
-	});
-}
-
-type MonthGroup = { label: string; items: AppointmentWithResponses[] };
-
-function groupByMonth(items: AppointmentWithResponses[]): MonthGroup[] {
-	const groups: MonthGroup[] = [];
-	for (const item of items) {
-		const label = monthLabel(item.startDate);
-		const last = groups.at(-1);
-		if (last && last.label === label) last.items.push(item);
-		else groups.push({ items: [item], label });
-	}
-	return groups;
-}
-
-// Mobile list: a joined row per appointment grouped by month, styled after
-// the journal page's mobile row list. Tapping a row navigates straight to
-// the appointment — there's no selection step to pass through first.
-export const List = ({ appointments }: ListProps) => {
-	const { user } = useRouteContext({ from: "__root__" });
-
-	if (appointments.length === 0) {
-		return (
-			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
-				{t("No appointments found")}
-			</div>
-		);
-	}
-
-	return (
-		<div className="flex flex-col gap-4">
-			{groupByMonth(appointments).map((group) => (
-				<div key={group.label} className="flex flex-col">
-					<div className="px-1 pb-1.5 text-muted-foreground text-xs uppercase tracking-wide">
-						{group.label}
-					</div>
-					<div className="flex flex-col rounded-lg bg-card">
-						{group.items.map((item) => {
-							const inPast = isDayInPast(item.startDate);
-							const isDeleted = item.deletedAt !== null;
-							const userResponse = getUserResponse(item, user?.id);
-							const isAccepted = userResponse === "ACCEPT";
-							const isDeclined = userResponse === "DECLINE";
-							return (
-								<Link
-									key={item.id}
-									to="/appts/$apptId"
-									params={{ apptId: item.id }}
-									className={cn(
-										"flex w-full items-center justify-between gap-3 border-border/60 border-b py-3.5 px-3 text-left first:rounded-t-lg last:border-b-0 last:rounded-b-lg",
-										inPast && "opacity-65",
-										isDeleted && "text-destructive",
-									)}
-								>
-									<div className="min-w-0 flex-1">
-										<div className="truncate font-medium text-sm">
-											{item.shortTitle}
-										</div>
-										<div className="truncate text-muted-foreground text-xs">
-											{formatDateTime(item.startDate)}
-											{item.location && ` · ${item.location}`}
-										</div>
-									</div>
-									{!isInformationalAppointmentType(item.type) && (
-										<Badge
-											variant={
-												isAccepted
-													? "success"
-													: isDeclined
-														? "destructive"
-														: "warning"
-											}
-											className="shrink-0"
-										>
-											{isAccepted
-												? t("Accepted")
-												: isDeclined
-													? t("Declined")
-													: t("Maybe")}
-										</Badge>
-									)}
-								</Link>
-							);
-						})}
-					</div>
-				</div>
-			))}
-		</div>
-	);
-};
 
 export const filterSchema = z.object({
 	deleted: z.boolean().optional(),
@@ -288,7 +53,7 @@ function toggleInList<T>(list: T[] | undefined, value: T): T[] | undefined {
 	return set.size > 0 ? [...set] : undefined;
 }
 
-// Shared by InlineFilters (desktop) and MobileFilters (mobile) — every field
+// Shared by CommandBarFilters (desktop) and MobileFilters (mobile) — every field
 // applies immediately; text search is debounced so typing doesn't fire a
 // navigation per keystroke, everything else navigates on change.
 const useAppointmentLiveFilters = (props: FiltersProps) => {
@@ -333,9 +98,6 @@ const useAppointmentLiveFilters = (props: FiltersProps) => {
 	const toggleTeam = (teamId: string) =>
 		navigate({ teamIds: toggleInList(props.teamIds, teamId) });
 
-	const toggleSortDir = () =>
-		navigate({ sortDir: props.sortDir === "asc" ? undefined : "asc" });
-
 	const hasActiveFilters =
 		!!props.query ||
 		!!props.typeGroup ||
@@ -356,7 +118,6 @@ const useAppointmentLiveFilters = (props: FiltersProps) => {
 		setQueryInput,
 		setTypeGroup,
 		toggleResponse,
-		toggleSortDir,
 		toggleTeam,
 	};
 };
@@ -418,115 +179,79 @@ function FilterPill({
 	);
 }
 
-// Date-only sort: a single button toggles ascending/descending, matching
-// what the design round settled on — no field picker, since date is the
-// only sortable dimension this list needs.
-function SortButton({
-	dir,
-	onToggle,
-}: {
-	dir: FiltersProps["sortDir"];
-	onToggle: () => void;
-}) {
-	const isAscending = dir === "asc";
-	return (
-		<Button
-			type="button"
-			variant="outline"
-			size="sm"
-			className="shrink-0"
-			onClick={onToggle}
-			aria-label={`${t("Date")}: ${isAscending ? t("Ascending") : t("Descending")}`}
-		>
-			{isAscending ? (
-				<ArrowUpNarrowWideIcon className="size-3.5" />
-			) : (
-				<ArrowDownWideNarrowIcon className="size-3.5" />
-			)}
-			{t("Date")}
-		</Button>
-	);
-}
-
-export const InlineFilters = (props: FiltersProps & { teams: Team[] }) => {
+// Desktop filter bar — a segmented toolbar built on the shared FilterBar:
+// search, then one segment per filter dimension (type, and whichever of
+// response/team applies to the selected type), plus a plain toggle segment
+// for "show deleted". FilterBar owns the dropdown wiring, active-state
+// styling, and the removable-token row (a segment can't show per-value
+// removal on its own, e.g. which of several selected responses to drop) —
+// this component only declares what the segments are.
+export const CommandBarFilters = (props: FiltersProps & { teams: Team[] }) => {
 	const { teams, ...search } = props;
 	const {
-		hasActiveFilters,
 		navigate,
 		onClear,
 		queryInput,
 		setQueryInput,
 		setTypeGroup,
 		toggleResponse,
-		toggleSortDir,
 		toggleTeam,
 	} = useAppointmentLiveFilters(search);
 
 	const typeGroup: TypeGroup = search.typeGroup ?? "ALL";
 
+	const segments: FilterBarSegment[] = [
+		{
+			key: "type",
+			label: t("Type"),
+			onChange: (v) => setTypeGroup(v as TypeGroup),
+			options: typeGroupTabs.map((tab) => ({
+				label: tab.label,
+				value: tab.key,
+			})),
+			type: "radio",
+			value: typeGroup,
+		},
+	];
+	if (typeGroup === "TOURNAMENT") {
+		segments.push({
+			key: "response",
+			label: t("My response"),
+			onToggle: (v) => toggleResponse(v as ResponseFilterValue),
+			options: responseOptions,
+			type: "checkbox",
+			values: search.responses ?? [],
+		});
+	}
+	if (typeGroup === "TEAM_MATCH" && teams.length > 0) {
+		segments.push({
+			key: "team",
+			label: t("Team"),
+			onToggle: toggleTeam,
+			options: teams.map((tm) => ({ label: tm.title, value: tm.id })),
+			type: "checkbox",
+			values: search.teamIds ?? [],
+		});
+	}
+	segments.push({
+		active: !!search.deleted,
+		key: "deleted",
+		label: t("Show deleted?"),
+		onToggle: () => navigate({ deleted: search.deleted ? undefined : true }),
+		tokenLabel: t("Incl. deleted"),
+		type: "toggle",
+	});
+
 	return (
-		<div className="flex flex-col gap-3">
-			<div className="flex flex-wrap items-center gap-3">
-				<TypeGroupTabs value={typeGroup} onChange={setTypeGroup} />
-				<Input
-					className="w-56"
-					placeholder={t("Search appointment...")}
-					value={queryInput}
-					onChange={(e) => setQueryInput(e.target.value)}
-				/>
-				<label
-					htmlFor="inline-filters-deleted"
-					className="flex items-center gap-2 text-sm text-muted-foreground"
-				>
-					<Checkbox
-						id="inline-filters-deleted"
-						checked={search.deleted ?? false}
-						onCheckedChange={(checked) =>
-							navigate({ deleted: checked === true ? true : undefined })
-						}
-					/>
-					{t("Show deleted?")}
-				</label>
-				<SortButton dir={search.sortDir} onToggle={toggleSortDir} />
-				{hasActiveFilters && (
-					<Button type="button" size="sm" variant="secondary" onClick={onClear}>
-						{t("Clear")}
-					</Button>
-				)}
-			</div>
-
-			{typeGroup === "TOURNAMENT" && (
-				<div className="flex flex-wrap items-center gap-1.5">
-					<span className="text-muted-foreground text-xs">
-						{t("My response")}:
-					</span>
-					{responseOptions.map((opt) => (
-						<FilterPill
-							key={opt.value}
-							active={!!search.responses?.includes(opt.value)}
-							onClick={() => toggleResponse(opt.value)}
-						>
-							{opt.label}
-						</FilterPill>
-					))}
-				</div>
-			)}
-
-			{typeGroup === "TEAM_MATCH" && teams.length > 0 && (
-				<div className="flex flex-wrap items-center gap-1.5">
-					<span className="text-muted-foreground text-xs">{t("Team")}:</span>
-					{teams.map((team) => (
-						<FilterPill
-							key={team.id}
-							active={!!search.teamIds?.includes(team.id)}
-							onClick={() => toggleTeam(team.id)}
-						>
-							{team.title}
-						</FilterPill>
-					))}
-				</div>
-			)}
-		</div>
+		<FilterBar
+			search={{
+				onChange: setQueryInput,
+				placeholder: t("Search appointment or add filter..."),
+				value: queryInput,
+			}}
+			segments={segments}
+			onReset={onClear}
+		/>
 	);
 };
 
@@ -541,7 +266,6 @@ export const MobileFilters = (props: FiltersProps & { teams: Team[] }) => {
 		setQueryInput,
 		setTypeGroup,
 		toggleResponse,
-		toggleSortDir,
 		toggleTeam,
 	} = useAppointmentLiveFilters(search);
 	const [sheetOpen, setSheetOpen] = React.useState(false);
@@ -550,14 +274,12 @@ export const MobileFilters = (props: FiltersProps & { teams: Team[] }) => {
 		!!search.typeGroup ||
 		!!search.responses?.length ||
 		!!search.teamIds?.length ||
-		!!search.deleted ||
-		!!search.sortDir;
+		!!search.deleted;
 
 	const clearSecondary = () =>
 		navigate({
 			deleted: undefined,
 			responses: undefined,
-			sortDir: undefined,
 			teamIds: undefined,
 			typeGroup: undefined,
 		});
@@ -581,6 +303,7 @@ export const MobileFilters = (props: FiltersProps & { teams: Team[] }) => {
 					variant="outline"
 					size="icon"
 					className="relative shrink-0"
+					aria-label={t("Filters")}
 					onClick={() => setSheetOpen(true)}
 				>
 					<SlidersHorizontalIcon className="size-4" />
@@ -659,11 +382,6 @@ export const MobileFilters = (props: FiltersProps & { teams: Team[] }) => {
 								</div>
 							</fieldset>
 						)}
-
-						<fieldset className="flex flex-col gap-1.5">
-							<Label>{t("Sort")}</Label>
-							<SortButton dir={search.sortDir} onToggle={toggleSortDir} />
-						</fieldset>
 
 						<label
 							htmlFor="mobile-filters-deleted"

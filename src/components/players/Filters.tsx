@@ -2,6 +2,11 @@ import { useRouter } from "@tanstack/react-router";
 import { SlidersHorizontalIcon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
+import {
+	FilterBar,
+	type FilterBarSegment,
+	type FilterToken,
+} from "@/components/FilterBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,7 +50,7 @@ const teamOptions = (teams: Team[]) => [
 	{ label: t("No team"), value: NO_TEAM },
 ];
 
-// Shared by InlinePlayerFilters (desktop) and MobilePlayerFilters (mobile) —
+// Shared by CommandBarFilters (desktop) and MobilePlayerFilters (mobile) —
 // every field applies immediately; text search is debounced so typing
 // doesn't fire a navigation per keystroke, everything else navigates on
 // change. Mirrors the appointment list's filter pattern
@@ -75,105 +80,117 @@ const usePlayerLiveFilters = (props: FiltersProps) => {
 		return () => clearTimeout(timeout);
 	}, [queryInput]);
 
-	const hasActiveFilters =
-		!!props.query ||
-		!!props.teamId ||
-		!!props.ageGroup ||
-		props.qttrMin !== undefined ||
-		props.qttrMax !== undefined;
-
 	const onClear = () => {
 		setQueryInput("");
 		router.navigate({ replace: true, search: {}, to: "." });
 	};
 
-	return { hasActiveFilters, navigate, onClear, queryInput, setQueryInput };
+	return { navigate, onClear, queryInput, setQueryInput };
 };
 
-type InlinePlayerFiltersProps = FiltersProps & { teams: Team[] };
+type CommandBarFiltersProps = FiltersProps & { teams: Team[] };
 
-export const InlinePlayerFilters = ({
+// Desktop filter bar — a segmented toolbar built on the shared FilterBar:
+// search, then one segment per filter dimension (team, age group, QTTR
+// range). FilterBar owns the dropdown wiring and the removable-token row;
+// this component only declares what the segments are. QTTR is a "custom"
+// segment since a min/max range isn't a plain option list — its tokens are
+// computed here and handed to the bar. Promoted from the players-filters
+// prototype ("Toolbar" variant).
+export const CommandBarFilters = ({
 	teams,
-	...props
-}: InlinePlayerFiltersProps) => {
-	const { hasActiveFilters, navigate, onClear, queryInput, setQueryInput } =
-		usePlayerLiveFilters(props);
+	...search
+}: CommandBarFiltersProps) => {
+	const { navigate, onClear, queryInput, setQueryInput } =
+		usePlayerLiveFilters(search);
+
+	const qttrTokens: FilterToken[] = [];
+	if (search.qttrMin !== undefined) {
+		qttrTokens.push({
+			key: "qttrMin",
+			label: t("QTTR ≥ {0}", search.qttrMin.toString()),
+			onRemove: () => navigate({ qttrMin: undefined }),
+		});
+	}
+	if (search.qttrMax !== undefined) {
+		qttrTokens.push({
+			key: "qttrMax",
+			label: t("QTTR ≤ {0}", search.qttrMax.toString()),
+			onRemove: () => navigate({ qttrMax: undefined }),
+		});
+	}
+	const hasQttrFilter = qttrTokens.length > 0;
+
+	const segments: FilterBarSegment[] = [
+		{
+			key: "team",
+			label: t("Team"),
+			onChange: (v) => navigate({ teamId: v === "ALL" ? undefined : v }),
+			options: teamOptions(teams),
+			type: "radio",
+			value: search.teamId ?? "ALL",
+		},
+		{
+			key: "ageGroup",
+			label: t("Age Group"),
+			onChange: (v) => navigate({ ageGroup: v === "ALL" ? undefined : v }),
+			options: ageGroupOptions,
+			type: "radio",
+			value: search.ageGroup ?? "ALL",
+		},
+		{
+			active: hasQttrFilter,
+			align: "end",
+			children: (
+				<div className="flex items-center gap-2 px-2 py-1.5">
+					<Input
+						type="number"
+						placeholder={t("Min")}
+						className="h-7"
+						value={search.qttrMin ?? ""}
+						onChange={(e) =>
+							navigate({
+								qttrMin:
+									e.target.value === "" ? undefined : Number(e.target.value),
+							})
+						}
+					/>
+					<Input
+						type="number"
+						placeholder={t("Max")}
+						className="h-7"
+						value={search.qttrMax ?? ""}
+						onChange={(e) =>
+							navigate({
+								qttrMax:
+									e.target.value === "" ? undefined : Number(e.target.value),
+							})
+						}
+					/>
+				</div>
+			),
+			contentClassName: "w-56",
+			icon: <SlidersHorizontalIcon className="size-3.5" />,
+			key: "qttr",
+			label: t("QTTR"),
+			tokens: qttrTokens,
+			type: "custom",
+			valueLabel: hasQttrFilter
+				? `${search.qttrMin ?? "0"}–${search.qttrMax ?? "∞"}`
+				: undefined,
+		},
+	];
 
 	return (
-		<div className="flex flex-wrap items-center gap-3">
-			<Input
-				className="w-56"
-				placeholder={t("Search Players")}
-				value={queryInput}
-				onChange={(e) => setQueryInput(e.target.value)}
-			/>
-			<Select
-				value={props.teamId ?? "ALL"}
-				onValueChange={(v) =>
-					navigate({ teamId: !v || v === "ALL" ? undefined : v })
-				}
-			>
-				<SelectTrigger size="sm" className="w-40">
-					<SelectValue />
-				</SelectTrigger>
-				<SelectContent>
-					{teamOptions(teams).map((option) => (
-						<SelectItem key={option.value} value={option.value}>
-							{option.label}
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
-			<Select
-				value={props.ageGroup ?? "ALL"}
-				onValueChange={(v) =>
-					navigate({ ageGroup: !v || v === "ALL" ? undefined : v })
-				}
-			>
-				<SelectTrigger size="sm" className="w-40">
-					<SelectValue />
-				</SelectTrigger>
-				<SelectContent>
-					{ageGroupOptions.map((option) => (
-						<SelectItem key={option.value} value={option.value}>
-							{option.label}
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
-			<div className="flex items-center gap-2">
-				<Label className="text-muted-foreground text-xs">QTTR</Label>
-				<Input
-					type="number"
-					placeholder={t("Min")}
-					className="w-20"
-					value={props.qttrMin ?? ""}
-					onChange={(e) =>
-						navigate({
-							qttrMin:
-								e.target.value === "" ? undefined : Number(e.target.value),
-						})
-					}
-				/>
-				<Input
-					type="number"
-					placeholder={t("Max")}
-					className="w-20"
-					value={props.qttrMax ?? ""}
-					onChange={(e) =>
-						navigate({
-							qttrMax:
-								e.target.value === "" ? undefined : Number(e.target.value),
-						})
-					}
-				/>
-			</div>
-			{hasActiveFilters && (
-				<Button type="button" size="sm" variant="secondary" onClick={onClear}>
-					{t("Clear")}
-				</Button>
-			)}
-		</div>
+		<FilterBar
+			search={{
+				onChange: setQueryInput,
+				placeholder: t("Search players or add filter..."),
+				value: queryInput,
+			}}
+			segments={segments}
+			onReset={onClear}
+		/>
 	);
 };
 
@@ -223,6 +240,7 @@ export const MobilePlayerFilters = ({
 					variant="outline"
 					size="icon"
 					className="relative shrink-0"
+					aria-label={t("Filters")}
 					onClick={() => setSheetOpen(true)}
 				>
 					<SlidersHorizontalIcon className="size-4" />

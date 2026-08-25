@@ -28,7 +28,10 @@ export const searchTeams = createServerFn()
 export const getTeams = createServerFn({ method: "GET" }).handler(async () => {
 	try {
 		const teams = await prismaClient.team.findMany({
-			include: { _count: { select: { players: true } } },
+			include: {
+				_count: { select: { players: true } },
+				standings: { orderBy: { rank: "asc" } },
+			},
 			orderBy: { title: "asc" },
 		});
 		return { data: teams, message: t("Teams found") };
