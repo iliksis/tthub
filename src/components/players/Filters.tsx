@@ -80,19 +80,12 @@ const usePlayerLiveFilters = (props: FiltersProps) => {
 		return () => clearTimeout(timeout);
 	}, [queryInput]);
 
-	const hasActiveFilters =
-		!!props.query ||
-		!!props.teamId ||
-		!!props.ageGroup ||
-		props.qttrMin !== undefined ||
-		props.qttrMax !== undefined;
-
 	const onClear = () => {
 		setQueryInput("");
 		router.navigate({ replace: true, search: {}, to: "." });
 	};
 
-	return { hasActiveFilters, navigate, onClear, queryInput, setQueryInput };
+	return { navigate, onClear, queryInput, setQueryInput };
 };
 
 type CommandBarFiltersProps = FiltersProps & { teams: Team[] };
