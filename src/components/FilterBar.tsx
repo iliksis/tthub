@@ -284,24 +284,6 @@ export function FilterBar({
 				))}
 				{tokens.length > 0 && <FilterBarResetButton onReset={onReset} />}
 			</div>
-			{/* {tokens.length > 0 && (
-				<div className="flex flex-wrap items-center gap-1.5">
-					{tokens.map((token) => (
-						<Badge key={token.key} variant="secondary" className="gap-1 pr-1">
-							{token.label}
-							<button
-								type="button"
-								data-icon="inline-end"
-								className="flex items-center rounded-full p-0.5 hover:bg-accent"
-								aria-label={`${t("Clear")}: ${token.label}`}
-								onClick={token.onRemove}
-							>
-								<XIcon size="16" />
-							</button>
-						</Badge>
-					))}
-				</div>
-			)} */}
 		</div>
 	);
 }
