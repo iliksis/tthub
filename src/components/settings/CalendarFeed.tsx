@@ -22,7 +22,7 @@ const responseTypeOrder: ResponseType[] = ["ACCEPT", "MAYBE", "DECLINE"];
 
 const appointmentTypeMeta: Record<AppointmentType, { label: string }> = {
 	HOLIDAY: { label: t("Holiday") },
-	TEAM_MATCH: { label: t("Team Match") },
+	TEAM_MATCH: { label: t("Team matches") },
 	TOURNAMENT: { label: t("Tournament") },
 	TOURNAMENT_DE: { label: t("Tournament (Germany)") },
 };
