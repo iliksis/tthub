@@ -308,6 +308,7 @@ const texts = {
 	Results: "Ergebnisse",
 	Review: "Überprüfung",
 	Role: "Rolle",
+	Roster: "Kader",
 	restored: "wiederhergestellt",
 	Save: "Speichern",
 	Search: "Suche",

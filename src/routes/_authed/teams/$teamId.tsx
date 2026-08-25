@@ -5,13 +5,12 @@ import {
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { EditIcon, Trash2Icon } from "lucide-react";
+import type { ReactNode } from "react";
 import React from "react";
 import { toast } from "sonner";
 import { deleteTeam, getTeam, updateTeam } from "@/api/teams";
-import { List } from "@/components/appointments/List";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
-import { NextMatchesRail } from "@/components/teams/NextMatchesRail";
 import { StandingsTable } from "@/components/teams/StandingsTable";
 import { TeamForm } from "@/components/teams/TeamForm";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +35,74 @@ export const Route = createFileRoute("/_authed/teams/$teamId")({
 type TeamPlayer = NonNullable<
 	ReturnType<typeof Route.useLoaderData>["team"]
 >["players"][number];
+
+type TeamMatch = NonNullable<
+	ReturnType<typeof Route.useLoaderData>["team"]
+>["appointments"][number];
+
+function formatMatchDateTime(date: Date | string) {
+	return new Date(date).toLocaleString("de-DE", {
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		month: "short",
+		weekday: "short",
+	});
+}
+
+type SectionProps = {
+	title: string;
+	action?: ReactNode;
+	children: ReactNode;
+};
+
+function Section({ title, action, children }: SectionProps) {
+	return (
+		<div>
+			<div className="mb-3 flex items-center gap-2.5">
+				<span className="font-bold text-xs uppercase tracking-wider">
+					{title}
+				</span>
+				<span className="h-px flex-1 bg-border" />
+				{action}
+			</div>
+			{children}
+		</div>
+	);
+}
+
+function MatchList({ matches }: { matches: TeamMatch[] }) {
+	if (matches.length === 0) {
+		return (
+			<div className="py-8 text-center text-muted-foreground">
+				{t("No upcoming matches")}
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex flex-col">
+			{matches.map((match) => {
+				return (
+					<Link
+						key={match.id}
+						to="/appts/$apptId"
+						params={{ apptId: match.id }}
+						className="flex gap-3 border-border/60 border-b py-3 last:border-b-0"
+					>
+						<div className="min-w-0 flex-1">
+							<div className="truncate font-medium text-sm">{match.title}</div>
+							<div className="truncate text-muted-foreground text-xs">
+								{formatMatchDateTime(match.startDate)}
+								{match.location && ` · ${match.location}`}
+							</div>
+						</div>
+					</Link>
+				);
+			})}
+		</div>
+	);
+}
 
 const rosterColumns: DetailsListColumn<TeamPlayer>[] = [
 	{
@@ -69,7 +136,6 @@ function RouteComponent() {
 
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [isDeleting, setIsDeleting] = React.useState(false);
-	const [showAllMatches, setShowAllMatches] = React.useState(false);
 	const deleteTeamServerFn = useServerFn(deleteTeam);
 
 	const updateTeamMutation = useMutation({
@@ -114,6 +180,9 @@ function RouteComponent() {
 	};
 
 	const sortedPlayers = [...team.players].sort((a, b) => b.qttr - a.qttr);
+	const upcomingMatches = team.appointments.filter(
+		(a) => new Date(a.startDate).getTime() >= Date.now(),
+	);
 
 	return (
 		<div>
@@ -142,52 +211,31 @@ function RouteComponent() {
 				)}
 			</div>
 
-			{/* Desktop layout: roster-first, league table demoted to a placeholder strip */}
-			<div>
-				<div className="overflow-x-auto">
-					<DetailsList
-						items={sortedPlayers}
-						getItemId={(item) => item.id}
-						columns={rosterColumns}
-						selectMode="none"
-						onItemClick={async (item) => {
-							await router.navigate({
-								params: { playerId: item.id },
-								to: "/players/$playerId",
-							});
-						}}
-					/>
-				</div>
-				<div className="mt-4 grid lg:grid-cols-[1.7fr_1fr] grid-rows-1 items-start gap-6">
-					<div className="min-w-0">
-						<div className="mb-2 font-medium text-sm">{t("Standings")}</div>
-						<StandingsTable standings={team.standings} />
+			<div className="flex flex-col gap-8">
+				<Section title={t("Roster")}>
+					<div className="overflow-x-auto">
+						<DetailsList
+							items={sortedPlayers}
+							getItemId={(item) => item.id}
+							columns={rosterColumns}
+							selectMode="none"
+							onItemClick={async (item) => {
+								await router.navigate({
+									params: { playerId: item.id },
+									to: "/players/$playerId",
+								});
+							}}
+						/>
 					</div>
-					<div className="min-w-0">
-						<div className="mb-2 flex items-center justify-between">
-							<span className="font-medium text-sm">
-								{showAllMatches ? t("Matches") : t("Next Matches")}
-							</span>
-							{showAllMatches && (
-								<button
-									type="button"
-									onClick={() => setShowAllMatches(false)}
-									className="text-primary text-xs hover:underline"
-								>
-									{t("Show fewer")}
-								</button>
-							)}
-						</div>
-						{showAllMatches ? (
-							<List appointments={team.appointments} />
-						) : (
-							<NextMatchesRail
-								appointments={team.appointments}
-								onShowAll={() => setShowAllMatches(true)}
-							/>
-						)}
-					</div>
-				</div>
+				</Section>
+
+				<Section title={t("Standings")}>
+					<StandingsTable standings={team.standings} />
+				</Section>
+
+				<Section title={t("Next Matches")}>
+					<MatchList matches={upcomingMatches} />
+				</Section>
 			</div>
 
 			{canEdit && (
