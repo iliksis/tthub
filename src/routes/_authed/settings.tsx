@@ -13,13 +13,6 @@ import {
 	UserPenIcon,
 } from "lucide-react";
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
@@ -150,7 +143,7 @@ function SettingsLayout() {
 			</div>
 
 			{/* Desktop: a persistent rail. */}
-			<nav className="hidden w-64 shrink-0 rounded-lg bg-card p-2 lg:block">
+			<nav className="hidden w-64 shrink-0 lg:block border-border/60 border-r pr-6">
 				<div className="px-2 pt-1 pb-2 font-bold text-lg">{t("Settings")}</div>
 				<ul className="flex flex-col gap-0.5">
 					{visible.map((section) => {
@@ -187,24 +180,17 @@ function SettingsLayout() {
 
 			{/* Content pane is shared — a single Outlet, not duplicated per
 			    breakpoint, since sections hold real forms/fetches/mutations. */}
-			<Card
-				className={cn(
-					"min-w-0 flex-1 bg-background py-0",
-					active.href === "/settings/imports"
-						? "bg-background ring-0"
-						: "lg:bg-card lg:py-6",
-				)}
-			>
+			<div className="min-w-0 flex-1 lg:col-start-2 lg:row-start-1">
 				{!active.hasOwnHeading && (
-					<CardHeader>
-						<CardTitle>{active.label}</CardTitle>
-						<CardDescription>{active.description}</CardDescription>
-					</CardHeader>
+					<div className="mb-4">
+						<h1>{active.label}</h1>
+						<p className="text-muted-foreground text-sm">
+							{active.description}
+						</p>
+					</div>
 				)}
-				<CardContent className="px-0 lg:px-6">
-					<Outlet />
-				</CardContent>
-			</Card>
+				<Outlet />
+			</div>
 		</div>
 	);
 }
