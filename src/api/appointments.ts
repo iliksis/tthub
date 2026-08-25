@@ -375,7 +375,10 @@ export const getAppointmentsPage = createServerFn()
 						: responseTypes.length > 0
 							? { some: { responseType: { in: responseTypes }, userId } }
 							: undefined,
-				startDate: { gte: todayStart },
+				// Only upcoming appointments show by default; a `withDeleted` search
+				// is for finding/restoring a soft-deleted appointment regardless of
+				// when it was, so it isn't restricted to today-or-later.
+				startDate: data.withDeleted ? undefined : { gte: todayStart },
 				type:
 					data.typeGroup === "TOURNAMENT"
 						? {
@@ -399,7 +402,7 @@ export const getAppointmentsPage = createServerFn()
 					where: {
 						deletedAt: data.withDeleted ? undefined : null,
 						NOT: { type: AppointmentType.HOLIDAY },
-						startDate: { gte: todayStart },
+						startDate: data.withDeleted ? undefined : { gte: todayStart },
 					},
 				}),
 			]);
