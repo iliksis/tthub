@@ -225,7 +225,11 @@ export const getTransactionsPage = createServerFn()
 	});
 
 // Lightweight, non-editor-gated feed for the dashboard's "recent activity"
-// widget — unlike getTransactionsPage, every logged-in user may see it.
+// widget — unlike getTransactionsPage, every logged-in user may see it. To
+// keep that safe, it selects only the handful of fields the widget renders
+// instead of the editor-only journal's full records: no `changes` (the
+// audit diff, which can contain sensitive edit details) and no other
+// appointment/user fields.
 export const getRecentTransactions = createServerFn({ method: "GET" })
 	.validator((d: { take: number }) => d)
 	.handler(async ({ data }) => {
@@ -235,8 +239,14 @@ export const getRecentTransactions = createServerFn({ method: "GET" })
 		}
 		try {
 			const transactions = await prismaClient.transaction.findMany({
-				include: { appointment: true, user: true },
 				orderBy: { createdAt: "desc" },
+				select: {
+					appointment: { select: { id: true, shortTitle: true } },
+					createdAt: true,
+					id: true,
+					type: true,
+					user: { select: { name: true } },
+				},
 				take: data.take,
 			});
 			return { data: transactions, message: t("Transactions found") };
