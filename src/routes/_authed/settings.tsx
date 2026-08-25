@@ -33,15 +33,11 @@ type SettingsSection = {
 	description: string;
 	icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 	isHidden?: (role: User["role"]) => boolean;
-	// CalendarFeed/ImporterAvailability already render their own heading — skip the
-	// wrapper Card header for these so it isn't duplicated underneath it.
-	hasOwnHeading?: boolean;
 };
 
 const sections: SettingsSection[] = [
 	{
 		description: t("Name, password and push notifications"),
-		hasOwnHeading: true,
 		href: "/settings/profile",
 		icon: UserPenIcon,
 		label: t("Profile"),
@@ -49,7 +45,6 @@ const sections: SettingsSection[] = [
 	},
 	{
 		description: t("Subscribe to your personal calendar"),
-		hasOwnHeading: true,
 		href: "/settings/feed",
 		icon: CalendarDaysIcon,
 		label: t("Calendar Feed"),
@@ -57,7 +52,6 @@ const sections: SettingsSection[] = [
 	},
 	{
 		description: t("Holidays and myTischtennis data"),
-		hasOwnHeading: true,
 		href: "/settings/imports",
 		icon: ImportIcon,
 		isHidden: (role) => role === "USER",
@@ -179,16 +173,9 @@ function SettingsLayout() {
 			</nav>
 
 			{/* Content pane is shared — a single Outlet, not duplicated per
-			    breakpoint, since sections hold real forms/fetches/mutations. */}
+			    breakpoint, since sections hold real forms/fetches/mutations. Each
+			    page renders its own Section header, so no generic title here. */}
 			<div className="min-w-0 flex-1 lg:col-start-2 lg:row-start-1">
-				{!active.hasOwnHeading && (
-					<div className="mb-4">
-						<h1>{active.label}</h1>
-						<p className="text-muted-foreground text-sm">
-							{active.description}
-						</p>
-					</div>
-				)}
 				<Outlet />
 			</div>
 		</div>

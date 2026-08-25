@@ -5,13 +5,6 @@ import { toast } from "sonner";
 import { setImporterEnabled } from "@/api/imports";
 import { ImportDialog } from "@/components/imports/ImportDialog";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import { useMutation } from "@/hooks/useMutation";
@@ -62,10 +55,10 @@ export const ImporterAvailability = ({
 				{importers.map((importer, i) => {
 					const Icon = icons[importer.id] ?? PlugIcon;
 					return (
-						<Card
+						<div
 							key={importer.id}
 							className={cn(
-								"transition-opacity duration-200",
+								"flex flex-col gap-4 rounded-lg border border-border/60 p-4 transition-opacity duration-200",
 								!reducedMotion &&
 									"fill-mode-both animate-in fade-in zoom-in-95 duration-200 ease-out",
 							)}
@@ -73,7 +66,7 @@ export const ImporterAvailability = ({
 								reducedMotion ? undefined : { animationDelay: `${i * 70}ms` }
 							}
 						>
-							<CardHeader className="flex flex-row items-start justify-between gap-3">
+							<div className="flex items-start justify-between gap-3">
 								<div className="flex items-center gap-3">
 									<div
 										className={cn(
@@ -85,7 +78,7 @@ export const ImporterAvailability = ({
 									>
 										<Icon className="size-5" />
 									</div>
-									<CardTitle className="text-sm">{importer.name}</CardTitle>
+									<div className="font-medium text-sm">{importer.name}</div>
 								</div>
 								{canManage && (
 									<Switch
@@ -101,21 +94,19 @@ export const ImporterAvailability = ({
 										}
 									/>
 								)}
-							</CardHeader>
-							<CardContent className="text-muted-foreground text-sm">
+							</div>
+							<div className="flex-1 text-muted-foreground text-sm">
 								{importer.description}
-							</CardContent>
-							<CardFooter>
-								<Button
-									size="sm"
-									className="w-full"
-									disabled={!importer.enabled}
-									onClick={() => setOpenImporter(importer)}
-								>
-									{importer.enabled ? t("Start Import") : t("Import Disabled")}
-								</Button>
-							</CardFooter>
-						</Card>
+							</div>
+							<Button
+								size="sm"
+								className="w-full"
+								disabled={!importer.enabled}
+								onClick={() => setOpenImporter(importer)}
+							>
+								{importer.enabled ? t("Start Import") : t("Import Disabled")}
+							</Button>
+						</div>
 					);
 				})}
 			</div>

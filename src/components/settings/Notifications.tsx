@@ -18,6 +18,7 @@ import {
 	sendTestNotification,
 	updateNotificationSettings,
 } from "@/api/notifications";
+import { Section } from "@/components/Section";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -45,13 +46,10 @@ export const Notifications = ({ subscriptions }: NotificationsProps) => {
 	} = useNotificationPermissions();
 
 	return (
-		<div className="flex flex-col gap-5">
-			<div className="flex flex-col gap-1">
-				<h2 className="font-semibold text-lg">{t("Notifications")}</h2>
-				<p className="text-muted-foreground text-sm">
-					{t("Decide when TTHub notifies you on this device.")}
-				</p>
-			</div>
+		<Section title={t("Notifications")}>
+			<p className="mb-4 text-muted-foreground text-sm">
+				{t("Decide when TTHub notifies you on this device.")}
+			</p>
 
 			{isLoading ? (
 				<Loader2Icon className="size-4 animate-spin" />
@@ -124,7 +122,7 @@ export const Notifications = ({ subscriptions }: NotificationsProps) => {
 					</Button>
 				</div>
 			)}
-		</div>
+		</Section>
 	);
 };
 

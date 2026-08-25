@@ -30,9 +30,5 @@ export const Route = createFileRoute("/_authed/settings/users")({
 function RouteComponent() {
 	const { users } = Route.useLoaderData();
 
-	return (
-		<div>
-			<UserManagement users={users} />
-		</div>
-	);
+	return <UserManagement users={users} />;
 }
