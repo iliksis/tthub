@@ -32,10 +32,12 @@ export function PlayerRosterRow({
 			<EntityLink
 				to="/players/$playerId"
 				params={{ playerId: player.id }}
-				className="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-sm no-underline hover:bg-muted/60 hover:no-underline"
+				className="flex items-center gap-2 rounded-md text-muted-foreground py-1.5 text-sm no-underline hover:bg-muted/60 hover:no-underline"
 			>
-				<span className="min-w-0 flex-1 truncate">{player.name}</span>
-				<span className="shrink-0 text-muted-foreground text-xs">
+				<span className="min-w-0 flex-1 truncate text-primary">
+					{player.name}
+				</span>
+				<span className="shrink-0 text-xs">
 					{calculateAgeGroup(player.year)}
 				</span>
 				<span className="shrink-0 font-medium text-xs">{player.qttr}</span>

@@ -144,7 +144,7 @@ function RouteComponent() {
 
 			{/* Desktop layout: roster-first, league table demoted to a placeholder strip */}
 			<div>
-				<div className="rounded-lg bg-card">
+				<div className="overflow-x-auto">
 					<DetailsList
 						items={sortedPlayers}
 						getItemId={(item) => item.id}

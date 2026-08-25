@@ -21,13 +21,13 @@ export const List = ({ teams }: ListProps) => {
 	}
 
 	return (
-		<div className="flex flex-col rounded-lg bg-card">
+		<div className="flex flex-col">
 			{teams.map((team) => (
 				<Link
 					key={team.id}
 					to="/teams/$teamId"
 					params={{ teamId: team.id }}
-					className="flex w-full items-center justify-between gap-3 border-border/60 border-b py-3.5 px-3 text-left first:rounded-t-lg last:border-b-0 last:rounded-b-lg"
+					className="flex w-full items-center justify-between gap-3 border-b border-b-border py-3.5 text-left last:border-b-0"
 				>
 					<div className="min-w-0 flex-1">
 						<div className="truncate font-medium text-sm">{team.title}</div>

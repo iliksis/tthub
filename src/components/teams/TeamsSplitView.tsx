@@ -25,8 +25,8 @@ export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 	}
 
 	return (
-		<div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_360px]">
-			<div className="min-w-0 overflow-x-auto rounded-lg bg-card">
+		<div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_360px] lg:gap-8">
+			<div className="min-w-0 overflow-x-auto">
 				<DetailsList
 					columns={[
 						{
@@ -76,7 +76,7 @@ export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 					selectMode="none"
 				/>
 			</div>
-			<div className="min-w-0 rounded-lg bg-card p-5 lg:sticky lg:top-6">
+			<div className="min-w-0 lg:sticky lg:top-6 lg:border-border/60 lg:border-l lg:pl-8">
 				{!selectedId ? (
 					<div className="text-muted-foreground text-sm">
 						{t("Select a row to see details")}
