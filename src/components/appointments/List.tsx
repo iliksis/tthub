@@ -1,14 +1,8 @@
-import { Link, useRouteContext, useRouter } from "@tanstack/react-router";
-import {
-	CircleQuestionMarkIcon,
-	SlidersHorizontalIcon,
-	UserCheckIcon,
-	UserXIcon,
-} from "lucide-react";
+import { useRouter } from "@tanstack/react-router";
+import { SlidersHorizontalIcon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
 import { FilterBar, type FilterBarSegment } from "@/components/FilterBar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -18,134 +12,12 @@ import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import type { Appointment, Response, Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
-import { cn, isDayInPast, isInformationalAppointmentType } from "@/lib/utils";
-
-type AppointmentWithResponses = Appointment & {
-	responses: Response[];
-	ownTeam: Team | null;
-};
-
-type ListProps = {
-	appointments: AppointmentWithResponses[];
-};
+import { cn } from "@/lib/utils";
 
 export const getUserResponse = (
 	item: Appointment & { responses: Response[] },
 	userId: string | undefined,
 ) => item.responses?.find((r) => r.userId === userId)?.responseType ?? "MAYBE";
-
-function formatDateTime(date: Date | string) {
-	return new Date(date).toLocaleString("de-DE", {
-		day: "2-digit",
-		hour: "2-digit",
-		minute: "2-digit",
-		month: "short",
-		weekday: "short",
-	});
-}
-
-function monthLabel(date: Date | string) {
-	return new Date(date).toLocaleDateString("de-DE", {
-		month: "long",
-		year: "numeric",
-	});
-}
-
-type MonthGroup = { label: string; items: AppointmentWithResponses[] };
-
-function groupByMonth(items: AppointmentWithResponses[]): MonthGroup[] {
-	const groups: MonthGroup[] = [];
-	for (const item of items) {
-		const label = monthLabel(item.startDate);
-		const last = groups.at(-1);
-		if (last && last.label === label) last.items.push(item);
-		else groups.push({ items: [item], label });
-	}
-	return groups;
-}
-
-// Mobile list: a joined row per appointment grouped by month, styled after
-// the journal page's mobile row list. Tapping a row navigates straight to
-// the appointment — there's no selection step to pass through first.
-export const List = ({ appointments }: ListProps) => {
-	const { user } = useRouteContext({ from: "__root__" });
-
-	if (appointments.length === 0) {
-		return (
-			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
-				{t("No appointments found")}
-			</div>
-		);
-	}
-
-	return (
-		<div className="flex flex-col gap-4">
-			{groupByMonth(appointments).map((group) => (
-				<div key={group.label} className="flex flex-col">
-					<div className="px-1 pb-1.5 text-muted-foreground text-xs uppercase tracking-wide">
-						{group.label}
-					</div>
-					<div className="flex flex-col rounded-lg bg-card">
-						{group.items.map((item) => {
-							const inPast = isDayInPast(item.startDate);
-							const isDeleted = item.deletedAt !== null;
-							const userResponse = getUserResponse(item, user?.id);
-							const isAccepted = userResponse === "ACCEPT";
-							const isDeclined = userResponse === "DECLINE";
-							return (
-								<Link
-									key={item.id}
-									to="/appts/$apptId"
-									params={{ apptId: item.id }}
-									className={cn(
-										"flex w-full items-center justify-between gap-3 border-border/60 border-b py-3.5 px-3 text-left first:rounded-t-lg last:border-b-0 last:rounded-b-lg",
-										inPast && "opacity-65",
-										isDeleted && "text-destructive",
-									)}
-								>
-									<div className="min-w-0 flex-1">
-										<div className="truncate font-medium text-sm">
-											{item.shortTitle}
-										</div>
-										<div className="truncate text-muted-foreground text-xs">
-											{formatDateTime(item.startDate)}
-											{item.location && ` · ${item.location}`}
-										</div>
-									</div>
-									{!isInformationalAppointmentType(item.type) && (
-										<Badge
-											variant={
-												isAccepted
-													? "success"
-													: isDeclined
-														? "destructive"
-														: "warning"
-											}
-											className="shrink-0"
-										>
-											{isAccepted ? (
-												<UserCheckIcon />
-											) : isDeclined ? (
-												<UserXIcon />
-											) : (
-												<CircleQuestionMarkIcon />
-											)}
-											{isAccepted
-												? t("Accepted")
-												: isDeclined
-													? t("Declined")
-													: t("Maybe")}
-										</Badge>
-									)}
-								</Link>
-							);
-						})}
-					</div>
-				</div>
-			))}
-		</div>
-	);
-};
 
 export const filterSchema = z.object({
 	deleted: z.boolean().optional(),
