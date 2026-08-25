@@ -213,8 +213,6 @@ Field structure (`src/components/settings/Profile.tsx` is the clean reference):
   },
   ```
 
-`src/components/settings/CalendarFeed.tsx` is a known inconsistency (raw `<div>` section headings and `<div className="block text-sm font-medium mb-2">` instead of `fieldset`/`Label`, plus manual array-toggle checkboxes) — treat it as legacy-in-progress, not a pattern to copy.
-
 ## 8. Toasts
 
 `sonner` via `src/components/ui/sonner.tsx` (themed to app tokens, per-variant lucide icons). Message text comes from the server response's `message` field (see `onSuccess` boilerplate above), not hardcoded in the component — except for pure client-side actions like clipboard copy, which use a local `t()` string directly: `toast.success(t("Feed URL copied to clipboard"))`.
