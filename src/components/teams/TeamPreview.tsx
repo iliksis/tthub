@@ -8,7 +8,9 @@ import { t } from "@/lib/text";
 
 export function TeamPreview({ team }: { team: TeamDetail }) {
 	const router = useRouter();
-	const sortedPlayers = [...team.players].sort((a, b) => b.qttr - a.qttr);
+	const sortedPlayers = [...team.players].sort(
+		(a, b) => b.player.qttr - a.player.qttr,
+	);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -37,10 +39,10 @@ export function TeamPreview({ team }: { team: TeamDetail }) {
 					</div>
 				) : (
 					<div className="flex max-h-56 flex-col overflow-y-auto border-t border-t-border">
-						{sortedPlayers.map((player) => (
+						{sortedPlayers.map((tp) => (
 							<PlayerRosterRow
-								key={player.id}
-								player={player}
+								key={tp.id}
+								player={tp.player}
 								variant="compact"
 							/>
 						))}

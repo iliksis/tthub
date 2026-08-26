@@ -230,14 +230,6 @@ export function DetailsList<T extends RowData>({
 		}
 	};
 
-	if (items.length === 0) {
-		return (
-			<div className="text-center py-8 text-muted-foreground">
-				{emptyMessage}
-			</div>
-		);
-	}
-
 	return (
 		<div className={`flex flex-col gap-4 ${className}`}>
 			{commandBarItems.length > 0 && (
@@ -312,108 +304,114 @@ export function DetailsList<T extends RowData>({
 				</>
 			)}
 
-			<Table>
-				<TableHeader>
-					{table.getHeaderGroups().map((headerGroup) => (
-						<TableRow key={headerGroup.id} className="hover:bg-transparent">
-							{headerGroup.headers.map((header) => {
-								const align = columns.find(
-									(c) => c.key === header.column.id,
-								)?.align;
-								return (
-									<TableHead
-										key={header.id}
-										style={{
-											minWidth: header.column.columnDef.minSize,
-											width:
-												header.column.id === "select"
-													? header.column.getSize()
-													: undefined,
-										}}
-										className={cn(
-											header.column.getCanSort() &&
-												"cursor-pointer select-none",
-											align === "right" && "text-right",
-											align === "center" && "text-center",
-										)}
-										onClick={header.column.getToggleSortingHandler()}
-									>
-										{header.isPlaceholder ? null : (
-											<div
-												className={cn(
-													"flex items-center gap-1",
-													align === "right" && "justify-end",
-													align === "center" && "justify-center",
-												)}
-											>
-												{flexRender(
-													header.column.columnDef.header,
-													header.getContext(),
-												)}
-												{header.column.getCanSort() && (
-													<span className="inline-flex flex-col">
-														{header.column.getIsSorted() === "asc" ? (
-															<ChevronUp className="size-4" />
-														) : header.column.getIsSorted() === "desc" ? (
-															<ChevronDown className="size-4" />
-														) : (
-															<ChevronsDownUp className="size-4" />
-														)}
-													</span>
-												)}
-											</div>
-										)}
-									</TableHead>
-								);
-							})}
-						</TableRow>
-					))}
-				</TableHeader>
-				<TableBody>
-					{table.getRowModel().rows.map((row) => {
-						const children = (
-							<>
-								{row.getAllCells().map((cell) => {
+			{items.length === 0 ? (
+				<div className="text-center py-8 text-muted-foreground">
+					{emptyMessage}
+				</div>
+			) : (
+				<Table>
+					<TableHeader>
+						{table.getHeaderGroups().map((headerGroup) => (
+							<TableRow key={headerGroup.id} className="hover:bg-transparent">
+								{headerGroup.headers.map((header) => {
 									const align = columns.find(
-										(c) => c.key === cell.column.id,
+										(c) => c.key === header.column.id,
 									)?.align;
 									return (
-										<TableCell
-											key={cell.id}
+										<TableHead
+											key={header.id}
+											style={{
+												minWidth: header.column.columnDef.minSize,
+												width:
+													header.column.id === "select"
+														? header.column.getSize()
+														: undefined,
+											}}
 											className={cn(
+												header.column.getCanSort() &&
+													"cursor-pointer select-none",
 												align === "right" && "text-right",
 												align === "center" && "text-center",
 											)}
+											onClick={header.column.getToggleSortingHandler()}
 										>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
+											{header.isPlaceholder ? null : (
+												<div
+													className={cn(
+														"flex items-center gap-1",
+														align === "right" && "justify-end",
+														align === "center" && "justify-center",
+													)}
+												>
+													{flexRender(
+														header.column.columnDef.header,
+														header.getContext(),
+													)}
+													{header.column.getCanSort() && (
+														<span className="inline-flex flex-col">
+															{header.column.getIsSorted() === "asc" ? (
+																<ChevronUp className="size-4" />
+															) : header.column.getIsSorted() === "desc" ? (
+																<ChevronDown className="size-4" />
+															) : (
+																<ChevronsDownUp className="size-4" />
+															)}
+														</span>
+													)}
+												</div>
 											)}
-										</TableCell>
+										</TableHead>
 									);
 								})}
-							</>
-						);
-
-						if (onRenderRow) {
-							return onRenderRow(row.original, children);
-						}
-
-						return (
-							<TableRow
-								key={row.id}
-								className={cn(
-									"h-10 cursor-pointer",
-									row.getIsSelected() && "bg-muted",
-								)}
-								onClick={(e) => handleItemClick(row.original, e)}
-							>
-								{children}
 							</TableRow>
-						);
-					})}
-				</TableBody>
-			</Table>
+						))}
+					</TableHeader>
+					<TableBody>
+						{table.getRowModel().rows.map((row) => {
+							const children = (
+								<>
+									{row.getAllCells().map((cell) => {
+										const align = columns.find(
+											(c) => c.key === cell.column.id,
+										)?.align;
+										return (
+											<TableCell
+												key={cell.id}
+												className={cn(
+													align === "right" && "text-right",
+													align === "center" && "text-center",
+												)}
+											>
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext(),
+												)}
+											</TableCell>
+										);
+									})}
+								</>
+							);
+
+							if (onRenderRow) {
+								return onRenderRow(row.original, children);
+							}
+
+							return (
+								<TableRow
+									key={row.id}
+									className={cn(
+										"h-10 cursor-pointer",
+										row.getIsSelected() && "bg-muted",
+									)}
+									onClick={(e) => handleItemClick(row.original, e)}
+								>
+									{children}
+								</TableRow>
+							);
+						})}
+					</TableBody>
+				</Table>
+			)}
 		</div>
 	);
 }

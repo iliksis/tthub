@@ -65,7 +65,7 @@ export const Route = createFileRoute("/_authed/")({
 			getUserOpenAppointments({
 				data: { userId: context.user.id },
 			}),
-			getTeams(),
+			getTeams({ data: {} }),
 			getRecentTransactions({ data: { take: RECENT_ACTIVITY_TAKE } }),
 		]);
 

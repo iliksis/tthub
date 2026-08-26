@@ -9,29 +9,40 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import type { Season } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
+
+type TeamFormValues = {
+	title: string;
+	league: string;
+	clickTTGroupId: string;
+	seasonId: string;
+};
 
 type TeamFormProps = {
 	open?: boolean;
 	onClose?: () => void;
 	submitLabel: string;
-	defaultValues?: {
-		title: string;
-		league: string;
-		clickTTGroupId: string;
-	};
-	onSubmit: (updates: {
-		title: string;
-		league: string;
-		clickTTGroupId: string;
-	}) => Promise<void>;
+	defaultValues?: TeamFormValues;
+	// Only passed (and only shown) on create — a Team's season is never
+	// editable afterward.
+	seasonOptions?: Season[];
+	onSubmit: (updates: TeamFormValues) => Promise<void>;
 };
 
 export const TeamForm = ({
 	open,
 	onClose,
 	submitLabel,
-	defaultValues = { clickTTGroupId: "", league: "", title: "" },
+	defaultValues = { clickTTGroupId: "", league: "", seasonId: "", title: "" },
+	seasonOptions,
 	onSubmit,
 }: TeamFormProps) => {
 	const form = useForm({
@@ -111,6 +122,35 @@ export const TeamForm = ({
 							)}
 						</form.Field>
 					</div>
+					{seasonOptions && (
+						<div>
+							<form.Field name="seasonId">
+								{(field) => (
+									<fieldset className="flex flex-col gap-1.5">
+										<Label htmlFor={field.name}>{t("Season")}:</Label>
+										<Select
+											items={Object.fromEntries(
+												seasonOptions.map((s) => [s.id, s.name]),
+											)}
+											value={field.state.value}
+											onValueChange={(value) => field.handleChange(value ?? "")}
+										>
+											<SelectTrigger id={field.name} className="w-full">
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												{seasonOptions.map((season) => (
+													<SelectItem key={season.id} value={season.id}>
+														{season.name}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</fieldset>
+								)}
+							</form.Field>
+						</div>
+					)}
 				</form>
 				<DialogFooter>
 					<DialogClose render={<Button variant="outline" />}>

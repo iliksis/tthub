@@ -122,7 +122,7 @@ export const Route = createFileRoute("/_authed/appts/")({
 					withDeleted: deps.deleted,
 				},
 			}),
-			getTeams(),
+			getTeams({ data: {} }),
 		]);
 		const data = response.data ?? {
 			appointments: [],

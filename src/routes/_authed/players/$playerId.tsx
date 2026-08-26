@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authed/players/$playerId")({
 	loader: async ({ params }) => {
 		const [playerRes, teamsRes] = await Promise.all([
 			getPlayer({ data: { id: params.playerId } }),
-			getTeams(),
+			getTeams({ data: {} }),
 		]);
 		return { player: playerRes.data, teams: teamsRes.data };
 	},

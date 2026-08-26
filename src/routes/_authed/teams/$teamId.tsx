@@ -4,14 +4,23 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { EditIcon, Trash2Icon } from "lucide-react";
+import { EditIcon, Trash2Icon, UserPlusIcon, UsersIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
-import { deleteTeam, getTeam, updateTeam } from "@/api/teams";
+import { getPlayers } from "@/api/players";
+import {
+	deleteTeam,
+	getTeam,
+	getTeams,
+	removeTeamPlayer,
+	updateTeam,
+} from "@/api/teams";
 import { AppointmentRow } from "@/components/AppointmentRow";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Section } from "@/components/Section";
+import { AddPlayerModal } from "@/components/teams/AddPlayerModal";
+import { CopyRosterModal } from "@/components/teams/CopyRosterModal";
 import { StandingsTable } from "@/components/teams/StandingsTable";
 import { TeamForm } from "@/components/teams/TeamForm";
 import { Badge } from "@/components/ui/badge";
@@ -25,15 +34,23 @@ import { calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 export const Route = createFileRoute("/_authed/teams/$teamId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const res = await getTeam({ data: { id: params.teamId } });
-		return { team: res.data };
+		const [teamRes, playersRes, teamsRes] = await Promise.all([
+			getTeam({ data: { id: params.teamId } }),
+			getPlayers(),
+			getTeams({ data: {} }),
+		]);
+		return {
+			players: playersRes.data,
+			team: teamRes.data,
+			teams: teamsRes.data,
+		};
 	},
 	head: ({ loaderData }) => ({
 		meta: [{ title: loaderData?.team?.title }],
 	}),
 });
 
-type TeamPlayer = NonNullable<
+type TeamRosterEntry = NonNullable<
 	ReturnType<typeof Route.useLoaderData>["team"]
 >["players"][number];
 
@@ -70,42 +87,55 @@ function MatchList({ matches }: { matches: TeamMatch[] }) {
 	);
 }
 
-const rosterColumns: DetailsListColumn<TeamPlayer>[] = [
+const rosterColumns: DetailsListColumn<TeamRosterEntry>[] = [
 	{
 		key: "name",
 		label: t("Name"),
 		render: (item) => (
-			<Link to="/players/$playerId" params={{ playerId: item.id }}>
-				{item.name}
+			<Link to="/players/$playerId" params={{ playerId: item.player.id }}>
+				{item.player.name}
 			</Link>
 		),
 	},
 	{
 		key: "ageGroup",
 		label: t("Age Group"),
-		render: (item) => calculateAgeGroup(item.year),
+		render: (item) => calculateAgeGroup(item.player.year),
 	},
 	{
 		key: "qttr",
 		label: t("QTTR"),
-		render: (item) => item.qttr,
+		render: (item) => item.player.qttr,
 		sortable: true,
-		sortFn: (a, b) => a.qttr - b.qttr,
+		sortFn: (a, b) => a.player.qttr - b.player.qttr,
 	},
 ];
 
 function RouteComponent() {
-	const { team } = Route.useLoaderData();
+	const { team, players, teams } = Route.useLoaderData();
 	const { user } = useRouteContext({ from: "__root__" });
 	const router = useRouter();
 	const canEdit = isEditorOrAdmin(user?.role);
 
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [isDeleting, setIsDeleting] = React.useState(false);
+	const [isAddingPlayer, setIsAddingPlayer] = React.useState(false);
+	const [isCopyingRoster, setIsCopyingRoster] = React.useState(false);
 	const deleteTeamServerFn = useServerFn(deleteTeam);
 
 	const updateTeamMutation = useMutation({
 		fn: updateTeam,
+		onError: (err) => {
+			toast.error(err.message);
+		},
+		onSuccess: async (ctx) => {
+			await router.invalidate();
+			toast.success(ctx.data.message);
+		},
+	});
+
+	const removeTeamPlayerMutation = useMutation({
+		fn: removeTeamPlayer,
 		onError: (err) => {
 			toast.error(err.message);
 		},
@@ -145,10 +175,16 @@ function RouteComponent() {
 		}
 	};
 
-	const sortedPlayers = [...team.players].sort((a, b) => b.qttr - a.qttr);
+	const sortedPlayers = [...team.players].sort(
+		(a, b) => b.player.qttr - a.player.qttr,
+	);
 	const upcomingMatches = team.appointments.filter(
 		(a) => new Date(a.startDate).getTime() >= Date.now(),
 	);
+	const availablePlayers = players.filter(
+		(p) => !team.players.some((tp) => tp.playerId === p.id),
+	);
+	const copyRosterSourceOptions = teams.filter((t) => t.id !== team.id);
 
 	return (
 		<div>
@@ -158,6 +194,7 @@ function RouteComponent() {
 				<span className="text-muted-foreground text-sm">·</span>
 				<span className="text-muted-foreground text-sm">{team.league}</span>
 				{team.placement && <Badge variant="default">{team.placement}</Badge>}
+				<Badge variant="secondary">{team.season.name}</Badge>
 				{canEdit && (
 					<div className="ml-auto flex gap-2">
 						<Button variant="outline" size="sm" onClick={onEdit}>
@@ -184,13 +221,47 @@ function RouteComponent() {
 							items={sortedPlayers}
 							getItemId={(item) => item.id}
 							columns={rosterColumns}
-							selectMode="none"
+							selectMode={canEdit ? "single" : "none"}
 							onItemClick={async (item) => {
 								await router.navigate({
-									params: { playerId: item.id },
+									params: { playerId: item.player.id },
 									to: "/players/$playerId",
 								});
 							}}
+							commandBarItems={
+								canEdit
+									? [
+											{
+												icon: <UserPlusIcon className="size-4" />,
+												key: "add-player",
+												label: t("Add to roster"),
+												onClick: () => setIsAddingPlayer(true),
+												onlyIcon: true,
+												variant: "primary",
+											},
+											{
+												icon: <UsersIcon className="size-4" />,
+												isDisabled: () => copyRosterSourceOptions.length === 0,
+												key: "copy-roster",
+												label: t("Copy roster from..."),
+												onClick: () => setIsCopyingRoster(true),
+												variant: "secondary",
+											},
+											{
+												icon: <Trash2Icon className="size-4" />,
+												isDisabled: (items) => items.length !== 1,
+												key: "remove-player",
+												label: t("Remove from roster"),
+												onClick: (items) =>
+													removeTeamPlayerMutation.mutate({
+														data: { id: items[0].id },
+													}),
+												onlyIcon: true,
+												variant: "error",
+											},
+										]
+									: []
+							}
 						/>
 					</div>
 				</Section>
@@ -218,6 +289,7 @@ function RouteComponent() {
 						defaultValues={{
 							clickTTGroupId: team.clickTTGroupId ?? "",
 							league: team.league ?? "",
+							seasonId: team.seasonId,
 							title: team.title,
 						}}
 					/>
@@ -226,6 +298,18 @@ function RouteComponent() {
 						open={isDeleting}
 						onClose={onStopDeleting}
 						onDelete={onDelete}
+					/>
+					<AddPlayerModal
+						open={isAddingPlayer}
+						onOpenChange={setIsAddingPlayer}
+						teamId={team.id}
+						players={availablePlayers}
+					/>
+					<CopyRosterModal
+						open={isCopyingRoster}
+						onOpenChange={setIsCopyingRoster}
+						targetTeamId={team.id}
+						sourceOptions={copyRosterSourceOptions}
 					/>
 				</>
 			)}

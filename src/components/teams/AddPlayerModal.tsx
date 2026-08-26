@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { cloneTeamsFromSeason } from "@/api/teams";
+import { addTeamPlayer } from "@/api/teams";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -19,26 +19,29 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { useMutation } from "@/hooks/useMutation";
-import type { Season } from "@/lib/prisma/client";
+import type { Player } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 
-type CloneTeamsModalProps = {
+type AddPlayerModalProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	targetSeason: Season;
-	sourceOptions: Season[];
+	teamId: string;
+	players: Player[];
 };
 
-export const CloneTeamsModal = ({
+export const AddPlayerModal = ({
 	open,
 	onOpenChange,
-	targetSeason,
-	sourceOptions,
-}: CloneTeamsModalProps) => {
+	teamId,
+	players,
+}: AddPlayerModalProps) => {
 	const router = useRouter();
+	const sortedPlayers = [...players].sort((a, b) =>
+		a.name.localeCompare(b.name),
+	);
 
-	const cloneMutation = useMutation({
-		fn: cloneTeamsFromSeason,
+	const addMutation = useMutation({
+		fn: addTeamPlayer,
 		onError: (err) => {
 			toast.error(err.message);
 		},
@@ -50,15 +53,10 @@ export const CloneTeamsModal = ({
 	});
 
 	const form = useForm({
-		defaultValues: { sourceSeasonId: sourceOptions[0]?.id ?? "" },
+		defaultValues: { playerId: sortedPlayers[0]?.id ?? "" },
 		onSubmit: async ({ value }) => {
-			if (!value.sourceSeasonId) return;
-			cloneMutation.mutate({
-				data: {
-					sourceSeasonId: value.sourceSeasonId,
-					targetSeasonId: targetSeason.id,
-				},
-			});
+			if (!value.playerId) return;
+			addMutation.mutate({ data: { playerId: value.playerId, teamId } });
 		},
 	});
 
@@ -74,13 +72,13 @@ export const CloneTeamsModal = ({
 						form.handleSubmit();
 					}}
 				>
-					<form.Field name="sourceSeasonId">
+					<form.Field name="playerId">
 						{(field) => (
 							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor={field.name}>{t("Source season")}:</Label>
+								<Label htmlFor={field.name}>{t("Choose a player")}:</Label>
 								<Select
 									items={Object.fromEntries(
-										sourceOptions.map((s) => [s.id, s.name]),
+										sortedPlayers.map((p) => [p.id, p.name]),
 									)}
 									value={field.state.value}
 									onValueChange={(value) => field.handleChange(value ?? "")}
@@ -89,9 +87,9 @@ export const CloneTeamsModal = ({
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
-										{sourceOptions.map((season) => (
-											<SelectItem key={season.id} value={season.id}>
-												{season.name}
+										{sortedPlayers.map((player) => (
+											<SelectItem key={player.id} value={player.id}>
+												{player.name}
 											</SelectItem>
 										))}
 									</SelectContent>
@@ -106,14 +104,14 @@ export const CloneTeamsModal = ({
 					</DialogClose>
 					<Button
 						type="submit"
-						disabled={sourceOptions.length === 0}
+						disabled={sortedPlayers.length === 0}
 						onClick={(e) => {
 							e.preventDefault();
 							e.stopPropagation();
 							form.handleSubmit();
 						}}
 					>
-						{t("Clone teams from...")}
+						{t("Add to roster")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
