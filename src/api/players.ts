@@ -1,21 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
-import type { Prisma } from "@/lib/prisma/client";
 import { useIsRole } from "@/lib/session";
 import { t } from "@/lib/text";
-
-const playerWithTeamInclude = { team: true } satisfies Prisma.PlayerInclude;
-
-export type PlayerWithTeam = Prisma.PlayerGetPayload<{
-	include: typeof playerWithTeamInclude;
-}>;
 
 export const searchPlayers = createServerFn()
 	.validator((d: { query?: string }) => d)
 	.handler(async ({ data }) => {
 		try {
 			const players = await prismaClient.player.findMany({
-				include: playerWithTeamInclude,
 				orderBy: { name: "asc" },
 				take: 10,
 				where: {
@@ -33,7 +25,6 @@ export const getPlayers = createServerFn({ method: "GET" }).handler(
 	async () => {
 		try {
 			const players = await prismaClient.player.findMany({
-				include: playerWithTeamInclude,
 				orderBy: { name: "asc" },
 			});
 			return { data: players, message: t("Players found") };
@@ -80,7 +71,10 @@ export const getPlayer = createServerFn()
 							},
 						},
 					},
-					team: true,
+					teams: {
+						include: { team: { include: { season: true } } },
+						orderBy: { createdAt: "desc" },
+					},
 				},
 				where: { id: data.id },
 			});
@@ -95,22 +89,18 @@ export const getPlayer = createServerFn()
 	});
 
 export const updatePlayer = createServerFn()
-	.validator(
-		(d: {
-			id: string;
-			name: string;
-			year: number;
-			qttr: number;
-			team?: string;
-		}) => d,
-	)
+	.validator((d: { id: string; name: string; year: number; qttr: number }) => d)
 	.handler(async ({ data }) => {
+		const isAuthorized = await useIsRole("EDITOR");
+		if (!isAuthorized) {
+			throw new Error(t("Unauthorized"));
+		}
+
 		try {
 			const player = await prismaClient.player.update({
 				data: {
 					name: data.name,
 					qttr: data.qttr,
-					teamId: data.team,
 					year: data.year,
 				},
 				where: {
