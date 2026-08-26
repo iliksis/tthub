@@ -89,6 +89,7 @@ model Season {
   isActive     Boolean       @default(false)
   teams        Team[]
   appointments Appointment[]
+  teamPlayers  TeamPlayer[]
 }
 
 enum AppointmentStatus {
@@ -154,6 +155,7 @@ model TeamPlayer {
   playerId  String
   player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
   seasonId  String
+  season    Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
 
   @@unique([playerId, seasonId])
 }

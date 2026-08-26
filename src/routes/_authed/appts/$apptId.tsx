@@ -38,16 +38,10 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { EntitySelect } from "@/components/ui/entity-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "@/components/ui/link";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import {
 	Sheet,
 	SheetClose,
@@ -849,26 +843,14 @@ function RouteComponent() {
 								    stays derived from ownTeam, never editable here. */}
 								<fieldset className="flex flex-col gap-1.5">
 									<Label htmlFor="season">{t("Season")}</Label>
-									<Select
-										items={Object.fromEntries(
-											seasons.map((s) => [s.id, s.name]),
-										)}
+									<EntitySelect
+										id="season"
+										items={seasons}
 										value={draft.seasonId}
 										onValueChange={(value) =>
 											setDraft({ ...draft, seasonId: value ?? "" })
 										}
-									>
-										<SelectTrigger id="season" className="w-full">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											{seasons.map((season) => (
-												<SelectItem key={season.id} value={season.id}>
-													{season.name}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
+									/>
 								</fieldset>
 							</>
 						)}

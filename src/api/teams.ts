@@ -161,52 +161,6 @@ export const deleteTeam = createServerFn()
 		}
 	});
 
-export const addTeamPlayer = createServerFn()
-	.validator((d: { teamId: string; playerId: string }) => d)
-	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
-		}
-
-		try {
-			const team = await prismaClient.team.findUniqueOrThrow({
-				where: { id: data.teamId },
-			});
-			const teamPlayer = await prismaClient.teamPlayer.create({
-				data: {
-					playerId: data.playerId,
-					seasonId: team.seasonId,
-					teamId: data.teamId,
-				},
-			});
-			return { data: teamPlayer, message: t("Player added to roster") };
-		} catch (e) {
-			console.error(e);
-			if ((e as { code?: string }).code === "P2002") {
-				throw new Error(t("Player is already assigned to a team this season"));
-			}
-			throw new Error((e as Error).message);
-		}
-	});
-
-export const removeTeamPlayer = createServerFn()
-	.validator((d: { id: string }) => d)
-	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
-		}
-
-		try {
-			await prismaClient.teamPlayer.delete({ where: { id: data.id } });
-			return { message: t("Player removed from roster") };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
-
 export const applyRosterChanges = createServerFn()
 	.validator((d: { teamId: string; adds: string[]; removes: string[] }) => d)
 	.handler(async ({ data }) => {

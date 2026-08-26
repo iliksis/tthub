@@ -6,15 +6,9 @@ import { toast } from "sonner";
 import { createAppointment } from "@/api/appointments";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { EntitySelect } from "@/components/ui/entity-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { useMutation } from "@/hooks/useMutation";
 import type { Season } from "@/lib/prisma/client";
 import { AppointmentStatus } from "@/lib/prisma/enums";
@@ -294,22 +288,12 @@ export const CreateAppointmentForm = ({
 						{(field) => (
 							<fieldset className="flex flex-col gap-1.5">
 								<Label htmlFor={field.name}>{t("Season")}:</Label>
-								<Select
-									items={Object.fromEntries(seasons.map((s) => [s.id, s.name]))}
+								<EntitySelect
+									id={field.name}
+									items={seasons}
 									value={field.state.value}
 									onValueChange={(value) => field.handleChange(value ?? "")}
-								>
-									<SelectTrigger id={field.name} className="w-full">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										{seasons.map((season) => (
-											<SelectItem key={season.id} value={season.id}>
-												{season.name}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+								/>
 							</fieldset>
 						)}
 					</form.Field>
