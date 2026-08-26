@@ -10,11 +10,13 @@ async function main() {
 	await prismaClient.notificationSettings.deleteMany();
 	await prismaClient.subscription.deleteMany();
 	await prismaClient.placement.deleteMany();
+	await prismaClient.teamPlayer.deleteMany();
 	await prismaClient.team.deleteMany();
 	await prismaClient.player.deleteMany();
 	await prismaClient.response.deleteMany();
 	await prismaClient.transaction.deleteMany();
 	await prismaClient.appointment.deleteMany();
+	await prismaClient.season.deleteMany();
 	await prismaClient.user.deleteMany();
 
 	// Create example users with different roles
@@ -48,12 +50,18 @@ async function main() {
 		},
 	});
 
+	// Create the active season
+	const season = await prismaClient.season.create({
+		data: { name: "2025/26", isActive: true },
+	});
+
 	// Create sample teams
 	const team1 = await prismaClient.team.create({
 		data: {
 			title: "U13 Team A",
 			league: "Regionalliga",
 			placement: "3. Platz",
+			seasonId: season.id,
 		},
 	});
 
@@ -61,26 +69,31 @@ async function main() {
 		data: {
 			title: "U15 Team B",
 			league: "Landesliga",
+			seasonId: season.id,
 		},
 	});
 
 	// Create sample players
-	await prismaClient.player.create({
+	const player1 = await prismaClient.player.create({
 		data: {
 			name: "Max Mustermann",
 			year: 2010,
 			qttr: 1500,
-			teamId: team1.id,
 		},
 	});
+	await prismaClient.teamPlayer.create({
+		data: { teamId: team1.id, playerId: player1.id, seasonId: season.id },
+	});
 
-	await prismaClient.player.create({
+	const player2 = await prismaClient.player.create({
 		data: {
 			name: "Lisa Schmidt",
 			year: 2011,
 			qttr: 1450,
-			teamId: team1.id,
 		},
+	});
+	await prismaClient.teamPlayer.create({
+		data: { teamId: team1.id, playerId: player2.id, seasonId: season.id },
 	});
 
 	// Create sample appointments
@@ -103,6 +116,7 @@ async function main() {
 			startDate: daysFromNow(7),
 			endDate: daysFromNow(7),
 			location: "Sporthalle",
+			seasonId: season.id,
 		},
 	});
 
@@ -115,6 +129,7 @@ async function main() {
 			startDate: daysFromNow(14),
 			endDate: daysFromNow(14),
 			location: "Sporthalle Nord",
+			seasonId: season.id,
 		},
 	});
 
@@ -127,6 +142,7 @@ async function main() {
 			startDate: daysFromNow(21),
 			endDate: daysFromNow(21),
 			location: "Sporthalle Süd",
+			seasonId: season.id,
 		},
 	});
 
