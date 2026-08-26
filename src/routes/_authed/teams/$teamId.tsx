@@ -10,10 +10,8 @@ import { toast } from "sonner";
 import { getPlayers } from "@/api/players";
 import {
 	addTeamPlayer,
-	copyTeamRoster,
 	deleteTeam,
 	getTeam,
-	getTeams,
 	removeTeamPlayer,
 	updateTeam,
 } from "@/api/teams";
@@ -34,15 +32,13 @@ import { calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 export const Route = createFileRoute("/_authed/teams/$teamId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const [teamRes, playersRes, teamsRes] = await Promise.all([
+		const [teamRes, playersRes] = await Promise.all([
 			getTeam({ data: { id: params.teamId } }),
 			getPlayers(),
-			getTeams({ data: {} }),
 		]);
 		return {
 			players: playersRes.data,
 			team: teamRes.data,
-			teams: teamsRes.data,
 		};
 	},
 	head: ({ loaderData }) => ({
@@ -112,7 +108,7 @@ const rosterColumns: DetailsListColumn<TeamRosterEntry>[] = [
 ];
 
 function RouteComponent() {
-	const { team, players, teams } = Route.useLoaderData();
+	const { team, players } = Route.useLoaderData();
 	const { user } = useRouteContext({ from: "__root__" });
 	const router = useRouter();
 	const canEdit = isEditorOrAdmin(user?.role);
@@ -120,42 +116,11 @@ function RouteComponent() {
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [isDeleting, setIsDeleting] = React.useState(false);
 	const deleteTeamServerFn = useServerFn(deleteTeam);
+	const addTeamPlayerServerFn = useServerFn(addTeamPlayer);
+	const removeTeamPlayerServerFn = useServerFn(removeTeamPlayer);
 
 	const updateTeamMutation = useMutation({
 		fn: updateTeam,
-		onError: (err) => {
-			toast.error(err.message);
-		},
-		onSuccess: async (ctx) => {
-			await router.invalidate();
-			toast.success(ctx.data.message);
-		},
-	});
-
-	const addTeamPlayerMutation = useMutation({
-		fn: addTeamPlayer,
-		onError: (err) => {
-			toast.error(err.message);
-		},
-		onSuccess: async (ctx) => {
-			await router.invalidate();
-			toast.success(ctx.data.message);
-		},
-	});
-
-	const removeTeamPlayerMutation = useMutation({
-		fn: removeTeamPlayer,
-		onError: (err) => {
-			toast.error(err.message);
-		},
-		onSuccess: async (ctx) => {
-			await router.invalidate();
-			toast.success(ctx.data.message);
-		},
-	});
-
-	const copyTeamRosterMutation = useMutation({
-		fn: copyTeamRoster,
 		onError: (err) => {
 			toast.error(err.message);
 		},
@@ -204,7 +169,6 @@ function RouteComponent() {
 	const availablePlayers = players.filter(
 		(p) => !team.players.some((tp) => tp.playerId === p.id),
 	);
-	const copyRosterSourceOptions = teams.filter((t) => t.id !== team.id);
 
 	return (
 		<div>
@@ -266,10 +230,28 @@ function RouteComponent() {
 					<TeamForm
 						open={isEditing}
 						onClose={onStopEditing}
-						onSubmit={async (values) => {
+						onSubmit={async (values, rosterChanges) => {
 							await updateTeamMutation.mutate({
 								data: { id: team.id, ...values },
 							});
+							if (
+								rosterChanges &&
+								(rosterChanges.adds.length || rosterChanges.removes.length)
+							) {
+								try {
+									for (const id of rosterChanges.removes) {
+										await removeTeamPlayerServerFn({ data: { id } });
+									}
+									for (const playerId of rosterChanges.adds) {
+										await addTeamPlayerServerFn({
+											data: { playerId, teamId: team.id },
+										});
+									}
+									await router.invalidate();
+								} catch (err) {
+									toast.error((err as Error).message);
+								}
+							}
 						}}
 						submitLabel={t("Update")}
 						defaultValues={{
@@ -280,18 +262,7 @@ function RouteComponent() {
 						}}
 						roster={{
 							availablePlayers,
-							onAdd: (playerId) =>
-								addTeamPlayerMutation.mutate({
-									data: { playerId, teamId: team.id },
-								}),
-							onCopy: (sourceTeamId) =>
-								copyTeamRosterMutation.mutate({
-									data: { sourceTeamId, targetTeamId: team.id },
-								}),
-							onRemove: (id) =>
-								removeTeamPlayerMutation.mutate({ data: { id } }),
 							players: sortedPlayers,
-							sourceOptions: copyRosterSourceOptions,
 						}}
 					/>
 					<DeleteModal

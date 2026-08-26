@@ -234,8 +234,8 @@ function App() {
 							key={team.id}
 							className={cn(
 								"min-w-0",
-								i > 0 &&
-									"border-border/60 pt-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8",
+								i > 0 && "border-border/60 pt-4 lg:border-t-0 lg:pt-0",
+								i > 0 && i % 3 !== 0 && "lg:border-l lg:pl-8",
 							)}
 						>
 							<div className="mb-2 flex items-baseline justify-between gap-2">

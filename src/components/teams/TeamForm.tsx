@@ -19,8 +19,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import type { Player, Season, Team } from "@/lib/prisma/client";
+import type { Player, Season } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
+import { cn } from "@/lib/utils";
 
 type TeamFormValues = {
 	title: string;
@@ -37,10 +38,11 @@ type RosterEntry = {
 type RosterProps = {
 	players: RosterEntry[];
 	availablePlayers: Player[];
-	sourceOptions: Team[];
-	onAdd: (playerId: string) => void;
-	onRemove: (teamPlayerId: string) => void;
-	onCopy: (sourceTeamId: string) => void;
+};
+
+type RosterChanges = {
+	adds: string[];
+	removes: string[];
 };
 
 type TeamFormProps = {
@@ -54,29 +56,48 @@ type TeamFormProps = {
 	// Only passed (and only shown) on edit — a new team has no id yet to
 	// attach a roster to.
 	roster?: RosterProps;
-	onSubmit: (updates: TeamFormValues) => Promise<void>;
+	onSubmit: (
+		updates: TeamFormValues,
+		rosterChanges?: RosterChanges,
+	) => Promise<void>;
 };
+
+const pendingEntryPrefix = "pending-";
 
 function RosterSection({
 	players,
 	availablePlayers,
-	sourceOptions,
-	onAdd,
-	onRemove,
-	onCopy,
-}: RosterProps) {
-	const sortedAvailable = [...availablePlayers].sort((a, b) =>
-		a.name.localeCompare(b.name),
-	);
-	const sortedPlayers = [...players].sort((a, b) =>
-		a.player.name.localeCompare(b.player.name),
-	);
-	// Both selects are "fire and reset" — picking a value immediately runs
-	// the action and the select snaps back to its placeholder rather than
+	pendingAdds,
+	pendingRemoves,
+	onAddPending,
+	onRemovePending,
+}: RosterProps & {
+	pendingAdds: string[];
+	pendingRemoves: string[];
+	onAddPending: (playerId: string) => void;
+	onRemovePending: (entryId: string) => void;
+}) {
+	const removedSet = new Set(pendingRemoves);
+	const addedSet = new Set(pendingAdds);
+	const sortedAvailable = [...availablePlayers]
+		.filter((p) => !addedSet.has(p.id))
+		.sort((a, b) => b.qttr - a.qttr);
+	const displayedEntries: Array<RosterEntry & { pending?: boolean }> = [
+		...players.filter((entry) => !removedSet.has(entry.id)),
+		...pendingAdds
+			.map((playerId) => availablePlayers.find((p) => p.id === playerId))
+			.filter((p): p is Player => !!p)
+			.map((player) => ({
+				id: `${pendingEntryPrefix}${player.id}`,
+				pending: true,
+				player,
+			})),
+	].sort((a, b) => a.player.name.localeCompare(b.player.name));
+	// "Fire and reset" — picking a value immediately queues the pending
+	// change and the select snaps back to its placeholder rather than
 	// keeping the pick displayed, since there's nothing meaningful to keep
 	// selected afterward.
 	const [playerValue, setPlayerValue] = React.useState<string | undefined>();
-	const [sourceValue, setSourceValue] = React.useState<string | undefined>();
 
 	return (
 		<Section title={t("Roster")}>
@@ -88,7 +109,7 @@ function RosterSection({
 						)}
 						value={playerValue}
 						onValueChange={(value) => {
-							if (value) onAdd(value);
+							if (value) onAddPending(value);
 							setPlayerValue(undefined);
 						}}
 					>
@@ -99,42 +120,23 @@ function RosterSection({
 							{sortedAvailable.map((player) => (
 								<SelectItem key={player.id} value={player.id}>
 									{player.name}
+									<span className="ml-auto text-muted-foreground text-xs">
+										{player.qttr}
+									</span>
 								</SelectItem>
 							))}
 						</SelectContent>
 					</Select>
 				</div>
-				{sourceOptions.length > 0 && (
-					<div className="flex gap-2">
-						<Select
-							items={Object.fromEntries(
-								sourceOptions.map((tm) => [tm.id, tm.title]),
-							)}
-							value={sourceValue}
-							onValueChange={(value) => {
-								if (value) onCopy(value);
-								setSourceValue(undefined);
-							}}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder={t("Copy roster from...")} />
-							</SelectTrigger>
-							<SelectContent>
-								{sourceOptions.map((team) => (
-									<SelectItem key={team.id} value={team.id}>
-										{team.title}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-				)}
-				{sortedPlayers.length > 0 && (
+				{displayedEntries.length > 0 && (
 					<ul className="flex flex-col gap-1">
-						{sortedPlayers.map((entry) => (
+						{displayedEntries.map((entry) => (
 							<li
 								key={entry.id}
-								className="flex items-center justify-between gap-2 rounded-md px-2 py-1 text-sm hover:bg-accent/50"
+								className={cn(
+									"flex items-center justify-between gap-2 rounded-md px-2 py-1 text-sm hover:bg-accent/50",
+									entry.pending && "italic opacity-70",
+								)}
 							>
 								<span>{entry.player.name}</span>
 								<div className="flex items-center gap-2">
@@ -147,7 +149,7 @@ function RosterSection({
 										size="icon-xs"
 										className="text-destructive hover:text-destructive"
 										aria-label={t("Remove from roster")}
-										onClick={() => onRemove(entry.id)}
+										onClick={() => onRemovePending(entry.id)}
 									>
 										<Trash2Icon className="size-3.5" />
 									</Button>
@@ -170,10 +172,25 @@ export const TeamForm = ({
 	roster,
 	onSubmit,
 }: TeamFormProps) => {
+	const [pendingAdds, setPendingAdds] = React.useState<string[]>([]);
+	const [pendingRemoves, setPendingRemoves] = React.useState<string[]>([]);
+
+	React.useEffect(() => {
+		if (open) {
+			setPendingAdds([]);
+			setPendingRemoves([]);
+		}
+	}, [open]);
+
 	const form = useForm({
 		defaultValues,
 		onSubmit: async ({ value }) => {
-			await onSubmit({ ...value });
+			await onSubmit(
+				{ ...value },
+				roster ? { adds: pendingAdds, removes: pendingRemoves } : undefined,
+			);
+			setPendingAdds([]);
+			setPendingRemoves([]);
 		},
 	});
 
@@ -277,7 +294,24 @@ export const TeamForm = ({
 						</div>
 					)}
 				</form>
-				{roster && <RosterSection {...roster} />}
+				{roster && (
+					<RosterSection
+						{...roster}
+						pendingAdds={pendingAdds}
+						pendingRemoves={pendingRemoves}
+						onAddPending={(playerId) =>
+							setPendingAdds((prev) => [...prev, playerId])
+						}
+						onRemovePending={(entryId) => {
+							if (entryId.startsWith(pendingEntryPrefix)) {
+								const playerId = entryId.slice(pendingEntryPrefix.length);
+								setPendingAdds((prev) => prev.filter((id) => id !== playerId));
+							} else {
+								setPendingRemoves((prev) => [...prev, entryId]);
+							}
+						}}
+					/>
+				)}
 				<DialogFooter>
 					<DialogClose render={<Button variant="outline" />}>
 						{t("Close")}

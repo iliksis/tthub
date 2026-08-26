@@ -17,6 +17,21 @@ export const getSeasons = createServerFn({ method: "GET" }).handler(
 	},
 );
 
+export const getSeasonsWithStats = createServerFn({ method: "GET" }).handler(
+	async () => {
+		try {
+			const seasons = await prismaClient.season.findMany({
+				include: { _count: { select: { appointments: true, teams: true } } },
+				orderBy: { createdAt: "desc" },
+			});
+			return { data: seasons, message: t("Seasons found") };
+		} catch (e) {
+			console.error(e);
+			throw new Error((e as Error).message);
+		}
+	},
+);
+
 export const getActiveSeason = createServerFn({ method: "GET" }).handler(
 	async () => {
 		try {

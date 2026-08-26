@@ -24,8 +24,12 @@ import { t } from "@/lib/text";
 import { CloneTeamsModal } from "./CloneTeamsModal";
 import { SeasonForm } from "./SeasonForm";
 
+type SeasonWithStats = Season & {
+	_count: { teams: number; appointments: number };
+};
+
 type SeasonManagementProps = {
-	seasons: Season[];
+	seasons: SeasonWithStats[];
 };
 
 export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
@@ -110,6 +114,21 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 							item.isActive ? (
 								<Badge variant="default">{t("Active")}</Badge>
 							) : null,
+					},
+					{
+						key: "createdAt",
+						label: t("Created"),
+						render: (item) => item.createdAt.toLocaleDateString("de-DE"),
+					},
+					{
+						key: "teamCount",
+						label: t("Teams"),
+						render: (item) => item._count.teams,
+					},
+					{
+						key: "appointmentCount",
+						label: t("Appointments"),
+						render: (item) => item._count.appointments,
 					},
 				]}
 				commandBarItems={[

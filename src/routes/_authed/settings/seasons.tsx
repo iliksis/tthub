@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getSeasons } from "@/api/seasons";
+import { getSeasonsWithStats } from "@/api/seasons";
 import { SeasonManagement } from "@/components/settings/SeasonManagement";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { t } from "@/lib/text";
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authed/settings/seasons")({
 		meta: [{ title: t("Seasons") }],
 	}),
 	loader: async () => {
-		const { data } = await getSeasons();
+		const { data } = await getSeasonsWithStats();
 		return { seasons: data };
 	},
 });

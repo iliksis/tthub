@@ -216,78 +216,46 @@ export const cloneTeamsFromSeason = createServerFn()
 		}
 
 		try {
-			const sourceTeams = await prismaClient.team.findMany({
-				where: { seasonId: data.sourceSeasonId },
-			});
-			// clickTTGroupId is intentionally not cloned: it's unique per season
-			// and the source team still holds it, so each cloned team needs it
-			// re-entered manually.
-			await prismaClient.team.createMany({
-				data: sourceTeams.map((team) => ({
-					league: team.league,
-					seasonId: data.targetSeasonId,
-					title: team.title,
-				})),
-			});
-			return {
-				data: { count: sourceTeams.length },
-				message: t("{0} teams cloned", sourceTeams.length.toString()),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+			const { playersCopied, teamsCopied } = await prismaClient.$transaction(
+				async (tx) => {
+					const sourceTeams = await tx.team.findMany({
+						include: { players: true },
+						where: { seasonId: data.sourceSeasonId },
+					});
 
-export const copyTeamRoster = createServerFn()
-	.validator((d: { sourceTeamId: string; targetTeamId: string }) => d)
-	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
-		}
+					let playersCopied = 0;
+					for (const team of sourceTeams) {
+						// clickTTGroupId is intentionally not cloned: it's unique per
+						// season and the source team still holds it, so each cloned
+						// team needs it re-entered manually.
+						const newTeam = await tx.team.create({
+							data: {
+								league: team.league,
+								seasonId: data.targetSeasonId,
+								title: team.title,
+							},
+						});
+						if (team.players.length > 0) {
+							await tx.teamPlayer.createMany({
+								data: team.players.map((tp) => ({
+									playerId: tp.playerId,
+									seasonId: data.targetSeasonId,
+									teamId: newTeam.id,
+								})),
+							});
+							playersCopied += team.players.length;
+						}
+					}
 
-		try {
-			const [sourceRoster, targetTeam] = await Promise.all([
-				prismaClient.teamPlayer.findMany({
-					where: { teamId: data.sourceTeamId },
-				}),
-				prismaClient.team.findUniqueOrThrow({
-					where: { id: data.targetTeamId },
-				}),
-			]);
-
-			const existingPlayerIds = new Set(
-				(
-					await prismaClient.teamPlayer.findMany({
-						select: { playerId: true },
-						where: { seasonId: targetTeam.seasonId },
-					})
-				).map((tp) => tp.playerId),
-			);
-
-			const toCopy = sourceRoster.filter(
-				(tp) => !existingPlayerIds.has(tp.playerId),
-			);
-			if (toCopy.length > 0) {
-				await prismaClient.teamPlayer.createMany({
-					data: toCopy.map((tp) => ({
-						playerId: tp.playerId,
-						seasonId: targetTeam.seasonId,
-						teamId: data.targetTeamId,
-					})),
-				});
-			}
-
-			return {
-				data: {
-					copied: toCopy.length,
-					skipped: sourceRoster.length - toCopy.length,
+					return { playersCopied, teamsCopied: sourceTeams.length };
 				},
+			);
+			return {
+				data: { playersCopied, teamsCopied },
 				message: t(
-					"{0} players copied, {1} already had a team this season",
-					toCopy.length.toString(),
-					(sourceRoster.length - toCopy.length).toString(),
+					"{0} teams and {1} players cloned",
+					teamsCopied.toString(),
+					playersCopied.toString(),
 				),
 			};
 		} catch (e) {

@@ -26,10 +26,9 @@ const texts = {
 	"{0} of {1} events": "{0} von {1} Ereignissen",
 	"{0} of {1} players": "{0} von {1} Spieler:innen",
 	"{0} players": "{0} Spieler:innen",
-	"{0} players copied, {1} already had a team this season":
-		"{0} Spieler:innen kopiert, {1} hatten bereits ein Team in dieser Saison",
 	"{0} skipped": "{0} übersprungen",
-	"{0} teams cloned": "{0} Teams dupliziert",
+	"{0} teams and {1} players cloned":
+		"{0} Teams und {1} Spieler:innen dupliziert",
 	"{0} updated": "{0} aktualisiert",
 	"1 appointment answered": "1 Termin beantwortet",
 	"1 appointment created": "1 Termin erstellt",
@@ -126,7 +125,6 @@ const texts = {
 	"Copy Links": "Links kopieren",
 	"Copy link": "Link kopieren",
 	"Copy Password Reset Link": "Zurücksetzungslink kopieren",
-	"Copy roster from...": "Kader übernehmen von…",
 	Country: "Land",
 	Create: "Erstellen",
 	"Create Account": "Account erstellen",
@@ -327,6 +325,7 @@ const texts = {
 	Review: "Überprüfung",
 	Role: "Rolle",
 	Roster: "Kader",
+	"Roster updated": "Kader aktualisiert",
 	restored: "wiederhergestellt",
 	Save: "Speichern",
 	Search: "Suche",
