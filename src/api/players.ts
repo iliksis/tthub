@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
+import { activeSeasonFilter } from "@/lib/season";
 import { useIsRole } from "@/lib/session";
 import { t } from "@/lib/text";
 
@@ -9,7 +10,7 @@ import { t } from "@/lib/text";
 const currentTeamInclude = {
 	teams: {
 		include: { team: true },
-		where: { team: { season: { isActive: true } } },
+		where: { team: { season: activeSeasonFilter } },
 	},
 } as const;
 

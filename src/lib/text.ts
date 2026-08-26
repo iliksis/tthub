@@ -52,7 +52,6 @@ const texts = {
 	"Add a new event to the club calendar":
 		"Neues Ereignis zum Vereinskalender hinzufügen",
 	"Add participant": "Teilnehmer:in hinzufügen",
-	"Add to roster": "Zum Kader hinzufügen",
 	Administrator: "Administrator:in",
 	Adult: "Erwachsen",
 	"Age Group": "Altersklasse",
@@ -385,7 +384,11 @@ const texts = {
 	"Team matches": "Mannschaft",
 	"Team updated": "Team aktualisiert",
 	Teams: "Teams",
+	"Teams already exist in the target season":
+		"Teams existieren bereits in der Zielsaison",
 	"Teams found": "Teams gefunden",
+	"The active season cannot be deleted":
+		"Die aktive Saison kann nicht gelöscht werden",
 	"The passwords entered do not match":
 		"Die eingegebenen Passwörter stimmen nicht überein",
 	"This address doesn't exist or has been moved.":

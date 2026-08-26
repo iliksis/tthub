@@ -21,7 +21,14 @@ export const getSeasonsWithStats = createServerFn({ method: "GET" }).handler(
 	async () => {
 		try {
 			const seasons = await prismaClient.season.findMany({
-				include: { _count: { select: { appointments: true, teams: true } } },
+				include: {
+					_count: {
+						select: {
+							appointments: { where: { deletedAt: null } },
+							teams: true,
+						},
+					},
+				},
 				orderBy: { createdAt: "desc" },
 			});
 			return { data: seasons, message: t("Seasons found") };
@@ -120,19 +127,28 @@ export const deleteSeason = createServerFn()
 		}
 
 		try {
-			const [teamCount, appointmentCount] = await Promise.all([
-				prismaClient.team.count({ where: { seasonId: data.id } }),
-				prismaClient.appointment.count({ where: { seasonId: data.id } }),
-			]);
-			if (teamCount > 0 || appointmentCount > 0) {
-				throw new Error(
-					t(
-						"Season cannot be deleted while teams or appointments reference it",
-					),
-				);
-			}
+			await prismaClient.$transaction(async (tx) => {
+				const season = await tx.season.findUniqueOrThrow({
+					where: { id: data.id },
+				});
+				if (season.isActive) {
+					throw new Error(t("The active season cannot be deleted"));
+				}
 
-			await prismaClient.season.delete({ where: { id: data.id } });
+				const [teamCount, appointmentCount] = await Promise.all([
+					tx.team.count({ where: { seasonId: data.id } }),
+					tx.appointment.count({ where: { seasonId: data.id } }),
+				]);
+				if (teamCount > 0 || appointmentCount > 0) {
+					throw new Error(
+						t(
+							"Season cannot be deleted while teams or appointments reference it",
+						),
+					);
+				}
+
+				await tx.season.delete({ where: { id: data.id } });
+			});
 			return { message: t("Season deleted") };
 		} catch (e) {
 			console.error(e);

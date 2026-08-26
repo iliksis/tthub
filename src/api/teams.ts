@@ -207,6 +207,45 @@ export const removeTeamPlayer = createServerFn()
 		}
 	});
 
+export const applyRosterChanges = createServerFn()
+	.validator((d: { teamId: string; adds: string[]; removes: string[] }) => d)
+	.handler(async ({ data }) => {
+		const isAuthorized = await useIsRole("EDITOR");
+		if (!isAuthorized) {
+			throw new Error(t("Unauthorized"));
+		}
+
+		try {
+			await prismaClient.$transaction(async (tx) => {
+				const team = await tx.team.findUniqueOrThrow({
+					where: { id: data.teamId },
+				});
+
+				if (data.removes.length > 0) {
+					await tx.teamPlayer.deleteMany({
+						where: { id: { in: data.removes } },
+					});
+				}
+				if (data.adds.length > 0) {
+					await tx.teamPlayer.createMany({
+						data: data.adds.map((playerId) => ({
+							playerId,
+							seasonId: team.seasonId,
+							teamId: data.teamId,
+						})),
+					});
+				}
+			});
+			return { message: t("Roster updated") };
+		} catch (e) {
+			console.error(e);
+			if ((e as { code?: string }).code === "P2002") {
+				throw new Error(t("Player is already assigned to a team this season"));
+			}
+			throw new Error((e as Error).message);
+		}
+	});
+
 export const cloneTeamsFromSeason = createServerFn()
 	.validator((d: { sourceSeasonId: string; targetSeasonId: string }) => d)
 	.handler(async ({ data }) => {
@@ -218,6 +257,13 @@ export const cloneTeamsFromSeason = createServerFn()
 		try {
 			const { playersCopied, teamsCopied } = await prismaClient.$transaction(
 				async (tx) => {
+					const targetTeamCount = await tx.team.count({
+						where: { seasonId: data.targetSeasonId },
+					});
+					if (targetTeamCount > 0) {
+						throw new Error(t("Teams already exist in the target season"));
+					}
+
 					const sourceTeams = await tx.team.findMany({
 						include: { players: true },
 						where: { seasonId: data.sourceSeasonId },

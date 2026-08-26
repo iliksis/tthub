@@ -194,6 +194,13 @@ type SeasonFiltersProps = {
 
 const ALL_SEASONS = "ALL";
 
+function seasonFilterOptions(seasons: Season[]) {
+	return [
+		{ label: t("All"), value: ALL_SEASONS },
+		...seasons.map((season) => ({ label: season.name, value: season.id })),
+	];
+}
+
 export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
 	const { teams, seasons, ...search } = props;
 	const {
@@ -227,13 +234,7 @@ export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
 			label: t("Season"),
 			onChange: (v) =>
 				navigate({ seasonId: v === ALL_SEASONS ? undefined : v }),
-			options: [
-				{ label: t("All"), value: ALL_SEASONS },
-				...seasons.map((season) => ({
-					label: season.name,
-					value: season.id,
-				})),
-			],
+			options: seasonFilterOptions(seasons),
 			type: "radio",
 			value: search.seasonId ?? ALL_SEASONS,
 		});
@@ -378,19 +379,20 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 							<fieldset className="flex flex-col gap-1.5">
 								<Label>{t("Season")}</Label>
 								<div className="flex flex-wrap gap-1.5">
-									<FilterPill
-										active={!search.seasonId}
-										onClick={() => navigate({ seasonId: undefined })}
-									>
-										{t("All")}
-									</FilterPill>
-									{seasons.map((season) => (
+									{seasonFilterOptions(seasons).map((option) => (
 										<FilterPill
-											key={season.id}
-											active={search.seasonId === season.id}
-											onClick={() => navigate({ seasonId: season.id })}
+											key={option.value}
+											active={(search.seasonId ?? ALL_SEASONS) === option.value}
+											onClick={() =>
+												navigate({
+													seasonId:
+														option.value === ALL_SEASONS
+															? undefined
+															: option.value,
+												})
+											}
 										>
-											{season.name}
+											{option.label}
 										</FilterPill>
 									))}
 								</div>

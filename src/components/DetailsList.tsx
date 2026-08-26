@@ -224,8 +224,14 @@ export function DetailsList<T extends RowData>({
 		row: ReturnType<typeof table.getRowModel>["rows"][number],
 		e: React.MouseEvent,
 	) => {
-		// Prevent triggering row click when clicking checkbox
-		if ((e.target as HTMLElement).closest("button[role='checkbox']")) {
+		// Prevent triggering row selection when clicking an interactive control
+		// (checkboxes, buttons, links, dropdown triggers, etc.) rendered inside a
+		// column's render() — only a plain click on the row body should select it.
+		if (
+			(e.target as HTMLElement).closest(
+				"button, a, [role='menuitem'], input, select",
+			)
+		) {
 			return;
 		}
 		if (selectMode !== "none") {

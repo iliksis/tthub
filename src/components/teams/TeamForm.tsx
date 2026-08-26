@@ -10,15 +10,9 @@ import {
 	DialogFooter,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { EntitySelect } from "@/components/ui/entity-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import type { Player, Season } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
@@ -103,33 +97,26 @@ function RosterSection({
 		<Section title={t("Roster")}>
 			<div className="flex flex-col gap-3">
 				<div className="flex gap-2">
-					<Select
-						items={Object.fromEntries(
-							sortedAvailable.map((p) => [p.id, p.name]),
-						)}
+					<EntitySelect
+						items={sortedAvailable}
 						value={playerValue}
 						onValueChange={(value) => {
 							if (value) onAddPending(value);
 							setPlayerValue(undefined);
 						}}
-					>
-						<SelectTrigger className="w-full">
-							<SelectValue placeholder={t("Choose a player")} />
-						</SelectTrigger>
-						<SelectContent>
-							{sortedAvailable.map((player) => (
-								<SelectItem key={player.id} value={player.id}>
-									{player.name}
-									<span className="ml-auto text-muted-foreground text-xs">
-										{player.qttr}
-									</span>
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+						placeholder={t("Choose a player")}
+						renderItem={(player) => (
+							<>
+								{player.name}
+								<span className="ml-auto text-muted-foreground text-xs">
+									{player.qttr}
+								</span>
+							</>
+						)}
+					/>
 				</div>
 				{displayedEntries.length > 0 && (
-					<ul className="flex flex-col gap-1">
+					<ul className="flex max-h-56 flex-col gap-1 overflow-y-auto">
 						{displayedEntries.map((entry) => (
 							<li
 								key={entry.id}
@@ -270,24 +257,12 @@ export const TeamForm = ({
 								{(field) => (
 									<fieldset className="flex flex-col gap-1.5">
 										<Label htmlFor={field.name}>{t("Season")}:</Label>
-										<Select
-											items={Object.fromEntries(
-												seasonOptions.map((s) => [s.id, s.name]),
-											)}
+										<EntitySelect
+											id={field.name}
+											items={seasonOptions}
 											value={field.state.value}
 											onValueChange={(value) => field.handleChange(value ?? "")}
-										>
-											<SelectTrigger id={field.name} className="w-full">
-												<SelectValue />
-											</SelectTrigger>
-											<SelectContent>
-												{seasonOptions.map((season) => (
-													<SelectItem key={season.id} value={season.id}>
-														{season.name}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
+										/>
 									</fieldset>
 								)}
 							</form.Field>

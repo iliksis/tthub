@@ -10,14 +10,8 @@ import {
 	DialogFooter,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { EntitySelect } from "@/components/ui/entity-select";
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { useMutation } from "@/hooks/useMutation";
 import type { Season } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
@@ -78,24 +72,12 @@ export const CloneTeamsModal = ({
 						{(field) => (
 							<fieldset className="flex flex-col gap-1.5">
 								<Label htmlFor={field.name}>{t("Source season")}:</Label>
-								<Select
-									items={Object.fromEntries(
-										sourceOptions.map((s) => [s.id, s.name]),
-									)}
+								<EntitySelect
+									id={field.name}
+									items={sourceOptions}
 									value={field.state.value}
 									onValueChange={(value) => field.handleChange(value ?? "")}
-								>
-									<SelectTrigger id={field.name} className="w-full">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										{sourceOptions.map((season) => (
-											<SelectItem key={season.id} value={season.id}>
-												{season.name}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+								/>
 							</fieldset>
 						)}
 					</form.Field>
@@ -106,7 +88,9 @@ export const CloneTeamsModal = ({
 					</DialogClose>
 					<Button
 						type="submit"
-						disabled={sourceOptions.length === 0}
+						disabled={
+							sourceOptions.length === 0 || cloneMutation.status === "pending"
+						}
 						onClick={(e) => {
 							e.preventDefault();
 							e.stopPropagation();

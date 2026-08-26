@@ -9,10 +9,9 @@ import React from "react";
 import { toast } from "sonner";
 import { getPlayers } from "@/api/players";
 import {
-	addTeamPlayer,
+	applyRosterChanges,
 	deleteTeam,
 	getTeam,
-	removeTeamPlayer,
 	updateTeam,
 } from "@/api/teams";
 import { AppointmentRow } from "@/components/AppointmentRow";
@@ -116,8 +115,7 @@ function RouteComponent() {
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [isDeleting, setIsDeleting] = React.useState(false);
 	const deleteTeamServerFn = useServerFn(deleteTeam);
-	const addTeamPlayerServerFn = useServerFn(addTeamPlayer);
-	const removeTeamPlayerServerFn = useServerFn(removeTeamPlayer);
+	const applyRosterChangesServerFn = useServerFn(applyRosterChanges);
 
 	const updateTeamMutation = useMutation({
 		fn: updateTeam,
@@ -166,9 +164,7 @@ function RouteComponent() {
 	const upcomingMatches = team.appointments.filter(
 		(a) => new Date(a.startDate).getTime() >= Date.now(),
 	);
-	const availablePlayers = players.filter(
-		(p) => !team.players.some((tp) => tp.playerId === p.id),
-	);
+	const availablePlayers = players.filter((p) => p.teams.length === 0);
 
 	return (
 		<div>
@@ -232,22 +228,27 @@ function RouteComponent() {
 						onClose={onStopEditing}
 						onSubmit={async (values, rosterChanges) => {
 							await updateTeamMutation.mutate({
-								data: { id: team.id, ...values },
+								data: {
+									clickTTGroupId: values.clickTTGroupId,
+									id: team.id,
+									league: values.league,
+									title: values.title,
+								},
 							});
 							if (
 								rosterChanges &&
 								(rosterChanges.adds.length || rosterChanges.removes.length)
 							) {
 								try {
-									for (const id of rosterChanges.removes) {
-										await removeTeamPlayerServerFn({ data: { id } });
-									}
-									for (const playerId of rosterChanges.adds) {
-										await addTeamPlayerServerFn({
-											data: { playerId, teamId: team.id },
-										});
-									}
+									const res = await applyRosterChangesServerFn({
+										data: {
+											adds: rosterChanges.adds,
+											removes: rosterChanges.removes,
+											teamId: team.id,
+										},
+									});
 									await router.invalidate();
+									toast.success(res.message);
 								} catch (err) {
 									toast.error((err as Error).message);
 								}

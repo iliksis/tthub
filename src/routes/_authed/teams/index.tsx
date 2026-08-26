@@ -5,13 +5,7 @@ import { getTeams } from "@/api/teams";
 import { CreateTeam } from "@/components/teams/CreateTeam";
 import { List } from "@/components/teams/List";
 import { TeamsSplitView } from "@/components/teams/TeamsSplitView";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+import { EntitySelect } from "@/components/ui/entity-select";
 import { t } from "@/lib/text";
 
 const searchSchema = z.object({
@@ -46,27 +40,17 @@ function SeasonSwitcher() {
 	if (seasons.length === 0) return null;
 
 	return (
-		<Select
-			items={Object.fromEntries(seasons.map((s) => [s.id, s.name]))}
+		<EntitySelect
+			items={seasons}
 			value={seasonId ?? ""}
+			className="w-40"
 			onValueChange={(value) => {
 				router.navigate({
 					search: (prev) => ({ ...prev, seasonId: value || undefined }),
 					to: ".",
 				});
 			}}
-		>
-			<SelectTrigger className="w-40">
-				<SelectValue />
-			</SelectTrigger>
-			<SelectContent>
-				{seasons.map((season) => (
-					<SelectItem key={season.id} value={season.id}>
-						{season.name}
-					</SelectItem>
-				))}
-			</SelectContent>
-		</Select>
+		/>
 	);
 }
 
