@@ -223,6 +223,7 @@ const texts = {
 	Matches: "Spiele",
 	Max: "Max",
 	Maybe: "Vielleicht",
+	Metadata: "Metadaten",
 	Min: "Min",
 	"More details": "Weitere Details",
 	"My response": "Meine Antwort",
