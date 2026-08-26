@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import {
 	CalendarDaysIcon,
+	CalendarRangeIcon,
 	ChevronDownIcon,
 	ImportIcon,
 	UserCogIcon,
@@ -57,6 +58,14 @@ const sections: SettingsSection[] = [
 		isHidden: (role) => role === "USER",
 		label: t("Imports"),
 		routeId: "/_authed/settings/imports",
+	},
+	{
+		description: t("Manage seasons and season data"),
+		href: "/settings/seasons",
+		icon: CalendarRangeIcon,
+		isHidden: (role) => role === "USER",
+		label: t("Seasons"),
+		routeId: "/_authed/settings/seasons",
 	},
 	{
 		description: t("Manage club members and invitations"),

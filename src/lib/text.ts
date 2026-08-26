@@ -47,6 +47,7 @@ const texts = {
 	Accept: "Annehmen",
 	Accepted: "Angenommen",
 	Action: "Aktion",
+	Active: "Aktiv",
 	"Active Subscriptions": "Geräte mit aktivierten Benachrichtigungen",
 	"Active season found": "Aktive Saison gefunden",
 	"Add a new event to the club calendar":
@@ -88,6 +89,8 @@ const texts = {
 		"Bist du sicher, dass du diesen Termin löschen möchtest?",
 	"Are you sure you want to delete this player?":
 		"Bist du sicher, dass du diese Spieler:in löschen möchtest?",
+	"Are you sure you want to delete this season?":
+		"Bist du sicher, dass du diese Saison löschen möchtest?",
 	"Are you sure you want to delete this team?":
 		"Bist du sicher, dass du dieses Team löschen möchtest?",
 	Ascending: "Aufsteigend",
@@ -110,6 +113,7 @@ const texts = {
 	"Choose an area": "Wähle eine Region",
 	Clear: "Zurücksetzen",
 	"Clear selection": "Auswahl aufheben",
+	"Clone teams from...": "Teams übernehmen von…",
 	Close: "Schließen",
 	"Club at a glance": "Verein auf einen Blick",
 	Configuration: "Konfiguration",
@@ -211,6 +215,7 @@ const texts = {
 	Logout: "Abmelden",
 	"Manage club members and invitations":
 		"Vereinsmitglieder und Einladungen verwalten",
+	"Manage seasons and season data": "Saisons und Saisondaten verwalten",
 	Matches: "Spiele",
 	Max: "Max",
 	Maybe: "Vielleicht",
@@ -303,6 +308,7 @@ const texts = {
 	"QTTR ≥ {0}": "QTTR ≥ {0}",
 	Rank: "Platz",
 	"Recent activity": "Letzte Aktivität",
+	"Rename season": "Saison umbenennen",
 	"Reset Password": "Passwort zurücksetzen",
 	Response: "Antwort",
 	"Response created": "Antwort erstellt",
@@ -327,12 +333,14 @@ const texts = {
 	"Search players or add filter...":
 		"Spieler:in suchen oder Filter hinzufügen…",
 	"Search Teams": "Teams suchen",
+	Season: "Saison",
 	"Season activated": "Saison aktiviert",
 	"Season cannot be deleted while teams or appointments reference it":
 		"Saison kann nicht gelöscht werden, solange Teams oder Termine darauf verweisen",
 	"Season created": "Saison erstellt",
 	"Season deleted": "Saison gelöscht",
 	"Season updated": "Saison aktualisiert",
+	Seasons: "Saisons",
 	"Seasons found": "Saisons gefunden",
 	"Select a row to see details": "Zeile auswählen, um Details zu sehen",
 	"Select a search type or use shortcuts":
@@ -340,6 +348,7 @@ const texts = {
 	Selected: "Ausgewählt",
 	"Set a password to create your Account":
 		"Passwort festlegen, um Account zu erstellen",
+	"Set active": "Als aktiv festlegen",
 	Settings: "Einstellungen",
 	"Settings updated": "Einstellungen aktualisiert",
 	ShortTitle: "Kurztitel",
@@ -349,6 +358,7 @@ const texts = {
 	"Show fewer": "Weniger anzeigen",
 	ShowAll: "Zeige alle",
 	Sort: "Sortierung",
+	"Source season": "Quell-Saison",
 	Standings: "Tabelle",
 	Start: "Start",
 	"Start Import": "Import starten",
@@ -417,6 +427,8 @@ const texts = {
 		"Du kannst deine eigene Rolle nicht ändern",
 	"You do not have permission to access import settings":
 		"Du hast keine Berechtigung, um auf die Importeinstellungen zuzugreifen",
+	"You do not have permission to access season settings":
+		"Du hast keine Berechtigung, um auf die Saison-Einstellungen zuzugreifen",
 	"You do not have permission to access user management":
 		"Du hast keine Berechtigung, um auf die Benutzerverwaltung zuzugreifen",
 	"You do not have permission to create appointments":
