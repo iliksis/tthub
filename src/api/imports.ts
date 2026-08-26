@@ -41,6 +41,16 @@ async function persistEntity(
 
 	if (!existingAppointment) {
 		await prismaClient.$transaction(async (tx) => {
+			// TEAM_MATCH appointments derive their season from ownTeam — this is
+			// the only import entity shape that carries a team today.
+			if (!entity.teamMatch) {
+				throw new Error(
+					"Import entity has no teamMatch to derive a season from",
+				);
+			}
+			const ownTeam = await tx.team.findUniqueOrThrow({
+				where: { id: entity.teamMatch.ownTeamId },
+			});
 			const appointment = await tx.appointment.create({
 				data: {
 					awayTeam: entity.teamMatch?.awayTeam,
@@ -48,6 +58,7 @@ async function persistEntity(
 					homeTeam: entity.teamMatch?.homeTeam,
 					id: entity.externalId,
 					ownTeamId: entity.teamMatch?.ownTeamId,
+					seasonId: ownTeam.seasonId,
 					shortTitle: entity.title,
 					startDate: new Date(entity.startsAt),
 					title: entity.title,

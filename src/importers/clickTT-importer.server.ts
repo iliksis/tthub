@@ -63,8 +63,13 @@ export const clickTTImporter = {
 		const clubName = process.env.CLICKTT_CLUB_NAME;
 
 		const teams = await prismaClient.team.findMany({
-			where: { clickTTGroupId: { not: null } },
+			where: { clickTTGroupId: { not: null }, season: { isActive: true } },
 		});
+
+		if (teams.length === 0) {
+			log("info", "No active season with click-TT teams — skipping import");
+			return { imported: 0, skipped: 0 };
+		}
 
 		const teamSchedules = await Promise.all(
 			teams.map(async (team) => {
