@@ -1,3 +1,4 @@
+import { Section } from "@/components/Section";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
 	Tooltip,
@@ -83,10 +84,7 @@ export const TransactionHistory = ({
 	if (entries.length === 0) return null;
 
 	return (
-		<div className="rounded-lg bg-card p-4">
-			<div className="mb-3 flex items-center justify-between">
-				<span className="font-bold text-sm">{t("History")}</span>
-			</div>
+		<Section title={t("History")}>
 			<ul className="flex flex-col gap-3">
 				{entries.map((entry) => {
 					const userColor = entry.user
@@ -129,6 +127,6 @@ export const TransactionHistory = ({
 					);
 				})}
 			</ul>
-		</div>
+		</Section>
 	);
 };
