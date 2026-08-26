@@ -190,11 +190,12 @@ function FilterPill({
 type SeasonFiltersProps = {
 	teams: Team[];
 	seasons: Season[];
-	resolvedSeasonId?: string;
 };
 
+const ALL_SEASONS = "ALL";
+
 export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
-	const { teams, seasons, resolvedSeasonId, ...search } = props;
+	const { teams, seasons, ...search } = props;
 	const {
 		navigate,
 		onClear,
@@ -224,13 +225,17 @@ export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
 		segments.push({
 			key: "season",
 			label: t("Season"),
-			onChange: (v) => navigate({ seasonId: v }),
-			options: seasons.map((season) => ({
-				label: season.name,
-				value: season.id,
-			})),
+			onChange: (v) =>
+				navigate({ seasonId: v === ALL_SEASONS ? undefined : v }),
+			options: [
+				{ label: t("All"), value: ALL_SEASONS },
+				...seasons.map((season) => ({
+					label: season.name,
+					value: season.id,
+				})),
+			],
 			type: "radio",
-			value: resolvedSeasonId ?? seasons[0].id,
+			value: search.seasonId ?? ALL_SEASONS,
 		});
 	}
 	if (typeGroup === "TOURNAMENT") {
@@ -279,7 +284,7 @@ export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
 // a secondary sheet for everything else — type group, contextual pills,
 // sort, date range, show deleted. All apply immediately, no Apply button.
 export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
-	const { teams, seasons, resolvedSeasonId, ...search } = props;
+	const { teams, seasons, ...search } = props;
 	const {
 		navigate,
 		queryInput,
@@ -373,10 +378,16 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 							<fieldset className="flex flex-col gap-1.5">
 								<Label>{t("Season")}</Label>
 								<div className="flex flex-wrap gap-1.5">
+									<FilterPill
+										active={!search.seasonId}
+										onClick={() => navigate({ seasonId: undefined })}
+									>
+										{t("All")}
+									</FilterPill>
 									{seasons.map((season) => (
 										<FilterPill
 											key={season.id}
-											active={(resolvedSeasonId ?? seasons[0].id) === season.id}
+											active={search.seasonId === season.id}
 											onClick={() => navigate({ seasonId: season.id })}
 										>
 											{season.name}

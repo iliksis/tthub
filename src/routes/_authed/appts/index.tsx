@@ -29,7 +29,7 @@ import {
 	getAppointmentsPage,
 	getCalendarAppointments,
 } from "@/api/appointments";
-import { getActiveSeason, getSeasons } from "@/api/seasons";
+import { getSeasons } from "@/api/seasons";
 import { getTeams } from "@/api/teams";
 import {
 	CommandBarFilters,
@@ -110,12 +110,12 @@ export const Route = createFileRoute("/_authed/appts/")({
 	loaderDeps: ({ search }) => ({ ...search }),
 	loader: async ({ deps }) => {
 		const skip = deps.skip ?? 0;
-		const [seasonsRes, activeSeasonRes] = await Promise.all([
-			getSeasons(),
-			getActiveSeason(),
-		]);
+		const seasonsRes = await getSeasons();
 		const seasons = seasonsRes.data ?? [];
-		const seasonId = deps.seasonId ?? activeSeasonRes.data?.id;
+		// No default season filter — the list is already date-scoped to today
+		// forward, and a team match from a different season is still worth
+		// seeing, so "all seasons" is the default until the user picks one.
+		const seasonId = deps.seasonId;
 		const [response, teamsResponse] = await Promise.all([
 			getAppointmentsPage({
 				data: {
@@ -142,7 +142,7 @@ export const Route = createFileRoute("/_authed/appts/")({
 			deps.view === "calendar"
 				? await loadCalendarData(deps.month, deps.year)
 				: null;
-		return { ...data, calendar, seasonId, seasons, skip, teams };
+		return { ...data, calendar, seasons, skip, teams };
 	},
 	errorComponent: () => {
 		return (
@@ -324,7 +324,6 @@ function RouteComponent() {
 		calendar,
 		teams,
 		seasons,
-		seasonId: resolvedSeasonId,
 	} = Route.useLoaderData();
 	const search = Route.useSearch();
 	const router = useRouter();
@@ -406,12 +405,7 @@ function RouteComponent() {
 					)
 				) : (
 					<>
-						<MobileFilters
-							{...search}
-							teams={teams}
-							seasons={seasons}
-							resolvedSeasonId={resolvedSeasonId}
-						/>
+						<MobileFilters {...search} teams={teams} seasons={seasons} />
 						<AppointmentTimeline
 							groups={monthGroups}
 							onAppointmentsChange={setItems}
@@ -505,12 +499,7 @@ function RouteComponent() {
 					</div>
 					<div className="sticky top-6 flex min-w-95 flex-1 shrink-0 flex-col gap-4 self-start">
 						<div className="shrink-0">
-							<CommandBarFilters
-								{...search}
-								teams={teams}
-								seasons={seasons}
-								resolvedSeasonId={resolvedSeasonId}
-							/>
+							<CommandBarFilters {...search} teams={teams} seasons={seasons} />
 						</div>
 						<MonthCalendar
 							appointments={calendarAppointments}
