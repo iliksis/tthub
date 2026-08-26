@@ -7,7 +7,7 @@ test.describe("Settings - Calendar Feed Route", () => {
 		await page.goto("/settings/feed");
 		await expect(page).toHaveURL("/settings/feed");
 		await expect(page.locator("body")).toBeVisible();
-		await expect(page.locator("h2:has-text('Kalender-Feed')")).toBeVisible();
+		await expect(page.getByText("Deine Feed-URL")).toBeVisible();
 	});
 
 	test("EDITOR can access calendar feed settings", async ({ page }) => {
@@ -15,7 +15,7 @@ test.describe("Settings - Calendar Feed Route", () => {
 		await page.goto("/settings/feed");
 		await expect(page).toHaveURL("/settings/feed");
 		await expect(page.locator("body")).toBeVisible();
-		await expect(page.locator("h2:has-text('Kalender-Feed')")).toBeVisible();
+		await expect(page.getByText("Deine Feed-URL")).toBeVisible();
 	});
 
 	test("USER can access calendar feed settings", async ({ page }) => {
@@ -23,7 +23,7 @@ test.describe("Settings - Calendar Feed Route", () => {
 		await page.goto("/settings/feed");
 		await expect(page).toHaveURL("/settings/feed");
 		await expect(page.locator("body")).toBeVisible();
-		await expect(page.locator("h2:has-text('Kalender-Feed')")).toBeVisible();
+		await expect(page.getByText("Deine Feed-URL")).toBeVisible();
 	});
 });
 
