@@ -95,6 +95,7 @@ const appointmentDetailInclude = {
 	responses: {
 		include: { user: true },
 	},
+	season: true,
 	transactions: {
 		include: { user: true },
 		orderBy: { createdAt: "desc" },

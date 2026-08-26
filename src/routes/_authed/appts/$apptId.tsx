@@ -29,6 +29,7 @@ import { TransactionHistory } from "@/components/appointments/TransactionHistory
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlacementsPanel } from "@/components/placement/PlacementsPanel";
 import { PlacementsSheet } from "@/components/placement/PlacementsSheet";
+import { Section } from "@/components/Section";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -308,6 +309,9 @@ function RouteComponent() {
 					<div className="flex items-start justify-between gap-3">
 						<div className="flex items-center gap-2">
 							<Badge variant="outline">{typeLabel(appointment.type)}</Badge>
+							{appointment.season && (
+								<Badge variant="secondary">{appointment.season.name}</Badge>
+							)}
 							{!isHoliday && canEdit && (
 								<button
 									type="button"
@@ -375,56 +379,58 @@ function RouteComponent() {
 						</div>
 					</div>
 
-					<div className="grid grid-cols-2 gap-4 text-sm">
-						<div>
-							<div className="mb-1 text-muted-foreground text-xs uppercase">
-								{t("Start")}
-							</div>
-							<div>{formatDateTime(appointment.startDate)}</div>
-						</div>
-						<div>
-							<div className="mb-1 text-muted-foreground text-xs uppercase">
-								{t("End")}
+					<Section title={t("Details")}>
+						<div className="grid grid-cols-2 gap-4 text-sm">
+							<div>
+								<div className="mb-1 text-muted-foreground text-xs uppercase">
+									{t("Start")}
+								</div>
+								<div>{formatDateTime(appointment.startDate)}</div>
 							</div>
 							<div>
-								{appointment.endDate
-									? formatDateTime(appointment.endDate)
-									: "—"}
-							</div>
-						</div>
-						{!isHoliday && (
-							<div className="col-span-2">
 								<div className="mb-1 text-muted-foreground text-xs uppercase">
-									{t("Location")}
+									{t("End")}
 								</div>
-								{appointment.location ? (
+								<div>
+									{appointment.endDate
+										? formatDateTime(appointment.endDate)
+										: "—"}
+								</div>
+							</div>
+							{!isHoliday && (
+								<div className="col-span-2">
+									<div className="mb-1 text-muted-foreground text-xs uppercase">
+										{t("Location")}
+									</div>
+									{appointment.location ? (
+										<Link
+											href={createGoogleMapsLink(appointment.location)}
+											external
+										>
+											{appointment.location}
+										</Link>
+									) : (
+										<span className="text-muted-foreground">
+											{t("No location set")}
+										</span>
+									)}
+								</div>
+							)}
+							{appointment.ownTeam && (
+								<div className="col-span-2">
+									<div className="mb-1 text-muted-foreground text-xs uppercase">
+										{t("Team")}
+									</div>
 									<Link
-										href={createGoogleMapsLink(appointment.location)}
-										external
+										to="/teams/$teamId"
+										params={{ teamId: appointment.ownTeam.id }}
 									>
-										{appointment.location}
+										{appointment.ownTeam.title}
 									</Link>
-								) : (
-									<span className="text-muted-foreground">
-										{t("No location set")}
-									</span>
-								)}
-							</div>
-						)}
-						{appointment.ownTeam && (
-							<div className="col-span-2">
-								<div className="mb-1 text-muted-foreground text-xs uppercase">
-									{t("Team")}
 								</div>
-								<Link
-									to="/teams/$teamId"
-									params={{ teamId: appointment.ownTeam.id }}
-								>
-									{appointment.ownTeam.title}
-								</Link>
-							</div>
-						)}
-					</div>
+							)}
+						</div>
+					</Section>
 
 					{!isHoliday && appointment.location && (
 						<iframe
@@ -479,7 +485,7 @@ function RouteComponent() {
 							<ChevronDownIcon className="size-4 text-muted-foreground transition-transform duration-200 ease-out group-data-[state=open]:rotate-180" />
 						</CollapsibleTrigger>
 						<CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-							<div className="flex flex-col gap-4 pb-4">
+							<div className="flex flex-col gap-4 px-4 pb-4">
 								<RecordInfoPanel
 									createdAt={new Date(appointment.createdAt)}
 									lastUpdated={
@@ -547,6 +553,9 @@ function RouteComponent() {
 						<div className="min-w-0">
 							<div className="mb-2 flex items-center gap-2">
 								<Badge variant="outline">{typeLabel(appointment.type)}</Badge>
+								{appointment.season && (
+									<Badge variant="secondary">{appointment.season.name}</Badge>
+								)}
 								{!isHoliday && canEdit && (
 									<button
 										type="button"
@@ -587,89 +596,91 @@ function RouteComponent() {
 						</div>
 					</div>
 
-					<div
-						className={cn(
-							"grid grid-cols-1 items-start gap-4 border-border/60 border-t pt-4",
-							isHoliday ? "sm:grid-cols-2" : "sm:grid-cols-3",
-						)}
-					>
-						<div>
-							<div className="mb-1 text-muted-foreground text-xs uppercase">
-								{t("Start")}
-							</div>
-							<div>{formatDateTime(appointment.startDate)}</div>
-						</div>
-						<div>
-							<div className="mb-1 text-muted-foreground text-xs uppercase">
-								{t("End")}
-							</div>
-							<div>
-								{appointment.endDate
-									? formatDateTime(appointment.endDate)
-									: "—"}
-							</div>
-						</div>
-						{!isHoliday && (
+					<Section title={t("Details")}>
+						<div
+							className={cn(
+								"grid grid-cols-1 items-start gap-4",
+								isHoliday ? "sm:grid-cols-2" : "sm:grid-cols-3",
+							)}
+						>
 							<div>
 								<div className="mb-1 text-muted-foreground text-xs uppercase">
-									{t("Location")}
+									{t("Start")}
 								</div>
-								{appointment.location ? (
-									<Link
-										href={createGoogleMapsLink(appointment.location)}
-										external
-									>
-										{appointment.location}
-									</Link>
-								) : (
-									<span className="text-muted-foreground">
-										{t("No location set")}
-									</span>
-								)}
+								<div>{formatDateTime(appointment.startDate)}</div>
 							</div>
-						)}
-						{appointment.ownTeam && (
 							<div>
 								<div className="mb-1 text-muted-foreground text-xs uppercase">
-									{t("Team")}
+									{t("End")}
 								</div>
-								<Link
-									to="/teams/$teamId"
-									params={{ teamId: appointment.ownTeam.id }}
-								>
-									{appointment.ownTeam.title}
-								</Link>
-							</div>
-						)}
-					</div>
-
-					{!isHoliday && appointment.location && (
-						<div>
-							<iframe
-								src={`https://maps.google.com/maps?hl=de&t=&z=10&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
-								className="h-64 w-full rounded-lg border border-border/40"
-								title="Google Maps"
-							/>
-						</div>
-					)}
-
-					{!isHoliday && (
-						<div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
-							<div>
-								<div className="mb-1 text-muted-foreground text-xs uppercase">
-									{t("Link")}
+								<div>
+									{appointment.endDate
+										? formatDateTime(appointment.endDate)
+										: "—"}
 								</div>
-								{appointment.link ? (
-									<Link href={appointment.link} external>
-										{appointment.link}
-									</Link>
-								) : (
-									<span className="text-muted-foreground">
-										{t("No link set")}
-									</span>
-								)}
 							</div>
 							{!isHoliday && (
+								<div>
+									<div className="mb-1 text-muted-foreground text-xs uppercase">
+										{t("Location")}
+									</div>
+									{appointment.location ? (
+										<Link
+											href={createGoogleMapsLink(appointment.location)}
+											external
+										>
+											{appointment.location}
+										</Link>
+									) : (
+										<span className="text-muted-foreground">
+											{t("No location set")}
+										</span>
+									)}
+								</div>
+							)}
+							{appointment.ownTeam && (
+								<div>
+									<div className="mb-1 text-muted-foreground text-xs uppercase">
+										{t("Team")}
+									</div>
+									<Link
+										to="/teams/$teamId"
+										params={{ teamId: appointment.ownTeam.id }}
+									>
+										{appointment.ownTeam.title}
+									</Link>
+								</div>
+							)}
+						</div>
+
+						{!isHoliday && appointment.location && (
+							<div className="mt-4">
+								<iframe
+									src={`https://maps.google.com/maps?hl=de&t=&z=10&ie=UTF8&iwloc=B&output=embed&q=${appointment.location},+Deutschland`}
+									className="h-64 w-full rounded-lg border border-border/40"
+									title="Google Maps"
+								/>
+							</div>
+						)}
+					</Section>
+
+					{!isHoliday && (
+						<Section title={t("Links")}>
+							<div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
+								<div>
+									<div className="mb-1 text-muted-foreground text-xs uppercase">
+										{t("Link")}
+									</div>
+									{appointment.link ? (
+										<Link href={appointment.link} external>
+											{appointment.link}
+										</Link>
+									) : (
+										<span className="text-muted-foreground">
+											{t("No link set")}
+										</span>
+									)}
+								</div>
 								<EditableNextAppointmentCard
 									appointmentId={appointment.id}
 									nextAppointmentId={appointment.nextAppointmentId}
@@ -678,8 +689,8 @@ function RouteComponent() {
 									canEdit={canEdit}
 									onSave={(id) => onSaveField({ nextAppointmentId: id })}
 								/>
-							)}
-						</div>
+							</div>
+						</Section>
 					)}
 
 					{!isHoliday && (
