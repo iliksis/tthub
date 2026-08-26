@@ -40,6 +40,7 @@ export type AppointmentMinAggregateOutputType = {
   ownTeamId: string | null
   homeTeam: string | null
   awayTeam: string | null
+  seasonId: string | null
 }
 
 export type AppointmentMaxAggregateOutputType = {
@@ -58,6 +59,7 @@ export type AppointmentMaxAggregateOutputType = {
   ownTeamId: string | null
   homeTeam: string | null
   awayTeam: string | null
+  seasonId: string | null
 }
 
 export type AppointmentCountAggregateOutputType = {
@@ -76,6 +78,7 @@ export type AppointmentCountAggregateOutputType = {
   ownTeamId: number
   homeTeam: number
   awayTeam: number
+  seasonId: number
   _all: number
 }
 
@@ -96,6 +99,7 @@ export type AppointmentMinAggregateInputType = {
   ownTeamId?: true
   homeTeam?: true
   awayTeam?: true
+  seasonId?: true
 }
 
 export type AppointmentMaxAggregateInputType = {
@@ -114,6 +118,7 @@ export type AppointmentMaxAggregateInputType = {
   ownTeamId?: true
   homeTeam?: true
   awayTeam?: true
+  seasonId?: true
 }
 
 export type AppointmentCountAggregateInputType = {
@@ -132,6 +137,7 @@ export type AppointmentCountAggregateInputType = {
   ownTeamId?: true
   homeTeam?: true
   awayTeam?: true
+  seasonId?: true
   _all?: true
 }
 
@@ -223,6 +229,7 @@ export type AppointmentGroupByOutputType = {
   ownTeamId: string | null
   homeTeam: string | null
   awayTeam: string | null
+  seasonId: string | null
   _count: AppointmentCountAggregateOutputType | null
   _min: AppointmentMinAggregateOutputType | null
   _max: AppointmentMaxAggregateOutputType | null
@@ -262,12 +269,14 @@ export type AppointmentWhereInput = {
   ownTeamId?: Prisma.StringNullableFilter<"Appointment"> | string | null
   homeTeam?: Prisma.StringNullableFilter<"Appointment"> | string | null
   awayTeam?: Prisma.StringNullableFilter<"Appointment"> | string | null
+  seasonId?: Prisma.StringNullableFilter<"Appointment"> | string | null
   responses?: Prisma.ResponseListRelationFilter
   placements?: Prisma.PlacementListRelationFilter
   nextAppointment?: Prisma.XOR<Prisma.AppointmentNullableScalarRelationFilter, Prisma.AppointmentWhereInput> | null
   previousAppointments?: Prisma.AppointmentListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
   ownTeam?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
+  season?: Prisma.XOR<Prisma.SeasonNullableScalarRelationFilter, Prisma.SeasonWhereInput> | null
 }
 
 export type AppointmentOrderByWithRelationInput = {
@@ -286,12 +295,14 @@ export type AppointmentOrderByWithRelationInput = {
   ownTeamId?: Prisma.SortOrderInput | Prisma.SortOrder
   homeTeam?: Prisma.SortOrderInput | Prisma.SortOrder
   awayTeam?: Prisma.SortOrderInput | Prisma.SortOrder
+  seasonId?: Prisma.SortOrderInput | Prisma.SortOrder
   responses?: Prisma.ResponseOrderByRelationAggregateInput
   placements?: Prisma.PlacementOrderByRelationAggregateInput
   nextAppointment?: Prisma.AppointmentOrderByWithRelationInput
   previousAppointments?: Prisma.AppointmentOrderByRelationAggregateInput
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
   ownTeam?: Prisma.TeamOrderByWithRelationInput
+  season?: Prisma.SeasonOrderByWithRelationInput
 }
 
 export type AppointmentWhereUniqueInput = Prisma.AtLeast<{
@@ -313,12 +324,14 @@ export type AppointmentWhereUniqueInput = Prisma.AtLeast<{
   ownTeamId?: Prisma.StringNullableFilter<"Appointment"> | string | null
   homeTeam?: Prisma.StringNullableFilter<"Appointment"> | string | null
   awayTeam?: Prisma.StringNullableFilter<"Appointment"> | string | null
+  seasonId?: Prisma.StringNullableFilter<"Appointment"> | string | null
   responses?: Prisma.ResponseListRelationFilter
   placements?: Prisma.PlacementListRelationFilter
   nextAppointment?: Prisma.XOR<Prisma.AppointmentNullableScalarRelationFilter, Prisma.AppointmentWhereInput> | null
   previousAppointments?: Prisma.AppointmentListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
   ownTeam?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
+  season?: Prisma.XOR<Prisma.SeasonNullableScalarRelationFilter, Prisma.SeasonWhereInput> | null
 }, "id">
 
 export type AppointmentOrderByWithAggregationInput = {
@@ -337,6 +350,7 @@ export type AppointmentOrderByWithAggregationInput = {
   ownTeamId?: Prisma.SortOrderInput | Prisma.SortOrder
   homeTeam?: Prisma.SortOrderInput | Prisma.SortOrder
   awayTeam?: Prisma.SortOrderInput | Prisma.SortOrder
+  seasonId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AppointmentCountOrderByAggregateInput
   _max?: Prisma.AppointmentMaxOrderByAggregateInput
   _min?: Prisma.AppointmentMinOrderByAggregateInput
@@ -361,6 +375,7 @@ export type AppointmentScalarWhereWithAggregatesInput = {
   ownTeamId?: Prisma.StringNullableWithAggregatesFilter<"Appointment"> | string | null
   homeTeam?: Prisma.StringNullableWithAggregatesFilter<"Appointment"> | string | null
   awayTeam?: Prisma.StringNullableWithAggregatesFilter<"Appointment"> | string | null
+  seasonId?: Prisma.StringNullableWithAggregatesFilter<"Appointment"> | string | null
 }
 
 export type AppointmentCreateInput = {
@@ -383,6 +398,7 @@ export type AppointmentCreateInput = {
   previousAppointments?: Prisma.AppointmentCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
   ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
+  season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
 }
 
 export type AppointmentUncheckedCreateInput = {
@@ -401,6 +417,7 @@ export type AppointmentUncheckedCreateInput = {
   ownTeamId?: string | null
   homeTeam?: string | null
   awayTeam?: string | null
+  seasonId?: string | null
   responses?: Prisma.ResponseUncheckedCreateNestedManyWithoutAppointmentInput
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
   previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
@@ -427,6 +444,7 @@ export type AppointmentUpdateInput = {
   previousAppointments?: Prisma.AppointmentUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
   ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
+  season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
 }
 
 export type AppointmentUncheckedUpdateInput = {
@@ -445,6 +463,7 @@ export type AppointmentUncheckedUpdateInput = {
   ownTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seasonId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responses?: Prisma.ResponseUncheckedUpdateManyWithoutAppointmentNestedInput
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
   previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
@@ -467,6 +486,7 @@ export type AppointmentCreateManyInput = {
   ownTeamId?: string | null
   homeTeam?: string | null
   awayTeam?: string | null
+  seasonId?: string | null
 }
 
 export type AppointmentUpdateManyMutationInput = {
@@ -501,6 +521,7 @@ export type AppointmentUncheckedUpdateManyInput = {
   ownTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seasonId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AppointmentNullableScalarRelationFilter = {
@@ -534,6 +555,7 @@ export type AppointmentCountOrderByAggregateInput = {
   ownTeamId?: Prisma.SortOrder
   homeTeam?: Prisma.SortOrder
   awayTeam?: Prisma.SortOrder
+  seasonId?: Prisma.SortOrder
 }
 
 export type AppointmentMaxOrderByAggregateInput = {
@@ -552,6 +574,7 @@ export type AppointmentMaxOrderByAggregateInput = {
   ownTeamId?: Prisma.SortOrder
   homeTeam?: Prisma.SortOrder
   awayTeam?: Prisma.SortOrder
+  seasonId?: Prisma.SortOrder
 }
 
 export type AppointmentMinOrderByAggregateInput = {
@@ -570,6 +593,7 @@ export type AppointmentMinOrderByAggregateInput = {
   ownTeamId?: Prisma.SortOrder
   homeTeam?: Prisma.SortOrder
   awayTeam?: Prisma.SortOrder
+  seasonId?: Prisma.SortOrder
 }
 
 export type AppointmentScalarRelationFilter = {
@@ -644,6 +668,48 @@ export type AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput = {
   connect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
   update?: Prisma.AppointmentUpdateWithWhereUniqueWithoutNextAppointmentInput | Prisma.AppointmentUpdateWithWhereUniqueWithoutNextAppointmentInput[]
   updateMany?: Prisma.AppointmentUpdateManyWithWhereWithoutNextAppointmentInput | Prisma.AppointmentUpdateManyWithWhereWithoutNextAppointmentInput[]
+  deleteMany?: Prisma.AppointmentScalarWhereInput | Prisma.AppointmentScalarWhereInput[]
+}
+
+export type AppointmentCreateNestedManyWithoutSeasonInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutSeasonInput, Prisma.AppointmentUncheckedCreateWithoutSeasonInput> | Prisma.AppointmentCreateWithoutSeasonInput[] | Prisma.AppointmentUncheckedCreateWithoutSeasonInput[]
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutSeasonInput | Prisma.AppointmentCreateOrConnectWithoutSeasonInput[]
+  createMany?: Prisma.AppointmentCreateManySeasonInputEnvelope
+  connect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+}
+
+export type AppointmentUncheckedCreateNestedManyWithoutSeasonInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutSeasonInput, Prisma.AppointmentUncheckedCreateWithoutSeasonInput> | Prisma.AppointmentCreateWithoutSeasonInput[] | Prisma.AppointmentUncheckedCreateWithoutSeasonInput[]
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutSeasonInput | Prisma.AppointmentCreateOrConnectWithoutSeasonInput[]
+  createMany?: Prisma.AppointmentCreateManySeasonInputEnvelope
+  connect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+}
+
+export type AppointmentUpdateManyWithoutSeasonNestedInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutSeasonInput, Prisma.AppointmentUncheckedCreateWithoutSeasonInput> | Prisma.AppointmentCreateWithoutSeasonInput[] | Prisma.AppointmentUncheckedCreateWithoutSeasonInput[]
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutSeasonInput | Prisma.AppointmentCreateOrConnectWithoutSeasonInput[]
+  upsert?: Prisma.AppointmentUpsertWithWhereUniqueWithoutSeasonInput | Prisma.AppointmentUpsertWithWhereUniqueWithoutSeasonInput[]
+  createMany?: Prisma.AppointmentCreateManySeasonInputEnvelope
+  set?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  disconnect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  delete?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  connect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  update?: Prisma.AppointmentUpdateWithWhereUniqueWithoutSeasonInput | Prisma.AppointmentUpdateWithWhereUniqueWithoutSeasonInput[]
+  updateMany?: Prisma.AppointmentUpdateManyWithWhereWithoutSeasonInput | Prisma.AppointmentUpdateManyWithWhereWithoutSeasonInput[]
+  deleteMany?: Prisma.AppointmentScalarWhereInput | Prisma.AppointmentScalarWhereInput[]
+}
+
+export type AppointmentUncheckedUpdateManyWithoutSeasonNestedInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutSeasonInput, Prisma.AppointmentUncheckedCreateWithoutSeasonInput> | Prisma.AppointmentCreateWithoutSeasonInput[] | Prisma.AppointmentUncheckedCreateWithoutSeasonInput[]
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutSeasonInput | Prisma.AppointmentCreateOrConnectWithoutSeasonInput[]
+  upsert?: Prisma.AppointmentUpsertWithWhereUniqueWithoutSeasonInput | Prisma.AppointmentUpsertWithWhereUniqueWithoutSeasonInput[]
+  createMany?: Prisma.AppointmentCreateManySeasonInputEnvelope
+  set?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  disconnect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  delete?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  connect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  update?: Prisma.AppointmentUpdateWithWhereUniqueWithoutSeasonInput | Prisma.AppointmentUpdateWithWhereUniqueWithoutSeasonInput[]
+  updateMany?: Prisma.AppointmentUpdateManyWithWhereWithoutSeasonInput | Prisma.AppointmentUpdateManyWithWhereWithoutSeasonInput[]
   deleteMany?: Prisma.AppointmentScalarWhereInput | Prisma.AppointmentScalarWhereInput[]
 }
 
@@ -750,6 +816,7 @@ export type AppointmentCreateWithoutPreviousAppointmentsInput = {
   nextAppointment?: Prisma.AppointmentCreateNestedOneWithoutPreviousAppointmentsInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
   ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
+  season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
 }
 
 export type AppointmentUncheckedCreateWithoutPreviousAppointmentsInput = {
@@ -768,6 +835,7 @@ export type AppointmentUncheckedCreateWithoutPreviousAppointmentsInput = {
   ownTeamId?: string | null
   homeTeam?: string | null
   awayTeam?: string | null
+  seasonId?: string | null
   responses?: Prisma.ResponseUncheckedCreateNestedManyWithoutAppointmentInput
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAppointmentInput
@@ -797,6 +865,7 @@ export type AppointmentCreateWithoutNextAppointmentInput = {
   previousAppointments?: Prisma.AppointmentCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
   ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
+  season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
 }
 
 export type AppointmentUncheckedCreateWithoutNextAppointmentInput = {
@@ -814,6 +883,7 @@ export type AppointmentUncheckedCreateWithoutNextAppointmentInput = {
   ownTeamId?: string | null
   homeTeam?: string | null
   awayTeam?: string | null
+  seasonId?: string | null
   responses?: Prisma.ResponseUncheckedCreateNestedManyWithoutAppointmentInput
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
   previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
@@ -859,6 +929,7 @@ export type AppointmentUpdateWithoutPreviousAppointmentsInput = {
   nextAppointment?: Prisma.AppointmentUpdateOneWithoutPreviousAppointmentsNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
   ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
+  season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
 }
 
 export type AppointmentUncheckedUpdateWithoutPreviousAppointmentsInput = {
@@ -877,6 +948,7 @@ export type AppointmentUncheckedUpdateWithoutPreviousAppointmentsInput = {
   ownTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seasonId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responses?: Prisma.ResponseUncheckedUpdateManyWithoutAppointmentNestedInput
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAppointmentNestedInput
@@ -917,6 +989,76 @@ export type AppointmentScalarWhereInput = {
   ownTeamId?: Prisma.StringNullableFilter<"Appointment"> | string | null
   homeTeam?: Prisma.StringNullableFilter<"Appointment"> | string | null
   awayTeam?: Prisma.StringNullableFilter<"Appointment"> | string | null
+  seasonId?: Prisma.StringNullableFilter<"Appointment"> | string | null
+}
+
+export type AppointmentCreateWithoutSeasonInput = {
+  id?: string
+  createdAt?: Date | string
+  deletedAt?: Date | string | null
+  startDate: Date | string
+  endDate?: Date | string | null
+  title: string
+  shortTitle: string
+  location?: string | null
+  link?: string | null
+  type: $Enums.AppointmentType
+  status?: $Enums.AppointmentStatus | null
+  homeTeam?: string | null
+  awayTeam?: string | null
+  responses?: Prisma.ResponseCreateNestedManyWithoutAppointmentInput
+  placements?: Prisma.PlacementCreateNestedManyWithoutAppointmentInput
+  nextAppointment?: Prisma.AppointmentCreateNestedOneWithoutPreviousAppointmentsInput
+  previousAppointments?: Prisma.AppointmentCreateNestedManyWithoutNextAppointmentInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
+  ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
+}
+
+export type AppointmentUncheckedCreateWithoutSeasonInput = {
+  id?: string
+  createdAt?: Date | string
+  deletedAt?: Date | string | null
+  startDate: Date | string
+  endDate?: Date | string | null
+  title: string
+  shortTitle: string
+  location?: string | null
+  link?: string | null
+  type: $Enums.AppointmentType
+  status?: $Enums.AppointmentStatus | null
+  nextAppointmentId?: string | null
+  ownTeamId?: string | null
+  homeTeam?: string | null
+  awayTeam?: string | null
+  responses?: Prisma.ResponseUncheckedCreateNestedManyWithoutAppointmentInput
+  placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
+  previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAppointmentInput
+}
+
+export type AppointmentCreateOrConnectWithoutSeasonInput = {
+  where: Prisma.AppointmentWhereUniqueInput
+  create: Prisma.XOR<Prisma.AppointmentCreateWithoutSeasonInput, Prisma.AppointmentUncheckedCreateWithoutSeasonInput>
+}
+
+export type AppointmentCreateManySeasonInputEnvelope = {
+  data: Prisma.AppointmentCreateManySeasonInput | Prisma.AppointmentCreateManySeasonInput[]
+}
+
+export type AppointmentUpsertWithWhereUniqueWithoutSeasonInput = {
+  where: Prisma.AppointmentWhereUniqueInput
+  update: Prisma.XOR<Prisma.AppointmentUpdateWithoutSeasonInput, Prisma.AppointmentUncheckedUpdateWithoutSeasonInput>
+  create: Prisma.XOR<Prisma.AppointmentCreateWithoutSeasonInput, Prisma.AppointmentUncheckedCreateWithoutSeasonInput>
+}
+
+export type AppointmentUpdateWithWhereUniqueWithoutSeasonInput = {
+  where: Prisma.AppointmentWhereUniqueInput
+  data: Prisma.XOR<Prisma.AppointmentUpdateWithoutSeasonInput, Prisma.AppointmentUncheckedUpdateWithoutSeasonInput>
+}
+
+export type AppointmentUpdateManyWithWhereWithoutSeasonInput = {
+  where: Prisma.AppointmentScalarWhereInput
+  data: Prisma.XOR<Prisma.AppointmentUpdateManyMutationInput, Prisma.AppointmentUncheckedUpdateManyWithoutSeasonInput>
 }
 
 export type AppointmentCreateWithoutResponsesInput = {
@@ -938,6 +1080,7 @@ export type AppointmentCreateWithoutResponsesInput = {
   previousAppointments?: Prisma.AppointmentCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
   ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
+  season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
 }
 
 export type AppointmentUncheckedCreateWithoutResponsesInput = {
@@ -956,6 +1099,7 @@ export type AppointmentUncheckedCreateWithoutResponsesInput = {
   ownTeamId?: string | null
   homeTeam?: string | null
   awayTeam?: string | null
+  seasonId?: string | null
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
   previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAppointmentInput
@@ -996,6 +1140,7 @@ export type AppointmentUpdateWithoutResponsesInput = {
   previousAppointments?: Prisma.AppointmentUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
   ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
+  season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
 }
 
 export type AppointmentUncheckedUpdateWithoutResponsesInput = {
@@ -1014,6 +1159,7 @@ export type AppointmentUncheckedUpdateWithoutResponsesInput = {
   ownTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seasonId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
   previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAppointmentNestedInput
@@ -1038,6 +1184,7 @@ export type AppointmentCreateWithoutOwnTeamInput = {
   nextAppointment?: Prisma.AppointmentCreateNestedOneWithoutPreviousAppointmentsInput
   previousAppointments?: Prisma.AppointmentCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
+  season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
 }
 
 export type AppointmentUncheckedCreateWithoutOwnTeamInput = {
@@ -1055,6 +1202,7 @@ export type AppointmentUncheckedCreateWithoutOwnTeamInput = {
   nextAppointmentId?: string | null
   homeTeam?: string | null
   awayTeam?: string | null
+  seasonId?: string | null
   responses?: Prisma.ResponseUncheckedCreateNestedManyWithoutAppointmentInput
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
   previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
@@ -1105,6 +1253,7 @@ export type AppointmentCreateWithoutPlacementsInput = {
   previousAppointments?: Prisma.AppointmentCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
   ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
+  season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
 }
 
 export type AppointmentUncheckedCreateWithoutPlacementsInput = {
@@ -1123,6 +1272,7 @@ export type AppointmentUncheckedCreateWithoutPlacementsInput = {
   ownTeamId?: string | null
   homeTeam?: string | null
   awayTeam?: string | null
+  seasonId?: string | null
   responses?: Prisma.ResponseUncheckedCreateNestedManyWithoutAppointmentInput
   previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAppointmentInput
@@ -1163,6 +1313,7 @@ export type AppointmentUpdateWithoutPlacementsInput = {
   previousAppointments?: Prisma.AppointmentUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
   ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
+  season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
 }
 
 export type AppointmentUncheckedUpdateWithoutPlacementsInput = {
@@ -1181,6 +1332,7 @@ export type AppointmentUncheckedUpdateWithoutPlacementsInput = {
   ownTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seasonId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responses?: Prisma.ResponseUncheckedUpdateManyWithoutAppointmentNestedInput
   previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAppointmentNestedInput
@@ -1205,6 +1357,7 @@ export type AppointmentCreateWithoutTransactionsInput = {
   nextAppointment?: Prisma.AppointmentCreateNestedOneWithoutPreviousAppointmentsInput
   previousAppointments?: Prisma.AppointmentCreateNestedManyWithoutNextAppointmentInput
   ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
+  season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
 }
 
 export type AppointmentUncheckedCreateWithoutTransactionsInput = {
@@ -1223,6 +1376,7 @@ export type AppointmentUncheckedCreateWithoutTransactionsInput = {
   ownTeamId?: string | null
   homeTeam?: string | null
   awayTeam?: string | null
+  seasonId?: string | null
   responses?: Prisma.ResponseUncheckedCreateNestedManyWithoutAppointmentInput
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
   previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
@@ -1263,6 +1417,7 @@ export type AppointmentUpdateWithoutTransactionsInput = {
   nextAppointment?: Prisma.AppointmentUpdateOneWithoutPreviousAppointmentsNestedInput
   previousAppointments?: Prisma.AppointmentUpdateManyWithoutNextAppointmentNestedInput
   ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
+  season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
 }
 
 export type AppointmentUncheckedUpdateWithoutTransactionsInput = {
@@ -1281,6 +1436,7 @@ export type AppointmentUncheckedUpdateWithoutTransactionsInput = {
   ownTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seasonId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responses?: Prisma.ResponseUncheckedUpdateManyWithoutAppointmentNestedInput
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
   previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
@@ -1301,6 +1457,7 @@ export type AppointmentCreateManyNextAppointmentInput = {
   ownTeamId?: string | null
   homeTeam?: string | null
   awayTeam?: string | null
+  seasonId?: string | null
 }
 
 export type AppointmentUpdateWithoutNextAppointmentInput = {
@@ -1322,6 +1479,7 @@ export type AppointmentUpdateWithoutNextAppointmentInput = {
   previousAppointments?: Prisma.AppointmentUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
   ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
+  season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
 }
 
 export type AppointmentUncheckedUpdateWithoutNextAppointmentInput = {
@@ -1339,6 +1497,7 @@ export type AppointmentUncheckedUpdateWithoutNextAppointmentInput = {
   ownTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seasonId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responses?: Prisma.ResponseUncheckedUpdateManyWithoutAppointmentNestedInput
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
   previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
@@ -1360,6 +1519,87 @@ export type AppointmentUncheckedUpdateManyWithoutNextAppointmentInput = {
   ownTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seasonId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type AppointmentCreateManySeasonInput = {
+  id?: string
+  createdAt?: Date | string
+  deletedAt?: Date | string | null
+  startDate: Date | string
+  endDate?: Date | string | null
+  title: string
+  shortTitle: string
+  location?: string | null
+  link?: string | null
+  type: $Enums.AppointmentType
+  status?: $Enums.AppointmentStatus | null
+  nextAppointmentId?: string | null
+  ownTeamId?: string | null
+  homeTeam?: string | null
+  awayTeam?: string | null
+}
+
+export type AppointmentUpdateWithoutSeasonInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
+  status?: Prisma.NullableEnumAppointmentStatusFieldUpdateOperationsInput | $Enums.AppointmentStatus | null
+  homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responses?: Prisma.ResponseUpdateManyWithoutAppointmentNestedInput
+  placements?: Prisma.PlacementUpdateManyWithoutAppointmentNestedInput
+  nextAppointment?: Prisma.AppointmentUpdateOneWithoutPreviousAppointmentsNestedInput
+  previousAppointments?: Prisma.AppointmentUpdateManyWithoutNextAppointmentNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
+  ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
+}
+
+export type AppointmentUncheckedUpdateWithoutSeasonInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
+  status?: Prisma.NullableEnumAppointmentStatusFieldUpdateOperationsInput | $Enums.AppointmentStatus | null
+  nextAppointmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responses?: Prisma.ResponseUncheckedUpdateManyWithoutAppointmentNestedInput
+  placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
+  previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAppointmentNestedInput
+}
+
+export type AppointmentUncheckedUpdateManyWithoutSeasonInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
+  status?: Prisma.NullableEnumAppointmentStatusFieldUpdateOperationsInput | $Enums.AppointmentStatus | null
+  nextAppointmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AppointmentCreateManyOwnTeamInput = {
@@ -1377,6 +1617,7 @@ export type AppointmentCreateManyOwnTeamInput = {
   nextAppointmentId?: string | null
   homeTeam?: string | null
   awayTeam?: string | null
+  seasonId?: string | null
 }
 
 export type AppointmentUpdateWithoutOwnTeamInput = {
@@ -1398,6 +1639,7 @@ export type AppointmentUpdateWithoutOwnTeamInput = {
   nextAppointment?: Prisma.AppointmentUpdateOneWithoutPreviousAppointmentsNestedInput
   previousAppointments?: Prisma.AppointmentUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
+  season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
 }
 
 export type AppointmentUncheckedUpdateWithoutOwnTeamInput = {
@@ -1415,6 +1657,7 @@ export type AppointmentUncheckedUpdateWithoutOwnTeamInput = {
   nextAppointmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seasonId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responses?: Prisma.ResponseUncheckedUpdateManyWithoutAppointmentNestedInput
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
   previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
@@ -1436,6 +1679,7 @@ export type AppointmentUncheckedUpdateManyWithoutOwnTeamInput = {
   nextAppointmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seasonId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1512,12 +1756,14 @@ export type AppointmentSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   ownTeamId?: boolean
   homeTeam?: boolean
   awayTeam?: boolean
+  seasonId?: boolean
   responses?: boolean | Prisma.Appointment$responsesArgs<ExtArgs>
   placements?: boolean | Prisma.Appointment$placementsArgs<ExtArgs>
   nextAppointment?: boolean | Prisma.Appointment$nextAppointmentArgs<ExtArgs>
   previousAppointments?: boolean | Prisma.Appointment$previousAppointmentsArgs<ExtArgs>
   transactions?: boolean | Prisma.Appointment$transactionsArgs<ExtArgs>
   ownTeam?: boolean | Prisma.Appointment$ownTeamArgs<ExtArgs>
+  season?: boolean | Prisma.Appointment$seasonArgs<ExtArgs>
   _count?: boolean | Prisma.AppointmentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["appointment"]>
 
@@ -1537,8 +1783,10 @@ export type AppointmentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   ownTeamId?: boolean
   homeTeam?: boolean
   awayTeam?: boolean
+  seasonId?: boolean
   nextAppointment?: boolean | Prisma.Appointment$nextAppointmentArgs<ExtArgs>
   ownTeam?: boolean | Prisma.Appointment$ownTeamArgs<ExtArgs>
+  season?: boolean | Prisma.Appointment$seasonArgs<ExtArgs>
 }, ExtArgs["result"]["appointment"]>
 
 export type AppointmentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1557,8 +1805,10 @@ export type AppointmentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   ownTeamId?: boolean
   homeTeam?: boolean
   awayTeam?: boolean
+  seasonId?: boolean
   nextAppointment?: boolean | Prisma.Appointment$nextAppointmentArgs<ExtArgs>
   ownTeam?: boolean | Prisma.Appointment$ownTeamArgs<ExtArgs>
+  season?: boolean | Prisma.Appointment$seasonArgs<ExtArgs>
 }, ExtArgs["result"]["appointment"]>
 
 export type AppointmentSelectScalar = {
@@ -1577,9 +1827,10 @@ export type AppointmentSelectScalar = {
   ownTeamId?: boolean
   homeTeam?: boolean
   awayTeam?: boolean
+  seasonId?: boolean
 }
 
-export type AppointmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "deletedAt" | "startDate" | "endDate" | "title" | "shortTitle" | "location" | "link" | "type" | "status" | "nextAppointmentId" | "ownTeamId" | "homeTeam" | "awayTeam", ExtArgs["result"]["appointment"]>
+export type AppointmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "deletedAt" | "startDate" | "endDate" | "title" | "shortTitle" | "location" | "link" | "type" | "status" | "nextAppointmentId" | "ownTeamId" | "homeTeam" | "awayTeam" | "seasonId", ExtArgs["result"]["appointment"]>
 export type AppointmentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   responses?: boolean | Prisma.Appointment$responsesArgs<ExtArgs>
   placements?: boolean | Prisma.Appointment$placementsArgs<ExtArgs>
@@ -1587,15 +1838,18 @@ export type AppointmentInclude<ExtArgs extends runtime.Types.Extensions.Internal
   previousAppointments?: boolean | Prisma.Appointment$previousAppointmentsArgs<ExtArgs>
   transactions?: boolean | Prisma.Appointment$transactionsArgs<ExtArgs>
   ownTeam?: boolean | Prisma.Appointment$ownTeamArgs<ExtArgs>
+  season?: boolean | Prisma.Appointment$seasonArgs<ExtArgs>
   _count?: boolean | Prisma.AppointmentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AppointmentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   nextAppointment?: boolean | Prisma.Appointment$nextAppointmentArgs<ExtArgs>
   ownTeam?: boolean | Prisma.Appointment$ownTeamArgs<ExtArgs>
+  season?: boolean | Prisma.Appointment$seasonArgs<ExtArgs>
 }
 export type AppointmentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   nextAppointment?: boolean | Prisma.Appointment$nextAppointmentArgs<ExtArgs>
   ownTeam?: boolean | Prisma.Appointment$ownTeamArgs<ExtArgs>
+  season?: boolean | Prisma.Appointment$seasonArgs<ExtArgs>
 }
 
 export type $AppointmentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1607,6 +1861,7 @@ export type $AppointmentPayload<ExtArgs extends runtime.Types.Extensions.Interna
     previousAppointments: Prisma.$AppointmentPayload<ExtArgs>[]
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
     ownTeam: Prisma.$TeamPayload<ExtArgs> | null
+    season: Prisma.$SeasonPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1624,6 +1879,7 @@ export type $AppointmentPayload<ExtArgs extends runtime.Types.Extensions.Interna
     ownTeamId: string | null
     homeTeam: string | null
     awayTeam: string | null
+    seasonId: string | null
   }, ExtArgs["result"]["appointment"]>
   composites: {}
 }
@@ -2024,6 +2280,7 @@ export interface Prisma__AppointmentClient<T, Null = never, ExtArgs extends runt
   previousAppointments<T extends Prisma.Appointment$previousAppointmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Appointment$previousAppointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transactions<T extends Prisma.Appointment$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Appointment$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   ownTeam<T extends Prisma.Appointment$ownTeamArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Appointment$ownTeamArgs<ExtArgs>>): Prisma.Prisma__TeamClient<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  season<T extends Prisma.Appointment$seasonArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Appointment$seasonArgs<ExtArgs>>): Prisma.Prisma__SeasonClient<runtime.Types.Result.GetResult<Prisma.$SeasonPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2068,6 +2325,7 @@ export interface AppointmentFieldRefs {
   readonly ownTeamId: Prisma.FieldRef<"Appointment", 'String'>
   readonly homeTeam: Prisma.FieldRef<"Appointment", 'String'>
   readonly awayTeam: Prisma.FieldRef<"Appointment", 'String'>
+  readonly seasonId: Prisma.FieldRef<"Appointment", 'String'>
 }
     
 
@@ -2598,6 +2856,25 @@ export type Appointment$ownTeamArgs<ExtArgs extends runtime.Types.Extensions.Int
    */
   include?: Prisma.TeamInclude<ExtArgs> | null
   where?: Prisma.TeamWhereInput
+}
+
+/**
+ * Appointment.season
+ */
+export type Appointment$seasonArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Season
+   */
+  select?: Prisma.SeasonSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Season
+   */
+  omit?: Prisma.SeasonOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SeasonInclude<ExtArgs> | null
+  where?: Prisma.SeasonWhereInput
 }
 
 /**
