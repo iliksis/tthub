@@ -137,7 +137,9 @@ export const deleteSeason = createServerFn()
 
 				const [teamCount, appointmentCount] = await Promise.all([
 					tx.team.count({ where: { seasonId: data.id } }),
-					tx.appointment.count({ where: { seasonId: data.id } }),
+					tx.appointment.count({
+						where: { deletedAt: null, seasonId: data.id },
+					}),
 				]);
 				if (teamCount > 0 || appointmentCount > 0) {
 					throw new Error(

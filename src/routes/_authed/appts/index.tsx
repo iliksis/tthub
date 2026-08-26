@@ -82,6 +82,7 @@ type CalendarLoaderData = {
 async function loadCalendarData(
 	month: number | undefined,
 	year: number | undefined,
+	seasonId: string | undefined,
 ): Promise<CalendarLoaderData> {
 	const today = new Date();
 	const resolvedYear = year ?? today.getFullYear();
@@ -92,7 +93,9 @@ async function loadCalendarData(
 	const end = new Date(lastCell?.fullDate ?? start);
 	end.setDate(end.getDate() + 1);
 
-	const response = await getCalendarAppointments({ data: { end, start } });
+	const response = await getCalendarAppointments({
+		data: { end, seasonId, start },
+	});
 	const appointments: CalendarAppointment[] = (response.data ?? []).map(
 		(a) => ({
 			...a,
@@ -140,7 +143,7 @@ export const Route = createFileRoute("/_authed/appts/")({
 		const teams = teamsResponse.data ?? [];
 		const calendar =
 			deps.view === "calendar"
-				? await loadCalendarData(deps.month, deps.year)
+				? await loadCalendarData(deps.month, deps.year, seasonId)
 				: null;
 		return { ...data, calendar, seasons, skip, teams };
 	},

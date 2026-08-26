@@ -694,7 +694,7 @@ export const getUserOpenAppointments = createServerFn()
 	});
 
 export const getCalendarAppointments = createServerFn()
-	.validator((d: { start: Date; end: Date }) => d)
+	.validator((d: { start: Date; end: Date; seasonId?: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (session.data.id === null) {
@@ -710,6 +710,7 @@ export const getCalendarAppointments = createServerFn()
 						{ endDate: { gte: start } },
 						{ endDate: null, startDate: { gte: start } },
 					],
+					seasonId: data.seasonId,
 					startDate: { lt: end },
 				},
 			});

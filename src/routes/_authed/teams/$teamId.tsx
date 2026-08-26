@@ -227,7 +227,7 @@ function RouteComponent() {
 						open={isEditing}
 						onClose={onStopEditing}
 						onSubmit={async (values, rosterChanges) => {
-							await updateTeamMutation.mutate({
+							const updateResult = await updateTeamMutation.mutate({
 								data: {
 									clickTTGroupId: values.clickTTGroupId,
 									id: team.id,
@@ -236,6 +236,7 @@ function RouteComponent() {
 								},
 							});
 							if (
+								updateResult &&
 								rosterChanges &&
 								(rosterChanges.adds.length || rosterChanges.removes.length)
 							) {
