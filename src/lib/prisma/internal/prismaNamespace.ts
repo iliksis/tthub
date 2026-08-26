@@ -402,9 +402,11 @@ export const ModelName = {
   UserInvitation: 'UserInvitation',
   PasswordReset: 'PasswordReset',
   Appointment: 'Appointment',
+  Season: 'Season',
   Response: 'Response',
   Player: 'Player',
   Team: 'Team',
+  TeamPlayer: 'TeamPlayer',
   Standing: 'Standing',
   Placement: 'Placement',
   Transaction: 'Transaction',
@@ -426,7 +428,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "feedConfig" | "userInvitation" | "passwordReset" | "appointment" | "response" | "player" | "team" | "standing" | "placement" | "transaction" | "subscription" | "importerSetting" | "notificationSettings"
+    modelProps: "user" | "feedConfig" | "userInvitation" | "passwordReset" | "appointment" | "season" | "response" | "player" | "team" | "teamPlayer" | "standing" | "placement" | "transaction" | "subscription" | "importerSetting" | "notificationSettings"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -800,6 +802,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Season: {
+      payload: Prisma.$SeasonPayload<ExtArgs>
+      fields: Prisma.SeasonFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SeasonFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SeasonFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>
+        }
+        findFirst: {
+          args: Prisma.SeasonFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SeasonFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>
+        }
+        findMany: {
+          args: Prisma.SeasonFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>[]
+        }
+        create: {
+          args: Prisma.SeasonCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>
+        }
+        createMany: {
+          args: Prisma.SeasonCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SeasonCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>[]
+        }
+        delete: {
+          args: Prisma.SeasonDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>
+        }
+        update: {
+          args: Prisma.SeasonUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>
+        }
+        deleteMany: {
+          args: Prisma.SeasonDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SeasonUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SeasonUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>[]
+        }
+        upsert: {
+          args: Prisma.SeasonUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonPayload>
+        }
+        aggregate: {
+          args: Prisma.SeasonAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSeason>
+        }
+        groupBy: {
+          args: Prisma.SeasonGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeasonGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SeasonCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeasonCountAggregateOutputType> | number
+        }
+      }
+    }
     Response: {
       payload: Prisma.$ResponsePayload<ExtArgs>
       fields: Prisma.ResponseFieldRefs
@@ -1019,6 +1095,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TeamCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TeamCountAggregateOutputType> | number
+        }
+      }
+    }
+    TeamPlayer: {
+      payload: Prisma.$TeamPlayerPayload<ExtArgs>
+      fields: Prisma.TeamPlayerFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TeamPlayerFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPlayerPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TeamPlayerFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPlayerPayload>
+        }
+        findFirst: {
+          args: Prisma.TeamPlayerFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPlayerPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TeamPlayerFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPlayerPayload>
+        }
+        findMany: {
+          args: Prisma.TeamPlayerFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPlayerPayload>[]
+        }
+        create: {
+          args: Prisma.TeamPlayerCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPlayerPayload>
+        }
+        createMany: {
+          args: Prisma.TeamPlayerCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TeamPlayerCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPlayerPayload>[]
+        }
+        delete: {
+          args: Prisma.TeamPlayerDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPlayerPayload>
+        }
+        update: {
+          args: Prisma.TeamPlayerUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPlayerPayload>
+        }
+        deleteMany: {
+          args: Prisma.TeamPlayerDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TeamPlayerUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TeamPlayerUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPlayerPayload>[]
+        }
+        upsert: {
+          args: Prisma.TeamPlayerUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPlayerPayload>
+        }
+        aggregate: {
+          args: Prisma.TeamPlayerAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTeamPlayer>
+        }
+        groupBy: {
+          args: Prisma.TeamPlayerGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeamPlayerGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TeamPlayerCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeamPlayerCountAggregateOutputType> | number
         }
       }
     }
@@ -1558,10 +1708,21 @@ export const AppointmentScalarFieldEnum = {
   nextAppointmentId: 'nextAppointmentId',
   ownTeamId: 'ownTeamId',
   homeTeam: 'homeTeam',
-  awayTeam: 'awayTeam'
+  awayTeam: 'awayTeam',
+  seasonId: 'seasonId'
 } as const
 
 export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
+
+
+export const SeasonScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  name: 'name',
+  isActive: 'isActive'
+} as const
+
+export type SeasonScalarFieldEnum = (typeof SeasonScalarFieldEnum)[keyof typeof SeasonScalarFieldEnum]
 
 
 export const ResponseScalarFieldEnum = {
@@ -1579,8 +1740,7 @@ export const PlayerScalarFieldEnum = {
   updatedAt: 'updatedAt',
   name: 'name',
   year: 'year',
-  qttr: 'qttr',
-  teamId: 'teamId'
+  qttr: 'qttr'
 } as const
 
 export type PlayerScalarFieldEnum = (typeof PlayerScalarFieldEnum)[keyof typeof PlayerScalarFieldEnum]
@@ -1592,10 +1752,22 @@ export const TeamScalarFieldEnum = {
   title: 'title',
   league: 'league',
   placement: 'placement',
-  clickTTGroupId: 'clickTTGroupId'
+  clickTTGroupId: 'clickTTGroupId',
+  seasonId: 'seasonId'
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
+
+
+export const TeamPlayerScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  teamId: 'teamId',
+  playerId: 'playerId',
+  seasonId: 'seasonId'
+} as const
+
+export type TeamPlayerScalarFieldEnum = (typeof TeamPlayerScalarFieldEnum)[keyof typeof TeamPlayerScalarFieldEnum]
 
 
 export const StandingScalarFieldEnum = {
@@ -1957,9 +2129,11 @@ export type GlobalOmitConfig = {
   userInvitation?: Prisma.UserInvitationOmit
   passwordReset?: Prisma.PasswordResetOmit
   appointment?: Prisma.AppointmentOmit
+  season?: Prisma.SeasonOmit
   response?: Prisma.ResponseOmit
   player?: Prisma.PlayerOmit
   team?: Prisma.TeamOmit
+  teamPlayer?: Prisma.TeamPlayerOmit
   standing?: Prisma.StandingOmit
   placement?: Prisma.PlacementOmit
   transaction?: Prisma.TransactionOmit

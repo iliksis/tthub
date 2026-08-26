@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getActiveSeason, getSeasons } from "@/api/seasons";
 import { CreateAppointmentForm } from "@/components/CreateAppointmentForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { t } from "@/lib/text";
@@ -25,12 +26,24 @@ export const Route = createFileRoute("/_authed/create")({
 	head: () => ({
 		meta: [{ title: t("Create appointment") }],
 	}),
+	loader: async () => {
+		const [seasonsRes, activeSeasonRes] = await Promise.all([
+			getSeasons(),
+			getActiveSeason(),
+		]);
+		return {
+			activeSeason: activeSeasonRes.data,
+			seasons: seasonsRes.data ?? [],
+		};
+	},
 });
 
 function RouteComponent() {
+	const { seasons, activeSeason } = Route.useLoaderData();
+
 	return (
 		<div>
-			<CreateAppointmentForm />
+			<CreateAppointmentForm seasons={seasons} activeSeason={activeSeason} />
 		</div>
 	);
 }

@@ -8,6 +8,7 @@ import {
 } from "@/lib/clickTTpdf";
 import { prismaClient } from "@/lib/db";
 import { AppointmentType } from "@/lib/prisma/enums";
+import { activeSeasonFilter } from "@/lib/season";
 import type { ImporterDefinition } from "./types";
 
 const configSchema = z.object({});
@@ -63,8 +64,13 @@ export const clickTTImporter = {
 		const clubName = process.env.CLICKTT_CLUB_NAME;
 
 		const teams = await prismaClient.team.findMany({
-			where: { clickTTGroupId: { not: null } },
+			where: { clickTTGroupId: { not: null }, season: activeSeasonFilter },
 		});
+
+		if (teams.length === 0) {
+			log("info", "No active season with click-TT teams — skipping import");
+			return { imported: 0, skipped: 0 };
+		}
 
 		const teamSchedules = await Promise.all(
 			teams.map(async (team) => {

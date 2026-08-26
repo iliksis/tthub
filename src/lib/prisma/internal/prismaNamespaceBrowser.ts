@@ -56,9 +56,11 @@ export const ModelName = {
   UserInvitation: 'UserInvitation',
   PasswordReset: 'PasswordReset',
   Appointment: 'Appointment',
+  Season: 'Season',
   Response: 'Response',
   Player: 'Player',
   Team: 'Team',
+  TeamPlayer: 'TeamPlayer',
   Standing: 'Standing',
   Placement: 'Placement',
   Transaction: 'Transaction',
@@ -136,10 +138,21 @@ export const AppointmentScalarFieldEnum = {
   nextAppointmentId: 'nextAppointmentId',
   ownTeamId: 'ownTeamId',
   homeTeam: 'homeTeam',
-  awayTeam: 'awayTeam'
+  awayTeam: 'awayTeam',
+  seasonId: 'seasonId'
 } as const
 
 export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
+
+
+export const SeasonScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  name: 'name',
+  isActive: 'isActive'
+} as const
+
+export type SeasonScalarFieldEnum = (typeof SeasonScalarFieldEnum)[keyof typeof SeasonScalarFieldEnum]
 
 
 export const ResponseScalarFieldEnum = {
@@ -157,8 +170,7 @@ export const PlayerScalarFieldEnum = {
   updatedAt: 'updatedAt',
   name: 'name',
   year: 'year',
-  qttr: 'qttr',
-  teamId: 'teamId'
+  qttr: 'qttr'
 } as const
 
 export type PlayerScalarFieldEnum = (typeof PlayerScalarFieldEnum)[keyof typeof PlayerScalarFieldEnum]
@@ -170,10 +182,22 @@ export const TeamScalarFieldEnum = {
   title: 'title',
   league: 'league',
   placement: 'placement',
-  clickTTGroupId: 'clickTTGroupId'
+  clickTTGroupId: 'clickTTGroupId',
+  seasonId: 'seasonId'
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
+
+
+export const TeamPlayerScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  teamId: 'teamId',
+  playerId: 'playerId',
+  seasonId: 'seasonId'
+} as const
+
+export type TeamPlayerScalarFieldEnum = (typeof TeamPlayerScalarFieldEnum)[keyof typeof TeamPlayerScalarFieldEnum]
 
 
 export const StandingScalarFieldEnum = {

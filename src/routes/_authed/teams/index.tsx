@@ -1,23 +1,61 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { z } from "zod";
+import { getActiveSeason, getSeasons } from "@/api/seasons";
 import { getTeams } from "@/api/teams";
 import { CreateTeam } from "@/components/teams/CreateTeam";
 import { List } from "@/components/teams/List";
 import { TeamsSplitView } from "@/components/teams/TeamsSplitView";
+import { EntitySelect } from "@/components/ui/entity-select";
 import { t } from "@/lib/text";
 
+const searchSchema = z.object({
+	seasonId: z.string().optional(),
+});
+
+// biome-ignore assist/source/useSortedKeys: validateSearch and loaderDeps need to be before loader
 export const Route = createFileRoute("/_authed/teams/")({
 	component: RouteComponent,
+	validateSearch: searchSchema,
+	loaderDeps: ({ search }) => ({ seasonId: search.seasonId }),
+	loader: async ({ deps }) => {
+		const [seasonsRes, activeSeasonRes] = await Promise.all([
+			getSeasons(),
+			getActiveSeason(),
+		]);
+		const seasons = seasonsRes.data ?? [];
+		const activeSeason = activeSeasonRes.data ?? null;
+		const seasonId = deps.seasonId ?? activeSeason?.id;
+		const res = await getTeams({ data: { seasonId } });
+		return { activeSeason, seasonId, seasons, teams: res.data ?? [] };
+	},
 	head: () => ({
 		meta: [{ title: t("Teams") }],
 	}),
-	loader: async () => {
-		const res = await getTeams();
-		return { teams: res.data };
-	},
 });
 
+function SeasonSwitcher() {
+	const { seasons, seasonId } = Route.useLoaderData();
+	const router = useRouter();
+
+	if (seasons.length === 0) return null;
+
+	return (
+		<EntitySelect
+			items={seasons}
+			value={seasonId ?? ""}
+			className="w-40"
+			onValueChange={(value) => {
+				router.navigate({
+					search: (prev) => ({ ...prev, seasonId: value || undefined }),
+					to: ".",
+				});
+			}}
+		/>
+	);
+}
+
 function RouteComponent() {
-	const { teams } = Route.useLoaderData();
+	const { teams, seasons, activeSeason } = Route.useLoaderData();
 
 	if (!teams) return <div>{t("An Error occurred")}</div>;
 
@@ -25,8 +63,11 @@ function RouteComponent() {
 		<>
 			{/* Mobile / tablet layout */}
 			<div className="lg:hidden">
+				<div className="mb-3 flex items-center gap-2">
+					<SeasonSwitcher />
+					<CreateTeam seasons={seasons} activeSeasonId={activeSeason?.id} />
+				</div>
 				<List teams={teams} />
-				<CreateTeam />
 			</div>
 
 			{/* Desktop layout: master-detail split view */}
@@ -38,7 +79,8 @@ function RouteComponent() {
 							· {teams.length}
 						</span>
 					</h1>
-					<CreateTeam />
+					<SeasonSwitcher />
+					<CreateTeam seasons={seasons} activeSeasonId={activeSeason?.id} />
 				</div>
 				<TeamsSplitView teams={teams} />
 			</div>

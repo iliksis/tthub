@@ -1,3 +1,4 @@
+import { Section } from "@/components/Section";
 import {
 	Tooltip,
 	TooltipContent,
@@ -22,8 +23,7 @@ export function RecordInfoPanel({
 	lastUpdated: Date;
 }) {
 	return (
-		<div className="rounded-lg bg-card p-4">
-			<div className="mb-3 font-bold text-sm">{t("Details")}</div>
+		<Section title={t("Metadata")}>
 			<dl className="flex flex-col gap-3 text-sm">
 				<div className="flex items-center justify-between gap-4">
 					<dt className="text-muted-foreground">{t("Created")}</dt>
@@ -48,6 +48,6 @@ export function RecordInfoPanel({
 					</Tooltip>
 				</div>
 			</dl>
-		</div>
+		</Section>
 	);
 }

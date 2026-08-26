@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
-import type { Appointment, Response, Team } from "@/lib/prisma/client";
+import type { Appointment, Response, Season, Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +23,7 @@ export const filterSchema = z.object({
 	deleted: z.boolean().optional(),
 	query: z.string().optional(),
 	responses: z.array(z.enum(["ACCEPT", "MAYBE", "DECLINE", "NONE"])).optional(),
+	seasonId: z.string().optional(),
 	skip: z.number().int().nonnegative().optional(),
 	sortDir: z.enum(["asc", "desc"]).optional(),
 	teamIds: z.array(z.string()).optional(),
@@ -186,8 +187,22 @@ function FilterPill({
 // styling, and the removable-token row (a segment can't show per-value
 // removal on its own, e.g. which of several selected responses to drop) —
 // this component only declares what the segments are.
-export const CommandBarFilters = (props: FiltersProps & { teams: Team[] }) => {
-	const { teams, ...search } = props;
+type SeasonFiltersProps = {
+	teams: Team[];
+	seasons: Season[];
+};
+
+const ALL_SEASONS = "ALL";
+
+function seasonFilterOptions(seasons: Season[]) {
+	return [
+		{ label: t("All"), value: ALL_SEASONS },
+		...seasons.map((season) => ({ label: season.name, value: season.id })),
+	];
+}
+
+export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
+	const { teams, seasons, ...search } = props;
 	const {
 		navigate,
 		onClear,
@@ -213,6 +228,17 @@ export const CommandBarFilters = (props: FiltersProps & { teams: Team[] }) => {
 			value: typeGroup,
 		},
 	];
+	if (seasons.length > 0) {
+		segments.push({
+			key: "season",
+			label: t("Season"),
+			onChange: (v) =>
+				navigate({ seasonId: v === ALL_SEASONS ? undefined : v }),
+			options: seasonFilterOptions(seasons),
+			type: "radio",
+			value: search.seasonId ?? ALL_SEASONS,
+		});
+	}
 	if (typeGroup === "TOURNAMENT") {
 		segments.push({
 			key: "response",
@@ -258,8 +284,8 @@ export const CommandBarFilters = (props: FiltersProps & { teams: Team[] }) => {
 // Mobile: a search bar that's always visible and filters as you type, plus
 // a secondary sheet for everything else — type group, contextual pills,
 // sort, date range, show deleted. All apply immediately, no Apply button.
-export const MobileFilters = (props: FiltersProps & { teams: Team[] }) => {
-	const { teams, ...search } = props;
+export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
+	const { teams, seasons, ...search } = props;
 	const {
 		navigate,
 		queryInput,
@@ -348,6 +374,30 @@ export const MobileFilters = (props: FiltersProps & { teams: Team[] }) => {
 							<Label>{t("Type")}</Label>
 							<TypeGroupTabs value={typeGroup} onChange={setTypeGroup} />
 						</fieldset>
+
+						{seasons.length > 0 && (
+							<fieldset className="flex flex-col gap-1.5">
+								<Label>{t("Season")}</Label>
+								<div className="flex flex-wrap gap-1.5">
+									{seasonFilterOptions(seasons).map((option) => (
+										<FilterPill
+											key={option.value}
+											active={(search.seasonId ?? ALL_SEASONS) === option.value}
+											onClick={() =>
+												navigate({
+													seasonId:
+														option.value === ALL_SEASONS
+															? undefined
+															: option.value,
+												})
+											}
+										>
+											{option.label}
+										</FilterPill>
+									))}
+								</div>
+							</fieldset>
+						)}
 
 						{typeGroup === "TOURNAMENT" && (
 							<fieldset className="flex flex-col gap-1.5">

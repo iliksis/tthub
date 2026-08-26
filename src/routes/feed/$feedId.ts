@@ -46,6 +46,9 @@ export const Route = createFileRoute("/feed/$feedId")({
 					};
 
 					// Build query for appointments
+					// Deliberately not season-scoped: a personal calendar feed is
+					// meant to span season boundaries, so appointments from every
+					// season are eligible here.
 					const where: Prisma.AppointmentWhereInput = {
 						deletedAt: null,
 					};

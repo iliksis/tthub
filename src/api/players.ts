@@ -1,21 +1,25 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
-import type { Prisma } from "@/lib/prisma/client";
+import { activeSeasonFilter } from "@/lib/season";
 import { useIsRole } from "@/lib/session";
 import { t } from "@/lib/text";
 
-const playerWithTeamInclude = { team: true } satisfies Prisma.PlayerInclude;
-
-export type PlayerWithTeam = Prisma.PlayerGetPayload<{
-	include: typeof playerWithTeamInclude;
-}>;
+// Only the active-season membership (at most one, per the roster's unique
+// constraint) — list/filter views only care about a player's *current*
+// team, not their full history (that's getPlayer's job).
+const currentTeamInclude = {
+	teams: {
+		include: { team: true },
+		where: { team: { season: activeSeasonFilter } },
+	},
+} as const;
 
 export const searchPlayers = createServerFn()
 	.validator((d: { query?: string }) => d)
 	.handler(async ({ data }) => {
 		try {
 			const players = await prismaClient.player.findMany({
-				include: playerWithTeamInclude,
+				include: currentTeamInclude,
 				orderBy: { name: "asc" },
 				take: 10,
 				where: {
@@ -29,11 +33,23 @@ export const searchPlayers = createServerFn()
 		}
 	});
 
-export const getPlayers = createServerFn({ method: "GET" }).handler(
-	async () => {
+export const getPlayers = createServerFn({ method: "GET" })
+	.validator((d: { seasonId?: string }) => d)
+	.handler(async ({ data }) => {
 		try {
 			const players = await prismaClient.player.findMany({
-				include: playerWithTeamInclude,
+				include: {
+					teams: {
+						include: { team: true },
+						where: {
+							team: {
+								season: data.seasonId
+									? { id: data.seasonId }
+									: activeSeasonFilter,
+							},
+						},
+					},
+				},
 				orderBy: { name: "asc" },
 			});
 			return { data: players, message: t("Players found") };
@@ -41,8 +57,7 @@ export const getPlayers = createServerFn({ method: "GET" }).handler(
 			console.error(e);
 			throw new Error((e as Error).message);
 		}
-	},
-);
+	});
 
 export const createPlayer = createServerFn({ method: "POST" })
 	.validator((d: { name: string; year: number; qttr: number }) => d)
@@ -80,7 +95,10 @@ export const getPlayer = createServerFn()
 							},
 						},
 					},
-					team: true,
+					teams: {
+						include: { team: { include: { season: true } } },
+						orderBy: { createdAt: "desc" },
+					},
 				},
 				where: { id: data.id },
 			});
@@ -95,22 +113,18 @@ export const getPlayer = createServerFn()
 	});
 
 export const updatePlayer = createServerFn()
-	.validator(
-		(d: {
-			id: string;
-			name: string;
-			year: number;
-			qttr: number;
-			team?: string;
-		}) => d,
-	)
+	.validator((d: { id: string; name: string; year: number; qttr: number }) => d)
 	.handler(async ({ data }) => {
+		const isAuthorized = await useIsRole("EDITOR");
+		if (!isAuthorized) {
+			throw new Error(t("Unauthorized"));
+		}
+
 		try {
 			const player = await prismaClient.player.update({
 				data: {
 					name: data.name,
 					qttr: data.qttr,
-					teamId: data.team,
 					year: data.year,
 				},
 				where: {

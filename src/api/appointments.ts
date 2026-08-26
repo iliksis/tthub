@@ -28,6 +28,7 @@ type ICreateAppointment =
 			endDate: Date | null;
 			location: string | null;
 			status: AppointmentStatus;
+			seasonId: string;
 	  };
 
 export const createAppointment = createServerFn()
@@ -46,6 +47,7 @@ export const createAppointment = createServerFn()
 					data: {
 						endDate: data.endDate,
 						location: data.type === "HOLIDAY" ? undefined : data.location,
+						seasonId: data.type === "HOLIDAY" ? undefined : data.seasonId,
 						shortTitle: data.shortTitle,
 						startDate: data.startDate,
 						status: data.type === "HOLIDAY" ? undefined : data.status,
@@ -93,6 +95,7 @@ const appointmentDetailInclude = {
 	responses: {
 		include: { user: true },
 	},
+	season: true,
 	transactions: {
 		include: { user: true },
 		orderBy: { createdAt: "desc" },
@@ -263,6 +266,7 @@ export const getAppointments = createServerFn()
 			location?: string;
 			minDate?: Date;
 			withDeleted?: boolean;
+			seasonId?: string;
 			orderBy?:
 				| Prisma.AppointmentOrderByWithRelationInput
 				| Prisma.AppointmentOrderByWithRelationInput[];
@@ -294,6 +298,7 @@ export const getAppointments = createServerFn()
 							shortTitle: { contains: data.title ?? "" },
 						},
 					],
+					seasonId: data.seasonId,
 					startDate: {
 						gt: data.minDate,
 					},
@@ -313,6 +318,7 @@ export const getAppointmentsPage = createServerFn()
 			typeGroup?: "TOURNAMENT" | "TEAM_MATCH";
 			responses?: (ResponseType | "NONE")[];
 			teamIds?: string[];
+			seasonId?: string;
 			withDeleted?: boolean;
 			sortDir?: "asc" | "desc";
 			skip: number;
@@ -375,6 +381,7 @@ export const getAppointmentsPage = createServerFn()
 						: responseTypes.length > 0
 							? { some: { responseType: { in: responseTypes }, userId } }
 							: undefined,
+				seasonId: data.seasonId,
 				// Only upcoming appointments show by default; a `withDeleted` search
 				// is for finding/restoring a soft-deleted appointment regardless of
 				// when it was, so it isn't restricted to today-or-later.
@@ -402,6 +409,7 @@ export const getAppointmentsPage = createServerFn()
 					where: {
 						deletedAt: data.withDeleted ? undefined : null,
 						NOT: { type: AppointmentType.HOLIDAY },
+						seasonId: data.seasonId,
 						startDate: data.withDeleted ? undefined : { gte: todayStart },
 					},
 				}),
@@ -472,6 +480,7 @@ export const updateAppointment = createServerFn()
 						link: data.updates.link,
 						location: data.updates.location,
 						nextAppointmentId: data.updates.nextAppointmentId,
+						seasonId: data.updates.seasonId,
 						shortTitle: data.updates.shortTitle,
 						startDate: data.updates.startDate,
 						status: data.updates.status,
@@ -685,7 +694,7 @@ export const getUserOpenAppointments = createServerFn()
 	});
 
 export const getCalendarAppointments = createServerFn()
-	.validator((d: { start: Date; end: Date }) => d)
+	.validator((d: { start: Date; end: Date; seasonId?: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (session.data.id === null) {
@@ -701,6 +710,7 @@ export const getCalendarAppointments = createServerFn()
 						{ endDate: { gte: start } },
 						{ endDate: null, startDate: { gte: start } },
 					],
+					seasonId: data.seasonId,
 					startDate: { lt: end },
 				},
 			});

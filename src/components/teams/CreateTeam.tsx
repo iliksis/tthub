@@ -5,10 +5,16 @@ import { toast } from "sonner";
 import { createTeam } from "@/api/teams";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
+import type { Season } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import { TeamForm } from "./TeamForm";
 
-export const CreateTeam = () => {
+type CreateTeamProps = {
+	seasons: Season[];
+	activeSeasonId?: string;
+};
+
+export const CreateTeam = ({ seasons, activeSeasonId }: CreateTeamProps) => {
 	const { user } = useRouteContext({ from: "__root__" });
 	const router = useRouter();
 
@@ -34,6 +40,8 @@ export const CreateTeam = () => {
 
 	if (user?.role === "USER") return null;
 
+	const hasSeasons = seasons.length > 0;
+
 	return (
 		<>
 			<Button
@@ -41,6 +49,8 @@ export const CreateTeam = () => {
 				variant="secondary"
 				size="icon-lg"
 				type="button"
+				disabled={!hasSeasons}
+				title={hasSeasons ? undefined : t("Create a season first")}
 				onClick={onOpenCreate}
 			>
 				<ShieldPlusIcon className="size-4" />
@@ -50,6 +60,8 @@ export const CreateTeam = () => {
 				variant="default"
 				size="sm"
 				type="button"
+				disabled={!hasSeasons}
+				title={hasSeasons ? undefined : t("Create a season first")}
 				onClick={onOpenCreate}
 			>
 				<ShieldPlusIcon className="size-4" />
@@ -59,6 +71,13 @@ export const CreateTeam = () => {
 				open={isCreating}
 				onClose={onStopCreating}
 				submitLabel={t("Create")}
+				seasonOptions={seasons}
+				defaultValues={{
+					clickTTGroupId: "",
+					league: "",
+					seasonId: activeSeasonId ?? seasons[0]?.id ?? "",
+					title: "",
+				}}
 				onSubmit={async (values) => {
 					await createTeamMutation.mutate({
 						data: { ...values },

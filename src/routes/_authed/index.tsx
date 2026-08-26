@@ -13,6 +13,7 @@ import {
 	getRecentTransactions,
 	getUserOpenAppointments,
 } from "@/api/appointments";
+import { getActiveSeason } from "@/api/seasons";
 import { getTeams } from "@/api/teams";
 import { AppointmentRow } from "@/components/AppointmentRow";
 import { Section } from "@/components/Section";
@@ -25,6 +26,9 @@ import { transactionActionBadge } from "@/lib/transactionLabels";
 import { cn, formatRelativeTime } from "@/lib/utils";
 
 const RECENT_ACTIVITY_TAKE = 5;
+// Must match the "lg:grid-cols-3" on the Standings grid below — it drives
+// which cards get a vertical divider (every column but the first).
+const STANDINGS_GRID_COLUMNS = 3;
 
 const openDateFmt = (d: Date | string) =>
 	new Date(d).toLocaleDateString("de-DE", {
@@ -60,14 +64,18 @@ export const Route = createFileRoute("/_authed/")({
 			throw new Error(t("Unauthorized"));
 		}
 
-		const [nextRes, openRes, teamsRes, transactionsRes] = await Promise.all([
-			getNextAppointments(),
-			getUserOpenAppointments({
-				data: { userId: context.user.id },
-			}),
-			getTeams(),
-			getRecentTransactions({ data: { take: RECENT_ACTIVITY_TAKE } }),
-		]);
+		const [nextRes, openRes, activeSeasonRes, transactionsRes] =
+			await Promise.all([
+				getNextAppointments(),
+				getUserOpenAppointments({
+					data: { userId: context.user.id },
+				}),
+				getActiveSeason(),
+				getRecentTransactions({ data: { take: RECENT_ACTIVITY_TAKE } }),
+			]);
+		const teamsRes = await getTeams({
+			data: { seasonId: activeSeasonRes.data?.id },
+		});
 
 		return {
 			nextAppointments: nextRes.data,
@@ -223,14 +231,17 @@ function App() {
 			</div>
 
 			<Section title={t("Standings")}>
+				{/* lg:grid-cols-3 must match STANDINGS_GRID_COLUMNS above */}
 				<div className="grid gap-x-8 gap-y-6 lg:grid-cols-3">
 					{teams.map((team, i) => (
 						<div
 							key={team.id}
 							className={cn(
 								"min-w-0",
+								i > 0 && "border-border/60 pt-4 lg:border-t-0 lg:pt-0",
 								i > 0 &&
-									"border-border/60 pt-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8",
+									i % STANDINGS_GRID_COLUMNS !== 0 &&
+									"lg:border-l lg:pl-8",
 							)}
 						>
 							<div className="mb-2 flex items-baseline justify-between gap-2">

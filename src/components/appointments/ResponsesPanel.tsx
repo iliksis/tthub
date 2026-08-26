@@ -1,3 +1,4 @@
+import { Section } from "@/components/Section";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,11 +49,7 @@ export function ResponsesPanel({
 	);
 
 	return (
-		<div className="rounded-lg bg-card p-4">
-			<div className="mb-3 flex items-center justify-between">
-				<span className="font-bold text-sm">{t("Responses")}</span>
-			</div>
-
+		<Section title={t("Responses")}>
 			{showActions && (
 				<div className="mb-4 grid grid-cols-3 gap-2">
 					<Button
@@ -120,6 +117,6 @@ export function ResponsesPanel({
 					);
 				})}
 			</ul>
-		</div>
+		</Section>
 	);
 }

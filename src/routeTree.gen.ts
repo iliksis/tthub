@@ -27,6 +27,7 @@ import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settin
 import { Route as AuthedSettingsFeedRouteImport } from './routes/_authed/settings/feed'
 import { Route as AuthedSettingsImportsRouteImport } from './routes/_authed/settings/imports'
 import { Route as AuthedSettingsProfileRouteImport } from './routes/_authed/settings/profile'
+import { Route as AuthedSettingsSeasonsRouteImport } from './routes/_authed/settings/seasons'
 import { Route as AuthedSettingsUsersRouteImport } from './routes/_authed/settings/users'
 import { Route as AuthedTeamsIndexRouteImport } from './routes/_authed/teams/index'
 import { Route as AuthedTeamsTeamIdRouteImport } from './routes/_authed/teams/$teamId'
@@ -120,6 +121,11 @@ const AuthedSettingsProfileRoute = AuthedSettingsProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthedSettingsRoute,
 } as any)
+const AuthedSettingsSeasonsRoute = AuthedSettingsSeasonsRouteImport.update({
+  id: '/seasons',
+  path: '/seasons',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
 const AuthedSettingsUsersRoute = AuthedSettingsUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/settings/feed': typeof AuthedSettingsFeedRoute
   '/settings/imports': typeof AuthedSettingsImportsRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
+  '/settings/seasons': typeof AuthedSettingsSeasonsRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
   '/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/appts/': typeof AuthedApptsIndexRoute
@@ -172,6 +179,7 @@ export interface FileRoutesByTo {
   '/settings/feed': typeof AuthedSettingsFeedRoute
   '/settings/imports': typeof AuthedSettingsImportsRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
+  '/settings/seasons': typeof AuthedSettingsSeasonsRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
   '/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/appts': typeof AuthedApptsIndexRoute
@@ -196,6 +204,7 @@ export interface FileRoutesById {
   '/_authed/settings/feed': typeof AuthedSettingsFeedRoute
   '/_authed/settings/imports': typeof AuthedSettingsImportsRoute
   '/_authed/settings/profile': typeof AuthedSettingsProfileRoute
+  '/_authed/settings/seasons': typeof AuthedSettingsSeasonsRoute
   '/_authed/settings/users': typeof AuthedSettingsUsersRoute
   '/_authed/teams/$teamId': typeof AuthedTeamsTeamIdRoute
   '/_authed/appts/': typeof AuthedApptsIndexRoute
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/settings/feed'
     | '/settings/imports'
     | '/settings/profile'
+    | '/settings/seasons'
     | '/settings/users'
     | '/teams/$teamId'
     | '/appts/'
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/settings/feed'
     | '/settings/imports'
     | '/settings/profile'
+    | '/settings/seasons'
     | '/settings/users'
     | '/teams/$teamId'
     | '/appts'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/_authed/settings/feed'
     | '/_authed/settings/imports'
     | '/_authed/settings/profile'
+    | '/_authed/settings/seasons'
     | '/_authed/settings/users'
     | '/_authed/teams/$teamId'
     | '/_authed/appts/'
@@ -408,6 +420,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSettingsProfileRouteImport
       parentRoute: typeof AuthedSettingsRoute
     }
+    '/_authed/settings/seasons': {
+      id: '/_authed/settings/seasons'
+      path: '/seasons'
+      fullPath: '/settings/seasons'
+      preLoaderRoute: typeof AuthedSettingsSeasonsRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
     '/_authed/settings/users': {
       id: '/_authed/settings/users'
       path: '/users'
@@ -436,6 +455,7 @@ interface AuthedSettingsRouteChildren {
   AuthedSettingsFeedRoute: typeof AuthedSettingsFeedRoute
   AuthedSettingsImportsRoute: typeof AuthedSettingsImportsRoute
   AuthedSettingsProfileRoute: typeof AuthedSettingsProfileRoute
+  AuthedSettingsSeasonsRoute: typeof AuthedSettingsSeasonsRoute
   AuthedSettingsUsersRoute: typeof AuthedSettingsUsersRoute
   AuthedSettingsIndexRoute: typeof AuthedSettingsIndexRoute
 }
@@ -444,6 +464,7 @@ const AuthedSettingsRouteChildren: AuthedSettingsRouteChildren = {
   AuthedSettingsFeedRoute: AuthedSettingsFeedRoute,
   AuthedSettingsImportsRoute: AuthedSettingsImportsRoute,
   AuthedSettingsProfileRoute: AuthedSettingsProfileRoute,
+  AuthedSettingsSeasonsRoute: AuthedSettingsSeasonsRoute,
   AuthedSettingsUsersRoute: AuthedSettingsUsersRoute,
   AuthedSettingsIndexRoute: AuthedSettingsIndexRoute,
 }

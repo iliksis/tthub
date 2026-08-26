@@ -7,7 +7,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { EditIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
-import { deleteTeam, getTeam, updateTeam } from "@/api/teams";
+import { getPlayers } from "@/api/players";
+import {
+	applyRosterChanges,
+	deleteTeam,
+	getTeam,
+	updateTeam,
+} from "@/api/teams";
 import { AppointmentRow } from "@/components/AppointmentRow";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
@@ -25,15 +31,21 @@ import { calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 export const Route = createFileRoute("/_authed/teams/$teamId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const res = await getTeam({ data: { id: params.teamId } });
-		return { team: res.data };
+		const teamRes = await getTeam({ data: { id: params.teamId } });
+		const playersRes = await getPlayers({
+			data: { seasonId: teamRes.data?.seasonId },
+		});
+		return {
+			players: playersRes.data,
+			team: teamRes.data,
+		};
 	},
 	head: ({ loaderData }) => ({
 		meta: [{ title: loaderData?.team?.title }],
 	}),
 });
 
-type TeamPlayer = NonNullable<
+type TeamRosterEntry = NonNullable<
 	ReturnType<typeof Route.useLoaderData>["team"]
 >["players"][number];
 
@@ -70,32 +82,32 @@ function MatchList({ matches }: { matches: TeamMatch[] }) {
 	);
 }
 
-const rosterColumns: DetailsListColumn<TeamPlayer>[] = [
+const rosterColumns: DetailsListColumn<TeamRosterEntry>[] = [
 	{
 		key: "name",
 		label: t("Name"),
 		render: (item) => (
-			<Link to="/players/$playerId" params={{ playerId: item.id }}>
-				{item.name}
+			<Link to="/players/$playerId" params={{ playerId: item.player.id }}>
+				{item.player.name}
 			</Link>
 		),
 	},
 	{
 		key: "ageGroup",
 		label: t("Age Group"),
-		render: (item) => calculateAgeGroup(item.year),
+		render: (item) => calculateAgeGroup(item.player.year),
 	},
 	{
 		key: "qttr",
 		label: t("QTTR"),
-		render: (item) => item.qttr,
+		render: (item) => item.player.qttr,
 		sortable: true,
-		sortFn: (a, b) => a.qttr - b.qttr,
+		sortFn: (a, b) => a.player.qttr - b.player.qttr,
 	},
 ];
 
 function RouteComponent() {
-	const { team } = Route.useLoaderData();
+	const { team, players } = Route.useLoaderData();
 	const { user } = useRouteContext({ from: "__root__" });
 	const router = useRouter();
 	const canEdit = isEditorOrAdmin(user?.role);
@@ -103,6 +115,7 @@ function RouteComponent() {
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [isDeleting, setIsDeleting] = React.useState(false);
 	const deleteTeamServerFn = useServerFn(deleteTeam);
+	const applyRosterChangesServerFn = useServerFn(applyRosterChanges);
 
 	const updateTeamMutation = useMutation({
 		fn: updateTeam,
@@ -145,10 +158,13 @@ function RouteComponent() {
 		}
 	};
 
-	const sortedPlayers = [...team.players].sort((a, b) => b.qttr - a.qttr);
+	const sortedPlayers = [...team.players].sort(
+		(a, b) => b.player.qttr - a.player.qttr,
+	);
 	const upcomingMatches = team.appointments.filter(
 		(a) => new Date(a.startDate).getTime() >= Date.now(),
 	);
+	const availablePlayers = players.filter((p) => p.teams.length === 0);
 
 	return (
 		<div>
@@ -158,6 +174,7 @@ function RouteComponent() {
 				<span className="text-muted-foreground text-sm">·</span>
 				<span className="text-muted-foreground text-sm">{team.league}</span>
 				{team.placement && <Badge variant="default">{team.placement}</Badge>}
+				<Badge variant="secondary">{team.season.name}</Badge>
 				{canEdit && (
 					<div className="ml-auto flex gap-2">
 						<Button variant="outline" size="sm" onClick={onEdit}>
@@ -187,7 +204,7 @@ function RouteComponent() {
 							selectMode="none"
 							onItemClick={async (item) => {
 								await router.navigate({
-									params: { playerId: item.id },
+									params: { playerId: item.player.id },
 									to: "/players/$playerId",
 								});
 							}}
@@ -209,16 +226,45 @@ function RouteComponent() {
 					<TeamForm
 						open={isEditing}
 						onClose={onStopEditing}
-						onSubmit={async (values) => {
-							await updateTeamMutation.mutate({
-								data: { id: team.id, ...values },
+						onSubmit={async (values, rosterChanges) => {
+							const updateResult = await updateTeamMutation.mutate({
+								data: {
+									clickTTGroupId: values.clickTTGroupId,
+									id: team.id,
+									league: values.league,
+									title: values.title,
+								},
 							});
+							if (
+								updateResult &&
+								rosterChanges &&
+								(rosterChanges.adds.length || rosterChanges.removes.length)
+							) {
+								try {
+									const res = await applyRosterChangesServerFn({
+										data: {
+											adds: rosterChanges.adds,
+											removes: rosterChanges.removes,
+											teamId: team.id,
+										},
+									});
+									await router.invalidate();
+									toast.success(res.message);
+								} catch (err) {
+									toast.error((err as Error).message);
+								}
+							}
 						}}
 						submitLabel={t("Update")}
 						defaultValues={{
 							clickTTGroupId: team.clickTTGroupId ?? "",
 							league: team.league ?? "",
+							seasonId: team.seasonId,
 							title: team.title,
+						}}
+						roster={{
+							availablePlayers,
+							players: sortedPlayers,
 						}}
 					/>
 					<DeleteModal

@@ -43,6 +43,11 @@ export type PasswordReset = Prisma.PasswordResetModel
  */
 export type Appointment = Prisma.AppointmentModel
 /**
+ * Model Season
+ * 
+ */
+export type Season = Prisma.SeasonModel
+/**
  * Model Response
  * 
  */
@@ -57,6 +62,11 @@ export type Player = Prisma.PlayerModel
  * 
  */
 export type Team = Prisma.TeamModel
+/**
+ * Model TeamPlayer
+ * 
+ */
+export type TeamPlayer = Prisma.TeamPlayerModel
 /**
  * Model Standing
  * 
