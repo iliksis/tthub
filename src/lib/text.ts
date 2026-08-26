@@ -45,6 +45,7 @@ const texts = {
 	Accepted: "Angenommen",
 	Action: "Aktion",
 	"Active Subscriptions": "Geräte mit aktivierten Benachrichtigungen",
+	"Active season found": "Aktive Saison gefunden",
 	"Add a new event to the club calendar":
 		"Neues Ereignis zum Vereinskalender hinzufügen",
 	"Add participant": "Teilnehmer:in hinzufügen",
@@ -319,6 +320,13 @@ const texts = {
 	"Search players or add filter...":
 		"Spieler:in suchen oder Filter hinzufügen…",
 	"Search Teams": "Teams suchen",
+	"Season activated": "Saison aktiviert",
+	"Season cannot be deleted while teams or appointments reference it":
+		"Saison kann nicht gelöscht werden, solange Teams oder Termine darauf verweisen",
+	"Season created": "Saison erstellt",
+	"Season deleted": "Saison gelöscht",
+	"Season updated": "Saison aktualisiert",
+	"Seasons found": "Saisons gefunden",
 	"Select a row to see details": "Zeile auswählen, um Details zu sehen",
 	"Select a search type or use shortcuts":
 		"Wähle einen Suchtyp oder benutze Shortcuts",
