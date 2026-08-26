@@ -4,11 +4,13 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { EditIcon, Trash2Icon, UserPlusIcon, UsersIcon } from "lucide-react";
+import { EditIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { getPlayers } from "@/api/players";
 import {
+	addTeamPlayer,
+	copyTeamRoster,
 	deleteTeam,
 	getTeam,
 	getTeams,
@@ -19,8 +21,6 @@ import { AppointmentRow } from "@/components/AppointmentRow";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Section } from "@/components/Section";
-import { AddPlayerModal } from "@/components/teams/AddPlayerModal";
-import { CopyRosterModal } from "@/components/teams/CopyRosterModal";
 import { StandingsTable } from "@/components/teams/StandingsTable";
 import { TeamForm } from "@/components/teams/TeamForm";
 import { Badge } from "@/components/ui/badge";
@@ -119,8 +119,6 @@ function RouteComponent() {
 
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [isDeleting, setIsDeleting] = React.useState(false);
-	const [isAddingPlayer, setIsAddingPlayer] = React.useState(false);
-	const [isCopyingRoster, setIsCopyingRoster] = React.useState(false);
 	const deleteTeamServerFn = useServerFn(deleteTeam);
 
 	const updateTeamMutation = useMutation({
@@ -134,8 +132,30 @@ function RouteComponent() {
 		},
 	});
 
+	const addTeamPlayerMutation = useMutation({
+		fn: addTeamPlayer,
+		onError: (err) => {
+			toast.error(err.message);
+		},
+		onSuccess: async (ctx) => {
+			await router.invalidate();
+			toast.success(ctx.data.message);
+		},
+	});
+
 	const removeTeamPlayerMutation = useMutation({
 		fn: removeTeamPlayer,
+		onError: (err) => {
+			toast.error(err.message);
+		},
+		onSuccess: async (ctx) => {
+			await router.invalidate();
+			toast.success(ctx.data.message);
+		},
+	});
+
+	const copyTeamRosterMutation = useMutation({
+		fn: copyTeamRoster,
 		onError: (err) => {
 			toast.error(err.message);
 		},
@@ -221,47 +241,13 @@ function RouteComponent() {
 							items={sortedPlayers}
 							getItemId={(item) => item.id}
 							columns={rosterColumns}
-							selectMode={canEdit ? "single" : "none"}
+							selectMode="none"
 							onItemClick={async (item) => {
 								await router.navigate({
 									params: { playerId: item.player.id },
 									to: "/players/$playerId",
 								});
 							}}
-							commandBarItems={
-								canEdit
-									? [
-											{
-												icon: <UserPlusIcon className="size-4" />,
-												key: "add-player",
-												label: t("Add to roster"),
-												onClick: () => setIsAddingPlayer(true),
-												onlyIcon: true,
-												variant: "primary",
-											},
-											{
-												icon: <UsersIcon className="size-4" />,
-												isDisabled: () => copyRosterSourceOptions.length === 0,
-												key: "copy-roster",
-												label: t("Copy roster from..."),
-												onClick: () => setIsCopyingRoster(true),
-												variant: "secondary",
-											},
-											{
-												icon: <Trash2Icon className="size-4" />,
-												isDisabled: (items) => items.length !== 1,
-												key: "remove-player",
-												label: t("Remove from roster"),
-												onClick: (items) =>
-													removeTeamPlayerMutation.mutate({
-														data: { id: items[0].id },
-													}),
-												onlyIcon: true,
-												variant: "error",
-											},
-										]
-									: []
-							}
 						/>
 					</div>
 				</Section>
@@ -292,24 +278,27 @@ function RouteComponent() {
 							seasonId: team.seasonId,
 							title: team.title,
 						}}
+						roster={{
+							availablePlayers,
+							onAdd: (playerId) =>
+								addTeamPlayerMutation.mutate({
+									data: { playerId, teamId: team.id },
+								}),
+							onCopy: (sourceTeamId) =>
+								copyTeamRosterMutation.mutate({
+									data: { sourceTeamId, targetTeamId: team.id },
+								}),
+							onRemove: (id) =>
+								removeTeamPlayerMutation.mutate({ data: { id } }),
+							players: sortedPlayers,
+							sourceOptions: copyRosterSourceOptions,
+						}}
 					/>
 					<DeleteModal
 						label={t("Are you sure you want to delete this team?")}
 						open={isDeleting}
 						onClose={onStopDeleting}
 						onDelete={onDelete}
-					/>
-					<AddPlayerModal
-						open={isAddingPlayer}
-						onOpenChange={setIsAddingPlayer}
-						teamId={team.id}
-						players={availablePlayers}
-					/>
-					<CopyRosterModal
-						open={isCopyingRoster}
-						onOpenChange={setIsCopyingRoster}
-						targetTeamId={team.id}
-						sourceOptions={copyRosterSourceOptions}
 					/>
 				</>
 			)}
