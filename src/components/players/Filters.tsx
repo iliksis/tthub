@@ -377,7 +377,12 @@ export const MobilePlayerFilters = ({
 };
 
 export const applyPlayerFilters = <
-	T extends { name: string; year: number; qttr: number; teamId: string | null },
+	T extends {
+		name: string;
+		year: number;
+		qttr: number;
+		teams: { teamId: string }[];
+	},
 >(
 	players: T[],
 	filters: FiltersProps,
@@ -389,10 +394,11 @@ export const applyPlayerFilters = <
 		)
 			return false;
 		if (filters.teamId) {
+			const currentTeamId = p.teams[0]?.teamId ?? null;
 			if (
 				filters.teamId === NO_TEAM
-					? p.teamId !== null
-					: p.teamId !== filters.teamId
+					? currentTeamId !== null
+					: currentTeamId !== filters.teamId
 			)
 				return false;
 		}

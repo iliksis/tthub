@@ -9,43 +9,30 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import type { Team } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 
 type PlayerFormProps = {
 	open?: boolean;
 	onClose?: () => void;
 	submitLabel: string;
-	teams?: Team[];
 	defaultValues?: {
 		name: string;
 		year: number;
 		qttr: number;
-		team: string | null;
 	};
 	onSubmit: (updates: {
 		name: string;
 		year: number;
 		qttr: number;
-		team: string | null;
 	}) => Promise<void>;
 };
 export const PlayerForm = ({
 	open,
 	onClose,
 	submitLabel,
-	teams,
 	defaultValues = {
 		name: "",
 		qttr: 0,
-		team: null,
 		year: new Date().getFullYear(),
 	},
 	onSubmit,
@@ -171,36 +158,6 @@ export const PlayerForm = ({
 							)}
 						</form.Field>
 					</div>
-					{teams && (
-						<div>
-							<form.Field name="team">
-								{(field) => (
-									<fieldset className="flex flex-col gap-1.5">
-										<Label htmlFor={field.name}>{t("Team")}:</Label>
-										<Select
-											name={field.name}
-											value={field.state.value ?? undefined}
-											onValueChange={(value) => field.handleChange(value)}
-											onOpenChange={(open) => {
-												if (!open) field.handleBlur();
-											}}
-										>
-											<SelectTrigger id={field.name} className="w-full">
-												<SelectValue placeholder={t("Choose a team")} />
-											</SelectTrigger>
-											<SelectContent>
-												{teams.map((p) => (
-													<SelectItem key={p.id} value={p.id}>
-														{p.title}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-									</fieldset>
-								)}
-							</form.Field>
-						</div>
-					)}
 				</form>
 				<DialogFooter>
 					<DialogClose render={<Button variant="outline" />}>

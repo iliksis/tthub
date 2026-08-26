@@ -2,7 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import { DetailsList } from "@/components/DetailsList";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Link } from "@/components/ui/link";
-import type { Player, Team } from "@/lib/prisma/client";
+import type { Player, Team, TeamPlayer } from "@/lib/prisma/client";
 import { t } from "@/lib/text";
 import {
 	calculateAgeGroup,
@@ -11,7 +11,7 @@ import {
 } from "@/lib/utils";
 
 type ListProps = {
-	players: (Player & { team: Team | null })[];
+	players: (Player & { teams: (TeamPlayer & { team: Team })[] })[];
 };
 export const List = ({ players }: ListProps) => {
 	const router = useRouter();
@@ -94,24 +94,28 @@ export const List = ({ players }: ListProps) => {
 					{
 						key: "team",
 						label: t("Team"),
-						render: (item) =>
-							item.team && (
-								<div className="flex items-center gap-1.5 text-muted-foreground">
-									<Link
-										to="/teams/$teamId"
-										params={{ teamId: item.team.id }}
-										onClick={(e) => e.stopPropagation()}
-										className="text-foreground"
-									>
-										{item.team.title}
-									</Link>
-									{item.team.league && <span>· {item.team.league}</span>}
-								</div>
-							),
+						render: (item) => {
+							const team = item.teams[0]?.team;
+							return (
+								team && (
+									<div className="flex items-center gap-1.5 text-muted-foreground">
+										<Link
+											to="/teams/$teamId"
+											params={{ teamId: team.id }}
+											onClick={(e) => e.stopPropagation()}
+											className="text-foreground"
+										>
+											{team.title}
+										</Link>
+										{team.league && <span>· {team.league}</span>}
+									</div>
+								)
+							);
+						},
 						sortable: true,
 						sortFn: (a, b) => {
-							const teamA = a.team?.title || "";
-							const teamB = b.team?.title || "";
+							const teamA = a.teams[0]?.team.title || "";
+							const teamB = b.teams[0]?.team.title || "";
 							return teamA.localeCompare(teamB);
 						},
 					},

@@ -3,11 +3,22 @@ import { prismaClient } from "@/lib/db";
 import { useIsRole } from "@/lib/session";
 import { t } from "@/lib/text";
 
+// Only the active-season membership (at most one, per the roster's unique
+// constraint) — list/filter views only care about a player's *current*
+// team, not their full history (that's getPlayer's job).
+const currentTeamInclude = {
+	teams: {
+		include: { team: true },
+		where: { team: { season: { isActive: true } } },
+	},
+} as const;
+
 export const searchPlayers = createServerFn()
 	.validator((d: { query?: string }) => d)
 	.handler(async ({ data }) => {
 		try {
 			const players = await prismaClient.player.findMany({
+				include: currentTeamInclude,
 				orderBy: { name: "asc" },
 				take: 10,
 				where: {
@@ -25,6 +36,7 @@ export const getPlayers = createServerFn({ method: "GET" }).handler(
 	async () => {
 		try {
 			const players = await prismaClient.player.findMany({
+				include: currentTeamInclude,
 				orderBy: { name: "asc" },
 			});
 			return { data: players, message: t("Players found") };

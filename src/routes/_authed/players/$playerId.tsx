@@ -8,7 +8,6 @@ import { EditIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { deletePlayer, getPlayer, updatePlayer } from "@/api/players";
-import { getTeams } from "@/api/teams";
 import { AppointmentRow } from "@/components/AppointmentRow";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlayerForm } from "@/components/players/PlayerForm";
@@ -23,11 +22,8 @@ import { calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 export const Route = createFileRoute("/_authed/players/$playerId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const [playerRes, teamsRes] = await Promise.all([
-			getPlayer({ data: { id: params.playerId } }),
-			getTeams({ data: {} }),
-		]);
-		return { player: playerRes.data, teams: teamsRes.data };
+		const res = await getPlayer({ data: { id: params.playerId } });
+		return { player: res.data };
 	},
 	head: ({ loaderData }) => ({
 		meta: [{ title: loaderData?.player?.name }],
@@ -58,7 +54,7 @@ const groupByYear = (placements: Placement[]) => {
 
 function RouteComponent() {
 	const router = useRouter();
-	const { player, teams } = Route.useLoaderData();
+	const { player } = Route.useLoaderData();
 	const { user } = useRouteContext({ from: "__root__" });
 
 	const canEdit = isEditorOrAdmin(user?.role);
@@ -82,6 +78,10 @@ function RouteComponent() {
 	if (!player) return <div>{t("An Error occurred")}</div>;
 
 	const yearGroups = groupByYear(player.placements);
+	const currentMembership = player.teams.find((tp) => tp.team.season.isActive);
+	const pastMemberships = player.teams.filter(
+		(tp) => tp.id !== currentMembership?.id,
+	);
 
 	const onEdit = () => {
 		setIsEditing(true);
@@ -161,26 +161,55 @@ function RouteComponent() {
 							<div className="flex items-center justify-between py-2.5 border-b border-border/60">
 								<dt className="text-muted-foreground">{t("Team")}</dt>
 								<dd className="font-medium">
-									{player.team ? (
+									{currentMembership ? (
 										<Link
 											to="/teams/$teamId"
-											params={{ teamId: player.team.id }}
+											params={{ teamId: currentMembership.team.id }}
 										>
-											{player.team.title}
+											{currentMembership.team.title}
 										</Link>
 									) : (
 										t("No team set")
 									)}
 								</dd>
 							</div>
-							{player.team?.league && (
+							{currentMembership?.team.league && (
 								<div className="flex items-center justify-between py-2.5 border-b border-border/60">
 									<dt className="text-muted-foreground">{t("League")}</dt>
-									<dd className="font-medium">{player.team.league}</dd>
+									<dd className="font-medium">
+										{currentMembership.team.league}
+									</dd>
 								</div>
 							)}
 						</dl>
 					</Section>
+
+					{pastMemberships.length > 0 && (
+						<div className="mt-6">
+							<Section title={t("History")}>
+								<dl className="flex flex-col text-sm">
+									{pastMemberships.map((tp) => (
+										<div
+											key={tp.id}
+											className="flex items-center justify-between py-2.5 border-b border-border/60 last:border-b-0"
+										>
+											<dt className="text-muted-foreground">
+												{tp.team.season.name}
+											</dt>
+											<dd className="font-medium">
+												<Link
+													to="/teams/$teamId"
+													params={{ teamId: tp.team.id }}
+												>
+													{tp.team.title}
+												</Link>
+											</dd>
+										</div>
+									))}
+								</dl>
+							</Section>
+						</div>
+					)}
 				</div>
 			</div>
 
@@ -222,16 +251,15 @@ function RouteComponent() {
 						onClose={onStopEditing}
 						onSubmit={async (values) => {
 							await updatePlayerMutation.mutate({
-								data: {
-									...values,
-									id: player.id,
-									team: values.team ?? undefined,
-								},
+								data: { ...values, id: player.id },
 							});
 						}}
 						submitLabel={t("Update")}
-						defaultValues={{ ...player, team: player.team?.id ?? null }}
-						teams={teams ?? []}
+						defaultValues={{
+							name: player.name,
+							qttr: player.qttr,
+							year: player.year,
+						}}
 					/>
 					<DeleteModal
 						label={t("Are you sure you want to delete this player?")}

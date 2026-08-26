@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { UsersIcon } from "lucide-react";
 import { getPlayers } from "@/api/players";
+import { getActiveSeason } from "@/api/seasons";
 import { getTeams } from "@/api/teams";
 import { CreatePlayer } from "@/components/players/CreatePlayer";
 import {
@@ -24,9 +25,10 @@ export const Route = createFileRoute("/_authed/players/")({
 		meta: [{ title: t("Players") }],
 	}),
 	loader: async () => {
+		const activeSeasonRes = await getActiveSeason();
 		const [playersRes, teamsRes] = await Promise.all([
 			getPlayers(),
-			getTeams({ data: {} }),
+			getTeams({ data: { seasonId: activeSeasonRes.data?.id } }),
 		]);
 		return { players: playersRes.data, teams: teamsRes.data };
 	},
