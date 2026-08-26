@@ -21,6 +21,7 @@ import {
 } from "@/api/appointments";
 import { getUniqueCategories } from "@/api/placements";
 import { getPlayers } from "@/api/players";
+import { getSeasons } from "@/api/seasons";
 import { EditableNextAppointmentCard } from "@/components/appointments/editable/EditableNextAppointmentCard";
 import { RecordInfoPanel } from "@/components/appointments/RecordInfoPanel";
 import { ResponsesPanel } from "@/components/appointments/ResponsesPanel";
@@ -39,6 +40,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "@/components/ui/link";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import {
 	Sheet,
 	SheetClose,
@@ -69,12 +77,13 @@ export const Route = createFileRoute("/_authed/appts/$apptId")({
 	loader: async ({ params }) => {
 		const res = await getAppointment({ data: { id: params.apptId } });
 
-		const [players, categories, appointments] = await Promise.all([
+		const [players, categories, appointments, seasons] = await Promise.all([
 			getPlayers(),
 			getUniqueCategories(),
 			getAppointments({
 				data: { minDate: res.data?.startDate, orderBy: { startDate: "desc" } },
 			}),
+			getSeasons(),
 		]);
 
 		return {
@@ -82,6 +91,7 @@ export const Route = createFileRoute("/_authed/appts/$apptId")({
 			appointments: appointments.data,
 			categories: categories.data,
 			players: players.data,
+			seasons: seasons.data ?? [],
 		};
 	},
 	head: ({ loaderData }) => ({
@@ -117,6 +127,7 @@ type EditableDraft = {
 	link: string;
 	startDate: Date;
 	endDate: Date | null;
+	seasonId: string;
 };
 
 function RouteComponent() {
@@ -131,6 +142,7 @@ function RouteComponent() {
 		endDate: null,
 		link: "",
 		location: "",
+		seasonId: "",
 		shortTitle: "",
 		startDate: new Date(),
 		title: "",
@@ -143,7 +155,7 @@ function RouteComponent() {
 	const restore = useServerFn(restoreAppointment);
 	const updateAppointmentServerFn = useServerFn(updateAppointment);
 
-	const { appointment, players, categories, appointments } =
+	const { appointment, players, categories, appointments, seasons } =
 		Route.useLoaderData();
 	const router = useRouter();
 
@@ -247,6 +259,7 @@ function RouteComponent() {
 			endDate: appointment.endDate ? new Date(appointment.endDate) : null,
 			link: appointment.link ?? "",
 			location: appointment.location ?? "",
+			seasonId: appointment.seasonId ?? "",
 			shortTitle: appointment.shortTitle,
 			startDate: new Date(appointment.startDate),
 			title: appointment.title,
@@ -255,7 +268,11 @@ function RouteComponent() {
 	};
 	const onSaveEdit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		const ok = await onSaveField(draft);
+		// seasonId is only editable (and only shown) for TOURNAMENT/TOURNAMENT_DE
+		// — HOLIDAY doesn't need one and TEAM_MATCH's stays derived from its team,
+		// so it's dropped from the payload rather than saved as an empty string.
+		const { seasonId, ...rest } = draft;
+		const ok = await onSaveField(isHoliday ? rest : { ...rest, seasonId });
 		if (ok) setIsEditSheetOpen(false);
 	};
 
@@ -815,6 +832,32 @@ function RouteComponent() {
 											setDraft({ ...draft, link: e.target.value })
 										}
 									/>
+								</fieldset>
+								{/* isHoliday (above) covers HOLIDAY and TEAM_MATCH, so this
+								    whole branch already excludes TEAM_MATCH — its season
+								    stays derived from ownTeam, never editable here. */}
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor="season">{t("Season")}</Label>
+									<Select
+										items={Object.fromEntries(
+											seasons.map((s) => [s.id, s.name]),
+										)}
+										value={draft.seasonId}
+										onValueChange={(value) =>
+											setDraft({ ...draft, seasonId: value ?? "" })
+										}
+									>
+										<SelectTrigger id="season" className="w-full">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											{seasons.map((season) => (
+												<SelectItem key={season.id} value={season.id}>
+													{season.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 								</fieldset>
 							</>
 						)}

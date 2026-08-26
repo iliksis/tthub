@@ -8,7 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useMutation } from "@/hooks/useMutation";
+import type { Season } from "@/lib/prisma/client";
 import { AppointmentStatus } from "@/lib/prisma/enums";
 import { t } from "@/lib/text";
 import { cn, dateToInputValue } from "@/lib/utils";
@@ -22,27 +30,37 @@ const getTodayAtTen = () => {
 	return date;
 };
 
-const defaultFormValues: {
-	title: string;
-	shortTitle: string;
-	startDate: Date;
-	endDate: Date | null;
-	location: string;
-	status: AppointmentStatus;
-} = {
-	endDate: null,
-	location: "",
-	shortTitle: "",
-	startDate: getTodayAtTen(),
-	status: AppointmentStatus.DRAFT,
-	title: "",
+type CreateAppointmentFormProps = {
+	seasons: Season[];
+	activeSeason: Season | null | undefined;
 };
 
-export const CreateAppointmentForm = () => {
+export const CreateAppointmentForm = ({
+	seasons,
+	activeSeason,
+}: CreateAppointmentFormProps) => {
 	const router = useRouter();
 	const [step, setStep] = React.useState(0);
 	const [type, setType] = React.useState<AppointmentType>();
 	const [tournamentType, setTournamentType] = React.useState<TournamentType>();
+
+	const defaultFormValues: {
+		title: string;
+		shortTitle: string;
+		startDate: Date;
+		endDate: Date | null;
+		location: string;
+		status: AppointmentStatus;
+		seasonId: string;
+	} = {
+		endDate: null,
+		location: "",
+		seasonId: activeSeason?.id ?? seasons[0]?.id ?? "",
+		shortTitle: "",
+		startDate: getTodayAtTen(),
+		status: AppointmentStatus.DRAFT,
+		title: "",
+	};
 
 	const createMutation = useMutation({
 		fn: createAppointment,
@@ -62,20 +80,28 @@ export const CreateAppointmentForm = () => {
 	const form = useForm({
 		defaultValues: defaultFormValues,
 		onSubmit: async ({ value }) => {
+			if (type === "holiday") {
+				createMutation.mutate({
+					data: {
+						endDate: value.endDate,
+						shortTitle: value.shortTitle,
+						startDate: value.startDate,
+						title: value.title,
+						type: "HOLIDAY",
+					},
+				});
+				return;
+			}
 			createMutation.mutate({
 				data: {
 					endDate: value.endDate,
 					location: value.location,
+					seasonId: value.seasonId,
 					shortTitle: value.shortTitle,
 					startDate: value.startDate,
 					status: value.status,
 					title: value.title,
-					type:
-						type === "holiday"
-							? "HOLIDAY"
-							: tournamentType === "bavaria"
-								? "TOURNAMENT"
-								: "TOURNAMENT_DE",
+					type: tournamentType === "bavaria" ? "TOURNAMENT" : "TOURNAMENT_DE",
 				},
 			});
 		},
@@ -110,9 +136,11 @@ export const CreateAppointmentForm = () => {
 				</button>
 				<button
 					type="button"
+					disabled={seasons.length === 0}
+					title={seasons.length === 0 ? t("Create a season first") : undefined}
 					onClick={() => setType("tournament")}
 					className={cn(
-						"flex flex-col items-start gap-3 rounded-xl border p-5 text-left transition-colors duration-150",
+						"flex flex-col items-start gap-3 rounded-xl border p-5 text-left transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50",
 						type === "tournament"
 							? "border-primary bg-primary/5"
 							: "border-border/60 hover:bg-accent/50",
@@ -261,14 +289,44 @@ export const CreateAppointmentForm = () => {
 						)}
 					</form.Field>
 				)}
+				{type !== "holiday" && (
+					<form.Field name="seasonId">
+						{(field) => (
+							<fieldset className="flex flex-col gap-1.5">
+								<Label htmlFor={field.name}>{t("Season")}:</Label>
+								<Select
+									items={Object.fromEntries(seasons.map((s) => [s.id, s.name]))}
+									value={field.state.value}
+									onValueChange={(value) => field.handleChange(value ?? "")}
+								>
+									<SelectTrigger id={field.name} className="w-full">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										{seasons.map((season) => (
+											<SelectItem key={season.id} value={season.id}>
+												{season.name}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</fieldset>
+						)}
+					</form.Field>
+				)}
 			</div>
 			<div className="mt-6 flex justify-between">
 				<Button variant="outline" onClick={() => setStep(0)}>
 					{t("Back")}
 				</Button>
-				<form.Subscribe selector={(state) => [state.values.title]}>
-					{([title]) => (
-						<Button disabled={!title} onClick={() => setStep(2)}>
+				<form.Subscribe
+					selector={(state) => [state.values.title, state.values.seasonId]}
+				>
+					{([title, seasonId]) => (
+						<Button
+							disabled={!title || (type !== "holiday" && !seasonId)}
+							onClick={() => setStep(2)}
+						>
 							{t("Continue")}
 						</Button>
 					)}
