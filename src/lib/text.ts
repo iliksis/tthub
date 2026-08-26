@@ -210,6 +210,7 @@ const texts = {
 	"Leave all unchecked to include all appointments regardless of response":
 		"Alle deaktiviert lassen, um alle Termine unabhängig von der Antwort einzuschließen",
 	Link: "Link",
+	Links: "Links",
 	List: "Liste",
 	"Load {0} more ({1} remaining)": "{0} weitere laden ({1} verbleibend)",
 	"Loading…": "Lädt…",
