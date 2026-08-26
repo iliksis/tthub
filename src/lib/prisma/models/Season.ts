@@ -276,9 +276,9 @@ export type SeasonUncheckedUpdateManyInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
-export type SeasonNullableScalarRelationFilter = {
-  is?: Prisma.SeasonWhereInput | null
-  isNot?: Prisma.SeasonWhereInput | null
+export type SeasonScalarRelationFilter = {
+  is?: Prisma.SeasonWhereInput
+  isNot?: Prisma.SeasonWhereInput
 }
 
 export type SeasonCountOrderByAggregateInput = {
@@ -308,12 +308,10 @@ export type SeasonCreateNestedOneWithoutAppointmentsInput = {
   connect?: Prisma.SeasonWhereUniqueInput
 }
 
-export type SeasonUpdateOneWithoutAppointmentsNestedInput = {
+export type SeasonUpdateOneRequiredWithoutAppointmentsNestedInput = {
   create?: Prisma.XOR<Prisma.SeasonCreateWithoutAppointmentsInput, Prisma.SeasonUncheckedCreateWithoutAppointmentsInput>
   connectOrCreate?: Prisma.SeasonCreateOrConnectWithoutAppointmentsInput
   upsert?: Prisma.SeasonUpsertWithoutAppointmentsInput
-  disconnect?: Prisma.SeasonWhereInput | boolean
-  delete?: Prisma.SeasonWhereInput | boolean
   connect?: Prisma.SeasonWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.SeasonUpdateToOneWithWhereWithoutAppointmentsInput, Prisma.SeasonUpdateWithoutAppointmentsInput>, Prisma.SeasonUncheckedUpdateWithoutAppointmentsInput>
 }
@@ -324,12 +322,10 @@ export type SeasonCreateNestedOneWithoutTeamsInput = {
   connect?: Prisma.SeasonWhereUniqueInput
 }
 
-export type SeasonUpdateOneWithoutTeamsNestedInput = {
+export type SeasonUpdateOneRequiredWithoutTeamsNestedInput = {
   create?: Prisma.XOR<Prisma.SeasonCreateWithoutTeamsInput, Prisma.SeasonUncheckedCreateWithoutTeamsInput>
   connectOrCreate?: Prisma.SeasonCreateOrConnectWithoutTeamsInput
   upsert?: Prisma.SeasonUpsertWithoutTeamsInput
-  disconnect?: Prisma.SeasonWhereInput | boolean
-  delete?: Prisma.SeasonWhereInput | boolean
   connect?: Prisma.SeasonWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.SeasonUpdateToOneWithWhereWithoutTeamsInput, Prisma.SeasonUpdateWithoutTeamsInput>, Prisma.SeasonUncheckedUpdateWithoutTeamsInput>
 }

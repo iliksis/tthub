@@ -75,8 +75,8 @@ model Appointment {
   ownTeam              Team?              @relation(fields: [ownTeamId], references: [id], onDelete: SetNull)
   homeTeam             String?
   awayTeam             String?
-  seasonId             String?
-  season               Season?            @relation(fields: [seasonId], references: [id])
+  seasonId             String
+  season               Season             @relation(fields: [seasonId], references: [id])
 }
 
 model Season {
@@ -123,8 +123,6 @@ model Player {
   name       String
   year       Int
   qttr       Int
-  teamId     String?
-  team       Team?        @relation(fields: [teamId], references: [id])
   teams      TeamPlayer[]
   placements Placement[]
 }
@@ -136,10 +134,9 @@ model Team {
   league         String?
   placement      String?
   clickTTGroupId String?
-  seasonId       String?
-  season         Season?       @relation(fields: [seasonId], references: [id])
-  players        Player[]
-  teamPlayers    TeamPlayer[]
+  seasonId       String
+  season         Season        @relation(fields: [seasonId], references: [id])
+  players        TeamPlayer[]
   appointments   Appointment[]
   standings      Standing[]
 

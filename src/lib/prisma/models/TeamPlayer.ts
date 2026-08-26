@@ -236,7 +236,7 @@ export type TeamPlayerCreateInput = {
   id?: string
   createdAt?: Date | string
   seasonId: string
-  team: Prisma.TeamCreateNestedOneWithoutTeamPlayersInput
+  team: Prisma.TeamCreateNestedOneWithoutPlayersInput
   player: Prisma.PlayerCreateNestedOneWithoutTeamsInput
 }
 
@@ -252,7 +252,7 @@ export type TeamPlayerUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   seasonId?: Prisma.StringFieldUpdateOperationsInput | string
-  team?: Prisma.TeamUpdateOneRequiredWithoutTeamPlayersNestedInput
+  team?: Prisma.TeamUpdateOneRequiredWithoutPlayersNestedInput
   player?: Prisma.PlayerUpdateOneRequiredWithoutTeamsNestedInput
 }
 
@@ -413,7 +413,7 @@ export type TeamPlayerCreateWithoutPlayerInput = {
   id?: string
   createdAt?: Date | string
   seasonId: string
-  team: Prisma.TeamCreateNestedOneWithoutTeamPlayersInput
+  team: Prisma.TeamCreateNestedOneWithoutPlayersInput
 }
 
 export type TeamPlayerUncheckedCreateWithoutPlayerInput = {
@@ -509,7 +509,7 @@ export type TeamPlayerUpdateWithoutPlayerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   seasonId?: Prisma.StringFieldUpdateOperationsInput | string
-  team?: Prisma.TeamUpdateOneRequiredWithoutTeamPlayersNestedInput
+  team?: Prisma.TeamUpdateOneRequiredWithoutPlayersNestedInput
 }
 
 export type TeamPlayerUncheckedUpdateWithoutPlayerInput = {

@@ -1740,8 +1740,7 @@ export const PlayerScalarFieldEnum = {
   updatedAt: 'updatedAt',
   name: 'name',
   year: 'year',
-  qttr: 'qttr',
-  teamId: 'teamId'
+  qttr: 'qttr'
 } as const
 
 export type PlayerScalarFieldEnum = (typeof PlayerScalarFieldEnum)[keyof typeof PlayerScalarFieldEnum]
