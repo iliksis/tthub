@@ -33,11 +33,23 @@ export const searchPlayers = createServerFn()
 		}
 	});
 
-export const getPlayers = createServerFn({ method: "GET" }).handler(
-	async () => {
+export const getPlayers = createServerFn({ method: "GET" })
+	.validator((d: { seasonId?: string }) => d)
+	.handler(async ({ data }) => {
 		try {
 			const players = await prismaClient.player.findMany({
-				include: currentTeamInclude,
+				include: {
+					teams: {
+						include: { team: true },
+						where: {
+							team: {
+								season: data.seasonId
+									? { id: data.seasonId }
+									: activeSeasonFilter,
+							},
+						},
+					},
+				},
 				orderBy: { name: "asc" },
 			});
 			return { data: players, message: t("Players found") };
@@ -45,8 +57,7 @@ export const getPlayers = createServerFn({ method: "GET" }).handler(
 			console.error(e);
 			throw new Error((e as Error).message);
 		}
-	},
-);
+	});
 
 export const createPlayer = createServerFn({ method: "POST" })
 	.validator((d: { name: string; year: number; qttr: number }) => d)

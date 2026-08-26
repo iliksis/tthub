@@ -31,10 +31,10 @@ import { calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 export const Route = createFileRoute("/_authed/teams/$teamId")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const [teamRes, playersRes] = await Promise.all([
-			getTeam({ data: { id: params.teamId } }),
-			getPlayers(),
-		]);
+		const teamRes = await getTeam({ data: { id: params.teamId } });
+		const playersRes = await getPlayers({
+			data: { seasonId: teamRes.data?.seasonId },
+		});
 		return {
 			players: playersRes.data,
 			team: teamRes.data,

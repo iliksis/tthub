@@ -79,7 +79,7 @@ export const Route = createFileRoute("/_authed/appts/$apptId")({
 		const res = await getAppointment({ data: { id: params.apptId } });
 
 		const [players, categories, appointments, seasons] = await Promise.all([
-			getPlayers(),
+			getPlayers({ data: {} }),
 			getUniqueCategories(),
 			getAppointments({
 				data: { minDate: res.data?.startDate, orderBy: { startDate: "desc" } },
