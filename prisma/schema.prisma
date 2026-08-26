@@ -75,8 +75,11 @@ model Appointment {
   ownTeam              Team?              @relation(fields: [ownTeamId], references: [id], onDelete: SetNull)
   homeTeam             String?
   awayTeam             String?
-  seasonId             String
-  season               Season             @relation(fields: [seasonId], references: [id])
+  // Nullable: HOLIDAY appointments (club-wide closures) don't necessarily
+  // belong to one competitive season and can span a season boundary. All
+  // other appointment types require it, enforced in the API layer.
+  seasonId             String?
+  season               Season?            @relation(fields: [seasonId], references: [id])
 }
 
 model Season {

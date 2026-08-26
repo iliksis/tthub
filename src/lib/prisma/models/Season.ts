@@ -276,9 +276,9 @@ export type SeasonUncheckedUpdateManyInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
-export type SeasonScalarRelationFilter = {
-  is?: Prisma.SeasonWhereInput
-  isNot?: Prisma.SeasonWhereInput
+export type SeasonNullableScalarRelationFilter = {
+  is?: Prisma.SeasonWhereInput | null
+  isNot?: Prisma.SeasonWhereInput | null
 }
 
 export type SeasonCountOrderByAggregateInput = {
@@ -302,16 +302,23 @@ export type SeasonMinOrderByAggregateInput = {
   isActive?: Prisma.SortOrder
 }
 
+export type SeasonScalarRelationFilter = {
+  is?: Prisma.SeasonWhereInput
+  isNot?: Prisma.SeasonWhereInput
+}
+
 export type SeasonCreateNestedOneWithoutAppointmentsInput = {
   create?: Prisma.XOR<Prisma.SeasonCreateWithoutAppointmentsInput, Prisma.SeasonUncheckedCreateWithoutAppointmentsInput>
   connectOrCreate?: Prisma.SeasonCreateOrConnectWithoutAppointmentsInput
   connect?: Prisma.SeasonWhereUniqueInput
 }
 
-export type SeasonUpdateOneRequiredWithoutAppointmentsNestedInput = {
+export type SeasonUpdateOneWithoutAppointmentsNestedInput = {
   create?: Prisma.XOR<Prisma.SeasonCreateWithoutAppointmentsInput, Prisma.SeasonUncheckedCreateWithoutAppointmentsInput>
   connectOrCreate?: Prisma.SeasonCreateOrConnectWithoutAppointmentsInput
   upsert?: Prisma.SeasonUpsertWithoutAppointmentsInput
+  disconnect?: Prisma.SeasonWhereInput | boolean
+  delete?: Prisma.SeasonWhereInput | boolean
   connect?: Prisma.SeasonWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.SeasonUpdateToOneWithWhereWithoutAppointmentsInput, Prisma.SeasonUpdateWithoutAppointmentsInput>, Prisma.SeasonUncheckedUpdateWithoutAppointmentsInput>
 }

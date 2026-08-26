@@ -19,7 +19,6 @@ type ICreateAppointment =
 			type: "HOLIDAY";
 			startDate: Date;
 			endDate: Date | null;
-			seasonId: string;
 	  }
 	| {
 			title: string;
@@ -48,7 +47,7 @@ export const createAppointment = createServerFn()
 					data: {
 						endDate: data.endDate,
 						location: data.type === "HOLIDAY" ? undefined : data.location,
-						seasonId: data.seasonId,
+						seasonId: data.type === "HOLIDAY" ? undefined : data.seasonId,
 						shortTitle: data.shortTitle,
 						startDate: data.startDate,
 						status: data.type === "HOLIDAY" ? undefined : data.status,
