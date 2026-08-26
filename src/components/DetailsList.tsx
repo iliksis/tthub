@@ -220,13 +220,19 @@ export function DetailsList<T extends RowData>({
 		.getSelectedRowModel()
 		.rows.map((row) => row.original);
 
-	const handleItemClick = (item: T, e: React.MouseEvent) => {
+	const handleItemClick = (
+		row: ReturnType<typeof table.getRowModel>["rows"][number],
+		e: React.MouseEvent,
+	) => {
 		// Prevent triggering row click when clicking checkbox
 		if ((e.target as HTMLElement).closest("button[role='checkbox']")) {
 			return;
 		}
+		if (selectMode !== "none") {
+			row.toggleSelected();
+		}
 		if (onItemClick) {
-			onItemClick(item);
+			onItemClick(row.original);
 		}
 	};
 
@@ -403,7 +409,7 @@ export function DetailsList<T extends RowData>({
 										"h-10 cursor-pointer",
 										row.getIsSelected() && "bg-muted",
 									)}
-									onClick={(e) => handleItemClick(row.original, e)}
+									onClick={(e) => handleItemClick(row, e)}
 								>
 									{children}
 								</TableRow>
