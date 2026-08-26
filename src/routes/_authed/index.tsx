@@ -13,6 +13,7 @@ import {
 	getRecentTransactions,
 	getUserOpenAppointments,
 } from "@/api/appointments";
+import { getActiveSeason } from "@/api/seasons";
 import { getTeams } from "@/api/teams";
 import { AppointmentRow } from "@/components/AppointmentRow";
 import { Section } from "@/components/Section";
@@ -60,14 +61,18 @@ export const Route = createFileRoute("/_authed/")({
 			throw new Error(t("Unauthorized"));
 		}
 
-		const [nextRes, openRes, teamsRes, transactionsRes] = await Promise.all([
-			getNextAppointments(),
-			getUserOpenAppointments({
-				data: { userId: context.user.id },
-			}),
-			getTeams({ data: {} }),
-			getRecentTransactions({ data: { take: RECENT_ACTIVITY_TAKE } }),
-		]);
+		const [nextRes, openRes, activeSeasonRes, transactionsRes] =
+			await Promise.all([
+				getNextAppointments(),
+				getUserOpenAppointments({
+					data: { userId: context.user.id },
+				}),
+				getActiveSeason(),
+				getRecentTransactions({ data: { take: RECENT_ACTIVITY_TAKE } }),
+			]);
+		const teamsRes = await getTeams({
+			data: { seasonId: activeSeasonRes.data?.id },
+		});
 
 		return {
 			nextAppointments: nextRes.data,
