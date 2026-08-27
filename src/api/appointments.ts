@@ -445,14 +445,31 @@ export const getAppointmentsPage = createServerFn()
 
 export type AppointmentWithSeason = Appointment & { season: Season | null };
 
+// Shared between getBulkAppointmentsPage (listing) and bulkDeleteAppointments'
+// "matching" selector (bulk action), so "every row matching the active
+// filters" means the exact same set of rows in both places.
+export type BulkAppointmentsFilter = { query?: string; seasonId?: string };
+
+function buildBulkAppointmentsWhere(
+	filter: BulkAppointmentsFilter,
+): Prisma.AppointmentWhereInput {
+	return {
+		deletedAt: null,
+		OR: [
+			{ title: { contains: filter.query ?? "" } },
+			{ shortTitle: { contains: filter.query ?? "" } },
+			{ location: { contains: filter.query ?? "" } },
+		],
+		seasonId: filter.seasonId,
+	};
+}
+
 // Distinct from getAppointmentsPage: the bulk-management list is for
 // finding/deleting *any* appointment (including HOLIDAYs and past dates),
 // not the RSVP-centric upcoming list, so it isn't scoped to today-or-later
 // or restricted to non-HOLIDAY types.
 export const getBulkAppointmentsPage = createServerFn()
-	.validator(
-		(d: { query?: string; seasonId?: string; skip: number; take: number }) => d,
-	)
+	.validator((d: BulkAppointmentsFilter & { skip: number; take: number }) => d)
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
@@ -460,15 +477,7 @@ export const getBulkAppointmentsPage = createServerFn()
 		}
 
 		try {
-			const where: Prisma.AppointmentWhereInput = {
-				deletedAt: null,
-				OR: [
-					{ title: { contains: data.query ?? "" } },
-					{ shortTitle: { contains: data.query ?? "" } },
-					{ location: { contains: data.query ?? "" } },
-				],
-				seasonId: data.seasonId,
-			};
+			const where = buildBulkAppointmentsWhere(data);
 
 			const [appointments, matchedTotal, grandTotal] = await Promise.all([
 				prismaClient.appointment.findMany({
@@ -629,8 +638,17 @@ export const deleteAppointment = createServerFn()
 		}
 	});
 
+// Accepts either an explicit id list, or a "matching" selector (the same
+// filter shape the bulk listing query uses) plus excludeIds — the latter is
+// re-evaluated against the current data here (not a snapshot taken when
+// "select all matching filters" was activated), so the delete affects
+// whatever currently matches the filter, minus anything the user unchecked.
+type BulkDeleteInput =
+	| { ids: string[] }
+	| { matching: BulkAppointmentsFilter; excludeIds: string[] };
+
 export const bulkDeleteAppointments = createServerFn()
-	.validator((d: { ids: string[] }) => d)
+	.validator((d: BulkDeleteInput) => d)
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
@@ -638,9 +656,22 @@ export const bulkDeleteAppointments = createServerFn()
 		}
 
 		try {
+			const ids =
+				"ids" in data
+					? data.ids
+					: (
+							await prismaClient.appointment.findMany({
+								select: { id: true },
+								where: {
+									...buildBulkAppointmentsWhere(data.matching),
+									id: { notIn: data.excludeIds },
+								},
+							})
+						).map((appointment) => appointment.id);
+
 			const appointments = await prismaClient.$transaction(async (tx) => {
 				const deleted: Appointment[] = [];
-				for (const id of data.ids) {
+				for (const id of ids) {
 					const appointment = await tx.appointment.update({
 						data: {
 							deletedAt: new Date(),

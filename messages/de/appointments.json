@@ -192,6 +192,22 @@
 	"appointments_more_details": "Weitere Details",
 	"appointments_my_response": "Meine Antwort",
 	"appointments_n_changed": "{param1} geändert",
+	"appointments_n_matching_excluded": "{param1} passend, {param2} ausgeschlossen",
+	"appointments_n_matching_selected_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} passender Termin ausgewählt",
+				"countPlural=other": "{count} passende Termine ausgewählt"
+			}
+		}
+	],
 	"appointments_n_of_n_events": "{param1} von {param2} Ereignissen",
 	"appointments_new_appointment": "Neuer Termin",
 	"appointments_next_appointment": "Nächster Termin",
@@ -217,6 +233,7 @@
 	"appointments_search_appointment_or_add_filter": "Termin suchen oder Filter hinzufügen…",
 	"appointments_search_appointment_or_person": "Termin oder Person suchen…",
 	"appointments_search_appointments": "Termine suchen",
+	"appointments_select_all_n_matching_filters": "{param1} passende Termine auswählen",
 	"appointments_shorttitle": "Kurztitel",
 	"appointments_show_deleted": "Gelöschte anzeigen?",
 	"appointments_start": "Start",

@@ -1,5 +1,22 @@
+import { execSync } from "node:child_process";
 import { expect, type Page, test } from "@playwright/test";
 import { loginAs } from "./helpers";
+
+const BULK_QUERY = "E2EBULK-";
+
+// Seeds `count` HOLIDAY appointments distinguishable via BULK_QUERY, wiping
+// any leftovers from a previous run first — see e2e/seed-bulk-appointments.ts.
+// Used by the "select all matching filters" tests below, which need more
+// matching rows than fit in one loaded page (BATCH_SIZE in bulk.tsx).
+// Playwright runs test files from the repo root, so a plain relative path
+// (rather than __dirname, unavailable under Playwright's ESM test runner)
+// resolves correctly.
+function seedBulkAppointments(count: number) {
+	execSync(`npx tsx e2e/seed-bulk-appointments.ts ${count}`, {
+		env: { ...process.env, DATABASE_URL: "file:./prisma/test.db" },
+		stdio: "inherit",
+	});
+}
 
 async function readSummary(page: Page) {
 	const summary = page.getByText(/\d+ von \d+ Ereignissen/);
@@ -148,4 +165,93 @@ test.describe("Bulk Appointments Route - Delete", () => {
 	// bulkDeleteAppointments is gated the same way as deleteAppointment
 	// (requireEditor) — since USER can't reach /appts/bulk at all (see the
 	// Access Control block above), there's no UI path for a USER to invoke it.
+});
+
+test.describe("Bulk Appointments Route - Select All Matching Filters", () => {
+	test.beforeEach(() => {
+		seedBulkAppointments(30);
+	});
+
+	test.afterAll(() => {
+		seedBulkAppointments(0);
+	});
+
+	test("select all matching filters selects beyond the loaded batch", async ({
+		page,
+	}) => {
+		await loginAs(page, "admin");
+		await page.goto("/appts/bulk");
+		await page.waitForLoadState("networkidle");
+
+		await page.getByPlaceholder("Termin suchen…").fill(BULK_QUERY);
+		await expect(page.getByText(/30 von \d+ Ereignissen/)).toBeVisible();
+
+		const rows = page.locator("table tbody tr");
+		// Only one loaded batch (25) is rendered even though 30 rows match.
+		await expect(rows).toHaveCount(25);
+
+		await page
+			.getByRole("button", { name: "30 passende Termine auswählen" })
+			.click();
+
+		const deleteButton = page.getByRole("button", {
+			name: "Ausgewählte löschen",
+		});
+		await expect(deleteButton).toBeEnabled();
+		await deleteButton.click();
+
+		const confirmDialog = page.getByRole("dialog");
+		await expect(confirmDialog).toBeVisible();
+		await expect(
+			confirmDialog.getByText(
+				"Bist du sicher, dass du 30 Termine löschen möchtest?",
+			),
+		).toBeVisible();
+		await confirmDialog.getByRole("button", { name: "Löschen" }).click();
+
+		await expect(page.getByText(/gelöscht/)).toBeVisible();
+		// All 30 are gone, including the 5 that were never loaded into the page.
+		await expect(page.getByText(/^0 von \d+ Ereignissen/)).toBeVisible();
+	});
+
+	test("deselecting one row after select-all preserves the rest", async ({
+		page,
+	}) => {
+		await loginAs(page, "admin");
+		await page.goto("/appts/bulk");
+		await page.waitForLoadState("networkidle");
+
+		await page.getByPlaceholder("Termin suchen…").fill(BULK_QUERY);
+		await expect(page.getByText(/30 von \d+ Ereignissen/)).toBeVisible();
+
+		await page
+			.getByRole("button", { name: "30 passende Termine auswählen" })
+			.click();
+
+		const rows = page.locator("table tbody tr");
+		const firstRowTitle = await rows.first().locator("a").first().textContent();
+		await rows.first().getByRole("checkbox").click();
+
+		await expect(page.getByText("29 passend, 1 ausgeschlossen")).toBeVisible();
+
+		const deleteButton = page.getByRole("button", {
+			name: "Ausgewählte löschen",
+		});
+		await deleteButton.click();
+
+		const confirmDialog = page.getByRole("dialog");
+		await expect(
+			confirmDialog.getByText(
+				"Bist du sicher, dass du 29 Termine löschen möchtest?",
+			),
+		).toBeVisible();
+		await confirmDialog.getByRole("button", { name: "Löschen" }).click();
+
+		await expect(page.getByText(/gelöscht/)).toBeVisible();
+		// The excluded row survives; the other 29 matching rows are gone.
+		await expect(page.getByText(/^1 von \d+ Ereignissen/)).toBeVisible();
+		if (firstRowTitle) {
+			await expect(page.getByText(firstRowTitle.trim())).toBeVisible();
+		}
+	});
 });

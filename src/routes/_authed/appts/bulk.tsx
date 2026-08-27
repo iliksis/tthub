@@ -4,6 +4,7 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import type { RowSelectionState } from "@tanstack/react-table";
 import { Trash2Icon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { FilterBar, type FilterBarSegment } from "@/components/FilterBar";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Link as EntityLink } from "@/components/ui/link";
 import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
 import type { AppointmentType } from "@/lib/prisma/enums";
@@ -140,10 +142,78 @@ function RouteComponent() {
 
 	const [queryInput, setQueryInput] = React.useState(search.query ?? "");
 	const [isConfirmingDelete, setIsConfirmingDelete] = React.useState(false);
-	const [pendingDeleteIds, setPendingDeleteIds] = React.useState<string[]>([]);
+	const [pendingDelete, setPendingDelete] = React.useState<
+		{ mode: "ids"; ids: string[] } | { mode: "matching" } | null
+	>(null);
 
 	const filterKey = `${search.query ?? ""}|${search.seasonId ?? ""}`;
 	const { items, setItems } = useLoadMoreBatch(batch, skip, filterKey);
+
+	// Explicit selection is scoped to the current filter view — the loaded ids
+	// it references stop meaning anything once the filter changes, so it's
+	// cleared whenever filterKey changes (the same derive-during-render reset
+	// pattern useLoadMoreBatch uses for `items`). Select-all-matching mode
+	// itself survives a filter change (see selectAllMatching below) since
+	// "matching" is re-derived from whatever the filter is now — but excludeIds
+	// holds ids from whichever filter was active when each row was unchecked,
+	// so it's cleared alongside explicitSelection: otherwise a stale exclusion
+	// from the old filter wouldn't be a member of the new filter's matched set
+	// either, silently understating both the displayed count and the delete
+	// confirmation versus what the server (re-evaluating "matching" minus
+	// excludeIds at execution time) would actually delete.
+	const [explicitSelection, setExplicitSelection] =
+		React.useState<RowSelectionState>({});
+	const [selectAllMatching, setSelectAllMatching] = React.useState(false);
+	const [excludeIds, setExcludeIds] = React.useState<Set<string>>(new Set());
+	const [lastFilterKeyForSelection, setLastFilterKeyForSelection] =
+		React.useState(filterKey);
+	if (filterKey !== lastFilterKeyForSelection) {
+		setLastFilterKeyForSelection(filterKey);
+		setExplicitSelection({});
+		setExcludeIds(new Set());
+	}
+
+	const exitSelectAllMatching = () => {
+		setSelectAllMatching(false);
+		setExcludeIds(new Set());
+		setExplicitSelection({});
+	};
+
+	const selection = React.useMemo<RowSelectionState>(() => {
+		if (!selectAllMatching) return explicitSelection;
+		const sel: RowSelectionState = {};
+		for (const item of items) {
+			if (!excludeIds.has(item.id)) sel[item.id] = true;
+		}
+		return sel;
+	}, [selectAllMatching, excludeIds, explicitSelection, items]);
+
+	const onSelectionChange = (
+		updater:
+			| RowSelectionState
+			| ((old: RowSelectionState) => RowSelectionState),
+	) => {
+		const next = typeof updater === "function" ? updater(selection) : updater;
+		if (selectAllMatching) {
+			setExcludeIds((prev) => {
+				const nextExclude = new Set(prev);
+				for (const item of items) {
+					if (next[item.id]) {
+						nextExclude.delete(item.id);
+					} else {
+						nextExclude.add(item.id);
+					}
+				}
+				return nextExclude;
+			});
+		} else {
+			setExplicitSelection(next);
+		}
+	};
+
+	const selectedCount = selectAllMatching
+		? Math.max(matchedTotal - excludeIds.size, 0)
+		: Object.values(explicitSelection).filter(Boolean).length;
 
 	const searchRef = React.useRef(search);
 	searchRef.current = search;
@@ -195,15 +265,29 @@ function RouteComponent() {
 
 	const bulkDeleteServerFn = useServerFn(bulkDeleteAppointments);
 	const onDelete = async () => {
+		if (!pendingDelete) return;
 		try {
 			const response = await bulkDeleteServerFn({
-				data: { ids: pendingDeleteIds },
+				data:
+					pendingDelete.mode === "matching"
+						? {
+								excludeIds: Array.from(excludeIds),
+								matching: { query: search.query, seasonId: search.seasonId },
+							}
+						: { ids: pendingDelete.ids },
 			});
-			setItems((prev) =>
-				prev.filter((item) => !pendingDeleteIds.includes(item.id)),
-			);
+			if (pendingDelete.mode === "matching") {
+				setItems((prev) => prev.filter((item) => excludeIds.has(item.id)));
+				exitSelectAllMatching();
+			} else {
+				const deletedIds = pendingDelete.ids;
+				setItems((prev) =>
+					prev.filter((item) => !deletedIds.includes(item.id)),
+				);
+				setExplicitSelection({});
+			}
 			setIsConfirmingDelete(false);
-			setPendingDeleteIds([]);
+			setPendingDelete(null);
 			await router.invalidate();
 			toast.success(response.message);
 		} catch (err) {
@@ -254,6 +338,59 @@ function RouteComponent() {
 				onReset={onClearFilters}
 			/>
 
+			{matchedTotal > 0 && (
+				<div className="flex flex-wrap items-center gap-2 text-sm">
+					{selectAllMatching ? (
+						<>
+							<span className="text-muted-foreground">
+								{excludeIds.size > 0
+									? m.appointments_n_matching_excluded({
+											param1: selectedCount.toString(),
+											param2: excludeIds.size.toString(),
+										})
+									: m.appointments_n_matching_selected_count({
+											count: selectedCount,
+										})}
+							</span>
+							<Button
+								type="button"
+								variant="link"
+								size="sm"
+								className="h-auto p-0"
+								onClick={exitSelectAllMatching}
+							>
+								{m.common_clear_selection()}
+							</Button>
+						</>
+					) : (
+						<>
+							{selectedCount > 0 && (
+								<span className="text-muted-foreground">
+									{m.appointments_appointment_selected_count({
+										count: selectedCount,
+									})}
+								</span>
+							)}
+							<Button
+								type="button"
+								variant="link"
+								size="sm"
+								className="h-auto p-0"
+								onClick={() => {
+									setExplicitSelection({});
+									setExcludeIds(new Set());
+									setSelectAllMatching(true);
+								}}
+							>
+								{m.appointments_select_all_n_matching_filters({
+									param1: matchedTotal.toString(),
+								})}
+							</Button>
+						</>
+					)}
+				</div>
+			)}
+
 			<div
 				className={isNavigating ? "pointer-events-none opacity-60" : undefined}
 			>
@@ -262,14 +399,20 @@ function RouteComponent() {
 					getItemId={(item) => item.id}
 					columns={columns}
 					emptyMessage={m.appointments_no_appointments_found()}
+					selection={selection}
+					onSelectionChange={onSelectionChange}
 					commandBarItems={[
 						{
 							icon: <Trash2Icon className="size-4" />,
-							isDisabled: (selected) => selected.length === 0,
+							isDisabled: () => selectedCount === 0,
 							key: "delete-selected",
 							label: m.appointments_delete_selected(),
 							onClick: (selected) => {
-								setPendingDeleteIds(selected.map((item) => item.id));
+								setPendingDelete(
+									selectAllMatching
+										? { mode: "matching" }
+										: { ids: selected.map((item) => item.id), mode: "ids" },
+								);
 								setIsConfirmingDelete(true);
 							},
 							variant: "error",
@@ -289,12 +432,15 @@ function RouteComponent() {
 
 			<DeleteModal
 				label={m.appointments_are_you_sure_you_want_to_delete_n_appointments({
-					param1: pendingDeleteIds.length.toString(),
+					param1: (pendingDelete?.mode === "matching"
+						? selectedCount
+						: (pendingDelete?.ids.length ?? 0)
+					).toString(),
 				})}
 				open={isConfirmingDelete}
 				onClose={() => {
 					setIsConfirmingDelete(false);
-					setPendingDeleteIds([]);
+					setPendingDelete(null);
 				}}
 				onDelete={onDelete}
 			/>

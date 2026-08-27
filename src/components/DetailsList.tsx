@@ -84,6 +84,15 @@ type DetailsListProps<T> = {
 	// whatever rows happen to be loaded client-side.
 	sorting?: SortingState;
 	onSortingChange?: (sorting: SortingState) => void;
+	// When provided, row selection is controlled by the parent (e.g. to
+	// implement a "select all matching filters" mode spanning rows beyond
+	// what's currently loaded) instead of being tracked internally.
+	selection?: RowSelectionState;
+	onSelectionChange?: (
+		updater:
+			| RowSelectionState
+			| ((old: RowSelectionState) => RowSelectionState),
+	) => void;
 };
 
 const commandBarButtonVariant = (
@@ -107,12 +116,17 @@ export function DetailsList<T extends RowData>({
 	selectMode = "multiple",
 	sorting: controlledSorting,
 	onSortingChange,
+	selection: controlledSelection,
+	onSelectionChange,
 }: DetailsListProps<T>) {
 	const [internalSorting, setInternalSorting] = React.useState<SortingState>(
 		[],
 	);
 	const sorting = controlledSorting ?? internalSorting;
-	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+	const [internalRowSelection, setInternalRowSelection] =
+		React.useState<RowSelectionState>({});
+	const rowSelection = controlledSelection ?? internalRowSelection;
+	const applySelection = onSelectionChange ?? setInternalRowSelection;
 
 	// Convert custom columns to TanStack Table column definitions
 	const tableColumns = React.useMemo<ColumnDef<typeof features, T>[]>(() => {
@@ -194,12 +208,12 @@ export function DetailsList<T extends RowData>({
 				if (selectedIds.length > 1) {
 					// Keep only the most recently selected
 					const lastSelected = selectedIds[selectedIds.length - 1];
-					setRowSelection({ [lastSelected]: true });
+					applySelection({ [lastSelected]: true });
 				} else {
-					setRowSelection(newSelection);
+					applySelection(newSelection);
 				}
 			} else {
-				setRowSelection(updater);
+				applySelection(updater);
 			}
 		},
 		onSortingChange: (updater) => {
