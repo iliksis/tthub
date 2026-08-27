@@ -130,7 +130,6 @@ export const Route = createFileRoute("/_authed/appts/")({
 					take: BATCH_SIZE,
 					teamIds: deps.teamIds,
 					typeGroup: deps.typeGroup,
-					withDeleted: deps.deleted,
 				},
 			}),
 			getTeams({ data: { seasonId } }),

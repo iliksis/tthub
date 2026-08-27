@@ -4,7 +4,6 @@ import React from "react";
 import { z } from "zod";
 import { FilterBar, type FilterBarSegment } from "@/components/FilterBar";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -20,7 +19,6 @@ export const getUserResponse = (
 ) => item.responses?.find((r) => r.userId === userId)?.responseType ?? "MAYBE";
 
 export const filterSchema = z.object({
-	deleted: z.boolean().optional(),
 	query: z.string().optional(),
 	responses: z.array(z.enum(["ACCEPT", "MAYBE", "DECLINE", "NONE"])).optional(),
 	seasonId: z.string().optional(),
@@ -103,8 +101,7 @@ const useAppointmentLiveFilters = (props: FiltersProps) => {
 		!!props.query ||
 		!!props.typeGroup ||
 		!!props.responses?.length ||
-		!!props.teamIds?.length ||
-		!!props.deleted;
+		!!props.teamIds?.length;
 
 	const onClear = () => {
 		setQueryInput("");
@@ -259,14 +256,6 @@ export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
 			values: search.teamIds ?? [],
 		});
 	}
-	segments.push({
-		active: !!search.deleted,
-		key: "deleted",
-		label: m.appointments_show_deleted(),
-		onToggle: () => navigate({ deleted: search.deleted ? undefined : true }),
-		tokenLabel: m.appointments_incl_deleted(),
-		type: "toggle",
-	});
 
 	return (
 		<FilterBar
@@ -299,12 +288,10 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 	const secondaryActive =
 		!!search.typeGroup ||
 		!!search.responses?.length ||
-		!!search.teamIds?.length ||
-		!!search.deleted;
+		!!search.teamIds?.length;
 
 	const clearSecondary = () =>
 		navigate({
-			deleted: undefined,
 			responses: undefined,
 			teamIds: undefined,
 			typeGroup: undefined,
@@ -432,20 +419,6 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 								</div>
 							</fieldset>
 						)}
-
-						<label
-							htmlFor="mobile-filters-deleted"
-							className="flex items-center gap-2 text-sm text-muted-foreground"
-						>
-							<Checkbox
-								id="mobile-filters-deleted"
-								checked={search.deleted ?? false}
-								onCheckedChange={(checked) =>
-									navigate({ deleted: checked === true ? true : undefined })
-								}
-							/>
-							{m.appointments_show_deleted()}
-						</label>
 					</div>
 				</SheetContent>
 			</Sheet>

@@ -337,7 +337,6 @@ export const getAppointmentsPage = createServerFn()
 			responses?: (ResponseType | "NONE")[];
 			teamIds?: string[];
 			seasonId?: string;
-			withDeleted?: boolean;
 			sortDir?: "asc" | "desc";
 			skip: number;
 			take: number;
@@ -386,7 +385,7 @@ export const getAppointmentsPage = createServerFn()
 							}
 						: {},
 				],
-				deletedAt: data.withDeleted ? undefined : null,
+				deletedAt: null,
 				NOT: { type: AppointmentType.HOLIDAY },
 				ownTeamId:
 					data.teamIds && data.teamIds.length > 0
@@ -400,10 +399,7 @@ export const getAppointmentsPage = createServerFn()
 							? { some: { responseType: { in: responseTypes }, userId } }
 							: undefined,
 				seasonId: data.seasonId,
-				// Only upcoming appointments show by default; a `withDeleted` search
-				// is for finding/restoring a soft-deleted appointment regardless of
-				// when it was, so it isn't restricted to today-or-later.
-				startDate: data.withDeleted ? undefined : { gte: todayStart },
+				startDate: { gte: todayStart },
 				type:
 					data.typeGroup === "TOURNAMENT"
 						? {
@@ -425,10 +421,10 @@ export const getAppointmentsPage = createServerFn()
 				prismaClient.appointment.count({ where }),
 				prismaClient.appointment.count({
 					where: {
-						deletedAt: data.withDeleted ? undefined : null,
+						deletedAt: null,
 						NOT: { type: AppointmentType.HOLIDAY },
 						seasonId: data.seasonId,
-						startDate: data.withDeleted ? undefined : { gte: todayStart },
+						startDate: { gte: todayStart },
 					},
 				}),
 			]);
@@ -447,18 +443,22 @@ export type AppointmentWithSeason = Appointment & { season: Season | null };
 
 // Shared between getBulkAppointmentsPage (listing) and bulkDeleteAppointments'
 // "matching" selector (bulk action), so "every row matching the active
-// filters" means the exact same set of rows in both places.
+// filters" means the exact same set of rows in both places. Shared with the
+// /appts/trash listing/actions (see getTrashAppointmentsPage below) — the
+// filter shape is identical, only the `deletedAt` scope differs, so both
+// pages build their `where` through the same helper.
 export type BulkAppointmentsFilter = {
 	query?: string;
 	seasonId?: string;
 	types?: AppointmentType[];
 };
 
-function buildBulkAppointmentsWhere(
+function buildAppointmentsFilterWhere(
 	filter: BulkAppointmentsFilter,
+	deletedAt: Prisma.AppointmentWhereInput["deletedAt"],
 ): Prisma.AppointmentWhereInput {
 	return {
-		deletedAt: null,
+		deletedAt,
 		OR: [
 			{ title: { contains: filter.query ?? "" } },
 			{ shortTitle: { contains: filter.query ?? "" } },
@@ -485,7 +485,7 @@ export const getBulkAppointmentsPage = createServerFn()
 		}
 
 		try {
-			const where = buildBulkAppointmentsWhere(data);
+			const where = buildAppointmentsFilterWhere(data, null);
 
 			const [appointments, matchedTotal, grandTotal] = await Promise.all([
 				prismaClient.appointment.findMany({
@@ -647,21 +647,26 @@ export const deleteAppointment = createServerFn()
 	});
 
 // Accepts either an explicit id list, or a "matching" selector (the same
-// filter shape the bulk listing query uses) plus excludeIds — the latter is
+// filter shape the listing queries use) plus excludeIds — the latter is
 // re-evaluated against the current data here (not a snapshot taken when
 // "select all matching filters" was activated), so the action affects
 // whatever currently matches the filter, minus anything the user unchecked.
-// Shared by every bulk appointment action (delete, copy-to-season, ...).
-type BulkAppointmentSelector =
+// Shared by every bulk appointment action (delete, copy-to-season, restore,
+// ...) across both /appts/bulk (deletedAt: null) and /appts/trash
+// (deletedAt: { not: null }).
+type AppointmentSelector =
 	| { ids: string[] }
 	| { matching: BulkAppointmentsFilter; excludeIds: string[] };
 
-async function resolveBulkSelectorIds(data: BulkAppointmentSelector) {
+async function resolveSelectorIds(
+	data: AppointmentSelector,
+	deletedAt: Prisma.AppointmentWhereInput["deletedAt"],
+) {
 	if ("ids" in data) return data.ids;
 	const appointments = await prismaClient.appointment.findMany({
 		select: { id: true },
 		where: {
-			...buildBulkAppointmentsWhere(data.matching),
+			...buildAppointmentsFilterWhere(data.matching, deletedAt),
 			id: { notIn: data.excludeIds },
 		},
 	});
@@ -669,7 +674,7 @@ async function resolveBulkSelectorIds(data: BulkAppointmentSelector) {
 }
 
 export const bulkDeleteAppointments = createServerFn()
-	.validator((d: BulkAppointmentSelector) => d)
+	.validator((d: AppointmentSelector) => d)
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
@@ -677,7 +682,7 @@ export const bulkDeleteAppointments = createServerFn()
 		}
 
 		try {
-			const ids = await resolveBulkSelectorIds(data);
+			const ids = await resolveSelectorIds(data, null);
 
 			const appointments = await prismaClient.$transaction(async (tx) => {
 				const deleted: Appointment[] = [];
@@ -723,7 +728,7 @@ function oneYearLater(date: Date) {
 }
 
 export const bulkCopyAppointmentsToSeason = createServerFn()
-	.validator((d: BulkAppointmentSelector & { targetSeasonId: string }) => d)
+	.validator((d: AppointmentSelector & { targetSeasonId: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
@@ -731,7 +736,7 @@ export const bulkCopyAppointmentsToSeason = createServerFn()
 		}
 
 		try {
-			const ids = await resolveBulkSelectorIds(data);
+			const ids = await resolveSelectorIds(data, null);
 
 			const { copied, skipped } = await prismaClient.$transaction(
 				async (tx) => {
@@ -785,6 +790,86 @@ export const bulkCopyAppointmentsToSeason = createServerFn()
 				message: m.appointments_copied_n_skipped_no_season({
 					copied: copied.toString(),
 					skipped: skipped.toString(),
+				}),
+			};
+		} catch (e) {
+			console.error(e);
+			throw new Error((e as Error).message);
+		}
+	});
+
+// The trash listing reuses BulkAppointmentsFilter/buildAppointmentsFilterWhere
+// above — same filter shape, only the `deletedAt` scope passed in differs.
+export const getTrashAppointmentsPage = createServerFn()
+	.validator((d: BulkAppointmentsFilter & { skip: number; take: number }) => d)
+	.handler(async ({ data }) => {
+		const session = await requireEditor();
+		if (!session) {
+			throw new Error(m.common_unauthorized());
+		}
+
+		try {
+			const where = buildAppointmentsFilterWhere(data, { not: null });
+
+			const [appointments, matchedTotal, grandTotal] = await Promise.all([
+				prismaClient.appointment.findMany({
+					include: { season: true },
+					orderBy: { startDate: "desc" },
+					skip: data.skip,
+					take: data.take,
+					where,
+				}),
+				prismaClient.appointment.count({ where }),
+				prismaClient.appointment.count({
+					where: { deletedAt: { not: null } },
+				}),
+			]);
+
+			return {
+				data: { appointments, grandTotal, matchedTotal },
+				message: m.appointments_appointments_found(),
+			};
+		} catch (e) {
+			console.error(e);
+			throw new Error((e as Error).message);
+		}
+	});
+
+export const bulkRestoreAppointments = createServerFn()
+	.validator((d: AppointmentSelector) => d)
+	.handler(async ({ data }) => {
+		const session = await requireEditor();
+		if (!session) {
+			throw new Error(m.common_unauthorized());
+		}
+
+		try {
+			const ids = await resolveSelectorIds(data, { not: null });
+
+			const appointments = await prismaClient.$transaction(async (tx) => {
+				const restored: Appointment[] = [];
+				for (const id of ids) {
+					const appointment = await tx.appointment.update({
+						data: {
+							deletedAt: null,
+						},
+						where: { id },
+					});
+					await tx.transaction.create({
+						data: {
+							appointmentId: appointment.id,
+							type: TransactionType.RESTORE,
+							userId: session.id,
+						},
+					});
+					restored.push(appointment);
+				}
+				return restored;
+			});
+			return {
+				data: appointments,
+				message: m.appointments_appointment_restored_count({
+					count: appointments.length,
 				}),
 			};
 		} catch (e) {

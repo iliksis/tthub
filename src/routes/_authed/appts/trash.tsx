@@ -4,22 +4,20 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { CopyIcon, Trash2Icon } from "lucide-react";
+import { RotateCcwIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
 	type AppointmentWithSeason,
-	bulkCopyAppointmentsToSeason,
-	bulkDeleteAppointments,
-	getBulkAppointmentsPage,
+	bulkRestoreAppointments,
+	getTrashAppointmentsPage,
 } from "@/api/appointments";
 import { getSeasons } from "@/api/seasons";
 import { LoadMoreFooter } from "@/components/appointments/LoadMoreFooter";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { FilterBar, type FilterBarSegment } from "@/components/FilterBar";
-import { CopyToSeasonModal } from "@/components/modal/CopyToSeasonModal";
-import { DeleteModal } from "@/components/modal/DeleteModal";
+import { RestoreModal } from "@/components/modal/RestoreModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Link as EntityLink } from "@/components/ui/link";
@@ -43,7 +41,7 @@ const typeFilterOptions = Object.values(AppointmentType).map((type) => ({
 	value: type,
 }));
 
-const bulkSearchSchema = z.object({
+const trashSearchSchema = z.object({
 	query: z.string().optional(),
 	seasonId: z.string().optional(),
 	skip: z.number().int().nonnegative().optional(),
@@ -51,7 +49,7 @@ const bulkSearchSchema = z.object({
 });
 
 // biome-ignore assist/source/useSortedKeys: validateSearch and loaderDeps need to be before loader
-export const Route = createFileRoute("/_authed/appts/bulk")({
+export const Route = createFileRoute("/_authed/appts/trash")({
 	beforeLoad: async ({ context }) => {
 		if (
 			!context.user ||
@@ -68,12 +66,12 @@ export const Route = createFileRoute("/_authed/appts/bulk")({
 			</AlertDescription>
 		</Alert>
 	),
-	validateSearch: bulkSearchSchema,
+	validateSearch: trashSearchSchema,
 	loaderDeps: ({ search }) => ({ ...search }),
 	loader: async ({ deps }) => {
 		const skip = deps.skip ?? 0;
 		const [response, seasonsRes] = await Promise.all([
-			getBulkAppointmentsPage({
+			getTrashAppointmentsPage({
 				data: {
 					query: deps.query,
 					seasonId: deps.seasonId,
@@ -93,7 +91,7 @@ export const Route = createFileRoute("/_authed/appts/bulk")({
 		return { ...data, seasons, skip };
 	},
 	head: () => ({
-		meta: [{ title: m.appointments_bulk_management() }],
+		meta: [{ title: m.appointments_trash() }],
 	}),
 });
 
@@ -150,17 +148,10 @@ function RouteComponent() {
 	const isNavigating = useRouterState({ select: (s) => s.isLoading });
 
 	const [queryInput, setQueryInput] = React.useState(search.query ?? "");
-	const [isConfirmingDelete, setIsConfirmingDelete] = React.useState(false);
-	const [pendingDelete, setPendingDelete] = React.useState<
+	const [isConfirmingRestore, setIsConfirmingRestore] = React.useState(false);
+	const [pendingRestore, setPendingRestore] = React.useState<
 		{ mode: "ids"; ids: string[] } | { mode: "matching" } | null
 	>(null);
-	const [isConfirmingCopy, setIsConfirmingCopy] = React.useState(false);
-	const [pendingCopy, setPendingCopy] = React.useState<
-		{ mode: "ids"; ids: string[] } | { mode: "matching" } | null
-	>(null);
-	const [targetSeasonId, setTargetSeasonId] = React.useState<
-		string | undefined
-	>(seasons.find((season) => season.isActive)?.id);
 
 	const filterKey = `${search.query ?? ""}|${search.seasonId ?? ""}|${(search.types ?? []).join(",")}`;
 	const { items, setItems } = useLoadMoreBatch(batch, skip, filterKey);
@@ -243,13 +234,13 @@ function RouteComponent() {
 		});
 	};
 
-	const bulkDeleteServerFn = useServerFn(bulkDeleteAppointments);
-	const onDelete = async () => {
-		if (!pendingDelete) return;
+	const bulkRestoreServerFn = useServerFn(bulkRestoreAppointments);
+	const onRestore = async () => {
+		if (!pendingRestore) return;
 		try {
-			const response = await bulkDeleteServerFn({
+			const response = await bulkRestoreServerFn({
 				data:
-					pendingDelete.mode === "matching"
+					pendingRestore.mode === "matching"
 						? {
 								excludeIds: Array.from(excludeIds),
 								matching: {
@@ -258,53 +249,20 @@ function RouteComponent() {
 									types: search.types,
 								},
 							}
-						: { ids: pendingDelete.ids },
+						: { ids: pendingRestore.ids },
 			});
-			if (pendingDelete.mode === "matching") {
+			if (pendingRestore.mode === "matching") {
 				setItems((prev) => prev.filter((item) => excludeIds.has(item.id)));
 				exitSelectAllMatching();
 			} else {
-				const deletedIds = pendingDelete.ids;
+				const restoredIds = pendingRestore.ids;
 				setItems((prev) =>
-					prev.filter((item) => !deletedIds.includes(item.id)),
+					prev.filter((item) => !restoredIds.includes(item.id)),
 				);
 				setExplicitSelection({});
 			}
-			setIsConfirmingDelete(false);
-			setPendingDelete(null);
-			await router.invalidate();
-			toast.success(response.message);
-		} catch (err) {
-			toast.error((err as Error).message);
-		}
-	};
-
-	const bulkCopyServerFn = useServerFn(bulkCopyAppointmentsToSeason);
-	const onCopy = async () => {
-		if (!pendingCopy || !targetSeasonId) return;
-		try {
-			const response = await bulkCopyServerFn({
-				data: {
-					targetSeasonId,
-					...(pendingCopy.mode === "matching"
-						? {
-								excludeIds: Array.from(excludeIds),
-								matching: {
-									query: search.query,
-									seasonId: search.seasonId,
-									types: search.types,
-								},
-							}
-						: { ids: pendingCopy.ids }),
-				},
-			});
-			if (pendingCopy.mode === "matching") {
-				exitSelectAllMatching();
-			} else {
-				setExplicitSelection({});
-			}
-			setIsConfirmingCopy(false);
-			setPendingCopy(null);
+			setIsConfirmingRestore(false);
+			setPendingRestore(null);
 			await router.invalidate();
 			toast.success(response.message);
 		} catch (err) {
@@ -343,9 +301,7 @@ function RouteComponent() {
 	return (
 		<div className="flex flex-col gap-4">
 			<div>
-				<h1 className="font-bold text-lg">
-					{m.appointments_bulk_management()}
-				</h1>
+				<h1 className="font-bold text-lg">{m.appointments_trash()}</h1>
 				<p className="text-muted-foreground text-sm">
 					{m.appointments_n_of_n_events({
 						param1: matchedTotal.toString(),
@@ -420,40 +376,24 @@ function RouteComponent() {
 					items={items}
 					getItemId={(item) => item.id}
 					columns={columns}
-					emptyMessage={m.appointments_no_appointments_found()}
+					emptyMessage={m.appointments_no_deleted_appointments_found()}
 					selection={selection}
 					onSelectionChange={onSelectionChange}
 					commandBarItems={[
 						{
-							icon: <CopyIcon className="size-4" />,
-							isDisabled: (selected) =>
-								!selected.some((item) => item.seasonId !== null),
-							key: "copy-to-season",
-							label: m.appointments_copy_to_season(),
+							icon: <RotateCcwIcon className="size-4" />,
+							isDisabled: () => selectedCount === 0,
+							key: "restore-selected",
+							label: m.appointments_restore_selected(),
 							onClick: (selected) => {
-								setPendingCopy(
+								setPendingRestore(
 									selectAllMatching
 										? { mode: "matching" }
 										: { ids: selected.map((item) => item.id), mode: "ids" },
 								);
-								setIsConfirmingCopy(true);
+								setIsConfirmingRestore(true);
 							},
 							variant: "secondary",
-						},
-						{
-							icon: <Trash2Icon className="size-4" />,
-							isDisabled: () => selectedCount === 0,
-							key: "delete-selected",
-							label: m.appointments_delete_selected(),
-							onClick: (selected) => {
-								setPendingDelete(
-									selectAllMatching
-										? { mode: "matching" }
-										: { ids: selected.map((item) => item.id), mode: "ids" },
-								);
-								setIsConfirmingDelete(true);
-							},
-							variant: "error",
 						},
 					]}
 				/>
@@ -468,37 +408,19 @@ function RouteComponent() {
 				onLoadMore={onLoadMore}
 			/>
 
-			<DeleteModal
-				label={m.appointments_are_you_sure_you_want_to_delete_n_appointments({
-					param1: (pendingDelete?.mode === "matching"
+			<RestoreModal
+				label={m.appointments_are_you_sure_you_want_to_restore_n_appointments({
+					param1: (pendingRestore?.mode === "matching"
 						? selectedCount
-						: (pendingDelete?.ids.length ?? 0)
+						: (pendingRestore?.ids.length ?? 0)
 					).toString(),
 				})}
-				open={isConfirmingDelete}
+				open={isConfirmingRestore}
 				onClose={() => {
-					setIsConfirmingDelete(false);
-					setPendingDelete(null);
+					setIsConfirmingRestore(false);
+					setPendingRestore(null);
 				}}
-				onDelete={onDelete}
-			/>
-
-			<CopyToSeasonModal
-				open={isConfirmingCopy}
-				seasons={seasons}
-				targetSeasonId={targetSeasonId}
-				onTargetSeasonChange={setTargetSeasonId}
-				label={m.appointments_copy_n_appointments_to_season({
-					param1: (pendingCopy?.mode === "matching"
-						? selectedCount
-						: (pendingCopy?.ids.length ?? 0)
-					).toString(),
-				})}
-				onClose={() => {
-					setIsConfirmingCopy(false);
-					setPendingCopy(null);
-				}}
-				onCopy={onCopy}
+				onRestore={onRestore}
 			/>
 		</div>
 	);
