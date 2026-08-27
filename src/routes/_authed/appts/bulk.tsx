@@ -25,7 +25,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Link as EntityLink } from "@/components/ui/link";
 import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
-import type { AppointmentType } from "@/lib/prisma/enums";
+import { AppointmentType } from "@/lib/prisma/enums";
 import { m } from "@/paraglide/messages";
 
 const BATCH_SIZE = 25;
@@ -38,10 +38,16 @@ const appointmentTypeLabel: Record<AppointmentType, string> = {
 	TOURNAMENT_DE: m.common_tournament_germany(),
 };
 
+const typeFilterOptions = Object.values(AppointmentType).map((type) => ({
+	label: appointmentTypeLabel[type],
+	value: type,
+}));
+
 const bulkSearchSchema = z.object({
 	query: z.string().optional(),
 	seasonId: z.string().optional(),
 	skip: z.number().int().nonnegative().optional(),
+	types: z.array(z.nativeEnum(AppointmentType)).optional(),
 });
 
 // biome-ignore assist/source/useSortedKeys: validateSearch and loaderDeps need to be before loader
@@ -73,6 +79,7 @@ export const Route = createFileRoute("/_authed/appts/bulk")({
 					seasonId: deps.seasonId,
 					skip,
 					take: BATCH_SIZE,
+					types: deps.types,
 				},
 			}),
 			getSeasons(),
@@ -155,7 +162,7 @@ function RouteComponent() {
 		string | undefined
 	>(seasons.find((season) => season.isActive)?.id);
 
-	const filterKey = `${search.query ?? ""}|${search.seasonId ?? ""}`;
+	const filterKey = `${search.query ?? ""}|${search.seasonId ?? ""}|${(search.types ?? []).join(",")}`;
 	const { items, setItems } = useLoadMoreBatch(batch, skip, filterKey);
 
 	// Both explicit selection and select-all-matching (plus its exclude-list)
@@ -235,6 +242,7 @@ function RouteComponent() {
 					search: {
 						query: queryInput || undefined,
 						seasonId: current.seasonId,
+						types: current.types,
 					},
 					to: ".",
 				});
@@ -249,6 +257,24 @@ function RouteComponent() {
 			search: {
 				query: search.query,
 				seasonId: value === ALL_SEASONS ? undefined : value,
+				types: search.types,
+			},
+			to: ".",
+		});
+	};
+
+	const onToggleType = (value: string) => {
+		const type = value as AppointmentType;
+		const current = search.types ?? [];
+		const next = current.includes(type)
+			? current.filter((t) => t !== type)
+			: [...current, type];
+		router.navigate({
+			replace: true,
+			search: {
+				query: search.query,
+				seasonId: search.seasonId,
+				types: next.length > 0 ? next : undefined,
 			},
 			to: ".",
 		});
@@ -276,7 +302,11 @@ function RouteComponent() {
 					pendingDelete.mode === "matching"
 						? {
 								excludeIds: Array.from(excludeIds),
-								matching: { query: search.query, seasonId: search.seasonId },
+								matching: {
+									query: search.query,
+									seasonId: search.seasonId,
+									types: search.types,
+								},
 							}
 						: { ids: pendingDelete.ids },
 			});
@@ -309,7 +339,11 @@ function RouteComponent() {
 					...(pendingCopy.mode === "matching"
 						? {
 								excludeIds: Array.from(excludeIds),
-								matching: { query: search.query, seasonId: search.seasonId },
+								matching: {
+									query: search.query,
+									seasonId: search.seasonId,
+									types: search.types,
+								},
 							}
 						: { ids: pendingCopy.ids }),
 				},
@@ -330,8 +364,16 @@ function RouteComponent() {
 
 	const remaining = matchedTotal - items.length;
 
-	const seasonSegments: FilterBarSegment[] =
-		seasons.length > 0
+	const filterSegments: FilterBarSegment[] = [
+		{
+			key: "type",
+			label: m.appointments_type(),
+			onToggle: onToggleType,
+			options: typeFilterOptions,
+			type: "checkbox",
+			values: search.types ?? [],
+		},
+		...(seasons.length > 0
 			? [
 					{
 						key: "season",
@@ -343,9 +385,10 @@ function RouteComponent() {
 						})),
 						type: "radio",
 						value: search.seasonId ?? ALL_SEASONS,
-					},
+					} satisfies FilterBarSegment,
 				]
-			: [];
+			: []),
+	];
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -367,7 +410,7 @@ function RouteComponent() {
 					placeholder: m.appointments_search_appointment(),
 					value: queryInput,
 				}}
-				segments={seasonSegments}
+				segments={filterSegments}
 				onReset={onClearFilters}
 			/>
 

@@ -133,6 +133,46 @@ test.describe("Bulk Appointments Route - Data Display", () => {
 		expect(filtered.total).toBe(total);
 		expect(filtered.matched).toBeLessThanOrEqual(total);
 	});
+
+	test("the type filter narrows results without changing the total, and stacks with a second type", async ({
+		page,
+	}) => {
+		await loginAs(page, "admin");
+		await page.goto("/appts/bulk");
+		await page.waitForLoadState("networkidle");
+
+		const { total } = await readSummary(page);
+		// The table dims out while a filter navigation is in flight — a more
+		// reliable "done loading" signal here than networkidle, which can
+		// resolve before the client-side re-render lands.
+		const loadingOverlay = page.locator(".pointer-events-none.opacity-60");
+
+		await page.getByRole("button", { name: /^Typ/ }).click();
+		await page.getByRole("menuitemcheckbox", { name: "Ferien" }).click();
+		// Multi-select checkbox items keep the dropdown open, so close it
+		// explicitly before re-querying the summary and reopening for the
+		// next selection — otherwise the still-open menu can intercept the
+		// next click.
+		await page.keyboard.press("Escape");
+		await expect(loadingOverlay).toHaveCount(0);
+
+		const holidayOnly = await readSummary(page);
+		expect(holidayOnly.total).toBe(total);
+		expect(holidayOnly.matched).toBeLessThanOrEqual(total);
+
+		// Adding a second type only ever widens the match set.
+		await page.getByRole("button", { name: /^Typ/ }).click();
+		await page
+			.getByRole("menuitemcheckbox", { exact: true, name: "Turnier" })
+			.click();
+		await page.keyboard.press("Escape");
+		await expect(loadingOverlay).toHaveCount(0);
+
+		const holidayAndTournament = await readSummary(page);
+		expect(holidayAndTournament.matched).toBeGreaterThanOrEqual(
+			holidayOnly.matched,
+		);
+	});
 });
 
 test.describe("Bulk Appointments Route - Delete", () => {

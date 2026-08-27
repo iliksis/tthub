@@ -448,7 +448,11 @@ export type AppointmentWithSeason = Appointment & { season: Season | null };
 // Shared between getBulkAppointmentsPage (listing) and bulkDeleteAppointments'
 // "matching" selector (bulk action), so "every row matching the active
 // filters" means the exact same set of rows in both places.
-export type BulkAppointmentsFilter = { query?: string; seasonId?: string };
+export type BulkAppointmentsFilter = {
+	query?: string;
+	seasonId?: string;
+	types?: AppointmentType[];
+};
 
 function buildBulkAppointmentsWhere(
 	filter: BulkAppointmentsFilter,
@@ -461,6 +465,10 @@ function buildBulkAppointmentsWhere(
 			{ location: { contains: filter.query ?? "" } },
 		],
 		seasonId: filter.seasonId,
+		type:
+			filter.types && filter.types.length > 0
+				? { in: filter.types }
+				: undefined,
 	};
 }
 
