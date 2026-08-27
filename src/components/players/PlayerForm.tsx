@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 type PlayerFormProps = {
 	open?: boolean;
@@ -52,7 +52,7 @@ export const PlayerForm = ({
 			}}
 		>
 			<DialogContent>
-				<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
+				<DialogTitle className="sr-only">{m.common_dialog()}</DialogTitle>
 				<form
 					className="flex flex-col gap-4"
 					onSubmit={(e) => {
@@ -67,13 +67,13 @@ export const PlayerForm = ({
 							validators={{
 								onChange: ({ value }) =>
 									value.length <= 1
-										? t("Name must be at least 2 characters long")
+										? m.players_name_must_be_at_least_2_characters_long()
 										: undefined,
 							}}
 						>
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("Name")}:</Label>
+									<Label htmlFor={field.name}>{m.common_name()}:</Label>
 									<Input
 										id={field.name}
 										aria-invalid={!field.state.meta.isValid}
@@ -98,13 +98,15 @@ export const PlayerForm = ({
 							validators={{
 								onChange: ({ value }) =>
 									!Number.isInteger(value)
-										? t("Year of birth must be set")
+										? m.players_year_of_birth_must_be_set()
 										: undefined,
 							}}
 						>
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("Year of birth")}:</Label>
+									<Label htmlFor={field.name}>
+										{m.players_year_of_birth()}:
+									</Label>
 									<Input
 										id={field.name}
 										aria-invalid={!field.state.meta.isValid}
@@ -131,13 +133,13 @@ export const PlayerForm = ({
 							validators={{
 								onChange: ({ value }) =>
 									!Number.isInteger(value)
-										? t("QTTR must be set (0 is allowed)")
+										? m.players_qttr_must_be_set_0_is_allowed()
 										: undefined,
 							}}
 						>
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("QTTR")}:</Label>
+									<Label htmlFor={field.name}>{m.common_qttr()}:</Label>
 									<Input
 										id={field.name}
 										aria-invalid={!field.state.meta.isValid}
@@ -161,7 +163,7 @@ export const PlayerForm = ({
 				</form>
 				<DialogFooter>
 					<DialogClose render={<Button variant="outline" />}>
-						{t("Close")}
+						{m.common_close()}
 					</DialogClose>
 					<Button
 						type="submit"

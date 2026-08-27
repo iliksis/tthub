@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 import { loginFn } from "@/routes/_authed";
 
 export function Login() {
@@ -52,10 +52,10 @@ export function Login() {
 							return (
 								<fieldset className="flex flex-col gap-1.5">
 									{/* register your input into the hook by invoking the "register" function */}
-									<Label htmlFor={field.name}>{t("User Name")}</Label>
+									<Label htmlFor={field.name}>{m.common_user_name()}</Label>
 									<Input
 										id={field.name}
-										placeholder={t("User Name")}
+										placeholder={m.common_user_name()}
 										name={field.name}
 										value={field.state.value}
 										onBlur={field.handleBlur}
@@ -70,11 +70,11 @@ export function Login() {
 							return (
 								<fieldset className="flex flex-col gap-1.5">
 									{/* register your input into the hook by invoking the "register" function */}
-									<Label htmlFor={field.name}>{t("Password")}</Label>
+									<Label htmlFor={field.name}>{m.common_password()}</Label>
 									<Input
 										id={field.name}
 										type="password"
-										placeholder={t("Password")}
+										placeholder={m.common_password()}
 										name={field.name}
 										value={field.state.value}
 										onBlur={field.handleBlur}
@@ -94,7 +94,7 @@ export function Login() {
 					>
 						{([canSubmit, isSubmitting]) => (
 							<Button type="submit" className="mt-2" disabled={!canSubmit}>
-								{isSubmitting ? t("Loading…") : t("Login")}
+								{isSubmitting ? m.common_loading() : m.auth_login()}
 							</Button>
 						)}
 					</form.Subscribe>

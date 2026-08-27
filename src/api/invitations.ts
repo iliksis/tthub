@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
 import { useIsRole } from "@/lib/session";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export const getInvitation = createServerFn({ method: "GET" })
 	.validator((d: { id: string }) => d)
@@ -22,7 +22,7 @@ export const createUserInvitation = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("ADMIN");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -36,7 +36,7 @@ export const createUserInvitation = createServerFn({ method: "POST" })
 					userId: data.userId,
 				},
 			});
-			return { data: invitation, message: t("User updated") };
+			return { data: invitation, message: m.common_user_updated() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);

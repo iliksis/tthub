@@ -15,8 +15,8 @@ import { Section } from "@/components/Section";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
-import { t } from "@/lib/text";
 import { calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 // biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
 export const Route = createFileRoute("/_authed/players/$playerId")({
@@ -75,7 +75,7 @@ function RouteComponent() {
 		},
 	});
 
-	if (!player) return <div>{t("An Error occurred")}</div>;
+	if (!player) return <div>{m.common_an_error_occurred()}</div>;
 
 	const yearGroups = groupByYear(player.placements);
 	const currentMembership = player.teams.find((tp) => tp.team.season.isActive);
@@ -126,7 +126,7 @@ function RouteComponent() {
 							variant="outline"
 							size="sm"
 							className="flex-1"
-							title={t("Update player")}
+							title={m.players_update_player()}
 							onClick={onEdit}
 						>
 							<EditIcon className="size-4" />
@@ -135,7 +135,7 @@ function RouteComponent() {
 							variant="outline"
 							size="sm"
 							className="flex-1 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-							title={t("Delete player")}
+							title={m.players_delete_player()}
 							onClick={onOpenDelete}
 						>
 							<Trash2Icon className="size-4" />
@@ -144,22 +144,24 @@ function RouteComponent() {
 				)}
 
 				<div className="mt-6">
-					<Section title={t("Details")}>
+					<Section title={m.common_details()}>
 						<dl className="flex flex-col text-sm">
 							<div className="flex items-center justify-between py-2.5 border-b border-border/60">
-								<dt className="text-muted-foreground">{t("Year of birth")}</dt>
+								<dt className="text-muted-foreground">
+									{m.players_year_of_birth()}
+								</dt>
 								<dd className="font-medium">
 									{player.year} ({calculateAgeGroup(player.year)})
 								</dd>
 							</div>
 							<div className="flex items-center justify-between py-2.5 border-b border-border/60">
-								<dt className="text-muted-foreground">{t("QTTR")}</dt>
+								<dt className="text-muted-foreground">{m.common_qttr()}</dt>
 								<dd className="font-semibold text-success tabular-nums">
 									{player.qttr}
 								</dd>
 							</div>
 							<div className="flex items-center justify-between py-2.5 border-b border-border/60">
-								<dt className="text-muted-foreground">{t("Team")}</dt>
+								<dt className="text-muted-foreground">{m.common_team()}</dt>
 								<dd className="font-medium">
 									{currentMembership ? (
 										<Link
@@ -169,13 +171,13 @@ function RouteComponent() {
 											{currentMembership.team.title}
 										</Link>
 									) : (
-										t("No team set")
+										m.players_no_team_set()
 									)}
 								</dd>
 							</div>
 							{currentMembership?.team.league && (
 								<div className="flex items-center justify-between py-2.5 border-b border-border/60">
-									<dt className="text-muted-foreground">{t("League")}</dt>
+									<dt className="text-muted-foreground">{m.common_league()}</dt>
 									<dd className="font-medium">
 										{currentMembership.team.league}
 									</dd>
@@ -186,7 +188,7 @@ function RouteComponent() {
 
 					{pastMemberships.length > 0 && (
 						<div className="mt-6">
-							<Section title={t("History")}>
+							<Section title={m.common_history()}>
 								<dl className="flex flex-col text-sm">
 									{pastMemberships.map((tp) => (
 										<div
@@ -215,10 +217,10 @@ function RouteComponent() {
 
 			{/* Full-width ledger */}
 			<div className="py-4 lg:py-8">
-				<Section title={t("Placements")}>
+				<Section title={m.players_placements()}>
 					{yearGroups.length === 0 && (
 						<div className="py-8 text-center text-muted-foreground">
-							{t("No items found")}
+							{m.common_no_items_found()}
 						</div>
 					)}
 					{yearGroups.map(([year, items]) => (
@@ -254,7 +256,7 @@ function RouteComponent() {
 								data: { ...values, id: player.id },
 							});
 						}}
-						submitLabel={t("Update")}
+						submitLabel={m.common_update()}
 						defaultValues={{
 							name: player.name,
 							qttr: player.qttr,
@@ -262,7 +264,7 @@ function RouteComponent() {
 						}}
 					/>
 					<DeleteModal
-						label={t("Are you sure you want to delete this player?")}
+						label={m.players_are_you_sure_you_want_to_delete_this_player()}
 						open={isDeleting}
 						onClose={onStopDeleting}
 						onDelete={onDelete}

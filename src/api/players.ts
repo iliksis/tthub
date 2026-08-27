@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
 import { activeSeasonFilter } from "@/lib/season";
 import { useIsRole } from "@/lib/session";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 // Only the active-season membership (at most one, per the roster's unique
 // constraint) — list/filter views only care about a player's *current*
@@ -26,7 +26,7 @@ export const searchPlayers = createServerFn()
 					name: { contains: data.query ?? "" },
 				},
 			});
-			return { data: players, message: t("Players found") };
+			return { data: players, message: m.players_players_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -52,7 +52,7 @@ export const getPlayers = createServerFn({ method: "GET" })
 				},
 				orderBy: { name: "asc" },
 			});
-			return { data: players, message: t("Players found") };
+			return { data: players, message: m.players_players_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -64,7 +64,7 @@ export const createPlayer = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -75,7 +75,7 @@ export const createPlayer = createServerFn({ method: "POST" })
 					year: data.year,
 				},
 			});
-			return { data: player, message: t("Player created") };
+			return { data: player, message: m.players_player_created() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -103,9 +103,9 @@ export const getPlayer = createServerFn()
 				where: { id: data.id },
 			});
 			if (!player) {
-				throw new Error(t("Player not found"));
+				throw new Error(m.players_player_not_found());
 			}
-			return { data: player, message: t("Player found") };
+			return { data: player, message: m.players_player_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -117,7 +117,7 @@ export const updatePlayer = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -131,7 +131,7 @@ export const updatePlayer = createServerFn()
 					id: data.id,
 				},
 			});
-			return { data: player, message: t("Player updated") };
+			return { data: player, message: m.players_player_updated() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -143,7 +143,7 @@ export const deletePlayer = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		try {
 			const player = await prismaClient.player.delete({
@@ -151,7 +151,7 @@ export const deletePlayer = createServerFn()
 					id: data.id,
 				},
 			});
-			return { data: player, message: t("Player deleted") };
+			return { data: player, message: m.players_player_deleted() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);

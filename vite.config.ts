@@ -7,6 +7,7 @@ import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import { nitroV2Plugin } from '@tanstack/nitro-v2-vite-plugin'
 import mkcert from 'vite-plugin-mkcert'
+import { paraglideVitePlugin } from '@inlang/paraglide-js'
 
 const config = defineConfig({
   build: {
@@ -24,6 +25,12 @@ const config = defineConfig({
       projects: ['./tsconfig.json'],
     }),
     tailwindcss(),
+    paraglideVitePlugin({
+      project: './project.inlang',
+      outdir: './src/paraglide',
+      strategy: ['cookie', 'baseLocale'],
+      cookieName: 'PARAGLIDE_LOCALE',
+    }),
     tanstackStart(),
     viteReact(),
   ],
@@ -42,6 +49,7 @@ const config = defineConfig({
         '**/*.config.*',
         '**/routeTree.gen.ts',
         'src/lib/prisma/**',
+        'src/paraglide/**',
       ],
     },
   },

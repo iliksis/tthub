@@ -14,8 +14,8 @@ import { EntitySelect } from "@/components/ui/entity-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Player, Season } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 type TeamFormValues = {
 	title: string;
@@ -94,7 +94,7 @@ function RosterSection({
 	const [playerValue, setPlayerValue] = React.useState<string | undefined>();
 
 	return (
-		<Section title={t("Roster")}>
+		<Section title={m.teams_roster()}>
 			<div className="flex flex-col gap-3">
 				<div className="flex gap-2">
 					<EntitySelect
@@ -104,7 +104,7 @@ function RosterSection({
 							if (value) onAddPending(value);
 							setPlayerValue(undefined);
 						}}
-						placeholder={t("Choose a player")}
+						placeholder={m.common_choose_a_player()}
 						renderItem={(player) => (
 							<>
 								{player.name}
@@ -135,7 +135,7 @@ function RosterSection({
 										variant="ghost"
 										size="icon-xs"
 										className="text-destructive hover:text-destructive"
-										aria-label={t("Remove from roster")}
+										aria-label={m.teams_remove_from_roster()}
 										onClick={() => onRemovePending(entry.id)}
 									>
 										<Trash2Icon className="size-3.5" />
@@ -189,7 +189,7 @@ export const TeamForm = ({
 			}}
 		>
 			<DialogContent showCloseButton={false}>
-				<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
+				<DialogTitle className="sr-only">{m.common_dialog()}</DialogTitle>
 				<form
 					className="flex flex-col gap-4"
 					onSubmit={(e) => {
@@ -202,7 +202,7 @@ export const TeamForm = ({
 						<form.Field name="title">
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("Title")}:</Label>
+									<Label htmlFor={field.name}>{m.common_title()}:</Label>
 									<Input
 										id={field.name}
 										aria-invalid={!field.state.meta.isValid}
@@ -220,7 +220,7 @@ export const TeamForm = ({
 						<form.Field name="league">
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("League")}:</Label>
+									<Label htmlFor={field.name}>{m.common_league()}:</Label>
 									<Input
 										id={field.name}
 										aria-invalid={!field.state.meta.isValid}
@@ -238,7 +238,9 @@ export const TeamForm = ({
 						<form.Field name="clickTTGroupId">
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("click-TT Group Id")}:</Label>
+									<Label htmlFor={field.name}>
+										{m.teams_click_tt_group_id()}:
+									</Label>
 									<Input
 										id={field.name}
 										aria-invalid={!field.state.meta.isValid}
@@ -256,7 +258,7 @@ export const TeamForm = ({
 							<form.Field name="seasonId">
 								{(field) => (
 									<fieldset className="flex flex-col gap-1.5">
-										<Label htmlFor={field.name}>{t("Season")}:</Label>
+										<Label htmlFor={field.name}>{m.common_season()}:</Label>
 										<EntitySelect
 											id={field.name}
 											items={seasonOptions}
@@ -289,7 +291,7 @@ export const TeamForm = ({
 				)}
 				<DialogFooter>
 					<DialogClose render={<Button variant="outline" />}>
-						{t("Close")}
+						{m.common_close()}
 					</DialogClose>
 					<Button
 						type="submit"

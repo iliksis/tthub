@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useMutation } from "@/hooks/useMutation";
 import { Role } from "@/lib/prisma/enums";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 type NewUser = {
 	userName: string;
@@ -77,7 +77,7 @@ export const CreateUserModal = ({
 			}}
 		>
 			<DialogContent showCloseButton={false}>
-				<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
+				<DialogTitle className="sr-only">{m.common_dialog()}</DialogTitle>
 				<form
 					id="create-user-form"
 					className="flex flex-col gap-4"
@@ -92,7 +92,7 @@ export const CreateUserModal = ({
 							{(field) => {
 								return (
 									<fieldset className="flex flex-col gap-1.5">
-										<Label htmlFor={field.name}>{t("Name")}:</Label>
+										<Label htmlFor={field.name}>{m.common_name()}:</Label>
 										<Input
 											id={field.name}
 											name={field.name}
@@ -109,7 +109,7 @@ export const CreateUserModal = ({
 						<form.Field name="userName">
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("User Name")}:</Label>
+									<Label htmlFor={field.name}>{m.common_user_name()}:</Label>
 									<Input
 										id={field.name}
 										name={field.name}
@@ -125,7 +125,7 @@ export const CreateUserModal = ({
 						<form.Field name="role">
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("Role")}:</Label>
+									<Label htmlFor={field.name}>{m.users_role()}:</Label>
 									<Select
 										value={field.state.value}
 										onValueChange={(value) => field.handleChange(value as Role)}
@@ -151,7 +151,7 @@ export const CreateUserModal = ({
 				</form>
 				<DialogFooter>
 					<DialogClose render={<Button variant="outline" />}>
-						{t("Close")}
+						{m.common_close()}
 					</DialogClose>
 					<Button
 						type="submit"
@@ -161,7 +161,7 @@ export const CreateUserModal = ({
 							form.handleSubmit();
 						}}
 					>
-						{t("Create")}
+						{m.common_create()}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

@@ -21,8 +21,8 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import type { Team } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
 import { calculateAgeGroup } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export const filterSchema = z.object({
 	ageGroup: z.string().optional(),
@@ -36,18 +36,18 @@ type FiltersProps = z.infer<typeof filterSchema>;
 const NO_TEAM = "NONE";
 
 const ageGroupOptions = [
-	{ label: t("All age groups"), value: "ALL" },
+	{ label: m.players_all_age_groups(), value: "ALL" },
 	{ label: "U11", value: "U11" },
 	{ label: "U13", value: "U13" },
 	{ label: "U15", value: "U15" },
 	{ label: "U19", value: "U19" },
-	{ label: t("Adult"), value: calculateAgeGroup(0) },
+	{ label: m.players_adult(), value: calculateAgeGroup(0) },
 ];
 
 const teamOptions = (teams: Team[]) => [
-	{ label: t("All teams"), value: "ALL" },
+	{ label: m.players_all_teams(), value: "ALL" },
 	...teams.map((team) => ({ label: team.title, value: team.id })),
-	{ label: t("No team"), value: NO_TEAM },
+	{ label: m.players_no_team(), value: NO_TEAM },
 ];
 
 // Shared by CommandBarFilters (desktop) and MobilePlayerFilters (mobile) —
@@ -108,14 +108,14 @@ export const CommandBarFilters = ({
 	if (search.qttrMin !== undefined) {
 		qttrTokens.push({
 			key: "qttrMin",
-			label: t("QTTR ≥ {0}", search.qttrMin.toString()),
+			label: m.players_qttr_min({ param1: search.qttrMin.toString() }),
 			onRemove: () => navigate({ qttrMin: undefined }),
 		});
 	}
 	if (search.qttrMax !== undefined) {
 		qttrTokens.push({
 			key: "qttrMax",
-			label: t("QTTR ≤ {0}", search.qttrMax.toString()),
+			label: m.players_qttr_max({ param1: search.qttrMax.toString() }),
 			onRemove: () => navigate({ qttrMax: undefined }),
 		});
 	}
@@ -124,7 +124,7 @@ export const CommandBarFilters = ({
 	const segments: FilterBarSegment[] = [
 		{
 			key: "team",
-			label: t("Team"),
+			label: m.common_team(),
 			onChange: (v) => navigate({ teamId: v === "ALL" ? undefined : v }),
 			options: teamOptions(teams),
 			type: "radio",
@@ -132,7 +132,7 @@ export const CommandBarFilters = ({
 		},
 		{
 			key: "ageGroup",
-			label: t("Age Group"),
+			label: m.common_age_group(),
 			onChange: (v) => navigate({ ageGroup: v === "ALL" ? undefined : v }),
 			options: ageGroupOptions,
 			type: "radio",
@@ -145,7 +145,7 @@ export const CommandBarFilters = ({
 				<div className="flex items-center gap-2 px-2 py-1.5">
 					<Input
 						type="number"
-						placeholder={t("Min")}
+						placeholder={m.players_min()}
 						className="h-7"
 						value={search.qttrMin ?? ""}
 						onChange={(e) =>
@@ -157,7 +157,7 @@ export const CommandBarFilters = ({
 					/>
 					<Input
 						type="number"
-						placeholder={t("Max")}
+						placeholder={m.players_max()}
 						className="h-7"
 						value={search.qttrMax ?? ""}
 						onChange={(e) =>
@@ -172,7 +172,7 @@ export const CommandBarFilters = ({
 			contentClassName: "w-56",
 			icon: <SlidersHorizontalIcon className="size-3.5" />,
 			key: "qttr",
-			label: t("QTTR"),
+			label: m.common_qttr(),
 			tokens: qttrTokens,
 			type: "custom",
 			valueLabel: hasQttrFilter
@@ -185,7 +185,7 @@ export const CommandBarFilters = ({
 		<FilterBar
 			search={{
 				onChange: setQueryInput,
-				placeholder: t("Search players or add filter..."),
+				placeholder: m.players_search_players_or_add_filter(),
 				value: queryInput,
 			}}
 			segments={segments}
@@ -230,7 +230,7 @@ export const MobilePlayerFilters = ({
 		<div className="mb-3 flex flex-col gap-1.5">
 			<div className="flex items-center gap-2">
 				<Input
-					placeholder={t("Search Players")}
+					placeholder={m.players_search_players()}
 					value={queryInput}
 					onChange={(e) => setQueryInput(e.target.value)}
 					className="flex-1"
@@ -240,7 +240,7 @@ export const MobilePlayerFilters = ({
 					variant="outline"
 					size="icon"
 					className="relative shrink-0"
-					aria-label={t("Filters")}
+					aria-label={m.common_filters()}
 					onClick={() => setSheetOpen(true)}
 				>
 					<SlidersHorizontalIcon className="size-4" />
@@ -255,7 +255,7 @@ export const MobilePlayerFilters = ({
 					onClick={clearSecondary}
 					className="self-start text-muted-foreground text-xs underline underline-offset-2"
 				>
-					{t("Clear")}
+					{m.common_clear()}
 				</button>
 			)}
 			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
@@ -273,7 +273,7 @@ export const MobilePlayerFilters = ({
 							: undefined
 					}
 				>
-					<SheetTitle className="sr-only">{t("Filters")}</SheetTitle>
+					<SheetTitle className="sr-only">{m.common_filters()}</SheetTitle>
 					<div
 						className="flex shrink-0 cursor-grab touch-none justify-center pt-2 pb-1 active:cursor-grabbing"
 						{...handlePointerHandlers}
@@ -283,7 +283,9 @@ export const MobilePlayerFilters = ({
 					<div className="flex flex-col gap-4 px-4 pb-6">
 						<div className="grid grid-cols-2 gap-3">
 							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor="mobile-player-filters-team">{t("Team")}</Label>
+								<Label htmlFor="mobile-player-filters-team">
+									{m.common_team()}
+								</Label>
 								<Select
 									value={props.teamId ?? "ALL"}
 									onValueChange={(v) =>
@@ -307,7 +309,7 @@ export const MobilePlayerFilters = ({
 							</fieldset>
 							<fieldset className="flex flex-col gap-1.5">
 								<Label htmlFor="mobile-player-filters-age-group">
-									{t("Age Group")}
+									{m.common_age_group()}
 								</Label>
 								<Select
 									value={props.ageGroup ?? "ALL"}
@@ -334,7 +336,7 @@ export const MobilePlayerFilters = ({
 						<div className="grid grid-cols-2 gap-3">
 							<fieldset className="flex flex-col gap-1.5">
 								<Label htmlFor="mobile-player-filters-qttr-min">
-									QTTR {t("Min")}
+									QTTR {m.players_min()}
 								</Label>
 								<Input
 									id="mobile-player-filters-qttr-min"
@@ -352,7 +354,7 @@ export const MobilePlayerFilters = ({
 							</fieldset>
 							<fieldset className="flex flex-col gap-1.5">
 								<Label htmlFor="mobile-player-filters-qttr-max">
-									QTTR {t("Max")}
+									QTTR {m.players_max()}
 								</Label>
 								<Input
 									id="mobile-player-filters-qttr-max"

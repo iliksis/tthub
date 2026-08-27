@@ -7,7 +7,7 @@ import {
 	DialogFooter,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 type DeleteModalProps = {
 	label: string;
@@ -30,14 +30,14 @@ export const DeleteModal = ({
 			}}
 		>
 			<DialogContent showCloseButton={false}>
-				<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
+				<DialogTitle className="sr-only">{m.common_dialog()}</DialogTitle>
 				<DialogDescription>{label}</DialogDescription>
 				<DialogFooter>
 					<DialogClose render={<Button type="button" variant="outline" />}>
-						{t("Close")}
+						{m.common_close()}
 					</DialogClose>
 					<Button type="button" variant="destructive" onClick={onDelete}>
-						{t("Delete")}
+						{m.common_delete()}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

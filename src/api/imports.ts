@@ -5,7 +5,7 @@ import { prismaClient } from "@/lib/db";
 import type { Prisma } from "@/lib/prisma/client";
 import { TransactionType } from "@/lib/prisma/enums";
 import { requireAdmin, requireEditor } from "@/lib/session";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 type ImportJob = {
 	status: "running" | "done" | "error";
@@ -108,12 +108,12 @@ export const runImport = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		const importer = getImporter(data.importerId);
 		if (!importer || !(await isImporterEnabled(importer.id))) {
-			throw new Error(t("Importer not found"));
+			throw new Error(m.imports_importer_not_found());
 		}
 
 		const jobId = crypto.randomUUID();
@@ -149,12 +149,11 @@ export const runImport = createServerFn()
 					secrets: {},
 				});
 				job.status = "done";
-				job.message = t(
-					"{0} created, {1} updated, {2} skipped",
-					result.imported.toString(),
-					job.updated.toString(),
-					result.skipped.toString(),
-				);
+				job.message = m.imports_n_created_n_updated_n_skipped({
+					param1: result.imported.toString(),
+					param2: job.updated.toString(),
+					param3: result.skipped.toString(),
+				});
 			} catch (e) {
 				console.error(e);
 				job.status = "error";
@@ -164,7 +163,7 @@ export const runImport = createServerFn()
 			}
 		})();
 
-		return { data: { jobId }, message: t("Import started") };
+		return { data: { jobId }, message: m.imports_import_started() };
 	});
 
 export const getImportProgress = createServerFn()
@@ -172,12 +171,12 @@ export const getImportProgress = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		const job = importJobs.get(data.jobId);
 		if (!job) {
-			throw new Error(t("Import not found"));
+			throw new Error(m.imports_import_not_found());
 		}
 
 		return { data: job, message: "" };
@@ -186,7 +185,7 @@ export const getImportProgress = createServerFn()
 export const getImporterSettings = createServerFn().handler(async () => {
 	const session = await requireEditor();
 	if (!session) {
-		throw new Error(t("Unauthorized"));
+		throw new Error(m.common_unauthorized());
 	}
 
 	const settings = await Promise.all(
@@ -196,7 +195,7 @@ export const getImporterSettings = createServerFn().handler(async () => {
 		})),
 	);
 
-	return { data: settings, message: t("Importers found") };
+	return { data: settings, message: m.imports_importers_found() };
 });
 
 export const setImporterEnabled = createServerFn()
@@ -204,12 +203,12 @@ export const setImporterEnabled = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireAdmin();
 		if (!session) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
 			if (!getImporter(data.importerId)) {
-				throw new Error(t("Importer not found"));
+				throw new Error(m.imports_importer_not_found());
 			}
 
 			await prismaClient.importerSetting.upsert({
@@ -218,7 +217,7 @@ export const setImporterEnabled = createServerFn()
 				where: { importerId: data.importerId },
 			});
 
-			return { message: t("Settings updated") };
+			return { message: m.common_settings_updated() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);

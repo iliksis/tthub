@@ -6,7 +6,7 @@ import { CreateTeam } from "@/components/teams/CreateTeam";
 import { List } from "@/components/teams/List";
 import { TeamsSplitView } from "@/components/teams/TeamsSplitView";
 import { EntitySelect } from "@/components/ui/entity-select";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
 	seasonId: z.string().optional(),
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_authed/teams/")({
 		return { activeSeason, seasonId, seasons, teams: res.data ?? [] };
 	},
 	head: () => ({
-		meta: [{ title: t("Teams") }],
+		meta: [{ title: m.common_teams() }],
 	}),
 });
 
@@ -57,7 +57,7 @@ function SeasonSwitcher() {
 function RouteComponent() {
 	const { teams, seasons, activeSeason } = Route.useLoaderData();
 
-	if (!teams) return <div>{t("An Error occurred")}</div>;
+	if (!teams) return <div>{m.common_an_error_occurred()}</div>;
 
 	return (
 		<>
@@ -74,7 +74,7 @@ function RouteComponent() {
 			<div className="hidden lg:flex lg:flex-col lg:gap-4">
 				<div className="flex items-center gap-3">
 					<h1 className="flex-1 font-bold text-lg">
-						{t("Teams")}{" "}
+						{m.common_teams()}{" "}
 						<span className="font-normal text-muted-foreground text-sm">
 							· {teams.length}
 						</span>

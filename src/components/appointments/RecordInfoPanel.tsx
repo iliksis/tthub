@@ -4,8 +4,8 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { t } from "@/lib/text";
 import { formatRelativeTime } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const dateTimeFormat: Intl.DateTimeFormatOptions = {
 	day: "numeric",
@@ -23,10 +23,10 @@ export function RecordInfoPanel({
 	lastUpdated: Date;
 }) {
 	return (
-		<Section title={t("Metadata")}>
+		<Section title={m.appointments_metadata()}>
 			<dl className="flex flex-col gap-3 text-sm">
 				<div className="flex items-center justify-between gap-4">
-					<dt className="text-muted-foreground">{t("Created")}</dt>
+					<dt className="text-muted-foreground">{m.common_created()}</dt>
 					<Tooltip>
 						<TooltipTrigger render={<dd />}>
 							{formatRelativeTime(createdAt)}
@@ -37,7 +37,9 @@ export function RecordInfoPanel({
 					</Tooltip>
 				</div>
 				<div className="flex items-center justify-between gap-4">
-					<dt className="text-muted-foreground">{t("Last updated")}</dt>
+					<dt className="text-muted-foreground">
+						{m.appointments_last_updated()}
+					</dt>
 					<Tooltip>
 						<TooltipTrigger render={<dd />}>
 							{formatRelativeTime(lastUpdated)}

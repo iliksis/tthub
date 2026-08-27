@@ -12,8 +12,8 @@ import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import type { Season } from "@/lib/prisma/client";
 import { AppointmentStatus } from "@/lib/prisma/enums";
-import { t } from "@/lib/text";
 import { cn, dateToInputValue } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 type AppointmentType = "holiday" | "tournament";
 type TournamentType = "bavaria" | "germany";
@@ -101,12 +101,18 @@ export const CreateAppointmentForm = ({
 		},
 	});
 
-	const steps = [t("Type"), t("Details"), t("Review")];
+	const steps = [
+		m.appointments_type(),
+		m.common_details(),
+		m.appointments_review(),
+	];
 	const canAdvanceFromType = type === "tournament" ? !!tournamentType : !!type;
 
 	const typeStep = (
 		<div className="duration-300 animate-in fade-in slide-in-from-right-2">
-			<h2 className="mb-4 font-semibold text-base">{t("Appointment type")}</h2>
+			<h2 className="mb-4 font-semibold text-base">
+				{m.appointments_appointment_type()}
+			</h2>
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<button
 					type="button"
@@ -122,16 +128,18 @@ export const CreateAppointmentForm = ({
 						<CalendarIcon className="size-5" />
 					</div>
 					<div>
-						<div className="font-medium text-sm">{t("Holiday")}</div>
+						<div className="font-medium text-sm">{m.common_holiday()}</div>
 						<div className="text-muted-foreground text-xs">
-							{t("A closed period without training or events")}
+							{m.appointments_a_closed_period_without_training_or_events()}
 						</div>
 					</div>
 				</button>
 				<button
 					type="button"
 					disabled={seasons.length === 0}
-					title={seasons.length === 0 ? t("Create a season first") : undefined}
+					title={
+						seasons.length === 0 ? m.common_create_a_season_first() : undefined
+					}
 					onClick={() => setType("tournament")}
 					className={cn(
 						"flex flex-col items-start gap-3 rounded-xl border p-5 text-left transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50",
@@ -144,9 +152,9 @@ export const CreateAppointmentForm = ({
 						<TrophyIcon className="size-5" />
 					</div>
 					<div>
-						<div className="font-medium text-sm">{t("Tournament")}</div>
+						<div className="font-medium text-sm">{m.common_tournament()}</div>
 						<div className="text-muted-foreground text-xs">
-							{t("A competitive event players sign up for")}
+							{m.appointments_a_competitive_event_players_sign_up_for()}
 						</div>
 					</div>
 				</button>
@@ -164,7 +172,7 @@ export const CreateAppointmentForm = ({
 								: "border-border/60 hover:bg-accent/50",
 						)}
 					>
-						{t("Bavaria")}
+						{m.appointments_bavaria()}
 					</button>
 					<button
 						type="button"
@@ -176,7 +184,7 @@ export const CreateAppointmentForm = ({
 								: "border-border/60 hover:bg-accent/50",
 						)}
 					>
-						{t("Germany")}
+						{m.appointments_germany()}
 					</button>
 				</div>
 			)}
@@ -186,19 +194,19 @@ export const CreateAppointmentForm = ({
 				disabled={!canAdvanceFromType}
 				onClick={() => setStep(1)}
 			>
-				{t("Continue")}
+				{m.appointments_continue()}
 			</Button>
 		</div>
 	);
 
 	const detailsStep = (
 		<div className="duration-300 animate-in fade-in slide-in-from-right-2">
-			<h2 className="mb-4 font-semibold text-base">{t("Details")}</h2>
+			<h2 className="mb-4 font-semibold text-base">{m.common_details()}</h2>
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<form.Field name="title">
 					{(field) => (
 						<fieldset className="flex flex-col gap-1.5">
-							<Label htmlFor={field.name}>{t("Title")}:</Label>
+							<Label htmlFor={field.name}>{m.common_title()}:</Label>
 							<Input
 								id={field.name}
 								name={field.name}
@@ -212,7 +220,7 @@ export const CreateAppointmentForm = ({
 				<form.Field name="shortTitle">
 					{(field) => (
 						<fieldset className="flex flex-col gap-1.5">
-							<Label htmlFor={field.name}>{t("ShortTitle")}:</Label>
+							<Label htmlFor={field.name}>{m.appointments_shorttitle()}:</Label>
 							<Input
 								id={field.name}
 								name={field.name}
@@ -226,7 +234,7 @@ export const CreateAppointmentForm = ({
 				<form.Field name="startDate">
 					{(field) => (
 						<fieldset className="flex flex-col gap-1.5">
-							<Label htmlFor={field.name}>{t("StartDate")}:</Label>
+							<Label htmlFor={field.name}>{m.appointments_startdate()}:</Label>
 							<Input
 								id={field.name}
 								type="datetime-local"
@@ -245,7 +253,7 @@ export const CreateAppointmentForm = ({
 				<form.Field name="endDate">
 					{(field) => (
 						<fieldset className="flex flex-col gap-1.5">
-							<Label htmlFor={field.name}>{t("EndDate")}:</Label>
+							<Label htmlFor={field.name}>{m.appointments_enddate()}:</Label>
 							<Input
 								id={field.name}
 								type="date"
@@ -271,7 +279,7 @@ export const CreateAppointmentForm = ({
 					<form.Field name="location">
 						{(field) => (
 							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor={field.name}>{t("Location")}:</Label>
+								<Label htmlFor={field.name}>{m.appointments_location()}:</Label>
 								<Input
 									id={field.name}
 									name={field.name}
@@ -287,7 +295,7 @@ export const CreateAppointmentForm = ({
 					<form.Field name="seasonId">
 						{(field) => (
 							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor={field.name}>{t("Season")}:</Label>
+								<Label htmlFor={field.name}>{m.common_season()}:</Label>
 								<EntitySelect
 									id={field.name}
 									items={seasons}
@@ -301,7 +309,7 @@ export const CreateAppointmentForm = ({
 			</div>
 			<div className="mt-6 flex justify-between">
 				<Button variant="outline" onClick={() => setStep(0)}>
-					{t("Back")}
+					{m.appointments_back()}
 				</Button>
 				<form.Subscribe
 					selector={(state) => [state.values.title, state.values.seasonId]}
@@ -311,7 +319,7 @@ export const CreateAppointmentForm = ({
 							disabled={!title || (type !== "holiday" && !seasonId)}
 							onClick={() => setStep(2)}
 						>
-							{t("Continue")}
+							{m.appointments_continue()}
 						</Button>
 					)}
 				</form.Subscribe>
@@ -328,7 +336,9 @@ export const CreateAppointmentForm = ({
 				form.handleSubmit();
 			}}
 		>
-			<h2 className="mb-4 font-semibold text-base">{t("Review")}</h2>
+			<h2 className="mb-4 font-semibold text-base">
+				{m.appointments_review()}
+			</h2>
 			<form.Subscribe selector={(state) => state.values}>
 				{(values) => (
 					<div className="mb-4 grid grid-cols-1 gap-4 rounded-xl border border-border/60 bg-card p-5 sm:grid-cols-2">
@@ -339,12 +349,12 @@ export const CreateAppointmentForm = ({
 								<TrophyIcon className="size-4 text-success" />
 							)}
 							<span className="font-medium text-sm">
-								{values.title || t("Untitled")}
+								{values.title || m.appointments_untitled()}
 							</span>
 						</div>
 						<div>
 							<div className="text-muted-foreground text-xs uppercase">
-								{t("StartDate")}
+								{m.appointments_startdate()}
 							</div>
 							<div className="text-sm">
 								{values.startDate.toLocaleString("de-DE")}
@@ -353,7 +363,7 @@ export const CreateAppointmentForm = ({
 						{type !== "holiday" && (
 							<div>
 								<div className="text-muted-foreground text-xs uppercase">
-									{t("Location")}
+									{m.appointments_location()}
 								</div>
 								<div className="text-sm">{values.location || "—"}</div>
 							</div>
@@ -379,7 +389,7 @@ export const CreateAppointmentForm = ({
 										)
 									}
 								/>
-								<Label htmlFor={field.name}>{t("Publish")}?</Label>
+								<Label htmlFor={field.name}>{m.appointments_publish()}?</Label>
 							</div>
 						</fieldset>
 					)}
@@ -387,14 +397,14 @@ export const CreateAppointmentForm = ({
 			)}
 			<div className="flex justify-between">
 				<Button type="button" variant="outline" onClick={() => setStep(1)}>
-					{t("Back")}
+					{m.appointments_back()}
 				</Button>
 				<form.Subscribe
 					selector={(state) => [state.canSubmit, state.isSubmitting]}
 				>
 					{([canSubmit, isSubmitting]) => (
 						<Button type="submit" disabled={!canSubmit || isSubmitting}>
-							{isSubmitting ? t("Loading…") : t("Create")}
+							{isSubmitting ? m.common_loading() : m.common_create()}
 						</Button>
 					)}
 				</form.Subscribe>
@@ -408,7 +418,9 @@ export const CreateAppointmentForm = ({
 		<div className="lg:flex">
 			{/* Mobile: compact step progress above the content */}
 			<div className="border-border/60 border-b pb-4 lg:hidden">
-				<h1 className="mb-3 font-bold text-lg">{t("Create appointment")}</h1>
+				<h1 className="mb-3 font-bold text-lg">
+					{m.appointments_create_appointment()}
+				</h1>
 				<div className="flex items-center gap-2">
 					{steps.map((label, i) => (
 						<React.Fragment key={label}>
@@ -444,7 +456,9 @@ export const CreateAppointmentForm = ({
 
 			{/* Desktop: persistent left step rail */}
 			<div className="hidden w-56 shrink-0 border-border/60 border-r pr-6 lg:block">
-				<h1 className="mb-6 font-bold text-lg">{t("Create appointment")}</h1>
+				<h1 className="mb-6 font-bold text-lg">
+					{m.appointments_create_appointment()}
+				</h1>
 				<div className="flex flex-col gap-1">
 					{steps.map((label, i) => (
 						<button

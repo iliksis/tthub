@@ -19,13 +19,13 @@ import {
 import { useMutation } from "@/hooks/useMutation";
 import type { PasswordReset, User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";
-import { t } from "@/lib/text";
 import {
 	cn,
 	isInvitationExpired,
 	roleBadgeVariant,
 	roleLabel,
 } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 type IUserManagementProps = {
 	users: (User & {
@@ -99,19 +99,19 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 				columns={[
 					{
 						key: "name",
-						label: t("Name"),
+						label: m.common_name(),
 						render: (item) => item.name,
 						sortable: true,
 						sortFn: (a, b) => a.name.localeCompare(b.name),
 					},
 					{
 						key: "userName",
-						label: t("User Name"),
+						label: m.common_user_name(),
 						render: (item) => item.userName,
 					},
 					{
 						key: "role",
-						label: t("Role"),
+						label: m.users_role(),
 						render: (item) => {
 							const isSelf = item.id === currentUser?.id;
 							return (
@@ -123,7 +123,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 												type="button"
 												title={
 													isSelf
-														? t("You cannot change your own role")
+														? m.users_you_cannot_change_your_own_role()
 														: undefined
 												}
 												className={cn(
@@ -169,9 +169,11 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 							if (!item.invitation) return null;
 
 							return isInvitationExpired(item.invitation) ? (
-								<span className="text-warning">{t("Invitation expired")}</span>
+								<span className="text-warning">
+									{m.common_invitation_expired()}
+								</span>
 							) : (
-								t("Invitation Active")
+								m.users_invitation_active()
 							);
 						},
 					},
@@ -180,7 +182,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 					{
 						icon: <UserPlusIcon className="size-4" />,
 						key: "create-user",
-						label: t("Create User"),
+						label: m.users_create_user(),
 						onClick: () => setShowNewUserModal(true),
 						onlyIcon: true,
 						variant: "primary",
@@ -191,7 +193,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 							items[0].id === currentUser?.id ||
 							items[0].invitation !== null,
 						key: "password-reset",
-						label: t("Reset Password"),
+						label: m.users_reset_password(),
 						onClick: async (items) => {
 							try {
 								const response = await createPasswordResetServerFn({
@@ -200,7 +202,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 								await navigator.clipboard.writeText(
 									`${window.location.origin}/password-reset/${response.data.id}`,
 								);
-								toast.success(t("Password reset created"));
+								toast.success(m.users_password_reset_created());
 							} catch (err) {
 								toast.error((err as Error).message);
 							}
@@ -213,7 +215,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 							items[0].invitation === null ||
 							!isInvitationExpired(items[0].invitation),
 						key: "create-invitation",
-						label: t("Create new Invitation"),
+						label: m.users_create_new_invitation(),
 						onClick: (items) => onCreateInvitation(items[0])(),
 						variant: "secondary",
 					},
@@ -224,31 +226,35 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 									isDisabled: (items) =>
 										items.length !== 1 || items[0].invitation == null,
 									key: "copy-invitation-link",
-									label: t("Copy Invitation Link"),
+									label: m.users_copy_invitation_link(),
 									onClick: async (items) => {
 										await navigator.clipboard.writeText(
 											`${window.location.origin}/invite/${items[0].invitation?.id}`,
 										);
-										toast.success(t("Invitation link copied to clipboard"));
+										toast.success(
+											m.users_invitation_link_copied_to_clipboard(),
+										);
 									},
 								},
 								{
 									isDisabled: (items) =>
 										items.length !== 1 || items[0].passwordReset == null,
 									key: "copy-reset-link",
-									label: t("Copy Password Reset Link"),
+									label: m.users_copy_password_reset_link(),
 									onClick: async (items) => {
 										await navigator.clipboard.writeText(
 											`${window.location.origin}/password-reset/${items[0].passwordReset?.id}`,
 										);
-										toast.success(t("Password reset link copied to clipboard"));
+										toast.success(
+											m.users_password_reset_link_copied_to_clipboard(),
+										);
 									},
 								},
 							],
 						},
 						isDisabled: (items) => items.length !== 1,
 						key: "copy-links",
-						label: t("Copy Links"),
+						label: m.users_copy_links(),
 						variant: "secondary",
 					},
 					{
@@ -256,7 +262,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 						isDisabled: (items) =>
 							items.length !== 1 || items[0].id === currentUser?.id,
 						key: "delete",
-						label: t("Delete"),
+						label: m.common_delete(),
 						onClick: (items) => onDelete(items[0])(),
 						onlyIcon: true,
 						variant: "error",

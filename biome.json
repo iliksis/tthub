@@ -14,6 +14,7 @@
 			"!**/src/routeTree.gen.ts",
 			"!**/src/styles.css",
 			"!**/src/lib/prisma/**/*",
+			"!**/src/paraglide/**/*",
 			"**/e2e/*.ts"
 		]
 	},

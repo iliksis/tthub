@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import type { ImporterConfigField } from "@/importers/types";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 type ImportDialogImporter = {
 	id: string;
@@ -79,7 +79,7 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 					clearInterval(interval);
 					setJobId(null);
 					if (data.status === "error") {
-						toast.error(data.message ?? t("Import not found"));
+						toast.error(data.message ?? m.imports_import_not_found());
 					}
 				}
 			} catch (err) {
@@ -130,9 +130,9 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 				<DialogTitle>{importer?.name}</DialogTitle>
 				{progress?.status === "done" ? (
 					<p className="text-muted-foreground text-sm">
-						{t("{0} created", progress.imported.toString())}
-						{` · ${t("{0} updated", progress.updated.toString())}`}
-						{` · ${t("{0} skipped", progress.skipped.toString())}`}
+						{m.imports_n_created({ param1: progress.imported.toString() })}
+						{` · ${m.imports_n_updated({ param1: progress.updated.toString() })}`}
+						{` · ${m.imports_n_skipped({ param1: progress.skipped.toString() })}`}
 					</p>
 				) : (
 					<form
@@ -150,7 +150,7 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 								validators={{
 									onChange: ({ value }) =>
 										configField.required && value.trim().length === 0
-											? t("This field is required")
+											? m.imports_this_field_is_required()
 											: undefined,
 								}}
 							>
@@ -158,7 +158,7 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 									<fieldset className="flex flex-col gap-1.5">
 										<Label htmlFor={field.name}>
 											{configField.label}
-											{!configField.required && ` ${t("(optional)")}`}:
+											{!configField.required && ` ${m.imports_optional()}`}:
 										</Label>
 										{configField.description && (
 											<p className="text-muted-foreground text-xs">
@@ -189,12 +189,12 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 				{progress?.status === "running" && <IndeterminateProgressBar />}
 				{progress?.status === "error" && (
 					<p className="text-destructive text-sm">
-						{progress.message ?? t("Import not found")}
+						{progress.message ?? m.imports_import_not_found()}
 					</p>
 				)}
 				<DialogFooter>
 					<DialogClose render={<Button variant="outline" />}>
-						{t("Close")}
+						{m.common_close()}
 					</DialogClose>
 					{progress?.status !== "done" && (
 						<form.Subscribe
@@ -211,8 +211,8 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 									}}
 								>
 									{isImporting || isSubmitting
-										? t("Loading…")
-										: t("Start Import")}
+										? m.common_loading()
+										: m.imports_start_import()}
 								</Button>
 							)}
 						</form.Subscribe>

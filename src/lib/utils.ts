@@ -1,9 +1,9 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { m } from "@/paraglide/messages";
 import type { FileRouteTypes } from "@/routeTree.gen";
 import type { UserInvitation } from "./prisma/client";
 import { AppointmentType, Role } from "./prisma/enums";
-import { t } from "./text";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -42,11 +42,11 @@ export const isEditorOrAdmin = (role?: Role) =>
 export const roleLabel = (role: Role) => {
 	switch (role) {
 		case Role.ADMIN:
-			return t("Administrator");
+			return m.users_administrator();
 		case Role.EDITOR:
-			return t("Editor");
+			return m.users_editor();
 		default:
-			return t("User");
+			return m.users_user();
 	}
 };
 
@@ -217,15 +217,6 @@ export const createColorForUserId = (userId: string) => {
 	return userColors[colorNames[index]];
 };
 
-/**
- * Formats a string with numeric placeholders (e.g. {0}, {1}, ...) and replaces them with the provided values.
- */
-export const format = (str: string, ...values: string[]) => {
-	return str.replace(/{(\d+)}/g, (match, index) => {
-		return typeof values[index] !== "undefined" ? values[index] : match;
-	});
-};
-
 export const formatTanstackRouterPath = (
 	path: FileRouteTypes["fullPaths"],
 	params: Record<string, string>,
@@ -247,7 +238,7 @@ export const calculateAgeGroup = (year: number) => {
 	if (age < 13) return "U13";
 	if (age < 15) return "U15";
 	if (age < 19) return "U19";
-	return t("Adult");
+	return m.players_adult();
 };
 
 export const shortenUserName = (name: string) => {

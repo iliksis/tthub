@@ -1,0 +1,18 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"seasons_active": "Aktiv",
+	"seasons_active_season_found": "Aktive Saison gefunden",
+	"seasons_are_you_sure_you_want_to_delete_this_season": "Bist du sicher, dass du diese Saison löschen möchtest?",
+	"seasons_clone_teams_from": "Teams übernehmen von…",
+	"seasons_rename_season": "Saison umbenennen",
+	"seasons_season_activated": "Saison aktiviert",
+	"seasons_cannot_delete_while_referenced": "Saison kann nicht gelöscht werden, solange Teams oder Termine darauf verweisen",
+	"seasons_season_created": "Saison erstellt",
+	"seasons_season_deleted": "Saison gelöscht",
+	"seasons_season_updated": "Saison aktualisiert",
+	"seasons_seasons_found": "Saisons gefunden",
+	"seasons_set_active": "Als aktiv festlegen",
+	"seasons_source_season": "Quell-Saison",
+	"seasons_the_active_season_cannot_be_deleted": "Die aktive Saison kann nicht gelöscht werden",
+	"seasons_you_do_not_have_permission_to_access_season_settings": "Du hast keine Berechtigung, um auf die Saison-Einstellungen zuzugreifen"
+}

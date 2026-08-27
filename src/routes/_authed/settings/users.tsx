@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { fetchUsers } from "@/api/users";
 import { UserManagement } from "@/components/settings/UserManagement";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_authed/settings/users")({
 	beforeLoad: async ({ context }) => {
@@ -14,12 +14,12 @@ export const Route = createFileRoute("/_authed/settings/users")({
 	errorComponent: () => (
 		<Alert variant="destructive">
 			<AlertDescription>
-				{t("You do not have permission to access user management")}
+				{m.users_you_do_not_have_permission_to_access_user_management()}
 			</AlertDescription>
 		</Alert>
 	),
 	head: () => ({
-		meta: [{ title: t("User Management") }],
+		meta: [{ title: m.common_user_management() }],
 	}),
 	loader: async () => {
 		const users = await fetchUsers();

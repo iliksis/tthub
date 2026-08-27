@@ -6,7 +6,7 @@ import { createTeam } from "@/api/teams";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import type { Season } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 import { TeamForm } from "./TeamForm";
 
 type CreateTeamProps = {
@@ -50,7 +50,7 @@ export const CreateTeam = ({ seasons, activeSeasonId }: CreateTeamProps) => {
 				size="icon-lg"
 				type="button"
 				disabled={!hasSeasons}
-				title={hasSeasons ? undefined : t("Create a season first")}
+				title={hasSeasons ? undefined : m.common_create_a_season_first()}
 				onClick={onOpenCreate}
 			>
 				<ShieldPlusIcon className="size-4" />
@@ -61,16 +61,16 @@ export const CreateTeam = ({ seasons, activeSeasonId }: CreateTeamProps) => {
 				size="sm"
 				type="button"
 				disabled={!hasSeasons}
-				title={hasSeasons ? undefined : t("Create a season first")}
+				title={hasSeasons ? undefined : m.common_create_a_season_first()}
 				onClick={onOpenCreate}
 			>
 				<ShieldPlusIcon className="size-4" />
-				{t("Team")}
+				{m.common_team()}
 			</Button>
 			<TeamForm
 				open={isCreating}
 				onClose={onStopCreating}
-				submitLabel={t("Create")}
+				submitLabel={m.common_create()}
 				seasonOptions={seasons}
 				defaultValues={{
 					clickTTGroupId: "",

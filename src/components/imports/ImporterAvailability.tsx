@@ -9,8 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import { useMutation } from "@/hooks/useMutation";
 import type { ImporterConfigField } from "@/importers/types";
-import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const icons: Record<string, React.ComponentType<{ className?: string }>> = {
 	holiday: CalendarDaysIcon,
@@ -104,7 +104,9 @@ export const ImporterAvailability = ({
 								disabled={!importer.enabled}
 								onClick={() => setOpenImporter(importer)}
 							>
-								{importer.enabled ? t("Start Import") : t("Import Disabled")}
+								{importer.enabled
+									? m.imports_start_import()
+									: m.imports_import_disabled()}
 							</Button>
 						</div>
 					);

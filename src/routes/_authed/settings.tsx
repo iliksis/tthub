@@ -20,8 +20,8 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { User } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_authed/settings")({
 	component: SettingsLayout,
@@ -38,41 +38,41 @@ type SettingsSection = {
 
 const sections: SettingsSection[] = [
 	{
-		description: t("Name, password and push notifications"),
+		description: m.settings_name_password_and_push_notifications(),
 		href: "/settings/profile",
 		icon: UserPenIcon,
-		label: t("Profile"),
+		label: m.settings_profile(),
 		routeId: "/_authed/settings/profile",
 	},
 	{
-		description: t("Subscribe to your personal calendar"),
+		description: m.settings_subscribe_to_your_personal_calendar(),
 		href: "/settings/feed",
 		icon: CalendarDaysIcon,
-		label: t("Calendar Feed"),
+		label: m.settings_calendar_feed(),
 		routeId: "/_authed/settings/feed",
 	},
 	{
-		description: t("Holidays and myTischtennis data"),
+		description: m.settings_holidays_and_mytischtennis_data(),
 		href: "/settings/imports",
 		icon: ImportIcon,
 		isHidden: (role) => role === "USER",
-		label: t("Imports"),
+		label: m.common_imports(),
 		routeId: "/_authed/settings/imports",
 	},
 	{
-		description: t("Manage seasons and season data"),
+		description: m.settings_manage_seasons_and_season_data(),
 		href: "/settings/seasons",
 		icon: CalendarRangeIcon,
 		isHidden: (role) => role === "USER",
-		label: t("Seasons"),
+		label: m.common_seasons(),
 		routeId: "/_authed/settings/seasons",
 	},
 	{
-		description: t("Manage club members and invitations"),
+		description: m.settings_manage_club_members_and_invitations(),
 		href: "/settings/users",
 		icon: UserCogIcon,
 		isHidden: (role) => role !== "ADMIN",
-		label: t("User Management"),
+		label: m.common_user_management(),
 		routeId: "/_authed/settings/users",
 	},
 ];
@@ -147,7 +147,9 @@ function SettingsLayout() {
 
 			{/* Desktop: a persistent rail. */}
 			<nav className="hidden w-64 shrink-0 lg:block border-border/60 border-r pr-6">
-				<div className="px-2 pt-1 pb-2 font-bold text-lg">{t("Settings")}</div>
+				<div className="px-2 pt-1 pb-2 font-bold text-lg">
+					{m.common_settings()}
+				</div>
 				<ul className="flex flex-col gap-0.5">
 					{visible.map((section) => {
 						const isActive = section.routeId === activeRouteId;

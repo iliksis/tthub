@@ -3,12 +3,12 @@ import { DetailsList } from "@/components/DetailsList";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Link } from "@/components/ui/link";
 import type { Player, Team, TeamPlayer } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
 import {
 	calculateAgeGroup,
 	createColorForUserId,
 	shortenUserName,
 } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 type ListProps = {
 	players: (Player & { teams: (TeamPlayer & { team: Team })[] })[];
@@ -18,7 +18,7 @@ export const List = ({ players }: ListProps) => {
 	if (players.length === 0) {
 		return (
 			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
-				{t("No players found")}
+				{m.common_no_players_found()}
 			</div>
 		);
 	}
@@ -37,7 +37,7 @@ export const List = ({ players }: ListProps) => {
 				columns={[
 					{
 						key: "name",
-						label: t("Name"),
+						label: m.common_name(),
 						render: (item) => {
 							const color = createColorForUserId(item.id);
 							return (
@@ -68,7 +68,7 @@ export const List = ({ players }: ListProps) => {
 					},
 					{
 						key: "ageGroup",
-						label: t("Age Group"),
+						label: m.common_age_group(),
 						render: (item) => (
 							<span className="text-muted-foreground">
 								{calculateAgeGroup(item.year)}{" "}
@@ -84,7 +84,7 @@ export const List = ({ players }: ListProps) => {
 					{
 						align: "right",
 						key: "qttr",
-						label: t("QTTR"),
+						label: m.common_qttr(),
 						render: (item) => (
 							<span className="font-semibold tabular-nums">{item.qttr}</span>
 						),
@@ -93,7 +93,7 @@ export const List = ({ players }: ListProps) => {
 					},
 					{
 						key: "team",
-						label: t("Team"),
+						label: m.common_team(),
 						render: (item) => {
 							const team = item.teams[0]?.team;
 							return (

@@ -4,7 +4,7 @@ import { PlayerRosterRow } from "@/components/teams/PlayerRosterRow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { TeamDetail } from "@/hooks/useTeamDetail";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export function TeamPreview({ team }: { team: TeamDetail }) {
 	const router = useRouter();
@@ -31,11 +31,11 @@ export function TeamPreview({ team }: { team: TeamDetail }) {
 			<div>
 				<div className="mb-1.5 flex items-center gap-1.5 text-muted-foreground text-sm">
 					<UsersIcon className="size-3.5" />
-					{t("Players")} · {team.players.length}
+					{m.common_players()} · {team.players.length}
 				</div>
 				{team.players.length === 0 ? (
 					<div className="py-3 text-center text-muted-foreground text-sm">
-						{t("No players found")}
+						{m.common_no_players_found()}
 					</div>
 				) : (
 					<div className="flex max-h-56 flex-col overflow-y-auto border-t border-t-border">
@@ -58,7 +58,7 @@ export function TeamPreview({ team }: { team: TeamDetail }) {
 					router.navigate({ params: { teamId: team.id }, to: "/teams/$teamId" })
 				}
 			>
-				{t("Open team")}
+				{m.teams_open_team()}
 			</Button>
 		</div>
 	);

@@ -2,17 +2,17 @@ import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import webpush from "web-push";
 import { prismaClient } from "@/lib/db";
 import { useAppSession } from "@/lib/session";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export const createNotificationSubscription = createServerFn({ method: "POST" })
 	.validator((d: { subscription: PushSubscriptionJSON; device: string }) => d)
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		if (!data.subscription.keys || !data.subscription.endpoint) {
-			throw new Error(t("Invalid subscription"));
+			throw new Error(m.notifications_invalid_subscription());
 		}
 		try {
 			const subscription = await prismaClient.subscription.create({
@@ -24,7 +24,10 @@ export const createNotificationSubscription = createServerFn({ method: "POST" })
 					userId: session.data.id,
 				},
 			});
-			return { data: subscription, message: t("Subscription created") };
+			return {
+				data: subscription,
+				message: m.notifications_subscription_created(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -36,7 +39,7 @@ export const tryGetSubscription = createServerFn({ method: "GET" })
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		try {
 			const subscription = await prismaClient.subscription.findUnique({
@@ -45,9 +48,12 @@ export const tryGetSubscription = createServerFn({ method: "GET" })
 				},
 			});
 			if (!subscription) {
-				throw new Error(t("Subscription not found"));
+				throw new Error(m.notifications_subscription_not_found());
 			}
-			return { data: subscription, message: t("Subscription found") };
+			return {
+				data: subscription,
+				message: m.notifications_subscription_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -58,7 +64,7 @@ export const getAllSubscriptions = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		try {
 			const subscriptions = await prismaClient.subscription.findMany({
@@ -66,7 +72,10 @@ export const getAllSubscriptions = createServerFn({ method: "GET" }).handler(
 					userId: session.data.id,
 				},
 			});
-			return { data: subscriptions, message: t("Subscriptions found") };
+			return {
+				data: subscriptions,
+				message: m.notifications_subscriptions_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -79,7 +88,7 @@ export const deleteNotificationSubscription = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		try {
 			const settings = await prismaClient.notificationSettings.findUnique({
@@ -105,7 +114,7 @@ export const deleteNotificationSubscription = createServerFn({ method: "POST" })
 					id: data.id,
 				},
 			});
-			return { message: t("Subscription deleted") };
+			return { message: m.notifications_subscription_deleted() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -123,7 +132,7 @@ export const updateNotificationSettings = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		try {
 			await prismaClient.notificationSettings.upsert({
@@ -144,7 +153,7 @@ export const updateNotificationSettings = createServerFn({ method: "POST" })
 					},
 				},
 			});
-			return { message: t("Settings updated") };
+			return { message: m.common_settings_updated() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -156,7 +165,7 @@ export const getNotificationSettings = createServerFn({ method: "GET" })
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		try {
 			const notificationSettings =
@@ -168,7 +177,10 @@ export const getNotificationSettings = createServerFn({ method: "GET" })
 						},
 					},
 				});
-			return { data: notificationSettings, message: t("Settings found") };
+			return {
+				data: notificationSettings,
+				message: m.notifications_settings_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -179,7 +191,7 @@ export const sendTestNotification = createServerFn({ method: "POST" }).handler(
 	async () => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		try {
 			webpush.setVapidDetails(
@@ -209,7 +221,7 @@ export const sendTestNotification = createServerFn({ method: "POST" }).handler(
 				);
 			}
 
-			return { message: t("Notifications sent") };
+			return { message: m.notifications_notifications_sent() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);

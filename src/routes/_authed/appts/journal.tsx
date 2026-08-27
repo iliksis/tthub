@@ -25,7 +25,6 @@ import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
 import type { Appointment, Transaction, User } from "@/lib/prisma/client";
 import { TransactionType } from "@/lib/prisma/enums";
-import { t } from "@/lib/text";
 import {
 	getChangedFields,
 	type TransactionChanges,
@@ -37,6 +36,7 @@ import {
 	formatRelativeTime,
 	shortenUserName,
 } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const BATCH_SIZE = 25;
 
@@ -69,7 +69,7 @@ export const Route = createFileRoute("/_authed/appts/journal")({
 		return { ...data, skip };
 	},
 	head: () => ({
-		meta: [{ title: t("Transaction Journal") }],
+		meta: [{ title: m.appointments_transaction_journal() }],
 	}),
 });
 
@@ -79,11 +79,11 @@ type TransactionWithRelations = Transaction & {
 };
 
 const typeFilters: { value: TransactionType | "ALL"; label: string }[] = [
-	{ label: t("All actions"), value: "ALL" },
-	{ label: t("Created"), value: TransactionType.CREATE },
-	{ label: t("Changed"), value: TransactionType.UPDATE },
-	{ label: t("Deleted"), value: TransactionType.DELETE },
-	{ label: t("Restored"), value: TransactionType.RESTORE },
+	{ label: m.appointments_all_actions(), value: "ALL" },
+	{ label: m.common_created(), value: TransactionType.CREATE },
+	{ label: m.appointments_changed(), value: TransactionType.UPDATE },
+	{ label: m.appointments_deleted(), value: TransactionType.DELETE },
+	{ label: m.appointments_restored(), value: TransactionType.RESTORE },
 ];
 
 // Icon + past-participle shown inline in each row's sentence — distinct from
@@ -96,10 +96,10 @@ const actionIcon: Record<TransactionType, typeof PlusIcon> = {
 	UPDATE: PencilIcon,
 };
 const actionParticiple: Record<TransactionType, string> = {
-	CREATE: t("created"),
-	DELETE: t("deleted"),
-	RESTORE: t("restored"),
-	UPDATE: t("changed"),
+	CREATE: m.appointments_created(),
+	DELETE: m.appointments_deleted_2(),
+	RESTORE: m.appointments_restored_2(),
+	UPDATE: m.appointments_changed_2(),
 };
 const actionTextClass: Record<"success" | "destructive" | "info", string> = {
 	destructive: "text-destructive",
@@ -180,9 +180,9 @@ function TransactionRow({
 			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 				<div className="text-sm leading-snug">
 					<span className="font-medium">
-						{item.user?.name ?? t("Deleted user")}
+						{item.user?.name ?? m.appointments_deleted_user()}
 					</span>{" "}
-					{t("has")}{" "}
+					{m.appointments_has()}{" "}
 					<span className="font-medium">{item.appointment.shortTitle}</span>{" "}
 					<span className={textClass}>{actionParticiple[item.type]}</span>
 					{fields.length > 0 && (
@@ -281,19 +281,20 @@ function RouteComponent() {
 	return (
 		<div className="flex flex-col gap-4">
 			<div>
-				<h1 className="font-bold text-lg">{t("Transaction Journal")}</h1>
+				<h1 className="font-bold text-lg">
+					{m.appointments_transaction_journal()}
+				</h1>
 				<p className="text-muted-foreground text-sm">
-					{t(
-						"{0} of {1} events",
-						matchedTotal.toString(),
-						grandTotal.toString(),
-					)}
+					{m.appointments_n_of_n_events({
+						param1: matchedTotal.toString(),
+						param2: grandTotal.toString(),
+					})}
 				</p>
 			</div>
 
 			<div className="flex flex-wrap items-center gap-2">
 				<Input
-					placeholder={t("Search appointment or person...")}
+					placeholder={m.appointments_search_appointment_or_person()}
 					value={queryInput}
 					onChange={(e) => setQueryInput(e.target.value)}
 					className="w-64"
@@ -318,7 +319,7 @@ function RouteComponent() {
 			<div className="grid gap-6 lg:grid-cols-[1fr_360px]">
 				{items.length === 0 ? (
 					<div className="py-8 text-center text-muted-foreground">
-						{t("No items found")}
+						{m.common_no_items_found()}
 					</div>
 				) : (
 					<div className="flex flex-col">
@@ -352,7 +353,7 @@ function RouteComponent() {
 						</div>
 					) : (
 						<div className="rounded-lg border border-border/60 border-dashed p-4 text-center text-muted-foreground text-sm">
-							{t("Select a row to see details")}
+							{m.common_select_a_row_to_see_details()}
 						</div>
 					)}
 				</div>
@@ -385,7 +386,7 @@ function RouteComponent() {
 							: undefined
 					}
 				>
-					<SheetTitle className="sr-only">{t("Details")}</SheetTitle>
+					<SheetTitle className="sr-only">{m.common_details()}</SheetTitle>
 					<div
 						className="flex shrink-0 cursor-grab touch-none justify-center pt-2 pb-1 active:cursor-grabbing"
 						{...handlePointerHandlers}

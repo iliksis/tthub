@@ -24,8 +24,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
-import { t } from "@/lib/text";
 import { calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 // biome-ignore assist/source/useSortedKeys: head uses loaderData
 export const Route = createFileRoute("/_authed/teams/$teamId")({
@@ -61,7 +61,7 @@ function MatchList({ matches }: { matches: TeamMatch[] }) {
 	if (matches.length === 0) {
 		return (
 			<div className="py-8 text-center text-muted-foreground">
-				{t("No upcoming matches")}
+				{m.teams_no_upcoming_matches()}
 			</div>
 		);
 	}
@@ -85,7 +85,7 @@ function MatchList({ matches }: { matches: TeamMatch[] }) {
 const rosterColumns: DetailsListColumn<TeamRosterEntry>[] = [
 	{
 		key: "name",
-		label: t("Name"),
+		label: m.common_name(),
 		render: (item) => (
 			<Link to="/players/$playerId" params={{ playerId: item.player.id }}>
 				{item.player.name}
@@ -94,12 +94,12 @@ const rosterColumns: DetailsListColumn<TeamRosterEntry>[] = [
 	},
 	{
 		key: "ageGroup",
-		label: t("Age Group"),
+		label: m.common_age_group(),
 		render: (item) => calculateAgeGroup(item.player.year),
 	},
 	{
 		key: "qttr",
-		label: t("QTTR"),
+		label: m.common_qttr(),
 		render: (item) => item.player.qttr,
 		sortable: true,
 		sortFn: (a, b) => a.player.qttr - b.player.qttr,
@@ -128,7 +128,7 @@ function RouteComponent() {
 		},
 	});
 
-	if (!team) return <div>{t("An Error occurred")}</div>;
+	if (!team) return <div>{m.common_an_error_occurred()}</div>;
 
 	const onEdit = () => {
 		setIsEditing(true);
@@ -179,7 +179,7 @@ function RouteComponent() {
 					<div className="ml-auto flex gap-2">
 						<Button variant="outline" size="sm" onClick={onEdit}>
 							<EditIcon className="size-4" />
-							{t("Update team")}
+							{m.teams_update_team()}
 						</Button>
 						<Button
 							variant="outline"
@@ -188,14 +188,14 @@ function RouteComponent() {
 							onClick={onOpenDelete}
 						>
 							<Trash2Icon className="size-4" />
-							{t("Delete team")}
+							{m.teams_delete_team()}
 						</Button>
 					</div>
 				)}
 			</div>
 
 			<div className="flex flex-col gap-8">
-				<Section title={t("Roster")}>
+				<Section title={m.teams_roster()}>
 					<div className="overflow-x-auto">
 						<DetailsList
 							items={sortedPlayers}
@@ -212,11 +212,11 @@ function RouteComponent() {
 					</div>
 				</Section>
 
-				<Section title={t("Standings")}>
+				<Section title={m.common_standings()}>
 					<StandingsTable standings={team.standings} />
 				</Section>
 
-				<Section title={t("Next Matches")}>
+				<Section title={m.teams_next_matches()}>
 					<MatchList matches={upcomingMatches} />
 				</Section>
 			</div>
@@ -255,7 +255,7 @@ function RouteComponent() {
 								}
 							}
 						}}
-						submitLabel={t("Update")}
+						submitLabel={m.common_update()}
 						defaultValues={{
 							clickTTGroupId: team.clickTTGroupId ?? "",
 							league: team.league ?? "",
@@ -268,7 +268,7 @@ function RouteComponent() {
 						}}
 					/>
 					<DeleteModal
-						label={t("Are you sure you want to delete this team?")}
+						label={m.teams_are_you_sure_you_want_to_delete_this_team()}
 						open={isDeleting}
 						onClose={onStopDeleting}
 						onDelete={onDelete}

@@ -11,20 +11,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 const responseTypeMeta: Record<ResponseType, { label: string }> = {
-	ACCEPT: { label: t("Accepted") },
-	DECLINE: { label: t("Declined") },
-	MAYBE: { label: t("Maybe") },
+	ACCEPT: { label: m.common_accepted() },
+	DECLINE: { label: m.common_declined() },
+	MAYBE: { label: m.common_maybe() },
 };
 const responseTypeOrder: ResponseType[] = ["ACCEPT", "MAYBE", "DECLINE"];
 
 const appointmentTypeMeta: Record<AppointmentType, { label: string }> = {
-	HOLIDAY: { label: t("Holiday") },
-	TEAM_MATCH: { label: t("Team matches") },
-	TOURNAMENT: { label: t("Tournament") },
-	TOURNAMENT_DE: { label: t("Tournament (Germany)") },
+	HOLIDAY: { label: m.common_holiday() },
+	TEAM_MATCH: { label: m.common_team_matches() },
+	TOURNAMENT: { label: m.common_tournament() },
+	TOURNAMENT_DE: { label: m.common_tournament_germany() },
 };
 const appointmentTypeOrder: AppointmentType[] = [
 	"TOURNAMENT",
@@ -71,7 +71,7 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 
 	const handleCopyUrl = () => {
 		navigator.clipboard.writeText(feedUrl);
-		toast.success(t("Feed URL copied to clipboard"));
+		toast.success(m.settings_feed_url_copied_to_clipboard());
 	};
 
 	const toggleResponseType = (
@@ -111,16 +111,14 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 				{feedUrl && (
 					<div className="lg:col-span-2">
 						<Section
-							title={t("Your Feed URL")}
-							description={t(
-								"Use this URL in your calendar application to subscribe to your personal calendar feed.",
-							)}
+							title={m.settings_your_feed_url()}
+							description={m.settings_use_this_url_to_subscribe_to_your_calendar_feed()}
 						>
 							<div className="flex gap-2">
 								<Input type="text" readOnly value={feedUrl} />
 								<Button type="button" onClick={handleCopyUrl}>
 									<CopyIcon />
-									{t("Copy")}
+									{m.settings_copy()}
 								</Button>
 							</div>
 						</Section>
@@ -128,10 +126,8 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 				)}
 
 				<Section
-					title={t("Response Types")}
-					description={t(
-						"Leave all unchecked to include all appointments regardless of response",
-					)}
+					title={m.settings_response_types()}
+					description={m.settings_leave_all_unchecked_to_include_all_responses()}
 				>
 					<form.Field name="includeResponseTypes">
 						{(field) => (
@@ -161,7 +157,7 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 					</form.Field>
 				</Section>
 
-				<Section title={t("Appointment Types")}>
+				<Section title={m.settings_appointment_types()}>
 					<form.Field name="includeAppointmentTypes">
 						{(field) => (
 							<div className="flex flex-col gap-2">
@@ -191,7 +187,7 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 				</Section>
 
 				<div className="lg:col-span-2">
-					<Section title={t("Configuration")}>
+					<Section title={m.settings_configuration()}>
 						<form.Field name="includeDraftStatus">
 							{(field) => (
 								<div className="flex items-center gap-2">
@@ -203,7 +199,7 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 										}
 									/>
 									<Label htmlFor={field.name}>
-										{t("Include draft appointments")}
+										{m.settings_include_draft_appointments()}
 									</Label>
 								</div>
 							)}
@@ -217,7 +213,9 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 				className="w-36"
 				disabled={updateMutation.status === "pending"}
 			>
-				{updateMutation.status === "pending" ? t("Loading…") : t("Update")}
+				{updateMutation.status === "pending"
+					? m.common_loading()
+					: m.common_update()}
 			</Button>
 		</form>
 	);

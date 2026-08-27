@@ -5,8 +5,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "@/components/ui/link";
 import { TableRow } from "@/components/ui/table";
 import { useTeamDetail } from "@/hooks/useTeamDetail";
-import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { TeamPreview } from "./TeamPreview";
 import type { TeamRow } from "./TeamSummary";
 
@@ -19,7 +19,7 @@ export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 	if (teams.length === 0) {
 		return (
 			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
-				{t("No teams found")}
+				{m.common_no_teams_found()}
 			</div>
 		);
 	}
@@ -31,7 +31,7 @@ export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 					columns={[
 						{
 							key: "name",
-							label: t("Name"),
+							label: m.common_name(),
 							render: (item) => (
 								<Link
 									to="/teams/$teamId"
@@ -44,18 +44,18 @@ export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 						},
 						{
 							key: "league",
-							label: t("League"),
+							label: m.common_league(),
 							render: (item) => item.league,
 						},
 						{
 							key: "placement",
-							label: t("Placement"),
+							label: m.teams_placement(),
 							render: (item) => item.placement,
 						},
 						{
 							align: "right",
 							key: "players",
-							label: t("Players"),
+							label: m.common_players(),
 							render: (item) => item._count.players,
 						},
 					]}
@@ -79,11 +79,13 @@ export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 			<div className="min-w-0 lg:sticky lg:top-6 lg:border-border/60 lg:border-l lg:pl-8">
 				{!selectedId ? (
 					<div className="text-muted-foreground text-sm">
-						{t("Select a row to see details")}
+						{m.common_select_a_row_to_see_details()}
 					</div>
 				) : isError ? (
 					<Alert variant="destructive">
-						<AlertDescription>{t("Team could not be loaded")}</AlertDescription>
+						<AlertDescription>
+							{m.teams_team_could_not_be_loaded()}
+						</AlertDescription>
 					</Alert>
 				) : isLoading || !team ? (
 					<div className="flex items-center justify-center py-8">

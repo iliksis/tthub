@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getImporterSettings } from "@/api/imports";
 import { ImporterAvailability } from "@/components/imports/ImporterAvailability";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_authed/settings/imports")({
 	beforeLoad: async ({ context }) => {
@@ -18,13 +18,13 @@ export const Route = createFileRoute("/_authed/settings/imports")({
 		return (
 			<Alert variant="destructive">
 				<AlertDescription>
-					{t("You do not have permission to access import settings")}
+					{m.imports_you_do_not_have_permission_to_access_import_settings()}
 				</AlertDescription>
 			</Alert>
 		);
 	},
 	head: () => ({
-		meta: [{ title: t("Imports") }],
+		meta: [{ title: m.common_imports() }],
 	}),
 	loader: async ({ context }) => {
 		const isAdmin = context.user?.role === "ADMIN";

@@ -1,6 +1,6 @@
 import { Loader2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 type LoadMoreFooterProps = {
 	itemCount: number;
@@ -32,12 +32,11 @@ export function LoadMoreFooter({
 				>
 					{isNavigating && <Loader2Icon className="animate-spin" />}
 					{isNavigating
-						? t("Loading…")
-						: t(
-								"Load {0} more ({1} remaining)",
-								Math.min(batchSize, remaining).toString(),
-								remaining.toString(),
-							)}
+						? m.common_loading()
+						: m.appointments_load_n_more_n_remaining({
+								param1: Math.min(batchSize, remaining).toString(),
+								param2: remaining.toString(),
+							})}
 				</Button>
 			</div>
 		);
@@ -46,7 +45,9 @@ export function LoadMoreFooter({
 	return (
 		<div className="flex justify-center border-border/60 border-t pt-3">
 			<span className="text-muted-foreground text-xs">
-				{t("You've reached the end — {0} events", matchedTotal.toString())}
+				{m.appointments_you_ve_reached_the_end_n_events({
+					param1: matchedTotal.toString(),
+				})}
 			</span>
 		</div>
 	);

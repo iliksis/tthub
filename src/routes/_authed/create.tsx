@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getActiveSeason, getSeasons } from "@/api/seasons";
 import { CreateAppointmentForm } from "@/components/CreateAppointmentForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_authed/create")({
 	beforeLoad: async ({ context }) => {
@@ -18,13 +18,13 @@ export const Route = createFileRoute("/_authed/create")({
 		return (
 			<Alert variant="destructive">
 				<AlertDescription>
-					{t("You do not have permission to create appointments")}
+					{m.appointments_you_do_not_have_permission_to_create_appointments()}
 				</AlertDescription>
 			</Alert>
 		);
 	},
 	head: () => ({
-		meta: [{ title: t("Create appointment") }],
+		meta: [{ title: m.appointments_create_appointment() }],
 	}),
 	loader: async () => {
 		const [seasonsRes, activeSeasonRes] = await Promise.all([

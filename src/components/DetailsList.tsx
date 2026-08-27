@@ -30,8 +30,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const features = tableFeatures({
 	columnSizingFeature,
@@ -102,7 +102,7 @@ export function DetailsList<T extends RowData>({
 	onItemClick,
 	onRenderRow,
 	commandBarItems = [],
-	emptyMessage = t("No items found"),
+	emptyMessage = m.common_no_items_found(),
 	className = "",
 	selectMode = "multiple",
 	sorting: controlledSorting,

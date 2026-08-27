@@ -8,8 +8,8 @@ import {
 	isSingleDayEvent,
 	weekdayLabels,
 } from "@/lib/calendarGrid";
-import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { CalendarToolbar } from "./CalendarToolbar";
 import { type CalendarAppointment, categoryStyle } from "./MonthCalendar";
 
@@ -36,11 +36,12 @@ const formatEventTiming = (event: CalendarAppointment) =>
 		: `${formatShortDate(event.start)} – ${formatShortDate(event.end)}`;
 
 const dayHeaderLabel = (date: Date, today: Date) => {
-	if (isSameDay(date, today)) return `${t("Today")} · ${formatShortDate(date)}`;
+	if (isSameDay(date, today))
+		return `${m.appointments_today()} · ${formatShortDate(date)}`;
 	const tomorrow = new Date(today);
 	tomorrow.setDate(tomorrow.getDate() + 1);
 	if (isSameDay(date, tomorrow))
-		return `${t("Tomorrow")} · ${formatShortDate(date)}`;
+		return `${m.appointments_tomorrow()} · ${formatShortDate(date)}`;
 	return date
 		.toLocaleDateString("de-DE", {
 			day: "2-digit",
@@ -160,14 +161,14 @@ export const MobileCalendar = ({
 				</div>
 				{!isSameDay(selected, today) && (
 					<Button type="button" variant="ghost" size="sm" onClick={jumpToToday}>
-						{t("Today")}
+						{m.appointments_today()}
 					</Button>
 				)}
 			</div>
 			<div className="flex flex-col gap-2 px-4 pb-4">
 				{selectedEvents.length === 0 ? (
 					<div className="rounded-xl border border-border/60 border-dashed px-3 py-3 text-muted-foreground text-sm">
-						{t("No appointment set")}
+						{m.appointments_no_appointment_set()}
 					</div>
 				) : (
 					selectedEvents.map((event) => (

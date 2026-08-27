@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
 import { useIsRole } from "@/lib/session";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export const searchTeams = createServerFn()
 	.validator((d: { query?: string; seasonId?: string }) => d)
@@ -19,7 +19,7 @@ export const searchTeams = createServerFn()
 					seasonId: data.seasonId,
 				},
 			});
-			return { data: teams, message: t("Teams found") };
+			return { data: teams, message: m.teams_teams_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -38,7 +38,7 @@ export const getTeams = createServerFn({ method: "GET" })
 				orderBy: { title: "asc" },
 				where: { seasonId: data.seasonId },
 			});
-			return { data: teams, message: t("Teams found") };
+			return { data: teams, message: m.teams_teams_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -57,7 +57,7 @@ export const createTeam = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -69,7 +69,7 @@ export const createTeam = createServerFn({ method: "POST" })
 					title: data.title,
 				},
 			});
-			return { data: team, message: t("Team created") };
+			return { data: team, message: m.teams_team_created() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -97,9 +97,9 @@ export const getTeam = createServerFn()
 				where: { id: data.id },
 			});
 			if (!team) {
-				throw new Error(t("Team not found"));
+				throw new Error(m.teams_team_not_found());
 			}
-			return { data: team, message: t("Team found") };
+			return { data: team, message: m.teams_team_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -118,7 +118,7 @@ export const updateTeam = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -132,7 +132,7 @@ export const updateTeam = createServerFn()
 					id: data.id,
 				},
 			});
-			return { data: team, message: t("Team updated") };
+			return { data: team, message: m.teams_team_updated() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -144,7 +144,7 @@ export const deleteTeam = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -154,7 +154,7 @@ export const deleteTeam = createServerFn()
 					id: data.id,
 				},
 			});
-			return { message: t("Team deleted") };
+			return { message: m.teams_team_deleted() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -166,7 +166,7 @@ export const applyRosterChanges = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -190,11 +190,13 @@ export const applyRosterChanges = createServerFn()
 					});
 				}
 			});
-			return { message: t("Roster updated") };
+			return { message: m.teams_roster_updated() };
 		} catch (e) {
 			console.error(e);
 			if ((e as { code?: string }).code === "P2002") {
-				throw new Error(t("Player is already assigned to a team this season"));
+				throw new Error(
+					m.teams_player_is_already_assigned_to_a_team_this_season(),
+				);
 			}
 			throw new Error((e as Error).message);
 		}
@@ -205,7 +207,7 @@ export const cloneTeamsFromSeason = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -215,7 +217,7 @@ export const cloneTeamsFromSeason = createServerFn()
 						where: { seasonId: data.targetSeasonId },
 					});
 					if (targetTeamCount > 0) {
-						throw new Error(t("Teams already exist in the target season"));
+						throw new Error(m.teams_teams_already_exist_in_the_target_season());
 					}
 
 					const sourceTeams = await tx.team.findMany({
@@ -252,11 +254,10 @@ export const cloneTeamsFromSeason = createServerFn()
 			);
 			return {
 				data: { playersCopied, teamsCopied },
-				message: t(
-					"{0} teams and {1} players cloned",
-					teamsCopied.toString(),
-					playersCopied.toString(),
-				),
+				message: m.teams_n_teams_and_n_players_cloned({
+					param1: teamsCopied.toString(),
+					param2: playersCopied.toString(),
+				}),
 			};
 		} catch (e) {
 			console.error(e);

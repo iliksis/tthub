@@ -12,8 +12,8 @@ import {
 } from "react";
 import type { Appointment, Response } from "@/lib/prisma/client";
 import type { ResponseType } from "@/lib/prisma/enums";
-import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { Link } from "../ui/link";
 
 const SWIPE_THRESHOLD = 90;
@@ -32,7 +32,7 @@ export const PendingPile = ({ appointments, onRespond }: PendingPileProps) => {
 			<div className="flex flex-col items-center justify-center gap-2 rounded-xl bg-card py-10 text-center">
 				<PartyPopperIcon className="size-6 text-success" />
 				<div className="font-medium text-muted-foreground text-sm">
-					{t("You responded to all appointments")}
+					{m.common_you_responded_to_all_appointments()}
 				</div>
 			</div>
 		);
@@ -59,7 +59,7 @@ export const PendingPile = ({ appointments, onRespond }: PendingPileProps) => {
 					.reverse()}
 			</div>
 			<div className="text-center text-muted-foreground text-xs">
-				{t("Swipe to respond")}
+				{m.appointments_swipe_to_respond()}
 			</div>
 		</div>
 	);
@@ -148,7 +148,7 @@ const PileCard = ({ appointment, depth, onRespond }: PileCardProps) => {
 								transform: `scale(${0.8 + declineStrength * 0.2}) rotate(-6deg)`,
 							}}
 						>
-							<XIcon className="size-6" /> {t("Decline")}
+							<XIcon className="size-6" /> {m.common_decline()}
 						</div>
 					</div>
 					<div
@@ -161,7 +161,7 @@ const PileCard = ({ appointment, depth, onRespond }: PileCardProps) => {
 								transform: `scale(${0.8 + acceptStrength * 0.2}) rotate(6deg)`,
 							}}
 						>
-							<CheckIcon className="size-6" /> {t("Accept")}
+							<CheckIcon className="size-6" /> {m.common_accept()}
 						</div>
 					</div>
 				</div>

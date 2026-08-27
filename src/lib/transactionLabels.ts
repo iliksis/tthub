@@ -1,17 +1,17 @@
 import { TransactionType } from "@/lib/prisma/enums";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export type TransactionChanges = Record<string, { old: unknown; new: unknown }>;
 
 export const fieldLabels: Record<string, string> = {
-	endDate: t("EndDate"),
-	link: t("Link"),
-	location: t("Location"),
-	nextAppointmentId: t("Next Appointment"),
-	shortTitle: t("ShortTitle"),
-	startDate: t("StartDate"),
-	status: t("Status"),
-	title: t("Title"),
+	endDate: m.appointments_enddate(),
+	link: m.appointments_link(),
+	location: m.appointments_location(),
+	nextAppointmentId: m.appointments_next_appointment(),
+	shortTitle: m.appointments_shorttitle(),
+	startDate: m.appointments_startdate(),
+	status: m.appointments_status(),
+	title: m.common_title(),
 };
 
 export const getChangedFields = (
@@ -20,8 +20,8 @@ export const getChangedFields = (
 	Object.keys(changes ?? {}).map((field) => fieldLabels[field] ?? field);
 
 const statusLabels: Record<string, string> = {
-	DRAFT: t("Draft"),
-	PUBLISHED: t("Published"),
+	DRAFT: m.appointments_draft(),
+	PUBLISHED: m.appointments_published(),
 };
 
 const isIsoDateString = (value: string) => /^\d{4}-\d{2}-\d{2}T/.test(value);
@@ -48,13 +48,13 @@ export const transactionActionBadge = (
 	type: TransactionType,
 ): { label: string; variant: "success" | "destructive" | "info" } => {
 	if (type === TransactionType.CREATE) {
-		return { label: t("Created"), variant: "success" };
+		return { label: m.common_created(), variant: "success" };
 	}
 	if (type === TransactionType.DELETE) {
-		return { label: t("Deleted"), variant: "destructive" };
+		return { label: m.appointments_deleted(), variant: "destructive" };
 	}
 	if (type === TransactionType.RESTORE) {
-		return { label: t("Restored"), variant: "success" };
+		return { label: m.appointments_restored(), variant: "success" };
 	}
-	return { label: t("Changed"), variant: "info" };
+	return { label: m.appointments_changed(), variant: "info" };
 };
