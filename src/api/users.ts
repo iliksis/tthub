@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { hashPassword, prismaClient } from "@/lib/db";
 import type { AppointmentType, ResponseType, Role } from "@/lib/prisma/enums";
 import { useAppSession, useIsRole, useIsUserOrRole } from "@/lib/session";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export interface FeedConfig {
 	includeResponseTypes?: ResponseType[];
@@ -27,13 +27,13 @@ export const updateUserRole = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("ADMIN");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		// biome-ignore lint/correctness/useHookAtTopLevel: not a real hook
 		const session = await useAppSession();
 		if (session.data?.id === data.id) {
-			throw new Error(t("You cannot change your own role"));
+			throw new Error(m.users_you_cannot_change_your_own_role());
 		}
 
 		try {
@@ -45,7 +45,7 @@ export const updateUserRole = createServerFn({ method: "POST" })
 					id: data.id,
 				},
 			});
-			return { data: user, message: t("User updated") };
+			return { data: user, message: m.common_user_updated() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -64,11 +64,11 @@ export const updateUserInformation = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsUserOrRole(data.id, "ADMIN");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		if (data.password !== data.confirmPassword) {
-			throw new Error(t("The passwords entered do not match"));
+			throw new Error(m.common_the_passwords_entered_do_not_match());
 		}
 
 		try {
@@ -82,7 +82,7 @@ export const updateUserInformation = createServerFn({ method: "POST" })
 					id: data.id,
 				},
 			});
-			return { data: user, message: t("Settings updated") };
+			return { data: user, message: m.common_settings_updated() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -94,7 +94,7 @@ export const createUser = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthenticated = await useIsRole("ADMIN");
 		if (!isAuthenticated) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -109,7 +109,7 @@ export const createUser = createServerFn({ method: "POST" })
 				},
 			});
 
-			return { data: user, message: t("User created") };
+			return { data: user, message: m.users_user_created() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -132,11 +132,11 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 				},
 			});
 			if (!invitation) {
-				throw new Error(t("Invitation not found"));
+				throw new Error(m.common_invitation_not_found());
 			}
 
 			if (data.password !== data.confirmPassword) {
-				throw new Error(t("The passwords entered do not match"));
+				throw new Error(m.common_the_passwords_entered_do_not_match());
 			}
 
 			const hashedPassword = await hashPassword(data.password);
@@ -159,7 +159,7 @@ export const createUserFromInvitation = createServerFn({ method: "POST" })
 				});
 			}
 			await session.update(user);
-			return { data: user, message: t("User created") };
+			return { data: user, message: m.users_user_created() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -171,7 +171,7 @@ export const deleteUser = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("ADMIN");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -190,7 +190,7 @@ export const deleteUser = createServerFn({ method: "POST" })
 					id: data.id,
 				},
 			});
-			return { message: t("User deleted") };
+			return { message: m.users_user_deleted() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -210,11 +210,11 @@ export const updatePasswordFromReset = createServerFn({ method: "POST" })
 				},
 			});
 			if (!passwordReset) {
-				throw new Error(t("Password reset request not found"));
+				throw new Error(m.common_password_reset_request_not_found());
 			}
 
 			if (data.password !== data.confirmPassword) {
-				throw new Error(t("The passwords entered do not match"));
+				throw new Error(m.common_the_passwords_entered_do_not_match());
 			}
 
 			const hashedPassword = await hashPassword(data.password);
@@ -234,7 +234,7 @@ export const updatePasswordFromReset = createServerFn({ method: "POST" })
 			});
 
 			await session.update(user);
-			return { data: user, message: t("User updated") };
+			return { data: user, message: m.common_user_updated() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -245,7 +245,7 @@ export const getFeedConfig = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const session = await useAppSession();
 		if (!session.data?.id) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -255,7 +255,7 @@ export const getFeedConfig = createServerFn({ method: "GET" }).handler(
 			});
 
 			if (!user) {
-				throw new Error(t("User not found"));
+				throw new Error(m.users_user_not_found());
 			}
 
 			const config: FeedConfig = {
@@ -272,7 +272,7 @@ export const getFeedConfig = createServerFn({ method: "GET" }).handler(
 
 			return {
 				data: { config, feedId: user.feedId },
-				message: t("Feed config loaded"),
+				message: m.users_feed_config_loaded(),
 			};
 		} catch (e) {
 			console.error(e);
@@ -286,7 +286,7 @@ export const updateFeedConfig = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data?.id) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -324,7 +324,7 @@ export const updateFeedConfig = createServerFn({ method: "POST" })
 
 			return {
 				data: { config, feedId: user?.feedId || "" },
-				message: t("Feed settings updated"),
+				message: m.users_feed_settings_updated(),
 			};
 		} catch (e) {
 			console.error(e);

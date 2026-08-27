@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 type SeasonFormValues = { name: string };
 
@@ -36,7 +36,7 @@ export const SeasonForm = ({
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent showCloseButton={false}>
-				<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
+				<DialogTitle className="sr-only">{m.common_dialog()}</DialogTitle>
 				<form
 					className="flex flex-col gap-4"
 					onSubmit={(e) => {
@@ -48,7 +48,7 @@ export const SeasonForm = ({
 					<form.Field name="name">
 						{(field) => (
 							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor={field.name}>{t("Name")}:</Label>
+								<Label htmlFor={field.name}>{m.common_name()}:</Label>
 								<Input
 									id={field.name}
 									name={field.name}
@@ -62,7 +62,7 @@ export const SeasonForm = ({
 				</form>
 				<DialogFooter>
 					<DialogClose render={<Button type="button" variant="outline" />}>
-						{t("Close")}
+						{m.common_close()}
 					</DialogClose>
 					<Button
 						type="submit"

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
 import { useIsRole } from "@/lib/session";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export const getSeasons = createServerFn({ method: "GET" }).handler(
 	async () => {
@@ -9,7 +9,7 @@ export const getSeasons = createServerFn({ method: "GET" }).handler(
 			const seasons = await prismaClient.season.findMany({
 				orderBy: [{ isActive: "desc" }, { createdAt: "desc" }],
 			});
-			return { data: seasons, message: t("Seasons found") };
+			return { data: seasons, message: m.seasons_seasons_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -31,7 +31,7 @@ export const getSeasonsWithStats = createServerFn({ method: "GET" }).handler(
 				},
 				orderBy: { createdAt: "desc" },
 			});
-			return { data: seasons, message: t("Seasons found") };
+			return { data: seasons, message: m.seasons_seasons_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -45,7 +45,7 @@ export const getActiveSeason = createServerFn({ method: "GET" }).handler(
 			const season = await prismaClient.season.findFirst({
 				where: { isActive: true },
 			});
-			return { data: season, message: t("Active season found") };
+			return { data: season, message: m.seasons_active_season_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -58,14 +58,14 @@ export const createSeason = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
 			const season = await prismaClient.season.create({
 				data: { isActive: false, name: data.name },
 			});
-			return { data: season, message: t("Season created") };
+			return { data: season, message: m.seasons_season_created() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -77,7 +77,7 @@ export const updateSeason = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -85,7 +85,7 @@ export const updateSeason = createServerFn()
 				data: { name: data.name },
 				where: { id: data.id },
 			});
-			return { data: season, message: t("Season updated") };
+			return { data: season, message: m.seasons_season_updated() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -97,7 +97,7 @@ export const setActiveSeason = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -111,7 +111,7 @@ export const setActiveSeason = createServerFn()
 					where: { id: data.id },
 				});
 			});
-			return { data: season, message: t("Season activated") };
+			return { data: season, message: m.seasons_season_activated() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -123,7 +123,7 @@ export const deleteSeason = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -132,7 +132,7 @@ export const deleteSeason = createServerFn()
 					where: { id: data.id },
 				});
 				if (season.isActive) {
-					throw new Error(t("The active season cannot be deleted"));
+					throw new Error(m.seasons_the_active_season_cannot_be_deleted());
 				}
 
 				const [teamCount, appointmentCount] = await Promise.all([
@@ -142,16 +142,12 @@ export const deleteSeason = createServerFn()
 					}),
 				]);
 				if (teamCount > 0 || appointmentCount > 0) {
-					throw new Error(
-						t(
-							"Season cannot be deleted while teams or appointments reference it",
-						),
-					);
+					throw new Error(m.seasons_cannot_delete_while_referenced());
 				}
 
 				await tx.season.delete({ where: { id: data.id } });
 			});
-			return { message: t("Season deleted") };
+			return { message: m.seasons_season_deleted() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);

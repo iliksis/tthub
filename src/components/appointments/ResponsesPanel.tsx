@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Response, User } from "@/lib/prisma/client";
 import { ResponseType } from "@/lib/prisma/enums";
-import { t } from "@/lib/text";
 import { cn, createColorForUserId, shortenUserName } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const responseBadgeVariant: Record<
 	string,
@@ -17,9 +17,9 @@ const responseBadgeVariant: Record<
 };
 
 const responseBadgeLabel: Record<string, string> = {
-	[ResponseType.ACCEPT]: t("Accept"),
-	[ResponseType.DECLINE]: t("Decline"),
-	[ResponseType.MAYBE]: t("Maybe"),
+	[ResponseType.ACCEPT]: m.common_accept(),
+	[ResponseType.DECLINE]: m.common_decline(),
+	[ResponseType.MAYBE]: m.common_maybe(),
 };
 
 type ResponsesPanelProps = {
@@ -49,7 +49,7 @@ export function ResponsesPanel({
 	);
 
 	return (
-		<Section title={t("Responses")}>
+		<Section title={m.appointments_responses()}>
 			{showActions && (
 				<div className="mb-4 grid grid-cols-3 gap-2">
 					<Button
@@ -63,7 +63,7 @@ export function ResponsesPanel({
 						disabled={isDeleted}
 						onClick={onResponse(ResponseType.ACCEPT)}
 					>
-						{isAccepted ? t("Accepted") : t("Accept")}
+						{isAccepted ? m.common_accepted() : m.common_accept()}
 					</Button>
 					<Button
 						type="button"
@@ -76,7 +76,7 @@ export function ResponsesPanel({
 						disabled={isDeleted}
 						onClick={onResponse(ResponseType.MAYBE)}
 					>
-						{t("Maybe")}
+						{m.common_maybe()}
 					</Button>
 					<Button
 						type="button"
@@ -89,7 +89,7 @@ export function ResponsesPanel({
 						disabled={isDeleted}
 						onClick={onResponse(ResponseType.DECLINE)}
 					>
-						{isDeclined ? t("Declined") : t("Decline")}
+						{isDeclined ? m.common_declined() : m.common_decline()}
 					</Button>
 				</div>
 			)}

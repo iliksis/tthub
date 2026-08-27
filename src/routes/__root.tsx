@@ -16,6 +16,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { prismaClient } from "@/lib/db";
 import { useAppSession } from "@/lib/session";
+import { getLocale } from "@/paraglide/runtime";
 import appCss from "../styles.css?url";
 
 const fetchUser = createServerFn({ method: "GET" }).handler(async () => {
@@ -142,7 +143,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 	}, []);
 
 	return (
-		<html lang="en" className={theme}>
+		<html lang={getLocale()} className={theme}>
 			<head>
 				<HeadContent />
 			</head>

@@ -24,9 +24,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation } from "@/hooks/useMutation";
 import type { Subscription } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
 import { useNotificationPermissions } from "@/lib/web-push";
+import { m } from "@/paraglide/messages";
 
 type NotificationsProps = {
 	subscriptions?: Subscription[] | null;
@@ -46,9 +46,9 @@ export const Notifications = ({ subscriptions }: NotificationsProps) => {
 	} = useNotificationPermissions();
 
 	return (
-		<Section title={t("Notifications")}>
+		<Section title={m.notifications_notifications()}>
 			<p className="mb-4 text-muted-foreground text-sm">
-				{t("Decide when TTHub notifies you on this device.")}
+				{m.notifications_decide_when_tthub_notifies_you_on_this_device()}
 			</p>
 
 			{isLoading ? (
@@ -59,9 +59,11 @@ export const Notifications = ({ subscriptions }: NotificationsProps) => {
 						<div className="flex items-center gap-3 rounded-lg border border-border/60 border-dashed p-4">
 							<BellRingIcon className="size-5 shrink-0 text-muted-foreground" />
 							<div className="flex-1">
-								<div className="font-medium text-sm">{t("Notifications")}</div>
+								<div className="font-medium text-sm">
+									{m.notifications_notifications()}
+								</div>
 								<div className="text-muted-foreground text-xs">
-									{t("Not yet enabled for this device.")}
+									{m.notifications_not_yet_enabled_for_this_device()}
 								</div>
 							</div>
 							<Button
@@ -69,23 +71,21 @@ export const Notifications = ({ subscriptions }: NotificationsProps) => {
 								variant="secondary"
 								onClick={onGrantPermission}
 							>
-								{t("Grant Permission")}
+								{m.notifications_grant_permission()}
 							</Button>
 						</div>
 					)}
 					{isIOS && !isSupported && !isServer && (
 						<Alert variant="info">
 							<AlertDescription>
-								{t(
-									"On iOS devices, you must add the website to the home screen before notifications will work.",
-								)}
+								{m.notifications_ios_add_to_home_screen()}
 							</AlertDescription>
 						</Alert>
 					)}
 					{!isSupported && !isServer && (
 						<Alert variant="destructive">
 							<AlertDescription>
-								{t("Notifications are not supported in this browser")}
+								{m.notifications_not_supported_in_this_browser()}
 							</AlertDescription>
 						</Alert>
 					)}
@@ -192,7 +192,7 @@ const Form = ({ subscription }: FormProps) => {
 					<ToggleRow
 						id={field.name}
 						icon={CalendarClockIcon}
-						label={t("Get a notification when a new appointment is created")}
+						label={m.notifications_get_a_notification_when_a_new_appointment_is_created()}
 						checked={field.state.value}
 						onBlur={field.handleBlur}
 						onCheckedChange={(checked) => field.handleChange(checked)}
@@ -204,9 +204,7 @@ const Form = ({ subscription }: FormProps) => {
 					<ToggleRow
 						id={field.name}
 						icon={BellIcon}
-						label={t(
-							"Get a notification when an accepted appointment was changed",
-						)}
+						label={m.notifications_get_a_notification_when_an_accepted_appointment_was_changed()}
 						checked={field.state.value}
 						onBlur={field.handleBlur}
 						onCheckedChange={(checked) => field.handleChange(checked)}
@@ -226,7 +224,7 @@ const Form = ({ subscription }: FormProps) => {
 						className="mt-1 w-36"
 						disabled={!canSubmit || isDefaultValue}
 					>
-						{isSubmitting ? t("Loading…") : t("Update")}
+						{isSubmitting ? m.common_loading() : m.common_update()}
 					</Button>
 				)}
 			</form.Subscribe>
@@ -291,7 +289,7 @@ const ActiveSubscriptions = ({ subscriptions }: ActiveSubscriptionsProps) => {
 	return (
 		<div className="flex flex-col gap-2">
 			<span className="text-muted-foreground text-xs uppercase tracking-wide">
-				{t("Active Subscriptions")}
+				{m.notifications_active_subscriptions()}
 			</span>
 			<div className="flex flex-col gap-2">
 				{subscriptions.map((subscription) => (
@@ -306,7 +304,7 @@ const ActiveSubscriptions = ({ subscriptions }: ActiveSubscriptionsProps) => {
 							variant="ghost"
 							size="icon-sm"
 							className="text-destructive hover:text-destructive"
-							title={t("Delete")}
+							title={m.common_delete()}
 							onClick={onDelete(subscription)}
 						>
 							<Trash2Icon className="size-4" />

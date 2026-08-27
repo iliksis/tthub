@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
 import { useIsRole } from "@/lib/session";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export const createPlacement = createServerFn()
 	.validator(
@@ -15,7 +15,7 @@ export const createPlacement = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -33,7 +33,9 @@ export const createPlacement = createServerFn()
 			});
 
 			if (existing) {
-				throw new Error(t("Participant already exists in this category"));
+				throw new Error(
+					m.placements_participant_already_exists_in_this_category(),
+				);
 			}
 
 			const placement = await prismaClient.placement.create({
@@ -45,7 +47,7 @@ export const createPlacement = createServerFn()
 				},
 			});
 
-			return { data: placement, message: t("Placement created") };
+			return { data: placement, message: m.placements_placement_created() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -58,7 +60,7 @@ export const getUniqueCategories = createServerFn().handler(async () => {
 			by: ["category"],
 		});
 		const result = categories.map((c) => c.category);
-		return { data: result, message: t("Categories found") };
+		return { data: result, message: m.placements_categories_found() };
 	} catch (e) {
 		console.error(e);
 		throw new Error((e as Error).message);
@@ -79,7 +81,7 @@ export const updatePlacement = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -96,7 +98,7 @@ export const updatePlacement = createServerFn()
 				},
 			});
 
-			return { data: placement, message: t("Placement updated") };
+			return { data: placement, message: m.placements_placement_updated() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -110,7 +112,7 @@ export const deletePlacement = createServerFn()
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -124,7 +126,7 @@ export const deletePlacement = createServerFn()
 				},
 			});
 
-			return { data: placement, message: t("Placement deleted") };
+			return { data: placement, message: m.placements_placement_deleted() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);

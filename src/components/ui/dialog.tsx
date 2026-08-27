@@ -2,8 +2,8 @@ import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
 import type * as React from "react";
 import { Button } from "@/components/ui/button";
-import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
 	return <DialogPrimitive.Root data-slot="dialog" {...props} />;
@@ -69,7 +69,7 @@ function DialogContent({
 						}
 					>
 						<XIcon />
-						<span className="sr-only">{t("Close")}</span>
+						<span className="sr-only">{m.common_close()}</span>
 					</DialogPrimitive.Close>
 				)}
 			</DialogPrimitive.Popup>
@@ -107,7 +107,7 @@ function DialogFooter({
 			{children}
 			{showCloseButton && (
 				<DialogPrimitive.Close render={<Button variant="outline" />}>
-					{t("Close")}
+					{m.common_close()}
 				</DialogPrimitive.Close>
 			)}
 		</div>

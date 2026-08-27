@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getAllSubscriptions } from "@/api/notifications";
 import { Notifications } from "@/components/settings/Notifications";
 import { Profile } from "@/components/settings/Profile";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
 	dev: z.boolean().optional(),
@@ -12,7 +12,7 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/_authed/settings/profile")({
 	component: RouteComponent,
 	head: () => ({
-		meta: [{ title: t("Settings") }],
+		meta: [{ title: m.common_settings() }],
 	}),
 	loader: async () => {
 		try {

@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import { useAppSession } from "@/lib/session";
-import { t } from "@/lib/text";
 import { roleBadgeVariant, roleLabel } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const updateSession = createServerFn({ method: "POST" })
 	.validator((d: { name: string }) => d)
@@ -64,7 +64,7 @@ export const Profile = () => {
 					return true;
 				}
 				if (value.password !== value.confirmPassword) {
-					return t("The passwords entered do not match");
+					return m.common_the_passwords_entered_do_not_match();
 				}
 			},
 		},
@@ -86,9 +86,9 @@ export const Profile = () => {
 				</div>
 			</div>
 
-			<Section title={t("Profile & Security")}>
+			<Section title={m.settings_profile_security()}>
 				<p className="mb-4 text-muted-foreground text-sm">
-					{t("Update your name or set a new password.")}
+					{m.settings_update_your_name_or_set_a_new_password()}
 				</p>
 				<form
 					className="flex flex-col gap-4"
@@ -101,7 +101,7 @@ export const Profile = () => {
 					<form.Field name="name">
 						{(field) => (
 							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor={field.name}>{t("Name")}:</Label>
+								<Label htmlFor={field.name}>{m.common_name()}:</Label>
 								<Input
 									id={field.name}
 									name={field.name}
@@ -116,7 +116,7 @@ export const Profile = () => {
 						<form.Field name="password">
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("Password")}:</Label>
+									<Label htmlFor={field.name}>{m.common_password()}:</Label>
 									<Input
 										id={field.name}
 										type="password"
@@ -131,7 +131,9 @@ export const Profile = () => {
 						<form.Field name="confirmPassword">
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("Confirm Password")}:</Label>
+									<Label htmlFor={field.name}>
+										{m.common_confirm_password()}:
+									</Label>
 									<Input
 										id={field.name}
 										type="password"
@@ -162,7 +164,7 @@ export const Profile = () => {
 								className="w-36"
 								disabled={!canSubmit || isDefaultValue}
 							>
-								{isSubmitting ? t("Loading…") : t("Update")}
+								{isSubmitting ? m.common_loading() : m.common_update()}
 							</Button>
 						)}
 					</form.Subscribe>

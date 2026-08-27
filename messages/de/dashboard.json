@@ -1,0 +1,7 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"dashboard_pending_appointments": "Offene Termine",
+	"dashboard_recent_activity": "Letzte Aktivität",
+	"dashboard_upcoming_appointments": "Nächste Termine",
+	"dashboard_you_have_no_appointments": "Du hast keine Termine"
+}

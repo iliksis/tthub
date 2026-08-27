@@ -11,8 +11,8 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import type { Appointment, Response, Season, Team } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export const getUserResponse = (
 	item: Appointment & { responses: Response[] },
@@ -35,16 +35,16 @@ type TypeGroup = NonNullable<FiltersProps["typeGroup"]> | "ALL";
 type ResponseFilterValue = NonNullable<FiltersProps["responses"]>[number];
 
 const typeGroupTabs: { key: TypeGroup; label: string }[] = [
-	{ key: "ALL", label: t("All") },
-	{ key: "TOURNAMENT", label: t("Tournaments") },
-	{ key: "TEAM_MATCH", label: t("Team matches") },
+	{ key: "ALL", label: m.appointments_all() },
+	{ key: "TOURNAMENT", label: m.appointments_tournaments() },
+	{ key: "TEAM_MATCH", label: m.common_team_matches() },
 ];
 
 const responseOptions: { value: ResponseFilterValue; label: string }[] = [
-	{ label: t("Accepted"), value: "ACCEPT" },
-	{ label: t("Maybe"), value: "MAYBE" },
-	{ label: t("Declined"), value: "DECLINE" },
-	{ label: t("No response"), value: "NONE" },
+	{ label: m.common_accepted(), value: "ACCEPT" },
+	{ label: m.common_maybe(), value: "MAYBE" },
+	{ label: m.common_declined(), value: "DECLINE" },
+	{ label: m.appointments_no_response(), value: "NONE" },
 ];
 
 function toggleInList<T>(list: T[] | undefined, value: T): T[] | undefined {
@@ -196,7 +196,7 @@ const ALL_SEASONS = "ALL";
 
 function seasonFilterOptions(seasons: Season[]) {
 	return [
-		{ label: t("All"), value: ALL_SEASONS },
+		{ label: m.appointments_all(), value: ALL_SEASONS },
 		...seasons.map((season) => ({ label: season.name, value: season.id })),
 	];
 }
@@ -218,7 +218,7 @@ export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
 	const segments: FilterBarSegment[] = [
 		{
 			key: "type",
-			label: t("Type"),
+			label: m.appointments_type(),
 			onChange: (v) => setTypeGroup(v as TypeGroup),
 			options: typeGroupTabs.map((tab) => ({
 				label: tab.label,
@@ -231,7 +231,7 @@ export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
 	if (seasons.length > 0) {
 		segments.push({
 			key: "season",
-			label: t("Season"),
+			label: m.common_season(),
 			onChange: (v) =>
 				navigate({ seasonId: v === ALL_SEASONS ? undefined : v }),
 			options: seasonFilterOptions(seasons),
@@ -242,7 +242,7 @@ export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
 	if (typeGroup === "TOURNAMENT") {
 		segments.push({
 			key: "response",
-			label: t("My response"),
+			label: m.appointments_my_response(),
 			onToggle: (v) => toggleResponse(v as ResponseFilterValue),
 			options: responseOptions,
 			type: "checkbox",
@@ -252,7 +252,7 @@ export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
 	if (typeGroup === "TEAM_MATCH" && teams.length > 0) {
 		segments.push({
 			key: "team",
-			label: t("Team"),
+			label: m.common_team(),
 			onToggle: toggleTeam,
 			options: teams.map((tm) => ({ label: tm.title, value: tm.id })),
 			type: "checkbox",
@@ -262,9 +262,9 @@ export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
 	segments.push({
 		active: !!search.deleted,
 		key: "deleted",
-		label: t("Show deleted?"),
+		label: m.appointments_show_deleted(),
 		onToggle: () => navigate({ deleted: search.deleted ? undefined : true }),
-		tokenLabel: t("Incl. deleted"),
+		tokenLabel: m.appointments_incl_deleted(),
 		type: "toggle",
 	});
 
@@ -272,7 +272,7 @@ export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
 		<FilterBar
 			search={{
 				onChange: setQueryInput,
-				placeholder: t("Search appointment or add filter..."),
+				placeholder: m.appointments_search_appointment_or_add_filter(),
 				value: queryInput,
 			}}
 			segments={segments}
@@ -319,7 +319,7 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 		<div className="flex flex-col gap-1.5">
 			<div className="flex items-center gap-2">
 				<Input
-					placeholder={t("Search appointment...")}
+					placeholder={m.appointments_search_appointment()}
 					value={queryInput}
 					onChange={(e) => setQueryInput(e.target.value)}
 					className="flex-1"
@@ -329,7 +329,7 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 					variant="outline"
 					size="icon"
 					className="relative shrink-0"
-					aria-label={t("Filters")}
+					aria-label={m.common_filters()}
 					onClick={() => setSheetOpen(true)}
 				>
 					<SlidersHorizontalIcon className="size-4" />
@@ -344,7 +344,7 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 					onClick={clearSecondary}
 					className="self-start text-muted-foreground text-xs underline underline-offset-2"
 				>
-					{t("Clear")}
+					{m.common_clear()}
 				</button>
 			)}
 			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
@@ -362,7 +362,7 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 							: undefined
 					}
 				>
-					<SheetTitle className="sr-only">{t("Filters")}</SheetTitle>
+					<SheetTitle className="sr-only">{m.common_filters()}</SheetTitle>
 					<div
 						className="flex shrink-0 cursor-grab touch-none justify-center pt-2 pb-1 active:cursor-grabbing"
 						{...handlePointerHandlers}
@@ -371,13 +371,13 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 					</div>
 					<div className="flex flex-col gap-4 px-4 pb-6">
 						<fieldset className="flex flex-col gap-1.5">
-							<Label>{t("Type")}</Label>
+							<Label>{m.appointments_type()}</Label>
 							<TypeGroupTabs value={typeGroup} onChange={setTypeGroup} />
 						</fieldset>
 
 						{seasons.length > 0 && (
 							<fieldset className="flex flex-col gap-1.5">
-								<Label>{t("Season")}</Label>
+								<Label>{m.common_season()}</Label>
 								<div className="flex flex-wrap gap-1.5">
 									{seasonFilterOptions(seasons).map((option) => (
 										<FilterPill
@@ -401,7 +401,7 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 
 						{typeGroup === "TOURNAMENT" && (
 							<fieldset className="flex flex-col gap-1.5">
-								<Label>{t("My response")}</Label>
+								<Label>{m.appointments_my_response()}</Label>
 								<div className="flex flex-wrap gap-1.5">
 									{responseOptions.map((opt) => (
 										<FilterPill
@@ -418,7 +418,7 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 
 						{typeGroup === "TEAM_MATCH" && teams.length > 0 && (
 							<fieldset className="flex flex-col gap-1.5">
-								<Label>{t("Team")}</Label>
+								<Label>{m.common_team()}</Label>
 								<div className="flex flex-wrap gap-1.5">
 									{teams.map((team) => (
 										<FilterPill
@@ -444,7 +444,7 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 									navigate({ deleted: checked === true ? true : undefined })
 								}
 							/>
-							{t("Show deleted?")}
+							{m.appointments_show_deleted()}
 						</label>
 					</div>
 				</SheetContent>

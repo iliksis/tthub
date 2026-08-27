@@ -28,7 +28,7 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import type { User } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 import { ThemeSwitch } from "./ThemeSwitch";
 
 type NavigationItem =
@@ -49,37 +49,37 @@ type NavigationItem =
 	  };
 
 const navigationItems: NavigationItem[] = [
-	{ href: "/", icon: HouseIcon, name: t("Dashboard") },
+	{ href: "/", icon: HouseIcon, name: m.common_dashboard() },
 	{
 		children: [
 			{
 				href: "/appts",
 				icon: CalendarDaysIcon,
-				name: t("Overview"),
+				name: m.common_overview(),
 			},
 			{
 				href: "/create",
 				icon: CalendarPlusIcon,
 				isHidden: (role) => role === "USER",
-				name: t("Create"),
+				name: m.common_create(),
 			},
 			{
 				href: "/appts/journal",
 				icon: HistoryIcon,
 				isHidden: (role) => role === "USER",
-				name: t("Journal"),
+				name: m.common_journal(),
 			},
 		],
 		icon: CalendarsIcon,
-		name: t("Appointments"),
+		name: m.common_appointments(),
 	},
-	{ href: "/players", icon: UsersIcon, name: t("Players") },
-	{ href: "/teams", icon: ShieldIcon, name: t("Teams") },
+	{ href: "/players", icon: UsersIcon, name: m.common_players() },
+	{ href: "/teams", icon: ShieldIcon, name: m.common_teams() },
 	{
 		activeExact: false,
 		href: "/settings",
 		icon: Settings2Icon,
-		name: t("Settings"),
+		name: m.common_settings(),
 	},
 ];
 
@@ -179,11 +179,11 @@ export const NavigationWrapper = ({
 						<ThemeSwitch />
 						<SidebarMenuItem>
 							<SidebarMenuButton
-								tooltip={t("Logout")}
+								tooltip={m.common_logout()}
 								render={
 									<Link to="/logout">
 										<LogOutIcon />
-										<span>{t("Logout")}</span>
+										<span>{m.common_logout()}</span>
 									</Link>
 								}
 							/>

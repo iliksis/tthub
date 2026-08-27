@@ -7,7 +7,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import type { Standing } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 type StandingsTableProps = {
 	standings: Standing[];
@@ -17,7 +17,7 @@ export function StandingsTable({ standings }: StandingsTableProps) {
 	if (standings.length === 0) {
 		return (
 			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
-				{t("No standings imported yet.")}
+				{m.common_no_standings_imported_yet()}
 			</div>
 		);
 	}
@@ -26,13 +26,13 @@ export function StandingsTable({ standings }: StandingsTableProps) {
 		<Table>
 			<TableHeader>
 				<TableRow className="hover:bg-transparent">
-					<TableHead className="w-px text-right">{t("Rank")}</TableHead>
-					<TableHead>{t("Team")}</TableHead>
+					<TableHead className="w-px text-right">{m.teams_rank()}</TableHead>
+					<TableHead>{m.common_team()}</TableHead>
 					<TableHead className="hidden text-right sm:table-cell">S</TableHead>
 					<TableHead className="hidden text-right sm:table-cell">U</TableHead>
 					<TableHead className="hidden text-right sm:table-cell">N</TableHead>
-					<TableHead className="text-right">{t("Matches")}</TableHead>
-					<TableHead className="text-right">{t("Points")}</TableHead>
+					<TableHead className="text-right">{m.teams_matches()}</TableHead>
+					<TableHead className="text-right">{m.teams_points()}</TableHead>
 				</TableRow>
 			</TableHeader>
 			<TableBody>

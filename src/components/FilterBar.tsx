@@ -9,8 +9,8 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { t } from "@/lib/text";
 import { cn } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export type FilterToken = { key: string; label: string; onRemove: () => void };
 export type FilterOption = { value: string; label: string };
@@ -232,7 +232,7 @@ const FilterBarResetButton = ({ onReset }: { onReset: () => void }) => {
 			type="button"
 			className="flex h-9 items-center gap-1.5 px-3 text-sm text-muted-foreground hover:bg-muted/60 hover:text-foreground"
 			onClick={onReset}
-			aria-label={t("Clear")}
+			aria-label={m.common_clear()}
 		>
 			<XIcon size="16" />
 		</button>

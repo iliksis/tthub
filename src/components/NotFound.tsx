@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export function NotFound() {
 	return (
@@ -8,12 +8,12 @@ export function NotFound() {
 			<span className="font-bold text-8xl text-muted-foreground/25 tabular-nums">
 				404
 			</span>
-			<h1 className="font-bold text-lg">{t("Page not found")}</h1>
+			<h1 className="font-bold text-lg">{m.common_page_not_found()}</h1>
 			<p className="max-w-sm text-muted-foreground text-sm">
-				{t("This address doesn't exist or has been moved.")}
+				{m.common_this_address_doesn_t_exist_or_has_been_moved()}
 			</p>
 			<Button variant="outline" className="mt-4" render={<Link to="/" />}>
-				{t("Back to dashboard")}
+				{m.common_back_to_dashboard()}
 			</Button>
 		</div>
 	);

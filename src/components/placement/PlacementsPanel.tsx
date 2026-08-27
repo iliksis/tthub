@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { groupPlacementsByCategory } from "@/lib/placements";
 import type { Placement, Player } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 type PlacementsPanelProps = {
 	placements: (Placement & { player: Player })[];
@@ -20,10 +20,10 @@ export function PlacementsPanel({
 	return (
 		<div className="border-border/60 border-t pt-4">
 			<div className="mb-3 flex items-center justify-between">
-				<span className="font-bold text-sm">{t("Participants")}</span>
+				<span className="font-bold text-sm">{m.placements_participants()}</span>
 				{canEdit && (
 					<Button type="button" variant="outline" size="sm" onClick={onManage}>
-						{t("Show all")}
+						{m.placements_show_all()}
 					</Button>
 				)}
 			</div>
@@ -51,7 +51,7 @@ export function PlacementsPanel({
 										</span>
 									) : (
 										<span className="text-muted-foreground italic">
-											{t("Pending")}
+											{m.placements_pending()}
 										</span>
 									)}
 								</div>

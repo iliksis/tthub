@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 import { TeamMeta, TeamPlacementBadge, type TeamRow } from "./TeamSummary";
 
 type ListProps = {
@@ -15,7 +15,7 @@ export const List = ({ teams }: ListProps) => {
 	if (teams.length === 0) {
 		return (
 			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
-				{t("No teams found")}
+				{m.common_no_teams_found()}
 			</div>
 		);
 	}

@@ -7,7 +7,6 @@ import {
 	createColorForUserId,
 	createGoogleMapsLink,
 	dateToInputValue,
-	format,
 	isDayInPast,
 	isInvitationExpired,
 } from "./utils";
@@ -154,33 +153,6 @@ describe("createColorForUserId", () => {
 		const color1 = createColorForUserId("user1");
 		const color2 = createColorForUserId("user2");
 		expect(color1).not.toBe(color2);
-	});
-});
-
-describe("format", () => {
-	it("should replace single placeholder", () => {
-		const result = format("Hello {0}", "World");
-		expect(result).toBe("Hello World");
-	});
-
-	it("should replace multiple placeholders", () => {
-		const result = format("{0} has {1} appointments", "John", "5");
-		expect(result).toBe("John has 5 appointments");
-	});
-
-	it("should handle missing values", () => {
-		const result = format("Hello {0} and {1}", "World");
-		expect(result).toBe("Hello World and {1}");
-	});
-
-	it("should handle no placeholders", () => {
-		const result = format("Hello World");
-		expect(result).toBe("Hello World");
-	});
-
-	it("should handle out of order placeholders", () => {
-		const result = format("{1} {0}", "World", "Hello");
-		expect(result).toBe("Hello World");
 	});
 });
 

@@ -1,0 +1,19 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"imports_available_importers": "Verfügbare Importe",
+	"imports_import": "Importieren",
+	"imports_import_disabled": "Import deaktiviert",
+	"imports_import_holidays": "Ferien/Feiertage importieren",
+	"imports_import_not_found": "Import nicht gefunden",
+	"imports_import_started": "Import gestartet",
+	"imports_importer_not_found": "Importer nicht gefunden",
+	"imports_importers_found": "Importer gefunden",
+	"imports_n_created": "{param1} erstellt",
+	"imports_n_created_n_updated_n_skipped": "{param1} erstellt, {param2} aktualisiert, {param3} übersprungen",
+	"imports_n_skipped": "{param1} übersprungen",
+	"imports_n_updated": "{param1} aktualisiert",
+	"imports_optional": "(optional)",
+	"imports_start_import": "Import starten",
+	"imports_this_field_is_required": "Dieses Feld ist erforderlich",
+	"imports_you_do_not_have_permission_to_access_import_settings": "Du hast keine Berechtigung, um auf die Importeinstellungen zuzugreifen"
+}

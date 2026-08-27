@@ -1,0 +1,236 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"appointments_a_closed_period_without_training_or_events": "Ein geschlossener Zeitraum ohne Training oder Termine",
+	"appointments_a_competitive_event_players_sign_up_for": "Eine Wettkampfveranstaltung, für die sich Spieler:innen anmelden",
+	"appointments_all": "Alle",
+	"appointments_all_actions": "Alle Aktionen",
+	"appointments_appointment": "Termin",
+	"appointments_appointment_answered_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Termin beantwortet",
+				"countPlural=other": "{count} Termine beantwortet"
+			}
+		}
+	],
+	"appointments_appointment_created": "Termin erstellt",
+	"appointments_appointment_created_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Termin erstellt",
+				"countPlural=other": "{count} Termine erstellt"
+			}
+		}
+	],
+	"appointments_appointment_deleted": "Termin gelöscht",
+	"appointments_appointment_deleted_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Termin gelöscht",
+				"countPlural=other": "{count} Termine gelöscht"
+			}
+		}
+	],
+	"appointments_appointment_duplicated_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Termin dupliziert",
+				"countPlural=other": "{count} Termine dupliziert"
+			}
+		}
+	],
+	"appointments_appointment_found": "Termin gefunden",
+	"appointments_appointment_is_still_in_draft": "Termin ist noch in der Entwurfsphase.",
+	"appointments_appointment_not_found": "Termin nicht gefunden",
+	"appointments_appointment_not_found_2": "Termin nicht gefunden.",
+	"appointments_appointment_published": "Termin veröffentlicht",
+	"appointments_appointment_published_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Termin veröffentlicht",
+				"countPlural=other": "{count} Termine veröffentlicht"
+			}
+		}
+	],
+	"appointments_appointment_restored": "Termin wiederhergestellt",
+	"appointments_appointment_restored_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Termin wiederhergestellt",
+				"countPlural=other": "{count} Termine wiederhergestellt"
+			}
+		}
+	],
+	"appointments_appointment_selected_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Termin ausgewählt",
+				"countPlural=other": "{count} Termine ausgewählt"
+			}
+		}
+	],
+	"appointments_appointment_type": "Termintyp",
+	"appointments_appointment_unpublished": "Termin zurückgezogen",
+	"appointments_appointment_unpublished_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Termin zurückgezogen",
+				"countPlural=other": "{count} Termine zurückgezogen"
+			}
+		}
+	],
+	"appointments_appointment_updated": "Termin aktualisiert",
+	"appointments_appointment_was_deleted": "Termin wurde gelöscht.",
+	"appointments_appointments_could_not_be_loaded": "Termine konnten nicht geladen werden",
+	"appointments_appointments_found": "Termine gefunden",
+	"appointments_are_you_sure_you_want_to_delete_n_appointments": "Bist du sicher, dass du {param1} Termine löschen möchtest?",
+	"appointments_are_you_sure_you_want_to_delete_this_appointment": "Bist du sicher, dass du diesen Termin löschen möchtest?",
+	"appointments_back": "Zurück",
+	"appointments_bavaria": "Bayern",
+	"appointments_calendar": "Kalender",
+	"appointments_cancel": "Abbrechen",
+	"appointments_changed": "Geändert",
+	"appointments_changed_2": "geändert",
+	"appointments_choose_an_appointment": "Wähle einen Termin",
+	"appointments_continue": "Weiter",
+	"appointments_create_appointment": "Termin erstellen",
+	"appointments_created": "erstellt",
+	"appointments_delete_appointment": "Termin löschen",
+	"appointments_deleted": "Gelöscht",
+	"appointments_deleted_2": "gelöscht",
+	"appointments_deleted_user": "Gelöschte:r Nutzer:in",
+	"appointments_download": "Herunterladen",
+	"appointments_download_ical": "Termin speichern",
+	"appointments_draft": "Entwurf",
+	"appointments_edit": "Bearbeiten",
+	"appointments_edit_appointment": "Termin bearbeiten",
+	"appointments_end": "Ende",
+	"appointments_enddate": "Ende",
+	"appointments_field_changed_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Feld geändert",
+				"countPlural=other": "{count} Felder geändert"
+			}
+		}
+	],
+	"appointments_germany": "Deutschland",
+	"appointments_has": "hat",
+	"appointments_incl_deleted": "Inkl. gelöschte",
+	"appointments_last_updated": "Zuletzt aktualisiert",
+	"appointments_link": "Link",
+	"appointments_links": "Links",
+	"appointments_list": "Liste",
+	"appointments_load_n_more_n_remaining": "{param1} weitere laden ({param2} verbleibend)",
+	"appointments_location": "Ort",
+	"appointments_metadata": "Metadaten",
+	"appointments_more_details": "Weitere Details",
+	"appointments_my_response": "Meine Antwort",
+	"appointments_n_changed": "{param1} geändert",
+	"appointments_n_of_n_events": "{param1} von {param2} Ereignissen",
+	"appointments_new_appointment": "Neuer Termin",
+	"appointments_next_appointment": "Nächster Termin",
+	"appointments_next_month": "Nächster Monat",
+	"appointments_no_appointment_set": "Kein Termin gesetzt",
+	"appointments_no_appointments_found": "Keine Termine gefunden",
+	"appointments_no_appointments_in_the_next_4_weeks": "Keine Termine in den nächsten 4 Wochen",
+	"appointments_no_link_set": "Kein Link gesetzt",
+	"appointments_no_location_set": "Kein Ort gesetzt",
+	"appointments_no_response": "Keine Antwort",
+	"appointments_open_appointment": "Termin öffnen",
+	"appointments_previous_month": "Vorheriger Monat",
+	"appointments_publish": "Veröffentlichen",
+	"appointments_publish_appointment": "Termin veröffentlichen",
+	"appointments_published": "Veröffentlicht",
+	"appointments_response_created": "Antwort erstellt",
+	"appointments_responses": "Antworten",
+	"appointments_restore": "Wiederherstellen?",
+	"appointments_restored": "Wiederhergestellt",
+	"appointments_restored_2": "wiederhergestellt",
+	"appointments_review": "Überprüfung",
+	"appointments_search_appointment": "Termin suchen…",
+	"appointments_search_appointment_or_add_filter": "Termin suchen oder Filter hinzufügen…",
+	"appointments_search_appointment_or_person": "Termin oder Person suchen…",
+	"appointments_search_appointments": "Termine suchen",
+	"appointments_shorttitle": "Kurztitel",
+	"appointments_show_deleted": "Gelöschte anzeigen?",
+	"appointments_start": "Start",
+	"appointments_startdate": "Start",
+	"appointments_status": "Status",
+	"appointments_swipe_to_respond": "Wischen zum Antworten",
+	"appointments_team_match": "Mannschaftsspiel",
+	"appointments_today": "Heute",
+	"appointments_tomorrow": "Morgen",
+	"appointments_tournaments": "Turniere",
+	"appointments_transaction_journal": "Transaktionsjournal",
+	"appointments_transactions_found": "Transaktionen gefunden",
+	"appointments_type": "Typ",
+	"appointments_unpublish_appointment": "Termin zurückziehen",
+	"appointments_untitled": "Unbenannt",
+	"appointments_you_do_not_have_permission_to_create_appointments": "Du hast keine Berechtigung, um Termine zu erstellen",
+	"appointments_you_ve_reached_the_end_n_events": "Das war's — {param1} Ereignisse",
+	"appointments_your_appointments": "Deine Termine"
+}

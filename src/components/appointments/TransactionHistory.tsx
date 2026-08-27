@@ -7,13 +7,13 @@ import {
 } from "@/components/ui/tooltip";
 import type { Transaction, User } from "@/lib/prisma/client";
 import { TransactionType } from "@/lib/prisma/enums";
-import { t } from "@/lib/text";
 import { fieldLabels, type TransactionChanges } from "@/lib/transactionLabels";
 import {
 	createColorForUserId,
 	formatRelativeTime,
 	shortenUserName,
 } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 type TransactionHistoryProps = {
 	transactions: (Transaction & { user: User | null })[];
@@ -42,21 +42,21 @@ const buildEntries = (
 		if (transaction.type === TransactionType.CREATE) {
 			entries.push({
 				createdAt: transaction.createdAt,
-				header: t("Appointment created"),
+				header: m.appointments_appointment_created(),
 				key: transaction.id,
 				user: transaction.user,
 			});
 		} else if (transaction.type === TransactionType.DELETE) {
 			entries.push({
 				createdAt: transaction.createdAt,
-				header: t("Appointment deleted"),
+				header: m.appointments_appointment_deleted(),
 				key: transaction.id,
 				user: transaction.user,
 			});
 		} else if (transaction.type === TransactionType.RESTORE) {
 			entries.push({
 				createdAt: transaction.createdAt,
-				header: t("Appointment restored"),
+				header: m.appointments_appointment_restored(),
 				key: transaction.id,
 				user: transaction.user,
 			});
@@ -67,7 +67,7 @@ const buildEntries = (
 				const labels = fields.map((field) => fieldLabels[field] ?? field);
 				entries.push({
 					createdAt: transaction.createdAt,
-					header: t("{0} changed", labels.join(", ")),
+					header: m.appointments_n_changed({ param1: labels.join(", ") }),
 					key: transaction.id,
 					user: transaction.user,
 				});
@@ -84,7 +84,7 @@ export const TransactionHistory = ({
 	if (entries.length === 0) return null;
 
 	return (
-		<Section title={t("History")}>
+		<Section title={m.common_history()}>
 			<ul className="flex flex-col gap-3">
 				{entries.map((entry) => {
 					const userColor = entry.user
@@ -109,7 +109,8 @@ export const TransactionHistory = ({
 							<div className="min-w-0 flex-1">
 								<p>{entry.header}</p>
 								<p className="text-muted-foreground text-xs">
-									{entry.user ? entry.user.name : t("Deleted user")} ·{" "}
+									{entry.user ? entry.user.name : m.appointments_deleted_user()}{" "}
+									·{" "}
 									<Tooltip>
 										<TooltipTrigger render={<span />}>
 											{formatRelativeTime(entry.createdAt)}

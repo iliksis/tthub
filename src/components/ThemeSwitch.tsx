@@ -3,7 +3,7 @@ import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { getCookie, setCookie } from "@tanstack/react-start/server";
 import { MoonIcon, SunIcon } from "lucide-react";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export const ThemeSwitch = () => {
 	const { theme } = useRouteContext({ from: "__root__" });
@@ -19,10 +19,10 @@ export const ThemeSwitch = () => {
 			<SidebarMenuButton
 				type="button"
 				onClick={onClick}
-				tooltip={t("Switch Theme")}
+				tooltip={m.common_switch_theme()}
 			>
 				{theme === "light" ? <SunIcon /> : <MoonIcon />}
-				<span>{t("Switch Theme")}</span>
+				<span>{m.common_switch_theme()}</span>
 			</SidebarMenuButton>
 		</SidebarMenuItem>
 	);

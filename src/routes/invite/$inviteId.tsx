@@ -7,17 +7,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
-import { t } from "@/lib/text";
 import { isInvitationExpired } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/invite/$inviteId")({
 	beforeLoad: async ({ params }) => {
 		const invitation = await getInvitation({ data: { id: params.inviteId } });
 		if (invitation === null) {
-			throw new Error(t("Invitation not found"));
+			throw new Error(m.common_invitation_not_found());
 		}
 		if (isInvitationExpired(invitation)) {
-			throw new Error(t("Invitation expired"));
+			throw new Error(m.common_invitation_expired());
 		}
 		return { invitation };
 	},
@@ -62,7 +62,7 @@ function RouteComponent() {
 					return true;
 				}
 				if (value.password !== value.confirmPassword) {
-					return t("The passwords entered do not match");
+					return m.common_the_passwords_entered_do_not_match();
 				}
 			},
 		},
@@ -83,10 +83,10 @@ function RouteComponent() {
 				>
 					<CardContent className="flex flex-col gap-2">
 						<h2 className="text-lg font-semibold leading-none">
-							{t("Set a password to create your Account")}
+							{m.invitations_set_a_password_to_create_your_account()}
 						</h2>
 						<fieldset className="flex flex-col gap-1.5">
-							<Label htmlFor="username">{t("User Name")}:</Label>
+							<Label htmlFor="username">{m.common_user_name()}:</Label>
 							<Input
 								id="username"
 								name="UserName"
@@ -97,7 +97,7 @@ function RouteComponent() {
 						<form.Field name="password">
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("Password")}:</Label>
+									<Label htmlFor={field.name}>{m.common_password()}:</Label>
 									<Input
 										id={field.name}
 										type="password"
@@ -112,7 +112,9 @@ function RouteComponent() {
 						<form.Field name="confirmPassword">
 							{(field) => (
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor={field.name}>{t("Confirm Password")}:</Label>
+									<Label htmlFor={field.name}>
+										{m.common_confirm_password()}:
+									</Label>
 									<Input
 										id={field.name}
 										type="password"
@@ -142,7 +144,9 @@ function RouteComponent() {
 									className="mt-4"
 									disabled={!canSubmit || isDefaultValue}
 								>
-									{isSubmitting ? t("Loading…") : t("Create Account")}
+									{isSubmitting
+										? m.common_loading()
+										: m.invitations_create_account()}
 								</Button>
 							)}
 						</form.Subscribe>

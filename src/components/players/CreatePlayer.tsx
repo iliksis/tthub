@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { createPlayer } from "@/api/players";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 import { PlayerForm } from "./PlayerForm";
 
 export const CreatePlayer = () => {
@@ -53,12 +53,12 @@ export const CreatePlayer = () => {
 				onClick={onOpenCreate}
 			>
 				<UserPlus2Icon className="size-4" />
-				{t("Player")}
+				{m.players_player()}
 			</Button>
 			<PlayerForm
 				open={isCreating}
 				onClose={onStopCreating}
-				submitLabel={t("Create")}
+				submitLabel={m.common_create()}
 				onSubmit={async (values) => {
 					await createPlayerMutation.mutate({
 						data: { ...values },

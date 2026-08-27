@@ -1,0 +1,20 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"notifications_active_subscriptions": "Geräte mit aktivierten Benachrichtigungen",
+	"notifications_decide_when_tthub_notifies_you_on_this_device": "Entscheide, wann dich TTHub auf diesem Gerät benachrichtigt.",
+	"notifications_get_a_notification_when_a_new_appointment_is_created": "Erhalte eine Benachrichtigung, wenn ein neuer Termin erstellt wird",
+	"notifications_get_a_notification_when_an_accepted_appointment_was_changed": "Erhalte eine Benachrichtigung, wenn ein akzeptierter Termin geändert wurde",
+	"notifications_grant_permission": "Benachrichtigunen erlauben",
+	"notifications_invalid_subscription": "Ungültige Benachrichtigung",
+	"notifications_not_yet_enabled_for_this_device": "Noch nicht aktiviert für dieses Gerät.",
+	"notifications_notifications": "Benachrichtigungen",
+	"notifications_not_supported_in_this_browser": "Benachrichtigungen werden in diesem Browser nicht unterstützt",
+	"notifications_notifications_sent": "Benachrichtigungen gesendet",
+	"notifications_ios_add_to_home_screen": "Auf iOS-Geräten muss die Website zur Startseite hinzufügt werden, bevor Benachrichtigungen funktionieren.",
+	"notifications_settings_found": "Einstellungen gefunden",
+	"notifications_subscription_created": "Benachrichtigung erstellt",
+	"notifications_subscription_deleted": "Benachrichtigung abgemeldet",
+	"notifications_subscription_found": "Benachrichtigung gefunden",
+	"notifications_subscription_not_found": "Benachrichtigung nicht gefunden",
+	"notifications_subscriptions_found": "Benachrichtigungen gefunden"
+}

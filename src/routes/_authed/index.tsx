@@ -21,9 +21,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
-import { t } from "@/lib/text";
 import { transactionActionBadge } from "@/lib/transactionLabels";
 import { cn, formatRelativeTime } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const RECENT_ACTIVITY_TAKE = 5;
 // Must match the "lg:grid-cols-3" on the Standings grid below — it drives
@@ -57,11 +57,11 @@ const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
 export const Route = createFileRoute("/_authed/")({
 	component: App,
 	head: () => ({
-		meta: [{ title: t("Dashboard") }],
+		meta: [{ title: m.common_dashboard() }],
 	}),
 	loader: async ({ context }) => {
 		if (!context.user?.id) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		const [nextRes, openRes, activeSeasonRes, transactionsRes] =
@@ -107,12 +107,14 @@ function App() {
 	return (
 		<div className="flex flex-col gap-8">
 			<div>
-				<h1 className="font-bold text-lg hidden lg:block">{t("Dashboard")}</h1>
+				<h1 className="font-bold text-lg hidden lg:block">
+					{m.common_dashboard()}
+				</h1>
 			</div>
 
 			<div className="grid gap-10 lg:grid-cols-[1fr_340px]">
 				<div className="min-w-0 lg:col-start-1 lg:row-start-1 lg:row-span-2">
-					<Section title={t("Upcoming appointments")}>
+					<Section title={m.dashboard_upcoming_appointments()}>
 						{nextAppointments.length > 0 ? (
 							<div className="flex flex-col">
 								{nextAppointments.map((a) => (
@@ -130,14 +132,14 @@ function App() {
 							</div>
 						) : (
 							<div className="text-muted-foreground text-sm">
-								{t("You have no appointments")}
+								{m.dashboard_you_have_no_appointments()}
 							</div>
 						)}
 					</Section>
 				</div>
 
 				<div className="min-w-0 lg:col-start-2 lg:row-start-1">
-					<Section title={t("Pending appointments")}>
+					<Section title={m.dashboard_pending_appointments()}>
 						{openAppointments && openAppointments.length > 0 ? (
 							<div className="flex flex-col">
 								{openAppointments.map((a) => (
@@ -164,7 +166,7 @@ function App() {
 												className="border-success/30 text-success hover:bg-success/15"
 												onClick={onResponse(a.id, "ACCEPT")}
 											>
-												{t("Accept")}
+												{m.common_accept()}
 											</Button>
 											<Button
 												size="xs"
@@ -172,7 +174,7 @@ function App() {
 												className="border-destructive/30 text-destructive hover:bg-destructive/15"
 												onClick={onResponse(a.id, "DECLINE")}
 											>
-												{t("Decline")}
+												{m.common_decline()}
 											</Button>
 										</div>
 									</div>
@@ -180,14 +182,14 @@ function App() {
 							</div>
 						) : (
 							<div className="text-muted-foreground text-sm">
-								{t("You responded to all appointments")}
+								{m.common_you_responded_to_all_appointments()}
 							</div>
 						)}
 					</Section>
 				</div>
 
 				<div className="min-w-0 lg:col-start-2 lg:row-start-2">
-					<Section title={t("Recent activity")}>
+					<Section title={m.dashboard_recent_activity()}>
 						{recentActivity.length > 0 ? (
 							<div className="flex flex-col gap-2.5">
 								{recentActivity.map((tx) => {
@@ -230,7 +232,7 @@ function App() {
 				</div>
 			</div>
 
-			<Section title={t("Standings")}>
+			<Section title={m.common_standings()}>
 				{/* lg:grid-cols-3 must match STANDINGS_GRID_COLUMNS above */}
 				<div className="grid gap-x-8 gap-y-6 lg:grid-cols-3">
 					{teams.map((team, i) => (
@@ -272,7 +274,7 @@ function App() {
 								</table>
 							) : (
 								<div className="text-muted-foreground text-xs">
-									{t("No standings imported yet.")}
+									{m.common_no_standings_imported_yet()}
 								</div>
 							)}
 						</div>

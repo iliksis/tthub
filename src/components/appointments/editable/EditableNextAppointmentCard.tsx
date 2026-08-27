@@ -9,7 +9,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import type { Appointment } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 import { useInlineEditable } from "./useInlineEditable";
 
 type EditableNextAppointmentCardProps = {
@@ -40,14 +40,14 @@ export function EditableNextAppointmentCard({
 		return (
 			<div>
 				<div className="mb-1 text-muted-foreground text-xs uppercase">
-					{t("Next Appointment")}:
+					{m.appointments_next_appointment()}:
 				</div>
 				<Select
 					value={nextAppointmentId ?? undefined}
 					onValueChange={(v) => commit(v)}
 				>
 					<SelectTrigger autoFocus className="w-full">
-						<SelectValue placeholder={t("Choose an appointment")} />
+						<SelectValue placeholder={m.appointments_choose_an_appointment()} />
 					</SelectTrigger>
 					<SelectContent>
 						{otherAppointments.map((o) => (
@@ -71,7 +71,7 @@ export function EditableNextAppointmentCard({
 					type="button"
 					variant="ghost"
 					size="icon-xs"
-					aria-label={t("Cancel")}
+					aria-label={m.appointments_cancel()}
 					onClick={cancel}
 				>
 					<XIcon className="size-3.5" />
@@ -83,14 +83,16 @@ export function EditableNextAppointmentCard({
 	return (
 		<div>
 			<div className="mb-1 text-muted-foreground text-xs uppercase">
-				{t("Next Appointment")}:
+				{m.appointments_next_appointment()}:
 			</div>
 			{nextAppointment ? (
 				<Link to="/appts/$apptId" params={{ apptId: nextAppointment.id }}>
 					{nextAppointment.title}
 				</Link>
 			) : (
-				<span className="text-muted-foreground">{t("No appointment set")}</span>
+				<span className="text-muted-foreground">
+					{m.appointments_no_appointment_set()}
+				</span>
 			)}
 			{canEdit && (
 				<Button
@@ -98,7 +100,7 @@ export function EditableNextAppointmentCard({
 					variant="ghost"
 					size="icon-xs"
 					className="text-muted-foreground"
-					aria-label={t("Edit")}
+					aria-label={m.appointments_edit()}
 					onClick={start}
 				>
 					<PencilIcon className="size-3.5" />

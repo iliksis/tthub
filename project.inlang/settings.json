@@ -1,0 +1,28 @@
+{
+  "$schema": "https://inlang.com/schema/project-settings",
+  "baseLocale": "de",
+  "locales": [
+    "de"
+  ],
+  "modules": [
+    "https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@4.4.0/dist/index.js",
+    "https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@2.2.6/dist/index.js"
+  ],
+  "plugin.inlang.messageFormat": {
+    "pathPattern": [
+      "./messages/{locale}/common.json",
+      "./messages/{locale}/appointments.json",
+      "./messages/{locale}/players.json",
+      "./messages/{locale}/teams.json",
+      "./messages/{locale}/seasons.json",
+      "./messages/{locale}/settings.json",
+      "./messages/{locale}/users.json",
+      "./messages/{locale}/notifications.json",
+      "./messages/{locale}/imports.json",
+      "./messages/{locale}/placements.json",
+      "./messages/{locale}/invitations.json",
+      "./messages/{locale}/auth.json",
+      "./messages/{locale}/dashboard.json"
+    ]
+  }
+}

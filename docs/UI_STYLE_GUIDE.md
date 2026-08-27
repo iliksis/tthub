@@ -77,7 +77,7 @@ Don't scatter `md:`/`sm:` into this split — pick `lg:` for the structural mobi
 
 **Desktop page header**: `<h1 className="font-bold text-lg">{title}</h1>` + muted subtitle/count (`text-muted-foreground text-sm`, e.g. `"{matched} of {total} events"`) + right-aligned action `Button`s, all in one `flex items-center gap-3` row.
 
-**Detail page header** (players, teams): breadcrumb-style instead — `<span className="text-muted-foreground text-sm">{t("Players")} /</span>` + `<span className="flex-1 font-semibold text-[15px]">{name}</span>`, followed by outline Edit + destructive-tinted Delete (`border-destructive/40 text-destructive hover:bg-destructive/10`).
+**Detail page header** (players, teams): breadcrumb-style instead — `<span className="text-muted-foreground text-sm">{m.common_players()} /</span>` + `<span className="flex-1 font-semibold text-[15px]">{name}</span>`, followed by outline Edit + destructive-tinted Delete (`border-destructive/40 text-destructive hover:bg-destructive/10`).
 
 **Lists**: desktop = shared `DetailsList` table component in `rounded-lg bg-card`; mobile = stacked custom row/card components, `flex flex-col gap-2.5`. Master-detail split: `grid grid-cols-[1fr_360px] gap-4`, detail rail `lg:sticky lg:top-6`. Row selection state: `cn("h-11 cursor-pointer", item.id === selectedId && "bg-muted")`.
 
@@ -95,8 +95,8 @@ Don't scatter `md:`/`sm:` into this split — pick `lg:` for the structural mobi
   <Button variant="outline" className="w-full" disabled={isNavigating} onClick={onLoadMore}>
     {isNavigating && <Loader2Icon className="animate-spin" />}
     {isNavigating
-      ? t("Loading…")
-      : t("Load {0} more ({1} remaining)", Math.min(BATCH_SIZE, remaining).toString(), remaining.toString())}
+      ? m.common_loading()
+      : m.appointments_load_n_more_n_remaining({ param1: Math.min(BATCH_SIZE, remaining).toString(), param2: remaining.toString() })}
   </Button>
 </div>
 ```
@@ -114,7 +114,7 @@ Don't scatter `md:`/`sm:` into this split — pick `lg:` for the structural mobi
 ```tsx
 <Collapsible className="rounded-lg bg-card">
   <CollapsibleTrigger className="group flex w-full items-center justify-between p-4 text-left">
-    <span className="font-bold text-sm">{t("More details")}</span>
+    <span className="font-bold text-sm">{m.appointments_more_details()}</span>
     <ChevronDownIcon className="size-4 text-muted-foreground transition-transform duration-200 ease-out group-data-[state=open]:rotate-180" />
   </CollapsibleTrigger>
   <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
@@ -170,7 +170,7 @@ Field structure (`src/components/settings/Profile.tsx` is the clean reference):
 <form.Field name="name">
   {(field) => (
     <fieldset className="flex flex-col gap-1.5">
-      <Label htmlFor={field.name}>{t("Name")}:</Label>
+      <Label htmlFor={field.name}>{m.common_name()}:</Label>
       <Input
         id={field.name}
         name={field.name}
@@ -183,7 +183,7 @@ Field structure (`src/components/settings/Profile.tsx` is the clean reference):
 </form.Field>
 ```
 
-- Labels are colon-suffixed: `{t("Name")}:`.
+- Labels are colon-suffixed: `{m.common_name()}:`.
 - Checkboxes: `<div className="flex items-center gap-2">` + `<Checkbox checked={...} onCheckedChange={(c) => field.handleChange(c === true)} />` + adjacent `<Label>`.
 - Form-level error: `<div className="text-destructive text-xs">{formErrorMap.onChange}</div>`, sourced from `useStore(form.store, (state) => state.errorMap)`.
 - Submit handler is always:
@@ -195,7 +195,7 @@ Field structure (`src/components/settings/Profile.tsx` is the clean reference):
   <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting, state.isDefaultValue]}>
     {([canSubmit, isSubmitting, isDefaultValue]) => (
       <Button type="submit" className="mt-4 w-36" disabled={!canSubmit || isDefaultValue}>
-        {isSubmitting ? "..." : t("Update")}
+        {isSubmitting ? "..." : m.common_update()}
       </Button>
     )}
   </form.Subscribe>
@@ -215,7 +215,7 @@ Field structure (`src/components/settings/Profile.tsx` is the clean reference):
 
 ## 8. Toasts
 
-`sonner` via `src/components/ui/sonner.tsx` (themed to app tokens, per-variant lucide icons). Message text comes from the server response's `message` field (see `onSuccess` boilerplate above), not hardcoded in the component — except for pure client-side actions like clipboard copy, which use a local `t()` string directly: `toast.success(t("Feed URL copied to clipboard"))`.
+`sonner` via `src/components/ui/sonner.tsx` (themed to app tokens, per-variant lucide icons). Message text comes from the server response's `message` field (see `onSuccess` boilerplate above), not hardcoded in the component — except for pure client-side actions like clipboard copy, which call a message function directly: `toast.success(m.settings_feed_url_copied_to_clipboard())`.
 
 ## 9. What NOT to do
 

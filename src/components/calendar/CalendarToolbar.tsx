@@ -1,7 +1,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { monthLabel } from "@/lib/calendarGrid";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 type CalendarToolbarProps = {
 	year: number;
@@ -25,7 +25,7 @@ export const CalendarToolbar = ({
 					type="button"
 					variant="ghost"
 					size="icon-sm"
-					aria-label={t("Previous month")}
+					aria-label={m.appointments_previous_month()}
 					onClick={onPrev}
 				>
 					<ChevronLeftIcon />
@@ -34,7 +34,7 @@ export const CalendarToolbar = ({
 					type="button"
 					variant="ghost"
 					size="icon-sm"
-					aria-label={t("Next month")}
+					aria-label={m.appointments_next_month()}
 					onClick={onNext}
 				>
 					<ChevronRightIcon />
@@ -45,7 +45,7 @@ export const CalendarToolbar = ({
 			</h2>
 			<div className="flex-1" />
 			<Button type="button" variant="outline" size="sm" onClick={onToday}>
-				{t("Today")}
+				{m.appointments_today()}
 			</Button>
 		</div>
 	);

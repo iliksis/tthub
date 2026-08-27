@@ -30,8 +30,8 @@ import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import { useMutation } from "@/hooks/useMutation";
 import { groupPlacementsByCategory } from "@/lib/placements";
 import type { Placement, Player } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
 import { calculateAgeGroup, cn, createColorForUserId } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 type PlacementsSheetProps = {
 	open: boolean;
@@ -218,7 +218,7 @@ export function PlacementsSheet({
 					</div>
 				)}
 				<SheetHeader>
-					<SheetTitle>{t("Participants")}</SheetTitle>
+					<SheetTitle>{m.placements_participants()}</SheetTitle>
 				</SheetHeader>
 				<div className="flex-1 overflow-y-auto px-4 pb-4">
 					<div className="flex flex-col gap-4">
@@ -290,7 +290,7 @@ export function PlacementsSheet({
 																	"border-success/30 bg-success/15 text-success",
 															)}
 														>
-															{p.placement || t("Pending")}
+															{p.placement || m.placements_pending()}
 															{justSaved && <CheckIcon className="size-3" />}
 														</button>
 													)}
@@ -310,7 +310,7 @@ export function PlacementsSheet({
 										})}
 										{rows.length === 0 && (
 											<div className="px-4 py-4 text-center text-muted-foreground text-xs italic">
-												{t("No participants yet")}
+												{m.placements_no_participants_yet()}
 											</div>
 										)}
 									</div>
@@ -326,7 +326,9 @@ export function PlacementsSheet({
 														}
 													>
 														<SelectTrigger className="h-7 w-full">
-															<SelectValue placeholder={t("Choose a player")}>
+															<SelectValue
+																placeholder={m.common_choose_a_player()}
+															>
 																{(value: string) =>
 																	players.find((p) => p.id === value)?.name
 																}
@@ -351,7 +353,7 @@ export function PlacementsSheet({
 														disabled={!newPlayerId}
 														onClick={() => addPlayerToCategory(category)}
 													>
-														{t("Create")}
+														{m.common_create()}
 													</Button>
 												</div>
 											) : (
@@ -364,7 +366,7 @@ export function PlacementsSheet({
 													disabled={available.length === 0}
 												>
 													<PlusIcon className="size-3.5" />
-													{t("Add participant")}
+													{m.placements_add_participant()}
 												</Button>
 											)}
 										</div>
@@ -390,7 +392,7 @@ export function PlacementsSheet({
 												setNewCategoryName("");
 											}
 										}}
-										placeholder={t("Category")}
+										placeholder={m.placements_category()}
 										className="h-8"
 									/>
 									<datalist id="placement-categories">
@@ -404,7 +406,7 @@ export function PlacementsSheet({
 										disabled={!newCategoryName.trim() || categoryNameTaken}
 										onClick={createCategory}
 									>
-										{t("Create")}
+										{m.common_create()}
 									</Button>
 									<Button
 										type="button"
@@ -427,12 +429,12 @@ export function PlacementsSheet({
 									onClick={() => setComposingCategory(true)}
 								>
 									<PlusIcon className="size-3.5" />
-									{t("New category")}
+									{m.placements_new_category()}
 								</Button>
 							)}
 							{composingCategory && categoryNameTaken && (
 								<p className="mt-1.5 text-destructive text-xs">
-									{t("Category already exists")}
+									{m.placements_category_already_exists()}
 								</p>
 							)}
 						</div>

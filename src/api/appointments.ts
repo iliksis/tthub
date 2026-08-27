@@ -8,8 +8,8 @@ import {
 	TransactionType,
 } from "@/lib/prisma/enums";
 import { requireEditor, useAppSession } from "@/lib/session";
-import { t } from "@/lib/text";
 import { formatTanstackRouterPath } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 import { sendNotification } from "./notifications";
 
 type ICreateAppointment =
@@ -36,7 +36,7 @@ export const createAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -72,14 +72,17 @@ export const createAppointment = createServerFn()
 				await sendNotification({
 					body: appointment.title,
 					scope: "new",
-					title: t("New Appointment"),
+					title: m.appointments_new_appointment(),
 					url: formatTanstackRouterPath("/appts/$apptId", {
 						apptId: appointment.id,
 					}),
 				});
 			}
 
-			return { data: appointment, message: t("Appointment created") };
+			return {
+				data: appointment,
+				message: m.appointments_appointment_created(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -116,7 +119,7 @@ export const getAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (session.data.id === null) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		try {
 			const appointment = await prismaClient.appointment.findUnique({
@@ -124,9 +127,9 @@ export const getAppointment = createServerFn()
 				where: { id: data.id },
 			});
 			if (!appointment) {
-				throw new Error(t("Appointment not found"));
+				throw new Error(m.appointments_appointment_not_found());
 			}
-			return { data: appointment, message: t("Appointment found") };
+			return { data: appointment, message: m.appointments_appointment_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -138,7 +141,7 @@ export const searchAppointments = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (session.data.id === null) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		try {
 			const appointments = await prismaClient.appointment.findMany({
@@ -167,7 +170,10 @@ export const searchAppointments = createServerFn()
 					],
 				},
 			});
-			return { data: appointments, message: t("Appointments found") };
+			return {
+				data: appointments,
+				message: m.appointments_appointments_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -186,7 +192,7 @@ export const getTransactionsPage = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		try {
 			const where: Prisma.TransactionWhereInput = {
@@ -219,7 +225,7 @@ export const getTransactionsPage = createServerFn()
 			]);
 			return {
 				data: { grandTotal, matchedTotal, transactions },
-				message: t("Transactions found"),
+				message: m.appointments_transactions_found(),
 			};
 		} catch (e) {
 			console.error(e);
@@ -238,7 +244,7 @@ export const getRecentTransactions = createServerFn({ method: "GET" })
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		try {
 			const transactions = await prismaClient.transaction.findMany({
@@ -252,7 +258,10 @@ export const getRecentTransactions = createServerFn({ method: "GET" })
 				},
 				take: data.take,
 			});
-			return { data: transactions, message: t("Transactions found") };
+			return {
+				data: transactions,
+				message: m.appointments_transactions_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -304,7 +313,10 @@ export const getAppointments = createServerFn()
 					},
 				},
 			});
-			return { data: appointments, message: t("Appointments found") };
+			return {
+				data: appointments,
+				message: m.appointments_appointments_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -328,7 +340,7 @@ export const getAppointmentsPage = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		const userId = session.data.id;
 
@@ -417,7 +429,7 @@ export const getAppointmentsPage = createServerFn()
 
 			return {
 				data: { appointments, grandTotal, matchedTotal },
-				message: t("Appointments found"),
+				message: m.appointments_appointments_found(),
 			};
 		} catch (e) {
 			console.error(e);
@@ -444,7 +456,7 @@ function scheduleAppointmentUpdatedNotification(appointment: Appointment) {
 			void sendNotification({
 				body: appointment.title,
 				scope: "updated",
-				title: t("Appointment updated"),
+				title: m.appointments_appointment_updated(),
 				url: formatTanstackRouterPath("/appts/$apptId", {
 					apptId: appointment.id,
 				}),
@@ -466,7 +478,7 @@ export const updateAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -516,7 +528,10 @@ export const updateAppointment = createServerFn()
 				scheduleAppointmentUpdatedNotification(appointment);
 			}
 
-			return { data: appointment, message: t("Appointment updated") };
+			return {
+				data: appointment,
+				message: m.appointments_appointment_updated(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -528,7 +543,7 @@ export const deleteAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -549,7 +564,10 @@ export const deleteAppointment = createServerFn()
 				return appointment;
 			});
 			cancelAppointmentUpdatedNotification(appointment.id);
-			return { data: appointment, message: t("Appointment deleted") };
+			return {
+				data: appointment,
+				message: m.appointments_appointment_deleted(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -561,7 +579,7 @@ export const createResponse = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (!session.data.id) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -581,7 +599,7 @@ export const createResponse = createServerFn()
 					},
 				},
 			});
-			return { data: response, message: t("Response created") };
+			return { data: response, message: m.appointments_response_created() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -614,7 +632,7 @@ export const getNextAppointments = createServerFn().handler(async () => {
 				NOT: { type: AppointmentType.HOLIDAY },
 			},
 		});
-		return { data: appointments, message: t("Appointments found") };
+		return { data: appointments, message: m.appointments_appointments_found() };
 	} catch (e) {
 		console.error(e);
 		throw new Error((e as Error).message);
@@ -646,7 +664,10 @@ export const getUserAppointments = createServerFn()
 					type: AppointmentType.TOURNAMENT,
 				},
 			});
-			return { data: appointments, message: t("Appointments found") };
+			return {
+				data: appointments,
+				message: m.appointments_appointments_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -686,7 +707,10 @@ export const getUserOpenAppointments = createServerFn()
 					type: AppointmentType.TOURNAMENT,
 				},
 			});
-			return { data: appointments, message: t("Appointments found") };
+			return {
+				data: appointments,
+				message: m.appointments_appointments_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -698,7 +722,7 @@ export const getCalendarAppointments = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await useAppSession();
 		if (session.data.id === null) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 		try {
 			const start = new Date(data.start);
@@ -723,7 +747,10 @@ export const getCalendarAppointments = createServerFn()
 				title: a.title,
 				type: a.type,
 			}));
-			return { data: calAppointments, message: t("Appointments found") };
+			return {
+				data: calAppointments,
+				message: m.appointments_appointments_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -735,7 +762,7 @@ export const publishAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -769,13 +796,16 @@ export const publishAppointment = createServerFn()
 				await sendNotification({
 					body: appointment.title,
 					scope: "new",
-					title: t("New Appointment"),
+					title: m.appointments_new_appointment(),
 					url: formatTanstackRouterPath("/appts/$apptId", {
 						apptId: appointment.id,
 					}),
 				});
 			}
-			return { data: appointment, message: t("Appointment published") };
+			return {
+				data: appointment,
+				message: m.appointments_appointment_published(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -787,7 +817,7 @@ export const unpublishAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -815,7 +845,10 @@ export const unpublishAppointment = createServerFn()
 				}
 				return appointment;
 			});
-			return { data: appointment, message: t("Appointment unpublished") };
+			return {
+				data: appointment,
+				message: m.appointments_appointment_unpublished(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -827,7 +860,7 @@ export const restoreAppointment = createServerFn()
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
-			throw new Error(t("Unauthorized"));
+			throw new Error(m.common_unauthorized());
 		}
 
 		try {
@@ -847,7 +880,10 @@ export const restoreAppointment = createServerFn()
 				});
 				return appointment;
 			});
-			return { data: appointment, message: t("Appointment restored") };
+			return {
+				data: appointment,
+				message: m.appointments_appointment_restored(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);

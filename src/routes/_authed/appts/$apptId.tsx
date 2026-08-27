@@ -57,7 +57,6 @@ import {
 	AppointmentType,
 	ResponseType,
 } from "@/lib/prisma/enums";
-import { t } from "@/lib/text";
 import {
 	cn,
 	createGoogleMapsLink,
@@ -65,6 +64,7 @@ import {
 	isEditorOrAdmin,
 	isInformationalAppointmentType,
 } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 // biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
 export const Route = createFileRoute("/_authed/appts/$apptId")({
@@ -99,10 +99,11 @@ export const Route = createFileRoute("/_authed/appts/$apptId")({
 });
 
 function typeLabel(type: string) {
-	if (type === AppointmentType.HOLIDAY) return t("Holiday");
-	if (type === AppointmentType.TOURNAMENT_DE) return t("Tournament (Germany)");
-	if (type === AppointmentType.TEAM_MATCH) return t("Team Match");
-	return t("Tournament");
+	if (type === AppointmentType.HOLIDAY) return m.common_holiday();
+	if (type === AppointmentType.TOURNAMENT_DE)
+		return m.common_tournament_germany();
+	if (type === AppointmentType.TEAM_MATCH) return m.appointments_team_match();
+	return m.common_tournament();
 }
 
 function formatDateTime(date: Date | string) {
@@ -154,7 +155,8 @@ function RouteComponent() {
 		Route.useLoaderData();
 	const router = useRouter();
 
-	if (!appointment) return <div>{t("Appointment not found.")}</div>;
+	if (!appointment)
+		return <div>{m.appointments_appointment_not_found_2()}</div>;
 
 	const isDeleted = appointment.deletedAt !== null;
 	const isHoliday = isInformationalAppointmentType(appointment.type);
@@ -276,14 +278,14 @@ function RouteComponent() {
 			{isDeleted && (
 				<Alert variant="destructive" className="mb-4">
 					<AlertDescription>
-						{t("Appointment was deleted.")}{" "}
+						{m.appointments_appointment_was_deleted()}{" "}
 						{canEdit && (
 							<button
 								type="button"
 								className="underline hover:cursor-pointer"
 								onClick={onRestore}
 							>
-								{t("Restore?")}
+								{m.appointments_restore()}
 							</button>
 						)}
 					</AlertDescription>
@@ -313,8 +315,8 @@ function RouteComponent() {
 									className="group rounded-full"
 									aria-label={
 										isPublished
-											? t("Unpublish appointment")
-											: t("Publish appointment")
+											? m.appointments_unpublish_appointment()
+											: m.appointments_publish_appointment()
 									}
 								>
 									<Badge
@@ -326,14 +328,18 @@ function RouteComponent() {
 												: "group-hover:ring-2 group-hover:ring-warning/40",
 										)}
 									>
-										{isPublished ? t("Published") : t("Draft")}
+										{isPublished
+											? m.appointments_published()
+											: m.appointments_draft()}
 										<RefreshCwIcon className="size-0 opacity-0 transition-opacity group-hover:size-3 group-hover:opacity-100" />
 									</Badge>
 								</button>
 							)}
 							{!isHoliday && !canEdit && (
 								<Badge variant={isPublished ? "success" : "warning"}>
-									{isPublished ? t("Published") : t("Draft")}
+									{isPublished
+										? m.appointments_published()
+										: m.appointments_draft()}
 								</Badge>
 							)}
 						</div>
@@ -342,7 +348,7 @@ function RouteComponent() {
 								variant="ghost"
 								size="icon"
 								className="size-8"
-								aria-label={t("Download")}
+								aria-label={m.appointments_download()}
 								onClick={onDownloadIcal}
 							>
 								<DownloadIcon className="size-4" />
@@ -352,7 +358,7 @@ function RouteComponent() {
 									variant="ghost"
 									size="icon"
 									className="size-8"
-									aria-label={t("Edit")}
+									aria-label={m.appointments_edit()}
 									onClick={onStartEdit}
 								>
 									<PencilIcon className="size-4" />
@@ -363,7 +369,7 @@ function RouteComponent() {
 									variant="ghost"
 									size="icon"
 									className="size-8 text-destructive hover:text-destructive"
-									aria-label={t("Delete")}
+									aria-label={m.common_delete()}
 									disabled={isDeleted}
 									onClick={onOpenDelete}
 								>
@@ -373,17 +379,17 @@ function RouteComponent() {
 						</div>
 					</div>
 
-					<Section title={t("Details")}>
+					<Section title={m.common_details()}>
 						<div className="grid grid-cols-2 gap-4 text-sm">
 							<div>
 								<div className="mb-1 text-muted-foreground text-xs uppercase">
-									{t("Start")}
+									{m.appointments_start()}
 								</div>
 								<div>{formatDateTime(appointment.startDate)}</div>
 							</div>
 							<div>
 								<div className="mb-1 text-muted-foreground text-xs uppercase">
-									{t("End")}
+									{m.appointments_end()}
 								</div>
 								<div>
 									{appointment.endDate
@@ -394,7 +400,7 @@ function RouteComponent() {
 							{!isHoliday && (
 								<div className="col-span-2">
 									<div className="mb-1 text-muted-foreground text-xs uppercase">
-										{t("Location")}
+										{m.appointments_location()}
 									</div>
 									{appointment.location ? (
 										<Link
@@ -405,7 +411,7 @@ function RouteComponent() {
 										</Link>
 									) : (
 										<span className="text-muted-foreground">
-											{t("No location set")}
+											{m.appointments_no_location_set()}
 										</span>
 									)}
 								</div>
@@ -413,7 +419,7 @@ function RouteComponent() {
 							{appointment.ownTeam && (
 								<div className="col-span-2">
 									<div className="mb-1 text-muted-foreground text-xs uppercase">
-										{t("Team")}
+										{m.common_team()}
 									</div>
 									<Link
 										to="/teams/$teamId"
@@ -475,7 +481,9 @@ function RouteComponent() {
 
 					<Collapsible className="rounded-lg bg-card">
 						<CollapsibleTrigger className="group flex w-full items-center justify-between p-4 text-left">
-							<span className="font-bold text-sm">{t("More details")}</span>
+							<span className="font-bold text-sm">
+								{m.appointments_more_details()}
+							</span>
 							<ChevronDownIcon className="size-4 text-muted-foreground transition-transform duration-200 ease-out group-data-[state=open]:rotate-180" />
 						</CollapsibleTrigger>
 						<CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
@@ -507,8 +515,8 @@ function RouteComponent() {
 							onClick={onResponse(ResponseType.ACCEPT)}
 						>
 							{myResponse?.responseType === ResponseType.ACCEPT
-								? t("Accepted")
-								: t("Accept")}
+								? m.common_accepted()
+								: m.common_accept()}
 						</Button>
 						<Button
 							variant="ghost"
@@ -521,7 +529,7 @@ function RouteComponent() {
 							disabled={isDeleted}
 							onClick={onResponse(ResponseType.MAYBE)}
 						>
-							{t("Maybe")}
+							{m.common_maybe()}
 						</Button>
 						<Button
 							variant="ghost"
@@ -534,8 +542,8 @@ function RouteComponent() {
 							onClick={onResponse(ResponseType.DECLINE)}
 						>
 							{myResponse?.responseType === ResponseType.DECLINE
-								? t("Declined")
-								: t("Decline")}
+								? m.common_declined()
+								: m.common_decline()}
 						</Button>
 					</div>
 				)}
@@ -557,8 +565,8 @@ function RouteComponent() {
 										className="group rounded-full"
 										aria-label={
 											isPublished
-												? t("Unpublish appointment")
-												: t("Publish appointment")
+												? m.appointments_unpublish_appointment()
+												: m.appointments_publish_appointment()
 										}
 									>
 										<Badge
@@ -570,14 +578,18 @@ function RouteComponent() {
 													: "group-hover:ring-2 group-hover:ring-warning/40",
 											)}
 										>
-											{isPublished ? t("Published") : t("Draft")}
+											{isPublished
+												? m.appointments_published()
+												: m.appointments_draft()}
 											<RefreshCwIcon className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
 										</Badge>
 									</button>
 								)}
 								{!isHoliday && !canEdit && (
 									<Badge variant={isPublished ? "success" : "warning"}>
-										{isPublished ? t("Published") : t("Draft")}
+										{isPublished
+											? m.appointments_published()
+											: m.appointments_draft()}
 									</Badge>
 								)}
 							</div>
@@ -590,7 +602,7 @@ function RouteComponent() {
 						</div>
 					</div>
 
-					<Section title={t("Details")}>
+					<Section title={m.common_details()}>
 						<div
 							className={cn(
 								"grid grid-cols-1 items-start gap-4",
@@ -599,13 +611,13 @@ function RouteComponent() {
 						>
 							<div>
 								<div className="mb-1 text-muted-foreground text-xs uppercase">
-									{t("Start")}
+									{m.appointments_start()}
 								</div>
 								<div>{formatDateTime(appointment.startDate)}</div>
 							</div>
 							<div>
 								<div className="mb-1 text-muted-foreground text-xs uppercase">
-									{t("End")}
+									{m.appointments_end()}
 								</div>
 								<div>
 									{appointment.endDate
@@ -616,7 +628,7 @@ function RouteComponent() {
 							{!isHoliday && (
 								<div>
 									<div className="mb-1 text-muted-foreground text-xs uppercase">
-										{t("Location")}
+										{m.appointments_location()}
 									</div>
 									{appointment.location ? (
 										<Link
@@ -627,7 +639,7 @@ function RouteComponent() {
 										</Link>
 									) : (
 										<span className="text-muted-foreground">
-											{t("No location set")}
+											{m.appointments_no_location_set()}
 										</span>
 									)}
 								</div>
@@ -635,7 +647,7 @@ function RouteComponent() {
 							{appointment.ownTeam && (
 								<div>
 									<div className="mb-1 text-muted-foreground text-xs uppercase">
-										{t("Team")}
+										{m.common_team()}
 									</div>
 									<Link
 										to="/teams/$teamId"
@@ -659,11 +671,11 @@ function RouteComponent() {
 					</Section>
 
 					{!isHoliday && (
-						<Section title={t("Links")}>
+						<Section title={m.appointments_links()}>
 							<div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
 								<div>
 									<div className="mb-1 text-muted-foreground text-xs uppercase">
-										{t("Link")}
+										{m.appointments_link()}
 									</div>
 									{appointment.link ? (
 										<Link href={appointment.link} external>
@@ -671,7 +683,7 @@ function RouteComponent() {
 										</Link>
 									) : (
 										<span className="text-muted-foreground">
-											{t("No link set")}
+											{m.appointments_no_link_set()}
 										</span>
 									)}
 								</div>
@@ -700,11 +712,11 @@ function RouteComponent() {
 					<div className="flex shrink-0 flex-wrap justify-end gap-2">
 						<Button variant="outline" size="sm" onClick={onDownloadIcal}>
 							<DownloadIcon className="size-4" />
-							{t("Download iCal")}
+							{m.appointments_download_ical()}
 						</Button>
 						{canEdit && (
 							<Button variant="outline" size="sm" onClick={onStartEdit}>
-								{t("Edit")}
+								{m.appointments_edit()}
 							</Button>
 						)}
 						{canEdit && (
@@ -716,7 +728,7 @@ function RouteComponent() {
 								onClick={onOpenDelete}
 							>
 								<Trash2Icon className="size-4" />
-								{t("Cancel")}
+								{m.appointments_cancel()}
 							</Button>
 						)}
 					</div>
@@ -741,7 +753,7 @@ function RouteComponent() {
 			</div>
 
 			<DeleteModal
-				label={t("Are you sure you want to delete this appointment?")}
+				label={m.appointments_are_you_sure_you_want_to_delete_this_appointment()}
 				open={isDeleting}
 				onClose={onStopDeleting}
 				onDelete={onDelete}
@@ -760,7 +772,7 @@ function RouteComponent() {
 			<Sheet open={isEditSheetOpen} onOpenChange={setIsEditSheetOpen}>
 				<SheetContent className="w-full sm:max-w-md">
 					<SheetHeader>
-						<SheetTitle>{t("Edit appointment")}</SheetTitle>
+						<SheetTitle>{m.appointments_edit_appointment()}</SheetTitle>
 					</SheetHeader>
 					<form
 						id="edit-appointment"
@@ -768,7 +780,7 @@ function RouteComponent() {
 						onSubmit={onSaveEdit}
 					>
 						<fieldset className="flex flex-col gap-1.5">
-							<Label htmlFor="title">{t("Title")}</Label>
+							<Label htmlFor="title">{m.common_title()}</Label>
 							<Input
 								id="title"
 								autoFocus
@@ -777,7 +789,7 @@ function RouteComponent() {
 							/>
 						</fieldset>
 						<fieldset className="flex flex-col gap-1.5">
-							<Label htmlFor="shortTitle">{t("ShortTitle")}</Label>
+							<Label htmlFor="shortTitle">{m.appointments_shorttitle()}</Label>
 							<Input
 								id="shortTitle"
 								value={draft.shortTitle}
@@ -787,7 +799,7 @@ function RouteComponent() {
 							/>
 						</fieldset>
 						<fieldset className="flex flex-col gap-1.5">
-							<Label htmlFor="startDate">{t("StartDate")}</Label>
+							<Label htmlFor="startDate">{m.appointments_startdate()}</Label>
 							<Input
 								id="startDate"
 								type="datetime-local"
@@ -801,7 +813,7 @@ function RouteComponent() {
 							/>
 						</fieldset>
 						<fieldset className="flex flex-col gap-1.5">
-							<Label htmlFor="endDate">{t("EndDate")}</Label>
+							<Label htmlFor="endDate">{m.appointments_enddate()}</Label>
 							<Input
 								id="endDate"
 								type="date"
@@ -819,7 +831,7 @@ function RouteComponent() {
 						{!isHoliday && (
 							<>
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor="location">{t("Location")}</Label>
+									<Label htmlFor="location">{m.appointments_location()}</Label>
 									<Input
 										id="location"
 										value={draft.location}
@@ -829,7 +841,7 @@ function RouteComponent() {
 									/>
 								</fieldset>
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor="link">{t("Link")}</Label>
+									<Label htmlFor="link">{m.appointments_link()}</Label>
 									<Input
 										id="link"
 										value={draft.link}
@@ -842,7 +854,7 @@ function RouteComponent() {
 								    whole branch already excludes TEAM_MATCH — its season
 								    stays derived from ownTeam, never editable here. */}
 								<fieldset className="flex flex-col gap-1.5">
-									<Label htmlFor="season">{t("Season")}</Label>
+									<Label htmlFor="season">{m.common_season()}</Label>
 									<EntitySelect
 										id="season"
 										items={seasons}
@@ -858,10 +870,10 @@ function RouteComponent() {
 					<SheetFooter>
 						<div className="flex justify-end gap-2">
 							<SheetClose render={<Button variant="secondary" />}>
-								{t("Cancel")}
+								{m.appointments_cancel()}
 							</SheetClose>
 							<Button type="submit" form="edit-appointment">
-								{t("Save")}
+								{m.common_save()}
 							</Button>
 						</div>
 					</SheetFooter>

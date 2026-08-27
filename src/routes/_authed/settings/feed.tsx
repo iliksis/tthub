@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getFeedConfig } from "@/api/users";
 import { CalendarFeed } from "@/components/settings/CalendarFeed";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_authed/settings/feed")({
 	component: RouteComponent,
 	head: () => ({
-		meta: [{ title: t("Calendar Feed Settings") }],
+		meta: [{ title: m.settings_calendar_feed_settings() }],
 	}),
 	loader: async () => {
 		try {

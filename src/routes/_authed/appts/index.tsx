@@ -48,8 +48,8 @@ import { Link as EntityLink } from "@/components/ui/link";
 import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
 import { buildMonthGrid } from "@/lib/calendarGrid";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
-import { t } from "@/lib/text";
 import { cn, isDayInPast, isInformationalAppointmentType } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
 	HOLIDAY: PartyPopperIcon,
@@ -151,13 +151,13 @@ export const Route = createFileRoute("/_authed/appts/")({
 		return (
 			<Alert variant="destructive">
 				<AlertDescription>
-					{t("Appointments could not be loaded")}
+					{m.appointments_appointments_could_not_be_loaded()}
 				</AlertDescription>
 			</Alert>
 		);
 	},
 	head: () => ({
-		meta: [{ title: t("Appointments") }],
+		meta: [{ title: m.common_appointments() }],
 	}),
 });
 
@@ -444,7 +444,7 @@ function RouteComponent() {
 					)}
 				>
 					<ListIcon className="size-5" />
-					{t("List")}
+					{m.appointments_list()}
 				</Link>
 				<Link
 					to="."
@@ -455,7 +455,7 @@ function RouteComponent() {
 					)}
 				>
 					<CalendarDaysIcon className="size-5" />
-					{t("Calendar")}
+					{m.appointments_calendar()}
 				</Link>
 			</nav>
 
@@ -471,13 +471,12 @@ function RouteComponent() {
 			>
 				<div className="flex items-center gap-3">
 					<div className="flex flex-1 items-baseline gap-2">
-						<h1 className="font-bold text-lg">{t("Appointments")}</h1>
+						<h1 className="font-bold text-lg">{m.common_appointments()}</h1>
 						<p className="text-muted-foreground text-sm">
-							{t(
-								"{0} of {1} events",
-								matchedTotal.toString(),
-								grandTotal.toString(),
-							)}
+							{m.appointments_n_of_n_events({
+								param1: matchedTotal.toString(),
+								param2: grandTotal.toString(),
+							})}
 						</p>
 					</div>
 				</div>
@@ -606,7 +605,7 @@ const ResponseCell = ({
 	if (userResponse === "ACCEPT" || userResponse === "DECLINE") {
 		return (
 			<Badge variant={userResponse === "ACCEPT" ? "success" : "destructive"}>
-				{userResponse === "ACCEPT" ? t("Accepted") : t("Declined")}
+				{userResponse === "ACCEPT" ? m.common_accepted() : m.common_declined()}
 			</Badge>
 		);
 	}
@@ -617,7 +616,7 @@ const ResponseCell = ({
 				type="button"
 				variant="ghost"
 				size="icon-sm"
-				title={t("Accept")}
+				title={m.common_accept()}
 				className="border border-success/30 text-success hover:bg-success/15 hover:text-success"
 				onClick={(e) => {
 					e.stopPropagation();
@@ -630,7 +629,7 @@ const ResponseCell = ({
 				type="button"
 				variant="ghost"
 				size="icon-sm"
-				title={t("Decline")}
+				title={m.common_decline()}
 				className="border border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive"
 				onClick={(e) => {
 					e.stopPropagation();
@@ -691,7 +690,7 @@ const AppointmentTimeline = ({
 	if (groups.length === 0) {
 		return (
 			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
-				{t("No appointments found")}
+				{m.appointments_no_appointments_found()}
 			</div>
 		);
 	}

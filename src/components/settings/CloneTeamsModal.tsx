@@ -14,7 +14,7 @@ import { EntitySelect } from "@/components/ui/entity-select";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
 import type { Season } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 type CloneTeamsModalProps = {
 	open: boolean;
@@ -59,7 +59,7 @@ export const CloneTeamsModal = ({
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent showCloseButton={false}>
-				<DialogTitle className="sr-only">{t("Dialog")}</DialogTitle>
+				<DialogTitle className="sr-only">{m.common_dialog()}</DialogTitle>
 				<form
 					className="flex flex-col gap-4"
 					onSubmit={(e) => {
@@ -71,7 +71,7 @@ export const CloneTeamsModal = ({
 					<form.Field name="sourceSeasonId">
 						{(field) => (
 							<fieldset className="flex flex-col gap-1.5">
-								<Label htmlFor={field.name}>{t("Source season")}:</Label>
+								<Label htmlFor={field.name}>{m.seasons_source_season()}:</Label>
 								<EntitySelect
 									id={field.name}
 									items={sourceOptions}
@@ -84,7 +84,7 @@ export const CloneTeamsModal = ({
 				</form>
 				<DialogFooter>
 					<DialogClose render={<Button type="button" variant="outline" />}>
-						{t("Close")}
+						{m.common_close()}
 					</DialogClose>
 					<Button
 						type="submit"
@@ -97,7 +97,7 @@ export const CloneTeamsModal = ({
 							form.handleSubmit();
 						}}
 					>
-						{t("Clone teams from...")}
+						{m.seasons_clone_teams_from()}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

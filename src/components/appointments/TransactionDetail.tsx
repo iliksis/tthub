@@ -9,7 +9,6 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { Appointment, Transaction, User } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
 import {
 	fieldLabels,
 	formatChangeValue,
@@ -21,6 +20,7 @@ import {
 	formatRelativeTime,
 	shortenUserName,
 } from "@/lib/utils";
+import { m } from "@/paraglide/messages";
 
 const dateTimeFormat: Intl.DateTimeFormatOptions = {
 	day: "2-digit",
@@ -45,7 +45,7 @@ export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex items-center justify-between gap-2">
-				<span className="font-bold text-sm">{t("Details")}</span>
+				<span className="font-bold text-sm">{m.common_details()}</span>
 				<Badge variant={badge.variant}>{badge.label}</Badge>
 			</div>
 			<div>
@@ -53,7 +53,7 @@ export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
 					{transaction.appointment.title}
 				</div>
 				<div className="text-muted-foreground text-xs">
-					{transaction.appointment.location ?? t("No location set")}
+					{transaction.appointment.location ?? m.appointments_no_location_set()}
 				</div>
 			</div>
 			<div className="flex items-center gap-2 text-sm">
@@ -72,7 +72,9 @@ export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
 						<span>{transaction.user.name}</span>
 					</>
 				) : (
-					<span className="text-muted-foreground">{t("Deleted user")}</span>
+					<span className="text-muted-foreground">
+						{m.appointments_deleted_user()}
+					</span>
 				)}
 			</div>
 			<Tooltip>
@@ -120,7 +122,7 @@ export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
 				}
 			>
 				<ExternalLinkIcon className="size-3.5" />
-				{t("Open appointment")}
+				{m.appointments_open_appointment()}
 			</Button>
 		</div>
 	);

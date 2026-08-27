@@ -17,12 +17,12 @@ import {
 	type TeamRow,
 } from "@/components/teams/TeamSummary";
 import { Link } from "@/components/ui/link";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_authed/players/")({
 	component: RouteComponent,
 	head: () => ({
-		meta: [{ title: t("Players") }],
+		meta: [{ title: m.common_players() }],
 	}),
 	loader: async () => {
 		const activeSeasonRes = await getActiveSeason();
@@ -39,7 +39,7 @@ function RouteComponent() {
 	const { players, teams } = Route.useLoaderData();
 	const search = Route.useSearch();
 
-	if (!players) return <div>{t("An Error occurred")}</div>;
+	if (!players) return <div>{m.common_an_error_occurred()}</div>;
 
 	const filteredPlayers = applyPlayerFilters(players, search);
 
@@ -57,13 +57,12 @@ function RouteComponent() {
 				<div className="min-w-0">
 					<div className="mb-3 flex items-center gap-3">
 						<div className="flex flex-1 items-baseline gap-2">
-							<h1 className="font-bold text-lg">{t("Players")}</h1>
+							<h1 className="font-bold text-lg">{m.common_players()}</h1>
 							<p className="text-muted-foreground text-sm">
-								{t(
-									"{0} of {1} players",
-									filteredPlayers.length.toString(),
-									players.length.toString(),
-								)}
+								{m.players_n_of_n_players({
+									param1: filteredPlayers.length.toString(),
+									param2: players.length.toString(),
+								})}
 							</p>
 						</div>
 						<CreatePlayer />
@@ -88,13 +87,13 @@ const TeamsRail = ({ teams }: TeamsRailProps) => {
 			<div className="mb-3 flex items-center gap-2.5">
 				<UsersIcon className="size-4 text-foreground" />
 				<span className="font-bold text-xs uppercase tracking-wider">
-					{t("Teams")}
+					{m.common_teams()}
 				</span>
 				<span className="h-px flex-1 bg-border" />
 			</div>
 			{teams.length === 0 ? (
 				<div className="text-muted-foreground text-sm">
-					{t("No teams found")}
+					{m.common_no_teams_found()}
 				</div>
 			) : (
 				<div className="flex flex-col">

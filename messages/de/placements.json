@@ -1,0 +1,16 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"placements_add_participant": "Teilnehmer:in hinzufügen",
+	"placements_categories_found": "Kategorien gefunden",
+	"placements_category": "Kategorie",
+	"placements_category_already_exists": "Kategorie existiert bereits",
+	"placements_new_category": "Neue Kategorie",
+	"placements_no_participants_yet": "Noch keine Teilnehmer:innen",
+	"placements_participant_already_exists_in_this_category": "Teilnehmer:in existiert bereits in dieser Kategorie",
+	"placements_participants": "Teilnehmer:innen",
+	"placements_pending": "Ausstehend",
+	"placements_placement_created": "Platzierung erstellt",
+	"placements_placement_deleted": "Platzierung gelöscht",
+	"placements_placement_updated": "Platzierung aktualisiert",
+	"placements_show_all": "Anzeigen"
+}

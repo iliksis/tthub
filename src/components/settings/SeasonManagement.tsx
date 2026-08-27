@@ -20,7 +20,7 @@ import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Badge } from "@/components/ui/badge";
 import { useMutation } from "@/hooks/useMutation";
 import type { Season } from "@/lib/prisma/client";
-import { t } from "@/lib/text";
+import { m } from "@/paraglide/messages";
 import { CloneTeamsModal } from "./CloneTeamsModal";
 import { SeasonForm } from "./SeasonForm";
 
@@ -102,32 +102,32 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 				columns={[
 					{
 						key: "name",
-						label: t("Name"),
+						label: m.common_name(),
 						render: (item) => item.name,
 						sortable: true,
 						sortFn: (a, b) => a.name.localeCompare(b.name),
 					},
 					{
 						key: "isActive",
-						label: t("Active"),
+						label: m.seasons_active(),
 						render: (item) =>
 							item.isActive ? (
-								<Badge variant="default">{t("Active")}</Badge>
+								<Badge variant="default">{m.seasons_active()}</Badge>
 							) : null,
 					},
 					{
 						key: "createdAt",
-						label: t("Created"),
+						label: m.common_created(),
 						render: (item) => item.createdAt.toLocaleDateString("de-DE"),
 					},
 					{
 						key: "teamCount",
-						label: t("Teams"),
+						label: m.common_teams(),
 						render: (item) => item._count.teams,
 					},
 					{
 						key: "appointmentCount",
-						label: t("Appointments"),
+						label: m.common_appointments(),
 						render: (item) => item._count.appointments,
 					},
 				]}
@@ -135,7 +135,7 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 					{
 						icon: <PlusIcon className="size-4" />,
 						key: "create-season",
-						label: t("Create"),
+						label: m.common_create(),
 						onClick: () => setShowCreateModal(true),
 						onlyIcon: true,
 						variant: "primary",
@@ -144,7 +144,7 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 						icon: <StarIcon className="size-4" />,
 						isDisabled: (items) => items.length !== 1 || items[0].isActive,
 						key: "set-active",
-						label: t("Set active"),
+						label: m.seasons_set_active(),
 						onClick: (items) =>
 							setActiveMutation.mutate({ data: { id: items[0].id } }),
 						variant: "secondary",
@@ -153,7 +153,7 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 						icon: <PencilIcon className="size-4" />,
 						isDisabled: (items) => items.length !== 1,
 						key: "rename",
-						label: t("Rename season"),
+						label: m.seasons_rename_season(),
 						onClick: (items) => setEditingSeason(items[0]),
 						variant: "secondary",
 					},
@@ -161,7 +161,7 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 						icon: <CopyIcon className="size-4" />,
 						isDisabled: (items) => items.length !== 1,
 						key: "clone-teams",
-						label: t("Clone teams from..."),
+						label: m.seasons_clone_teams_from(),
 						onClick: (items) => setCloningIntoSeason(items[0]),
 						variant: "secondary",
 					},
@@ -169,7 +169,7 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 						icon: <Trash2Icon className="size-4" />,
 						isDisabled: (items) => items.length !== 1,
 						key: "delete",
-						label: t("Delete"),
+						label: m.common_delete(),
 						onClick: (items) => setDeletingSeason(items[0]),
 						onlyIcon: true,
 						variant: "error",
@@ -182,7 +182,7 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 				defaultValues={{ name: "" }}
 				onOpenChange={setShowCreateModal}
 				onSubmit={(values) => createMutation.mutate({ data: values })}
-				submitLabel={t("Create")}
+				submitLabel={m.common_create()}
 			/>
 
 			{editingSeason && (
@@ -195,7 +195,7 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 							data: { id: editingSeason.id, name: values.name },
 						})
 					}
-					submitLabel={t("Save")}
+					submitLabel={m.common_save()}
 				/>
 			)}
 
@@ -210,7 +210,7 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 
 			{deletingSeason && (
 				<DeleteModal
-					label={t("Are you sure you want to delete this season?")}
+					label={m.seasons_are_you_sure_you_want_to_delete_this_season()}
 					open={!!deletingSeason}
 					onClose={() => setDeletingSeason(null)}
 					onDelete={onDelete}
