@@ -5,12 +5,13 @@ import {
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import type { RowSelectionState } from "@tanstack/react-table";
-import { Trash2Icon } from "lucide-react";
+import { CopyIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
 	type AppointmentWithSeason,
+	bulkCopyAppointmentsToSeason,
 	bulkDeleteAppointments,
 	getBulkAppointmentsPage,
 } from "@/api/appointments";
@@ -18,6 +19,7 @@ import { getSeasons } from "@/api/seasons";
 import { LoadMoreFooter } from "@/components/appointments/LoadMoreFooter";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { FilterBar, type FilterBarSegment } from "@/components/FilterBar";
+import { CopyToSeasonModal } from "@/components/modal/CopyToSeasonModal";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -145,6 +147,13 @@ function RouteComponent() {
 	const [pendingDelete, setPendingDelete] = React.useState<
 		{ mode: "ids"; ids: string[] } | { mode: "matching" } | null
 	>(null);
+	const [isConfirmingCopy, setIsConfirmingCopy] = React.useState(false);
+	const [pendingCopy, setPendingCopy] = React.useState<
+		{ mode: "ids"; ids: string[] } | { mode: "matching" } | null
+	>(null);
+	const [targetSeasonId, setTargetSeasonId] = React.useState<
+		string | undefined
+	>(seasons.find((season) => season.isActive)?.id);
 
 	const filterKey = `${search.query ?? ""}|${search.seasonId ?? ""}`;
 	const { items, setItems } = useLoadMoreBatch(batch, skip, filterKey);
@@ -290,6 +299,35 @@ function RouteComponent() {
 		}
 	};
 
+	const bulkCopyServerFn = useServerFn(bulkCopyAppointmentsToSeason);
+	const onCopy = async () => {
+		if (!pendingCopy || !targetSeasonId) return;
+		try {
+			const response = await bulkCopyServerFn({
+				data: {
+					targetSeasonId,
+					...(pendingCopy.mode === "matching"
+						? {
+								excludeIds: Array.from(excludeIds),
+								matching: { query: search.query, seasonId: search.seasonId },
+							}
+						: { ids: pendingCopy.ids }),
+				},
+			});
+			if (pendingCopy.mode === "matching") {
+				exitSelectAllMatching();
+			} else {
+				setExplicitSelection({});
+			}
+			setIsConfirmingCopy(false);
+			setPendingCopy(null);
+			await router.invalidate();
+			toast.success(response.message);
+		} catch (err) {
+			toast.error((err as Error).message);
+		}
+	};
+
 	const remaining = matchedTotal - items.length;
 
 	const seasonSegments: FilterBarSegment[] =
@@ -398,6 +436,21 @@ function RouteComponent() {
 					onSelectionChange={onSelectionChange}
 					commandBarItems={[
 						{
+							icon: <CopyIcon className="size-4" />,
+							isDisabled: () => selectedCount === 0,
+							key: "copy-to-season",
+							label: m.appointments_copy_to_season(),
+							onClick: (selected) => {
+								setPendingCopy(
+									selectAllMatching
+										? { mode: "matching" }
+										: { ids: selected.map((item) => item.id), mode: "ids" },
+								);
+								setIsConfirmingCopy(true);
+							},
+							variant: "secondary",
+						},
+						{
 							icon: <Trash2Icon className="size-4" />,
 							isDisabled: () => selectedCount === 0,
 							key: "delete-selected",
@@ -438,6 +491,24 @@ function RouteComponent() {
 					setPendingDelete(null);
 				}}
 				onDelete={onDelete}
+			/>
+
+			<CopyToSeasonModal
+				open={isConfirmingCopy}
+				seasons={seasons}
+				targetSeasonId={targetSeasonId}
+				onTargetSeasonChange={setTargetSeasonId}
+				label={m.appointments_copy_n_appointments_to_season({
+					param1: (pendingCopy?.mode === "matching"
+						? selectedCount
+						: (pendingCopy?.ids.length ?? 0)
+					).toString(),
+				})}
+				onClose={() => {
+					setIsConfirmingCopy(false);
+					setPendingCopy(null);
+				}}
+				onCopy={onCopy}
 			/>
 		</div>
 	);

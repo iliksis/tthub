@@ -641,14 +641,27 @@ export const deleteAppointment = createServerFn()
 // Accepts either an explicit id list, or a "matching" selector (the same
 // filter shape the bulk listing query uses) plus excludeIds — the latter is
 // re-evaluated against the current data here (not a snapshot taken when
-// "select all matching filters" was activated), so the delete affects
+// "select all matching filters" was activated), so the action affects
 // whatever currently matches the filter, minus anything the user unchecked.
-type BulkDeleteInput =
+// Shared by every bulk appointment action (delete, copy-to-season, ...).
+type BulkAppointmentSelector =
 	| { ids: string[] }
 	| { matching: BulkAppointmentsFilter; excludeIds: string[] };
 
+async function resolveBulkSelectorIds(data: BulkAppointmentSelector) {
+	if ("ids" in data) return data.ids;
+	const appointments = await prismaClient.appointment.findMany({
+		select: { id: true },
+		where: {
+			...buildBulkAppointmentsWhere(data.matching),
+			id: { notIn: data.excludeIds },
+		},
+	});
+	return appointments.map((appointment) => appointment.id);
+}
+
 export const bulkDeleteAppointments = createServerFn()
-	.validator((d: BulkDeleteInput) => d)
+	.validator((d: BulkAppointmentSelector) => d)
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
@@ -656,18 +669,7 @@ export const bulkDeleteAppointments = createServerFn()
 		}
 
 		try {
-			const ids =
-				"ids" in data
-					? data.ids
-					: (
-							await prismaClient.appointment.findMany({
-								select: { id: true },
-								where: {
-									...buildBulkAppointmentsWhere(data.matching),
-									id: { notIn: data.excludeIds },
-								},
-							})
-						).map((appointment) => appointment.id);
+			const ids = await resolveBulkSelectorIds(data);
 
 			const appointments = await prismaClient.$transaction(async (tx) => {
 				const deleted: Appointment[] = [];
@@ -696,6 +698,85 @@ export const bulkDeleteAppointments = createServerFn()
 				data: appointments,
 				message: m.appointments_appointment_deleted_count({
 					count: appointments.length,
+				}),
+			};
+		} catch (e) {
+			console.error(e);
+			throw new Error((e as Error).message);
+		}
+	});
+
+// Same month/day/time one calendar year later; a source date of Feb 29 lands
+// on Mar 1 in a non-leap target year, matching plain `Date` rollover.
+function oneYearLater(date: Date) {
+	const shifted = new Date(date);
+	shifted.setFullYear(shifted.getFullYear() + 1);
+	return shifted;
+}
+
+export const bulkCopyAppointmentsToSeason = createServerFn()
+	.validator((d: BulkAppointmentSelector & { targetSeasonId: string }) => d)
+	.handler(async ({ data }) => {
+		const session = await requireEditor();
+		if (!session) {
+			throw new Error(m.common_unauthorized());
+		}
+
+		try {
+			const ids = await resolveBulkSelectorIds(data);
+
+			const { copied, skipped } = await prismaClient.$transaction(
+				async (tx) => {
+					const sources = await tx.appointment.findMany({
+						where: { deletedAt: null, id: { in: ids } },
+					});
+
+					let copied = 0;
+					let skipped = 0;
+					// HOLIDAY appointments have no seasonId and are skipped rather than
+					// erred on, per the ticket — a mixed selection shouldn't fail the
+					// whole action just because some rows aren't season-scoped.
+					for (const source of sources) {
+						if (source.seasonId === null) {
+							skipped++;
+							continue;
+						}
+
+						const copy = await tx.appointment.create({
+							data: {
+								awayTeam: source.awayTeam,
+								endDate: source.endDate ? oneYearLater(source.endDate) : null,
+								homeTeam: source.homeTeam,
+								link: source.link,
+								location: source.location,
+								ownTeamId: source.ownTeamId,
+								seasonId: data.targetSeasonId,
+								shortTitle: source.shortTitle,
+								startDate: oneYearLater(source.startDate),
+								status: AppointmentStatus.DRAFT,
+								title: source.title,
+								type: source.type,
+							},
+						});
+						await tx.transaction.create({
+							data: {
+								appointmentId: copy.id,
+								type: TransactionType.CREATE,
+								userId: session.id,
+							},
+						});
+						copied++;
+					}
+
+					return { copied, skipped };
+				},
+			);
+
+			return {
+				data: { copied, skipped },
+				message: m.appointments_copied_n_skipped_no_season({
+					copied: copied.toString(),
+					skipped: skipped.toString(),
 				}),
 			};
 		} catch (e) {

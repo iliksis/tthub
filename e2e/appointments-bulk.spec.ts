@@ -3,6 +3,8 @@ import { expect, type Page, test } from "@playwright/test";
 import { loginAs } from "./helpers";
 
 const BULK_QUERY = "E2EBULK-";
+const COPY_QUERY = "E2ECOPY-";
+const COPY_TARGET_SEASON = "E2ECOPY-Target";
 
 // Seeds `count` HOLIDAY appointments distinguishable via BULK_QUERY, wiping
 // any leftovers from a previous run first — see e2e/seed-bulk-appointments.ts.
@@ -13,6 +15,16 @@ const BULK_QUERY = "E2EBULK-";
 // resolves correctly.
 function seedBulkAppointments(count: number) {
 	execSync(`npx tsx e2e/seed-bulk-appointments.ts ${count}`, {
+		env: { ...process.env, DATABASE_URL: "file:./prisma/test.db" },
+		stdio: "inherit",
+	});
+}
+
+// Seeds a mix of season-scoped TOURNAMENT appointments plus one HOLIDAY
+// appointment (no season) for the "Copy to season" tests below — see
+// e2e/seed-copy-to-season.ts.
+function seedCopyToSeasonFixture() {
+	execSync("npx tsx e2e/seed-copy-to-season.ts", {
 		env: { ...process.env, DATABASE_URL: "file:./prisma/test.db" },
 		stdio: "inherit",
 	});
@@ -253,5 +265,99 @@ test.describe("Bulk Appointments Route - Select All Matching Filters", () => {
 		if (firstRowTitle) {
 			await expect(page.getByText(firstRowTitle.trim())).toBeVisible();
 		}
+	});
+});
+
+test.describe("Bulk Appointments Route - Copy to Season", () => {
+	test.beforeEach(() => {
+		seedCopyToSeasonFixture();
+	});
+
+	// bulkCopyAppointmentsToSeason is gated the same way as bulkDeleteAppointments
+	// (requireEditor) — since USER can't reach /appts/bulk at all (see the
+	// Access Control block above), there's no UI path for a USER to invoke it.
+	test("copying a mixed selection copies eligible appointments, skips the HOLIDAY one, and lands drafts one year later", async ({
+		page,
+	}) => {
+		await loginAs(page, "admin");
+		await page.goto("/appts/bulk");
+		await page.waitForLoadState("networkidle");
+
+		await page.getByPlaceholder("Termin suchen…").fill(COPY_QUERY);
+		await expect(page.getByText(/^3 von \d+ Ereignissen/)).toBeVisible();
+
+		const rows = page.locator("table tbody tr");
+		await expect(rows).toHaveCount(3);
+		// td index 0 is the selection checkbox column, so startDate is index 4
+		// (shortTitle, type, season, startDate).
+		const sourceDateText = await rows
+			.filter({ hasText: "E2ECOPY-Turnier1" })
+			.locator("td")
+			.nth(4)
+			.textContent();
+
+		await page.locator("table thead").getByRole("checkbox").click();
+
+		const copyButton = page.getByRole("button", {
+			name: "In Saison kopieren…",
+		});
+		await expect(copyButton).toBeEnabled();
+		await copyButton.click();
+
+		const dialog = page.getByRole("dialog");
+		await expect(dialog).toBeVisible();
+		await dialog.getByRole("combobox").click();
+		await page
+			.getByRole("option", { exact: true, name: COPY_TARGET_SEASON })
+			.click();
+		await dialog.getByRole("button", { name: "Kopieren" }).click();
+
+		await expect(
+			page.getByText("2 Termine kopiert, 1 übersprungen (keine Saison)"),
+		).toBeVisible();
+
+		// Refresh the season filter to the copy target to see the new drafts.
+		const seasonSegment = page.getByRole("button", { name: /^Saison/ });
+		await seasonSegment.click();
+		await page.getByRole("menuitemradio", { name: COPY_TARGET_SEASON }).click();
+		await page.waitForLoadState("networkidle");
+
+		const targetRows = page.locator("table tbody tr");
+		await expect(targetRows).toHaveCount(2);
+		await expect(targetRows.filter({ hasText: "Feiertag" })).toHaveCount(0);
+
+		const copiedRow = targetRows.filter({ hasText: "E2ECOPY-Turnier1" });
+		await expect(
+			copiedRow.locator("td").filter({ hasText: COPY_TARGET_SEASON }),
+		).toBeVisible();
+		if (sourceDateText) {
+			const copiedDateText = await copiedRow.locator("td").nth(4).textContent();
+			const [day, month, sourceYear] = sourceDateText.trim().split(".");
+			const expectedYear = (Number(sourceYear) + 1).toString().padStart(2, "0");
+			expect(copiedDateText?.trim()).toBe(`${day}.${month}.${expectedYear}`);
+		}
+
+		// The copy is a fresh DRAFT. Navigate directly rather than clicking the
+		// row link — a lingering (inert) popup overlay from the season dropdown
+		// can still intercept pointer events right after it closes.
+		const copiedHref = await copiedRow
+			.locator("a")
+			.first()
+			.getAttribute("href");
+		await page.goto(copiedHref ?? "");
+		// A "publish" action (rather than "unpublish") confirms the copy landed
+		// as a DRAFT.
+		await expect(
+			page.getByRole("button", { name: "Termin veröffentlichen" }),
+		).toBeVisible();
+
+		// Each copy logs its own journal CREATE entry. Wait for hydration to
+		// finish before filling — a fill before the client takes over the SSR'd
+		// input can be silently discarded once React attaches.
+		await page.goto("/appts/journal");
+		await page.waitForLoadState("networkidle");
+		await page.getByPlaceholder("Termin oder Person suchen…").fill(COPY_QUERY);
+		await expect(page.getByText(/^2 von \d+ Ereignissen/)).toBeVisible();
+		await expect(page.getByText("Erstellt").first()).toBeVisible();
 	});
 });

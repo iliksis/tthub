@@ -150,6 +150,26 @@
 	"appointments_changed_2": "geändert",
 	"appointments_choose_an_appointment": "Wähle einen Termin",
 	"appointments_continue": "Weiter",
+	"appointments_copied_n_skipped_no_season": [
+		{
+			"declarations": [
+				"input copied",
+				"input skipped",
+				"local copiedPlural = copied: plural"
+			],
+			"selectors": [
+				"copiedPlural"
+			],
+			"match": {
+				"copiedPlural=one": "{copied} Termin kopiert, {skipped} übersprungen (keine Saison)",
+				"copiedPlural=other": "{copied} Termine kopiert, {skipped} übersprungen (keine Saison)"
+			}
+		}
+	],
+	"appointments_copy": "Kopieren",
+	"appointments_copy_n_appointments_to_season": "{param1} Termine werden in die gewählte Saison kopiert (Termine ohne Saison werden übersprungen).",
+	"appointments_copy_to_season": "In Saison kopieren…",
+	"appointments_copy_to_season_title": "In Saison kopieren",
 	"appointments_create_appointment": "Termin erstellen",
 	"appointments_created": "erstellt",
 	"appointments_delete_appointment": "Termin löschen",
@@ -240,6 +260,7 @@
 	"appointments_startdate": "Start",
 	"appointments_status": "Status",
 	"appointments_swipe_to_respond": "Wischen zum Antworten",
+	"appointments_target_season": "Zielsaison",
 	"appointments_team_match": "Mannschaftsspiel",
 	"appointments_today": "Heute",
 	"appointments_tomorrow": "Morgen",
