@@ -17,7 +17,7 @@ test.describe("Bulk Appointments Route - Access Control", () => {
 		await page.goto("/appts/bulk");
 		await expect(page).toHaveURL("/appts/bulk");
 		await expect(
-			page.getByRole("heading", { name: "Termine verwalten" }),
+			page.getByRole("heading", { name: "Terminverwaltung" }),
 		).toBeVisible();
 	});
 
@@ -26,7 +26,7 @@ test.describe("Bulk Appointments Route - Access Control", () => {
 		await page.goto("/appts/bulk");
 		await expect(page).toHaveURL("/appts/bulk");
 		await expect(
-			page.getByRole("heading", { name: "Termine verwalten" }),
+			page.getByRole("heading", { name: "Terminverwaltung" }),
 		).toBeVisible();
 	});
 
@@ -38,7 +38,7 @@ test.describe("Bulk Appointments Route - Access Control", () => {
 			page.getByText("Du hast keine Berechtigung, um Termine zu verwalten"),
 		).toBeVisible();
 		await expect(
-			page.getByRole("heading", { name: "Termine verwalten" }),
+			page.getByRole("heading", { name: "Terminverwaltung" }),
 		).not.toBeVisible();
 	});
 
@@ -90,14 +90,14 @@ test.describe("Bulk Appointments Route - Data Display", () => {
 		await page.waitForLoadState("networkidle");
 
 		const { total } = await readSummary(page);
-		const seasonSelect = page.getByRole("combobox");
-		if (!(await seasonSelect.isVisible())) {
+		const seasonSegment = page.getByRole("button", { name: /^Saison/ });
+		if (!(await seasonSegment.isVisible())) {
 			test.skip(true, "no season filter available (no seasons seeded)");
 		}
 
-		await seasonSelect.click();
-		const options = page.getByRole("option");
-		await options.nth(1).click();
+		await seasonSegment.click();
+		const options = page.getByRole("menuitemradio");
+		await options.first().click();
 		await page.waitForLoadState("networkidle");
 
 		const filtered = await readSummary(page);

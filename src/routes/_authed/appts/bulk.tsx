@@ -16,17 +16,10 @@ import {
 import { getSeasons } from "@/api/seasons";
 import { LoadMoreFooter } from "@/components/appointments/LoadMoreFooter";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
+import { FilterBar, type FilterBarSegment } from "@/components/FilterBar";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Input } from "@/components/ui/input";
 import { Link as EntityLink } from "@/components/ui/link";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
 import type { AppointmentType } from "@/lib/prisma/enums";
 import { m } from "@/paraglide/messages";
@@ -176,15 +169,20 @@ function RouteComponent() {
 		return () => clearTimeout(timeout);
 	}, [queryInput]);
 
-	const onSeasonChange = (value: string | null) => {
+	const onSeasonChange = (value: string) => {
 		router.navigate({
 			replace: true,
 			search: {
 				query: search.query,
-				seasonId: value === ALL_SEASONS || !value ? undefined : value,
+				seasonId: value === ALL_SEASONS ? undefined : value,
 			},
 			to: ".",
 		});
+	};
+
+	const onClearFilters = () => {
+		setQueryInput("");
+		router.navigate({ replace: true, search: {}, to: "." });
 	};
 
 	const onLoadMore = () => {
@@ -215,6 +213,23 @@ function RouteComponent() {
 
 	const remaining = matchedTotal - items.length;
 
+	const seasonSegments: FilterBarSegment[] =
+		seasons.length > 0
+			? [
+					{
+						key: "season",
+						label: m.common_season(),
+						onChange: onSeasonChange,
+						options: seasons.map((season) => ({
+							label: season.name,
+							value: season.id,
+						})),
+						type: "radio",
+						value: search.seasonId ?? ALL_SEASONS,
+					},
+				]
+			: [];
+
 	return (
 		<div className="flex flex-col gap-4">
 			<div>
@@ -229,34 +244,15 @@ function RouteComponent() {
 				</p>
 			</div>
 
-			<div className="flex flex-wrap items-center gap-2">
-				<Input
-					placeholder={m.appointments_search_appointment()}
-					value={queryInput}
-					onChange={(e) => setQueryInput(e.target.value)}
-					className="w-64"
-				/>
-				{seasons.length > 0 && (
-					<Select
-						value={search.seasonId ?? ALL_SEASONS}
-						onValueChange={onSeasonChange}
-					>
-						<SelectTrigger size="sm" className="w-48">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value={ALL_SEASONS}>
-								{m.appointments_all()}
-							</SelectItem>
-							{seasons.map((season) => (
-								<SelectItem key={season.id} value={season.id}>
-									{season.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				)}
-			</div>
+			<FilterBar
+				search={{
+					onChange: setQueryInput,
+					placeholder: m.appointments_search_appointment(),
+					value: queryInput,
+				}}
+				segments={seasonSegments}
+				onReset={onClearFilters}
+			/>
 
 			<div
 				className={isNavigating ? "pointer-events-none opacity-60" : undefined}
