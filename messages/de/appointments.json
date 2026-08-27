@@ -143,6 +143,7 @@
 	"appointments_are_you_sure_you_want_to_delete_this_appointment": "Bist du sicher, dass du diesen Termin löschen möchtest?",
 	"appointments_back": "Zurück",
 	"appointments_bavaria": "Bayern",
+	"appointments_bulk_management": "Termine verwalten",
 	"appointments_calendar": "Kalender",
 	"appointments_cancel": "Abbrechen",
 	"appointments_changed": "Geändert",
@@ -152,6 +153,7 @@
 	"appointments_create_appointment": "Termin erstellen",
 	"appointments_created": "erstellt",
 	"appointments_delete_appointment": "Termin löschen",
+	"appointments_delete_selected": "Ausgewählte löschen",
 	"appointments_deleted": "Gelöscht",
 	"appointments_deleted_2": "gelöscht",
 	"appointments_deleted_user": "Gelöschte:r Nutzer:in",
@@ -231,6 +233,7 @@
 	"appointments_unpublish_appointment": "Termin zurückziehen",
 	"appointments_untitled": "Unbenannt",
 	"appointments_you_do_not_have_permission_to_create_appointments": "Du hast keine Berechtigung, um Termine zu erstellen",
+	"appointments_you_do_not_have_permission_to_manage_appointments": "Du hast keine Berechtigung, um Termine zu verwalten",
 	"appointments_you_ve_reached_the_end_n_events": "Das war's — {param1} Ereignisse",
 	"appointments_your_appointments": "Deine Termine"
 }

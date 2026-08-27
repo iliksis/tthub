@@ -1,0 +1,307 @@
+import {
+	createFileRoute,
+	useRouter,
+	useRouterState,
+} from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { Trash2Icon } from "lucide-react";
+import React from "react";
+import { toast } from "sonner";
+import { z } from "zod";
+import {
+	type AppointmentWithSeason,
+	bulkDeleteAppointments,
+	getBulkAppointmentsPage,
+} from "@/api/appointments";
+import { getSeasons } from "@/api/seasons";
+import { LoadMoreFooter } from "@/components/appointments/LoadMoreFooter";
+import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
+import { DeleteModal } from "@/components/modal/DeleteModal";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Link as EntityLink } from "@/components/ui/link";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
+import type { AppointmentType } from "@/lib/prisma/enums";
+import { m } from "@/paraglide/messages";
+
+const BATCH_SIZE = 25;
+const ALL_SEASONS = "ALL";
+
+const appointmentTypeLabel: Record<AppointmentType, string> = {
+	HOLIDAY: m.common_holiday(),
+	TEAM_MATCH: m.common_team_matches(),
+	TOURNAMENT: m.common_tournament(),
+	TOURNAMENT_DE: m.common_tournament_germany(),
+};
+
+const bulkSearchSchema = z.object({
+	query: z.string().optional(),
+	seasonId: z.string().optional(),
+	skip: z.number().int().nonnegative().optional(),
+});
+
+// biome-ignore assist/source/useSortedKeys: validateSearch and loaderDeps need to be before loader
+export const Route = createFileRoute("/_authed/appts/bulk")({
+	beforeLoad: async ({ context }) => {
+		if (
+			!context.user ||
+			(context.user.role !== "ADMIN" && context.user.role !== "EDITOR")
+		) {
+			throw Error("Forbidden");
+		}
+	},
+	component: RouteComponent,
+	errorComponent: () => (
+		<Alert variant="destructive">
+			<AlertDescription>
+				{m.appointments_you_do_not_have_permission_to_manage_appointments()}
+			</AlertDescription>
+		</Alert>
+	),
+	validateSearch: bulkSearchSchema,
+	loaderDeps: ({ search }) => ({ ...search }),
+	loader: async ({ deps }) => {
+		const skip = deps.skip ?? 0;
+		const [response, seasonsRes] = await Promise.all([
+			getBulkAppointmentsPage({
+				data: {
+					query: deps.query,
+					seasonId: deps.seasonId,
+					skip,
+					take: BATCH_SIZE,
+				},
+			}),
+			getSeasons(),
+		]);
+		const data = response.data ?? {
+			appointments: [],
+			grandTotal: 0,
+			matchedTotal: 0,
+		};
+		const seasons = seasonsRes.data ?? [];
+		return { ...data, seasons, skip };
+	},
+	head: () => ({
+		meta: [{ title: m.appointments_bulk_management() }],
+	}),
+});
+
+function formatDate(date: Date | string) {
+	return new Date(date).toLocaleDateString("de-DE", {
+		day: "2-digit",
+		month: "2-digit",
+		year: "2-digit",
+	});
+}
+
+const columns: DetailsListColumn<AppointmentWithSeason>[] = [
+	{
+		key: "shortTitle",
+		label: m.appointments_appointment(),
+		render: (item) => (
+			<EntityLink to="/appts/$apptId" params={{ apptId: item.id }}>
+				{item.shortTitle}
+			</EntityLink>
+		),
+	},
+	{
+		key: "type",
+		label: m.appointments_type(),
+		render: (item) => appointmentTypeLabel[item.type],
+	},
+	{
+		key: "season",
+		label: m.common_season(),
+		render: (item) => item.season?.name ?? "—",
+	},
+	{
+		key: "startDate",
+		label: m.appointments_startdate(),
+		render: (item) => formatDate(item.startDate),
+	},
+	{
+		key: "location",
+		label: m.appointments_location(),
+		render: (item) => item.location ?? "—",
+	},
+];
+
+function RouteComponent() {
+	const {
+		appointments: batch,
+		matchedTotal,
+		grandTotal,
+		skip,
+		seasons,
+	} = Route.useLoaderData();
+	const search = Route.useSearch();
+	const router = useRouter();
+	const isNavigating = useRouterState({ select: (s) => s.isLoading });
+
+	const [queryInput, setQueryInput] = React.useState(search.query ?? "");
+	const [isConfirmingDelete, setIsConfirmingDelete] = React.useState(false);
+	const [pendingDeleteIds, setPendingDeleteIds] = React.useState<string[]>([]);
+
+	const filterKey = `${search.query ?? ""}|${search.seasonId ?? ""}`;
+	const { items, setItems } = useLoadMoreBatch(batch, skip, filterKey);
+
+	const searchRef = React.useRef(search);
+	searchRef.current = search;
+	const routerRef = React.useRef(router);
+	routerRef.current = router;
+
+	// Debounced so typing doesn't fire a loader request per keystroke; the
+	// input itself still updates instantly for a responsive feel.
+	React.useEffect(() => {
+		const timeout = setTimeout(() => {
+			const current = searchRef.current;
+			if (queryInput !== (current.query ?? "")) {
+				routerRef.current.navigate({
+					replace: true,
+					search: {
+						query: queryInput || undefined,
+						seasonId: current.seasonId,
+					},
+					to: ".",
+				});
+			}
+		}, 300);
+		return () => clearTimeout(timeout);
+	}, [queryInput]);
+
+	const onSeasonChange = (value: string | null) => {
+		router.navigate({
+			replace: true,
+			search: {
+				query: search.query,
+				seasonId: value === ALL_SEASONS || !value ? undefined : value,
+			},
+			to: ".",
+		});
+	};
+
+	const onLoadMore = () => {
+		router.navigate({
+			replace: true,
+			search: { ...search, skip: items.length },
+			to: ".",
+		});
+	};
+
+	const bulkDeleteServerFn = useServerFn(bulkDeleteAppointments);
+	const onDelete = async () => {
+		try {
+			const response = await bulkDeleteServerFn({
+				data: { ids: pendingDeleteIds },
+			});
+			setItems((prev) =>
+				prev.filter((item) => !pendingDeleteIds.includes(item.id)),
+			);
+			setIsConfirmingDelete(false);
+			setPendingDeleteIds([]);
+			await router.invalidate();
+			toast.success(response.message);
+		} catch (err) {
+			toast.error((err as Error).message);
+		}
+	};
+
+	const remaining = matchedTotal - items.length;
+
+	return (
+		<div className="flex flex-col gap-4">
+			<div>
+				<h1 className="font-bold text-lg">
+					{m.appointments_bulk_management()}
+				</h1>
+				<p className="text-muted-foreground text-sm">
+					{m.appointments_n_of_n_events({
+						param1: matchedTotal.toString(),
+						param2: grandTotal.toString(),
+					})}
+				</p>
+			</div>
+
+			<div className="flex flex-wrap items-center gap-2">
+				<Input
+					placeholder={m.appointments_search_appointment()}
+					value={queryInput}
+					onChange={(e) => setQueryInput(e.target.value)}
+					className="w-64"
+				/>
+				{seasons.length > 0 && (
+					<Select
+						value={search.seasonId ?? ALL_SEASONS}
+						onValueChange={onSeasonChange}
+					>
+						<SelectTrigger size="sm" className="w-48">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value={ALL_SEASONS}>
+								{m.appointments_all()}
+							</SelectItem>
+							{seasons.map((season) => (
+								<SelectItem key={season.id} value={season.id}>
+									{season.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				)}
+			</div>
+
+			<div
+				className={isNavigating ? "pointer-events-none opacity-60" : undefined}
+			>
+				<DetailsList
+					items={items}
+					getItemId={(item) => item.id}
+					columns={columns}
+					emptyMessage={m.appointments_no_appointments_found()}
+					commandBarItems={[
+						{
+							icon: <Trash2Icon className="size-4" />,
+							isDisabled: (selected) => selected.length === 0,
+							key: "delete-selected",
+							label: m.appointments_delete_selected(),
+							onClick: (selected) => {
+								setPendingDeleteIds(selected.map((item) => item.id));
+								setIsConfirmingDelete(true);
+							},
+							variant: "error",
+						},
+					]}
+				/>
+			</div>
+
+			<LoadMoreFooter
+				itemCount={items.length}
+				remaining={remaining}
+				matchedTotal={matchedTotal}
+				isNavigating={isNavigating}
+				batchSize={BATCH_SIZE}
+				onLoadMore={onLoadMore}
+			/>
+
+			<DeleteModal
+				label={m.appointments_are_you_sure_you_want_to_delete_n_appointments({
+					param1: pendingDeleteIds.length.toString(),
+				})}
+				open={isConfirmingDelete}
+				onClose={() => {
+					setIsConfirmingDelete(false);
+					setPendingDeleteIds([]);
+				}}
+				onDelete={onDelete}
+			/>
+		</div>
+	);
+}

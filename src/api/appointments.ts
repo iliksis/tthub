@@ -1,6 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
-import type { Appointment, Prisma, Response, Team } from "@/lib/prisma/client";
+import type {
+	Appointment,
+	Prisma,
+	Response,
+	Season,
+	Team,
+} from "@/lib/prisma/client";
 import {
 	AppointmentStatus,
 	AppointmentType,
@@ -437,6 +443,55 @@ export const getAppointmentsPage = createServerFn()
 		}
 	});
 
+export type AppointmentWithSeason = Appointment & { season: Season | null };
+
+// Distinct from getAppointmentsPage: the bulk-management list is for
+// finding/deleting *any* appointment (including HOLIDAYs and past dates),
+// not the RSVP-centric upcoming list, so it isn't scoped to today-or-later
+// or restricted to non-HOLIDAY types.
+export const getBulkAppointmentsPage = createServerFn()
+	.validator(
+		(d: { query?: string; seasonId?: string; skip: number; take: number }) => d,
+	)
+	.handler(async ({ data }) => {
+		const session = await requireEditor();
+		if (!session) {
+			throw new Error(m.common_unauthorized());
+		}
+
+		try {
+			const where: Prisma.AppointmentWhereInput = {
+				deletedAt: null,
+				OR: [
+					{ title: { contains: data.query ?? "" } },
+					{ shortTitle: { contains: data.query ?? "" } },
+					{ location: { contains: data.query ?? "" } },
+				],
+				seasonId: data.seasonId,
+			};
+
+			const [appointments, matchedTotal, grandTotal] = await Promise.all([
+				prismaClient.appointment.findMany({
+					include: { season: true },
+					orderBy: { startDate: "desc" },
+					skip: data.skip,
+					take: data.take,
+					where,
+				}),
+				prismaClient.appointment.count({ where }),
+				prismaClient.appointment.count({ where: { deletedAt: null } }),
+			]);
+
+			return {
+				data: { appointments, grandTotal, matchedTotal },
+				message: m.appointments_appointments_found(),
+			};
+		} catch (e) {
+			console.error(e);
+			throw new Error((e as Error).message);
+		}
+	});
+
 // Click-to-edit saves one field at a time, so a burst of edits to the same
 // appointment would otherwise fire one notification per field. Debounce so
 // only one notification goes out per appointment, ~5s after the last edit.
@@ -567,6 +622,50 @@ export const deleteAppointment = createServerFn()
 			return {
 				data: appointment,
 				message: m.appointments_appointment_deleted(),
+			};
+		} catch (e) {
+			console.error(e);
+			throw new Error((e as Error).message);
+		}
+	});
+
+export const bulkDeleteAppointments = createServerFn()
+	.validator((d: { ids: string[] }) => d)
+	.handler(async ({ data }) => {
+		const session = await requireEditor();
+		if (!session) {
+			throw new Error(m.common_unauthorized());
+		}
+
+		try {
+			const appointments = await prismaClient.$transaction(async (tx) => {
+				const deleted: Appointment[] = [];
+				for (const id of data.ids) {
+					const appointment = await tx.appointment.update({
+						data: {
+							deletedAt: new Date(),
+						},
+						where: { id },
+					});
+					await tx.transaction.create({
+						data: {
+							appointmentId: appointment.id,
+							type: TransactionType.DELETE,
+							userId: session.id,
+						},
+					});
+					deleted.push(appointment);
+				}
+				return deleted;
+			});
+			for (const appointment of appointments) {
+				cancelAppointmentUpdatedNotification(appointment.id);
+			}
+			return {
+				data: appointments,
+				message: m.appointments_appointment_deleted_count({
+					count: appointments.length,
+				}),
 			};
 		} catch (e) {
 			console.error(e);
