@@ -437,7 +437,8 @@ function RouteComponent() {
 					commandBarItems={[
 						{
 							icon: <CopyIcon className="size-4" />,
-							isDisabled: () => selectedCount === 0,
+							isDisabled: (selected) =>
+								!selected.some((item) => item.seasonId !== null),
 							key: "copy-to-season",
 							label: m.appointments_copy_to_season(),
 							onClick: (selected) => {

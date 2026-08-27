@@ -360,4 +360,32 @@ test.describe("Bulk Appointments Route - Copy to Season", () => {
 		await expect(page.getByText(/^2 von \d+ Ereignissen/)).toBeVisible();
 		await expect(page.getByText("Erstellt").first()).toBeVisible();
 	});
+
+	test("the copy button stays disabled for a HOLIDAY-only selection and enables once a season-scoped appointment joins it", async ({
+		page,
+	}) => {
+		await loginAs(page, "admin");
+		await page.goto("/appts/bulk");
+		await page.waitForLoadState("networkidle");
+
+		await page.getByPlaceholder("Termin suchen…").fill(COPY_QUERY);
+		await expect(page.getByText(/^3 von \d+ Ereignissen/)).toBeVisible();
+
+		const copyButton = page.getByRole("button", {
+			name: "In Saison kopieren…",
+		});
+		const rows = page.locator("table tbody tr");
+
+		await rows
+			.filter({ hasText: "E2ECOPY-Feiertag" })
+			.getByRole("checkbox")
+			.click();
+		await expect(copyButton).toBeDisabled();
+
+		await rows
+			.filter({ hasText: "E2ECOPY-Turnier1" })
+			.getByRole("checkbox")
+			.click();
+		await expect(copyButton).toBeEnabled();
+	});
 });
