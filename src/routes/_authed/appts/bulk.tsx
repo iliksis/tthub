@@ -149,18 +149,12 @@ function RouteComponent() {
 	const filterKey = `${search.query ?? ""}|${search.seasonId ?? ""}`;
 	const { items, setItems } = useLoadMoreBatch(batch, skip, filterKey);
 
-	// Explicit selection is scoped to the current filter view — the loaded ids
-	// it references stop meaning anything once the filter changes, so it's
-	// cleared whenever filterKey changes (the same derive-during-render reset
-	// pattern useLoadMoreBatch uses for `items`). Select-all-matching mode
-	// itself survives a filter change (see selectAllMatching below) since
-	// "matching" is re-derived from whatever the filter is now — but excludeIds
-	// holds ids from whichever filter was active when each row was unchecked,
-	// so it's cleared alongside explicitSelection: otherwise a stale exclusion
-	// from the old filter wouldn't be a member of the new filter's matched set
-	// either, silently understating both the displayed count and the delete
-	// confirmation versus what the server (re-evaluating "matching" minus
-	// excludeIds at execution time) would actually delete.
+	// Both explicit selection and select-all-matching (plus its exclude-list)
+	// are scoped to the current filter view: the ids/exclusions they reference
+	// stop meaning anything once the filter — and therefore the rendered
+	// `items` — changes, so the whole selection resets whenever filterKey
+	// changes (the same derive-during-render reset pattern useLoadMoreBatch
+	// uses for `items`).
 	const [explicitSelection, setExplicitSelection] =
 		React.useState<RowSelectionState>({});
 	const [selectAllMatching, setSelectAllMatching] = React.useState(false);
@@ -170,6 +164,7 @@ function RouteComponent() {
 	if (filterKey !== lastFilterKeyForSelection) {
 		setLastFilterKeyForSelection(filterKey);
 		setExplicitSelection({});
+		setSelectAllMatching(false);
 		setExcludeIds(new Set());
 	}
 
