@@ -7,14 +7,8 @@ import {
 	DialogFooter,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { EntitySelect } from "@/components/ui/entity-select";
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import type { Season } from "@/lib/prisma/client";
 import { m } from "@/paraglide/messages";
 
@@ -51,23 +45,14 @@ export const CopyToSeasonModal = ({
 					<Label htmlFor="target-season">
 						{m.appointments_target_season()}
 					</Label>
-					<Select
+					<EntitySelect
+						id="target-season"
+						items={seasons}
 						value={targetSeasonId}
 						onValueChange={(value) => {
 							if (value) onTargetSeasonChange(value);
 						}}
-					>
-						<SelectTrigger id="target-season" className="w-full">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							{seasons.map((season) => (
-								<SelectItem key={season.id} value={season.id}>
-									{season.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+					/>
 				</fieldset>
 				<DialogFooter>
 					<DialogClose render={<Button type="button" variant="outline" />}>
