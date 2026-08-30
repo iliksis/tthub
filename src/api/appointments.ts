@@ -656,14 +656,28 @@ export const deleteAppointment = createServerFn()
 // Shared by every bulk appointment action (delete, copy-to-season, restore,
 // ...) across both /appts/bulk (deletedAt: null) and /appts/trash
 // (deletedAt: { not: null }).
-type AppointmentSelector =
+export type AppointmentSelector =
 	| { ids: string[] }
 	| { matching: BulkAppointmentsFilter; excludeIds: string[] };
+
+// Both `ids` (explicit selection) and `excludeIds` (the "select all matching"
+// exclude-list) end up as one bound SQL parameter per id in the `in`/`notIn`
+// clause below — SQLite's default bound-parameter limit is ~999, and a very
+// large selection would otherwise surface as a raw DB error instead of a
+// friendly one.
+const MAX_BULK_SELECTION_IDS = 500;
 
 async function resolveSelectorIds(
 	data: AppointmentSelector,
 	deletedAt: Prisma.AppointmentWhereInput["deletedAt"],
 ) {
+	const idListSize = "ids" in data ? data.ids.length : data.excludeIds.length;
+	if (idListSize > MAX_BULK_SELECTION_IDS) {
+		throw new Error(
+			m.appointments_bulk_selection_too_large({ max: MAX_BULK_SELECTION_IDS }),
+		);
+	}
+
 	// Re-verify `deletedAt` against current state even for an explicit `ids`
 	// selector — a stale selection (e.g. another user already restored/deleted
 	// one of these ids) must not act on rows that no longer match the expected
@@ -682,6 +696,20 @@ async function resolveSelectorIds(
 	return appointments.map((appointment) => appointment.id);
 }
 
+// Batch size for setAppointmentsDeletedState below — each chunk runs in its
+// own `$transaction` rather than one transaction across the whole (up to
+// MAX_BULK_SELECTION_IDS) selection, so a large bulk delete/restore doesn't
+// hold a single long-lived transaction/lock for its entire duration.
+const DELETED_STATE_CHUNK_SIZE = 100;
+
+function chunk<T>(items: T[], size: number): T[][] {
+	const chunks: T[][] = [];
+	for (let i = 0; i < items.length; i += size) {
+		chunks.push(items.slice(i, i + size));
+	}
+	return chunks;
+}
+
 // Shared by bulkDeleteAppointments and bulkRestoreAppointments — both set
 // `deletedAt` on a list of ids and log one Transaction row per id, differing
 // only in the target `deletedAt` value and the TransactionType.
@@ -694,25 +722,30 @@ async function setAppointmentsDeletedState(
 	userId: string,
 	onEachUpdated?: (appointment: Appointment) => void,
 ) {
-	return prismaClient.$transaction(async (tx) => {
-		const updated: Appointment[] = [];
-		for (const id of ids) {
-			const appointment = await tx.appointment.update({
-				data: { deletedAt },
-				where: { id },
-			});
-			onEachUpdated?.(appointment);
-			await tx.transaction.create({
-				data: {
-					appointmentId: appointment.id,
-					type: transactionType,
-					userId,
-				},
-			});
-			updated.push(appointment);
-		}
-		return updated;
-	});
+	const updated: Appointment[] = [];
+	for (const batch of chunk(ids, DELETED_STATE_CHUNK_SIZE)) {
+		const batchUpdated = await prismaClient.$transaction(async (tx) => {
+			const batchResults: Appointment[] = [];
+			for (const id of batch) {
+				const appointment = await tx.appointment.update({
+					data: { deletedAt },
+					where: { id },
+				});
+				onEachUpdated?.(appointment);
+				await tx.transaction.create({
+					data: {
+						appointmentId: appointment.id,
+						type: transactionType,
+						userId,
+					},
+				});
+				batchResults.push(appointment);
+			}
+			return batchResults;
+		});
+		updated.push(...batchUpdated);
+	}
+	return updated;
 }
 
 export const bulkDeleteAppointments = createServerFn()
@@ -766,6 +799,13 @@ export const bulkCopyAppointmentsToSeason = createServerFn()
 		}
 
 		try {
+			const targetSeason = await prismaClient.season.findUnique({
+				where: { id: data.targetSeasonId },
+			});
+			if (!targetSeason) {
+				throw new Error(m.appointments_season_not_found());
+			}
+
 			const ids = await resolveSelectorIds(data, null);
 
 			const { copied, skipped } = await prismaClient.$transaction(

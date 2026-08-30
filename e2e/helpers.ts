@@ -1,4 +1,5 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
+import { prismaClient } from "../src/lib/db";
 
 /**
  * Helper functions for E2E testing
@@ -75,4 +76,43 @@ export async function loginAs(page: Page, role: UserRole | string) {
 	// Click and wait for the authenticated page to load (app shell appears)
 	await submitButton.click();
 	await page.waitForSelector("main", { timeout: 15000 });
+}
+
+/**
+ * Deletes any appointments (and their dependent Transaction/Response/Placement
+ * rows) whose shortTitle starts with `prefix`. Shared by the seed-*.ts
+ * fixture scripts to clear leftovers from a previous run before seeding fresh
+ * data — Transaction/Response/Placement rows reference the appointment id and
+ * aren't cascade-deleted, so they'd otherwise leave a dangling FK once a
+ * previous run's soft-deleted appointments (which also log a Transaction per
+ * row, e.g. via bulkDeleteAppointments) are hard-deleted below.
+ */
+export async function cleanupByShortTitlePrefix(prefix: string) {
+	const staleIds = await prismaClient.appointment.findMany({
+		select: { id: true },
+		where: { shortTitle: { startsWith: prefix } },
+	});
+	const staleWhere = { appointmentId: { in: staleIds.map((a) => a.id) } };
+	await prismaClient.transaction.deleteMany({ where: staleWhere });
+	await prismaClient.response.deleteMany({ where: staleWhere });
+	await prismaClient.placement.deleteMany({ where: staleWhere });
+	await prismaClient.appointment.deleteMany({
+		where: { shortTitle: { startsWith: prefix } },
+	});
+}
+
+/**
+ * Reads the "N von M Ereignissen" summary text shown at the top of the
+ * bulk/trash/journal appointment lists and parses out the matched/total
+ * counts. Shared by appointments-bulk.spec.ts, appointments-trash.spec.ts,
+ * and journal.spec.ts, which all render the same summary shape.
+ */
+export async function readSummary(page: Page) {
+	const summary = page.getByText(/\d+ von \d+ Ereignissen/);
+	await expect(summary).toBeVisible();
+	const text = await summary.textContent();
+	return {
+		matched: Number(text?.match(/^(\d+) von/)?.[1]),
+		total: Number(text?.match(/von (\d+) Ereignissen/)?.[1]),
+	};
 }

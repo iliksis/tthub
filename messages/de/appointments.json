@@ -139,12 +139,55 @@
 	"appointments_appointment_was_deleted": "Termin wurde gelöscht.",
 	"appointments_appointments_could_not_be_loaded": "Termine konnten nicht geladen werden",
 	"appointments_appointments_found": "Termine gefunden",
-	"appointments_are_you_sure_you_want_to_delete_n_appointments": "Bist du sicher, dass du {param1} Termine löschen möchtest?",
+	"appointments_are_you_sure_you_want_to_delete_n_appointments": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Bist du sicher, dass du {count} Termin löschen möchtest?",
+				"countPlural=other": "Bist du sicher, dass du {count} Termine löschen möchtest?"
+			}
+		}
+	],
 	"appointments_are_you_sure_you_want_to_delete_this_appointment": "Bist du sicher, dass du diesen Termin löschen möchtest?",
-	"appointments_are_you_sure_you_want_to_restore_n_appointments": "Bist du sicher, dass du {param1} Termine wiederherstellen möchtest?",
+	"appointments_are_you_sure_you_want_to_restore_n_appointments": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "Bist du sicher, dass du {count} Termin wiederherstellen möchtest?",
+				"countPlural=other": "Bist du sicher, dass du {count} Termine wiederherstellen möchtest?"
+			}
+		}
+	],
 	"appointments_back": "Zurück",
 	"appointments_bavaria": "Bayern",
 	"appointments_bulk_management": "Terminverwaltung",
+	"appointments_bulk_selection_too_large": [
+		{
+			"declarations": [
+				"input max",
+				"local maxPlural = max: plural"
+			],
+			"selectors": [
+				"maxPlural"
+			],
+			"match": {
+				"maxPlural=one": "Auswahl zu groß (max. {max} Termin). Bitte grenze die Auswahl weiter ein.",
+				"maxPlural=other": "Auswahl zu groß (max. {max} Termine). Bitte grenze die Auswahl weiter ein."
+			}
+		}
+	],
 	"appointments_calendar": "Kalender",
 	"appointments_cancel": "Abbrechen",
 	"appointments_changed": "Geändert",
@@ -168,7 +211,21 @@
 		}
 	],
 	"appointments_copy": "Kopieren",
-	"appointments_copy_n_appointments_to_season": "{param1} Termine werden in die gewählte Saison kopiert (Termine ohne Saison werden übersprungen).",
+	"appointments_copy_n_appointments_to_season": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Termin wird in die gewählte Saison kopiert (Termine ohne Saison werden übersprungen).",
+				"countPlural=other": "{count} Termine werden in die gewählte Saison kopiert (Termine ohne Saison werden übersprungen)."
+			}
+		}
+	],
 	"appointments_copy_to_season": "In Saison kopieren…",
 	"appointments_copy_to_season_title": "In Saison kopieren",
 	"appointments_create_appointment": "Termin erstellen",
@@ -255,6 +312,7 @@
 	"appointments_search_appointment_or_add_filter": "Termin suchen oder Filter hinzufügen…",
 	"appointments_search_appointment_or_person": "Termin oder Person suchen…",
 	"appointments_search_appointments": "Termine suchen",
+	"appointments_season_not_found": "Saison nicht gefunden",
 	"appointments_select_all_n_matching_filters": "{param1} passende Termine auswählen",
 	"appointments_shorttitle": "Kurztitel",
 	"appointments_start": "Start",

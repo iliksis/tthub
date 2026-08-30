@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import { expect, type Page, test } from "@playwright/test";
-import { loginAs } from "./helpers";
+import { loginAs, readSummary } from "./helpers";
 
 const TRASH_QUERY = "E2ETRASH-";
 const DATA_DISPLAY_QUERY = "E2ETRASHDD-";
@@ -27,16 +27,6 @@ function seedTrashDataDisplay() {
 		env: { ...process.env, DATABASE_URL: "file:./prisma/test.db" },
 		stdio: "inherit",
 	});
-}
-
-async function readSummary(page: Page) {
-	const summary = page.getByText(/\d+ von \d+ Ereignissen/);
-	await expect(summary).toBeVisible();
-	const text = await summary.textContent();
-	return {
-		matched: Number(text?.match(/^(\d+) von/)?.[1]),
-		total: Number(text?.match(/von (\d+) Ereignissen/)?.[1]),
-	};
 }
 
 // The desktop FilterBar and AppointmentMobileFilters both render a "Termin

@@ -26,6 +26,7 @@ import { CopyToSeasonModal } from "@/components/modal/CopyToSeasonModal";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAppointmentFilterList } from "@/hooks/useAppointmentFilterList";
+import { useBulkListAction } from "@/hooks/useBulkListAction";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -86,10 +87,6 @@ function RouteComponent() {
 	} = Route.useLoaderData();
 	const search = Route.useSearch();
 
-	const [isConfirmingDelete, setIsConfirmingDelete] = React.useState(false);
-	const [pendingDelete, setPendingDelete] = React.useState<
-		{ mode: "ids"; ids: string[] } | { mode: "matching" } | null
-	>(null);
 	const [isConfirmingCopy, setIsConfirmingCopy] = React.useState(false);
 	const [pendingCopy, setPendingCopy] = React.useState<
 		{ mode: "ids"; ids: string[] } | { mode: "matching" } | null
@@ -126,41 +123,21 @@ function RouteComponent() {
 		skip,
 	});
 
-	const bulkDeleteServerFn = useServerFn(bulkDeleteAppointments);
-	const onDelete = async () => {
-		if (!pendingDelete) return;
-		try {
-			const response = await bulkDeleteServerFn({
-				data:
-					pendingDelete.mode === "matching"
-						? {
-								excludeIds: Array.from(excludeIds),
-								matching: {
-									query: search.query,
-									seasonId: search.seasonId,
-									types: search.types,
-								},
-							}
-						: { ids: pendingDelete.ids },
-			});
-			if (pendingDelete.mode === "matching") {
-				setItems((prev) => prev.filter((item) => excludeIds.has(item.id)));
-				exitSelectAllMatching();
-			} else {
-				const deletedIds = pendingDelete.ids;
-				setItems((prev) =>
-					prev.filter((item) => !deletedIds.includes(item.id)),
-				);
-				setExplicitSelection({});
-			}
-			setIsConfirmingDelete(false);
-			setPendingDelete(null);
-			await router.invalidate();
-			toast.success(response.message);
-		} catch (err) {
-			toast.error((err as Error).message);
-		}
-	};
+	const {
+		isConfirming: isConfirmingDelete,
+		setIsConfirming: setIsConfirmingDelete,
+		pending: pendingDelete,
+		setPending: setPendingDelete,
+		run: onDelete,
+	} = useBulkListAction({
+		excludeIds,
+		exitSelectAllMatching,
+		router,
+		search,
+		serverFn: useServerFn(bulkDeleteAppointments),
+		setExplicitSelection,
+		setItems,
+	});
 
 	const bulkCopyServerFn = useServerFn(bulkCopyAppointmentsToSeason);
 	const onCopy = async () => {
@@ -322,10 +299,10 @@ function RouteComponent() {
 
 			<DeleteModal
 				label={m.appointments_are_you_sure_you_want_to_delete_n_appointments({
-					param1: (pendingDelete?.mode === "matching"
-						? selectedCount
-						: (pendingDelete?.ids.length ?? 0)
-					).toString(),
+					count:
+						pendingDelete?.mode === "matching"
+							? selectedCount
+							: (pendingDelete?.ids.length ?? 0),
 				})}
 				open={isConfirmingDelete}
 				onClose={() => {
@@ -341,10 +318,10 @@ function RouteComponent() {
 				targetSeasonId={targetSeasonId}
 				onTargetSeasonChange={setTargetSeasonId}
 				label={m.appointments_copy_n_appointments_to_season({
-					param1: (pendingCopy?.mode === "matching"
-						? selectedCount
-						: (pendingCopy?.ids.length ?? 0)
-					).toString(),
+					count:
+						pendingCopy?.mode === "matching"
+							? selectedCount
+							: (pendingCopy?.ids.length ?? 0),
 				})}
 				onClose={() => {
 					setIsConfirmingCopy(false);

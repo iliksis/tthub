@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { RotateCcwIcon } from "lucide-react";
-import React from "react";
-import { toast } from "sonner";
 import {
 	type AppointmentWithSeason,
 	bulkRestoreAppointments,
@@ -24,6 +22,7 @@ import { FilterBar } from "@/components/FilterBar";
 import { RestoreModal } from "@/components/modal/RestoreModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAppointmentFilterList } from "@/hooks/useAppointmentFilterList";
+import { useBulkListAction } from "@/hooks/useBulkListAction";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -84,11 +83,6 @@ function RouteComponent() {
 	} = Route.useLoaderData();
 	const search = Route.useSearch();
 
-	const [isConfirmingRestore, setIsConfirmingRestore] = React.useState(false);
-	const [pendingRestore, setPendingRestore] = React.useState<
-		{ mode: "ids"; ids: string[] } | { mode: "matching" } | null
-	>(null);
-
 	const {
 		router,
 		isNavigating,
@@ -117,41 +111,21 @@ function RouteComponent() {
 		skip,
 	});
 
-	const bulkRestoreServerFn = useServerFn(bulkRestoreAppointments);
-	const onRestore = async () => {
-		if (!pendingRestore) return;
-		try {
-			const response = await bulkRestoreServerFn({
-				data:
-					pendingRestore.mode === "matching"
-						? {
-								excludeIds: Array.from(excludeIds),
-								matching: {
-									query: search.query,
-									seasonId: search.seasonId,
-									types: search.types,
-								},
-							}
-						: { ids: pendingRestore.ids },
-			});
-			if (pendingRestore.mode === "matching") {
-				setItems((prev) => prev.filter((item) => excludeIds.has(item.id)));
-				exitSelectAllMatching();
-			} else {
-				const restoredIds = pendingRestore.ids;
-				setItems((prev) =>
-					prev.filter((item) => !restoredIds.includes(item.id)),
-				);
-				setExplicitSelection({});
-			}
-			setIsConfirmingRestore(false);
-			setPendingRestore(null);
-			await router.invalidate();
-			toast.success(response.message);
-		} catch (err) {
-			toast.error((err as Error).message);
-		}
-	};
+	const {
+		isConfirming: isConfirmingRestore,
+		setIsConfirming: setIsConfirmingRestore,
+		pending: pendingRestore,
+		setPending: setPendingRestore,
+		run: onRestore,
+	} = useBulkListAction({
+		excludeIds,
+		exitSelectAllMatching,
+		router,
+		search,
+		serverFn: useServerFn(bulkRestoreAppointments),
+		setExplicitSelection,
+		setItems,
+	});
 
 	const commandBarItems: CommandBarItem<AppointmentWithSeason>[] = [
 		{
@@ -262,10 +236,10 @@ function RouteComponent() {
 
 			<RestoreModal
 				label={m.appointments_are_you_sure_you_want_to_restore_n_appointments({
-					param1: (pendingRestore?.mode === "matching"
-						? selectedCount
-						: (pendingRestore?.ids.length ?? 0)
-					).toString(),
+					count:
+						pendingRestore?.mode === "matching"
+							? selectedCount
+							: (pendingRestore?.ids.length ?? 0),
 				})}
 				open={isConfirmingRestore}
 				onClose={() => {

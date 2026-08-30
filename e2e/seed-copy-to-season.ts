@@ -1,4 +1,5 @@
 import { prismaClient } from "../src/lib/db";
+import { cleanupByShortTitlePrefix } from "./helpers";
 
 // Standalone fixture script (run via `npx tsx e2e/seed-copy-to-season.ts` with
 // DATABASE_URL pointed at the e2e test.db) for appointments-bulk.spec.ts's
@@ -10,17 +11,7 @@ const SHORT_TITLE_PREFIX = "E2ECOPY-";
 const TARGET_SEASON_NAME = "E2ECOPY-Target";
 
 async function main() {
-	const staleIds = await prismaClient.appointment.findMany({
-		select: { id: true },
-		where: { shortTitle: { startsWith: SHORT_TITLE_PREFIX } },
-	});
-	const staleWhere = { appointmentId: { in: staleIds.map((a) => a.id) } };
-	await prismaClient.transaction.deleteMany({ where: staleWhere });
-	await prismaClient.response.deleteMany({ where: staleWhere });
-	await prismaClient.placement.deleteMany({ where: staleWhere });
-	await prismaClient.appointment.deleteMany({
-		where: { shortTitle: { startsWith: SHORT_TITLE_PREFIX } },
-	});
+	await cleanupByShortTitlePrefix(SHORT_TITLE_PREFIX);
 	await prismaClient.season.deleteMany({
 		where: { name: TARGET_SEASON_NAME },
 	});

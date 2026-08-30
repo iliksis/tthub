@@ -1,4 +1,5 @@
 import { prismaClient } from "../src/lib/db";
+import { cleanupByShortTitlePrefix } from "./helpers";
 
 // Standalone fixture script (run via `npx tsx e2e/seed-bulk-appointments.ts <count>`
 // with DATABASE_URL pointed at the e2e test.db) that seeds a batch of
@@ -10,21 +11,7 @@ import { prismaClient } from "../src/lib/db";
 const SHORT_TITLE_PREFIX = "E2EBULK-";
 
 async function main() {
-	const staleIds = await prismaClient.appointment.findMany({
-		select: { id: true },
-		where: { shortTitle: { startsWith: SHORT_TITLE_PREFIX } },
-	});
-	const staleWhere = { appointmentId: { in: staleIds.map((a) => a.id) } };
-	// Transaction/Response/Placement rows reference the appointment id and
-	// aren't cascade-deleted, so they'd otherwise leave a dangling FK once the
-	// previous run's soft-deleted appointments (bulkDeleteAppointments also
-	// logs a Transaction per row) are hard-deleted below.
-	await prismaClient.transaction.deleteMany({ where: staleWhere });
-	await prismaClient.response.deleteMany({ where: staleWhere });
-	await prismaClient.placement.deleteMany({ where: staleWhere });
-	await prismaClient.appointment.deleteMany({
-		where: { shortTitle: { startsWith: SHORT_TITLE_PREFIX } },
-	});
+	await cleanupByShortTitlePrefix(SHORT_TITLE_PREFIX);
 
 	const count = Number(process.argv[2] ?? 30);
 	const now = new Date();

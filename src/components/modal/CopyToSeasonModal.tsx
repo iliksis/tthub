@@ -1,12 +1,4 @@
-import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogClose,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { ConfirmModal } from "@/components/modal/ConfirmModal";
 import { EntitySelect } from "@/components/ui/entity-select";
 import { Label } from "@/components/ui/label";
 import type { Season } from "@/lib/prisma/client";
@@ -32,37 +24,26 @@ export const CopyToSeasonModal = ({
 	onCopy,
 }: CopyToSeasonModalProps) => {
 	return (
-		<Dialog
+		<ConfirmModal
+			label={label}
 			open={open}
-			onOpenChange={(nextOpen) => {
-				if (!nextOpen) onClose();
-			}}
+			onClose={onClose}
+			onConfirm={onCopy}
+			confirmLabel={m.appointments_copy()}
+			confirmDisabled={!targetSeasonId}
+			title={m.appointments_copy_to_season_title()}
 		>
-			<DialogContent showCloseButton={false}>
-				<DialogTitle>{m.appointments_copy_to_season_title()}</DialogTitle>
-				<DialogDescription>{label}</DialogDescription>
-				<fieldset className="flex flex-col gap-1.5">
-					<Label htmlFor="target-season">
-						{m.appointments_target_season()}
-					</Label>
-					<EntitySelect
-						id="target-season"
-						items={seasons}
-						value={targetSeasonId}
-						onValueChange={(value) => {
-							if (value) onTargetSeasonChange(value);
-						}}
-					/>
-				</fieldset>
-				<DialogFooter>
-					<DialogClose render={<Button type="button" variant="outline" />}>
-						{m.common_close()}
-					</DialogClose>
-					<Button type="button" disabled={!targetSeasonId} onClick={onCopy}>
-						{m.appointments_copy()}
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+			<fieldset className="flex flex-col gap-1.5">
+				<Label htmlFor="target-season">{m.appointments_target_season()}</Label>
+				<EntitySelect
+					id="target-season"
+					items={seasons}
+					value={targetSeasonId}
+					onValueChange={(value) => {
+						if (value) onTargetSeasonChange(value);
+					}}
+				/>
+			</fieldset>
+		</ConfirmModal>
 	);
 };

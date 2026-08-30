@@ -1,17 +1,7 @@
-import { expect, type Page, test } from "@playwright/test";
-import { loginAs } from "./helpers";
+import { expect, test } from "@playwright/test";
+import { loginAs, readSummary } from "./helpers";
 
 const BATCH_SIZE = 25;
-
-async function readSummary(page: Page) {
-	const summary = page.getByText(/\d+ von \d+ Ereignissen/);
-	await expect(summary).toBeVisible();
-	const text = await summary.textContent();
-	return {
-		matched: Number(text?.match(/^(\d+) von/)?.[1]),
-		total: Number(text?.match(/von (\d+) Ereignissen/)?.[1]),
-	};
-}
 
 test.describe("Transaction Journal Route - Access Control", () => {
 	test("ADMIN can access the journal", async ({ page }) => {

@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import { expect, type Page, test } from "@playwright/test";
-import { loginAs } from "./helpers";
+import { loginAs, readSummary } from "./helpers";
 
 const BULK_QUERY = "E2EBULK-";
 const COPY_QUERY = "E2ECOPY-";
@@ -28,16 +28,6 @@ function seedCopyToSeasonFixture() {
 		env: { ...process.env, DATABASE_URL: "file:./prisma/test.db" },
 		stdio: "inherit",
 	});
-}
-
-async function readSummary(page: Page) {
-	const summary = page.getByText(/\d+ von \d+ Ereignissen/);
-	await expect(summary).toBeVisible();
-	const text = await summary.textContent();
-	return {
-		matched: Number(text?.match(/^(\d+) von/)?.[1]),
-		total: Number(text?.match(/von (\d+) Ereignissen/)?.[1]),
-	};
 }
 
 // The desktop FilterBar and AppointmentMobileFilters both render a "Termin
@@ -184,6 +174,18 @@ test.describe("Bulk Appointments Route - Data Display", () => {
 });
 
 test.describe("Bulk Appointments Route - Delete", () => {
+	// A dedicated single-row fixture rather than acting on rows.first() of
+	// whatever generic seed data happens to be on the page — that would be
+	// order-dependent (relies on other specs' data still being there) and
+	// mutates shared, unprefixed seed data instead of an isolated fixture.
+	test.beforeEach(() => {
+		seedBulkAppointments(1);
+	});
+
+	test.afterAll(() => {
+		seedBulkAppointments(0);
+	});
+
 	test("selecting rows enables Delete selected, which soft-deletes them and logs a journal entry", async ({
 		page,
 	}) => {
@@ -191,15 +193,15 @@ test.describe("Bulk Appointments Route - Delete", () => {
 		await page.goto("/appts/bulk");
 		await page.waitForLoadState("networkidle");
 
+		await searchInput(page).fill(BULK_QUERY);
+		await expect(page.getByText(/^1 von \d+ Ereignissen/)).toBeVisible();
+
 		const deleteButton = page.getByRole("button", {
 			name: "Löschen",
 		});
 		await expect(deleteButton).toBeDisabled();
 
 		const rows = page.locator("table tbody tr");
-		const rowsBefore = await rows.count();
-		test.skip(rowsBefore === 0, "no appointments to delete");
-
 		const firstRowTitle = await rows.first().locator("a").first().textContent();
 		await rows.first().getByRole("checkbox").click();
 
@@ -211,7 +213,7 @@ test.describe("Bulk Appointments Route - Delete", () => {
 		await confirmDialog.getByRole("button", { name: "Löschen" }).click();
 
 		await expect(page.getByText(/gelöscht/)).toBeVisible();
-		await expect.poll(() => rows.count()).toBe(rowsBefore - 1);
+		await expect(page.getByText(/^0 von \d+ Ereignissen/)).toBeVisible();
 
 		expect(firstRowTitle).toBeTruthy();
 		await page.goto("/appts/journal");

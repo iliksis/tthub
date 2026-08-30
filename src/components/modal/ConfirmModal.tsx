@@ -1,4 +1,5 @@
 import type { VariantProps } from "class-variance-authority";
+import type { ReactNode } from "react";
 import { Button, type buttonVariants } from "@/components/ui/button";
 import {
 	Dialog,
@@ -17,6 +18,12 @@ type ConfirmModalProps = {
 	onConfirm: () => void;
 	confirmLabel: string;
 	confirmVariant?: VariantProps<typeof buttonVariants>["variant"];
+	confirmDisabled?: boolean;
+	// A visible heading, for a modal whose body has other content besides the
+	// confirmation text (e.g. a form field) — omit for the plain sr-only
+	// title used by simple yes/no confirmations.
+	title?: string;
+	children?: ReactNode;
 };
 
 export const ConfirmModal = ({
@@ -26,6 +33,9 @@ export const ConfirmModal = ({
 	onConfirm,
 	confirmLabel,
 	confirmVariant,
+	confirmDisabled,
+	title,
+	children,
 }: ConfirmModalProps) => {
 	return (
 		<Dialog
@@ -35,13 +45,23 @@ export const ConfirmModal = ({
 			}}
 		>
 			<DialogContent showCloseButton={false}>
-				<DialogTitle className="sr-only">{m.common_dialog()}</DialogTitle>
+				{title ? (
+					<DialogTitle>{title}</DialogTitle>
+				) : (
+					<DialogTitle className="sr-only">{m.common_dialog()}</DialogTitle>
+				)}
 				<DialogDescription>{label}</DialogDescription>
+				{children}
 				<DialogFooter>
 					<DialogClose render={<Button type="button" variant="outline" />}>
 						{m.common_close()}
 					</DialogClose>
-					<Button type="button" variant={confirmVariant} onClick={onConfirm}>
+					<Button
+						type="button"
+						variant={confirmVariant}
+						disabled={confirmDisabled}
+						onClick={onConfirm}
+					>
 						{confirmLabel}
 					</Button>
 				</DialogFooter>
