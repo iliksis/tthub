@@ -39,6 +39,16 @@ async function readSummary(page: Page) {
 	};
 }
 
+// The desktop FilterBar and AppointmentMobileFilters both render a "Termin
+// suchen…" input (one hidden via `lg:hidden`/`hidden lg:block`, not removed
+// from the DOM), so a plain getByPlaceholder resolves to two elements even
+// on a desktop viewport. Scope to the visible one, matching the `:visible`
+// pattern already used elsewhere in this suite for the same desktop/mobile
+// duplication (e.g. e2e/players.spec.ts, e2e/teams.spec.ts).
+function searchInput(page: Page) {
+	return page.locator('input[placeholder="Termin suchen…"]:visible');
+}
+
 test.describe("Trash Route - Access Control", () => {
 	test("ADMIN can access the trash page", async ({ page }) => {
 		await loginAs(page, "admin");
@@ -93,13 +103,11 @@ test.describe("Trash Route - Data Display", () => {
 		await page.goto("/appts/trash");
 		await page.waitForLoadState("networkidle");
 
-		await page.getByPlaceholder("Termin suchen…").fill(DATA_DISPLAY_QUERY);
+		await searchInput(page).fill(DATA_DISPLAY_QUERY);
 		const { total } = await readSummary(page);
 		await expect(page.getByText(`3 von ${total} Ereignissen`)).toBeVisible();
 
-		await page
-			.getByPlaceholder("Termin suchen…")
-			.fill("zzz-does-not-exist-zzz");
+		await searchInput(page).fill("zzz-does-not-exist-zzz");
 		await expect(page.getByText(`0 von ${total} Ereignissen`)).toBeVisible();
 	});
 
@@ -110,7 +118,7 @@ test.describe("Trash Route - Data Display", () => {
 		await page.goto("/appts/trash");
 		await page.waitForLoadState("networkidle");
 
-		await page.getByPlaceholder("Termin suchen…").fill(DATA_DISPLAY_QUERY);
+		await searchInput(page).fill(DATA_DISPLAY_QUERY);
 		const { total } = await readSummary(page);
 
 		const seasonSegment = page.getByRole("button", { name: /^Saison/ });
@@ -131,7 +139,7 @@ test.describe("Trash Route - Data Display", () => {
 		await page.goto("/appts/trash");
 		await page.waitForLoadState("networkidle");
 
-		await page.getByPlaceholder("Termin suchen…").fill(DATA_DISPLAY_QUERY);
+		await searchInput(page).fill(DATA_DISPLAY_QUERY);
 		const { total } = await readSummary(page);
 		const loadingOverlay = page.locator(".pointer-events-none.opacity-60");
 
@@ -152,11 +160,11 @@ test.describe("Trash Route - Data Display", () => {
 		await page.goto("/appts/trash");
 		await page.waitForLoadState("networkidle");
 
-		await page.getByPlaceholder("Termin suchen…").fill(DATA_DISPLAY_QUERY);
+		await searchInput(page).fill(DATA_DISPLAY_QUERY);
 		await page.locator("table thead").getByRole("checkbox").click();
 
 		await expect(
-			page.getByRole("button", { name: "Ausgewählte wiederherstellen" }),
+			page.getByRole("button", { name: "Wiederherstellen" }),
 		).toBeVisible();
 		await expect(
 			page.getByRole("button", { name: /löschen/i }),
@@ -176,11 +184,11 @@ test.describe("Trash Route - Restore", () => {
 		await page.goto("/appts/trash");
 		await page.waitForLoadState("networkidle");
 
-		await page.getByPlaceholder("Termin suchen…").fill(DATA_DISPLAY_QUERY);
+		await searchInput(page).fill(DATA_DISPLAY_QUERY);
 		await expect(page.getByText(/^3 von \d+ Ereignissen/)).toBeVisible();
 
 		const restoreButton = page.getByRole("button", {
-			name: "Ausgewählte wiederherstellen",
+			name: "Wiederherstellen",
 		});
 		await expect(restoreButton).toBeDisabled();
 
@@ -201,13 +209,23 @@ test.describe("Trash Route - Restore", () => {
 		await expect(page.getByText(/wiederhergestellt/)).toBeVisible();
 		await expect.poll(() => rows.count()).toBe(rowsBefore - 1);
 
+		expect(firstRowTitle).toBeTruthy();
 		await page.goto("/appts/journal");
 		await page.waitForLoadState("networkidle");
-		if (firstRowTitle) {
-			await expect(
-				page.getByText(new RegExp(firstRowTitle.trim())).first(),
-			).toBeVisible();
-		}
+		await page
+			.getByPlaceholder("Termin oder Person suchen…")
+			.fill(firstRowTitle?.trim() ?? "");
+		await page.getByRole("combobox").click();
+		await page
+			.getByRole("option", { exact: true, name: "Wiederhergestellt" })
+			.click();
+		await page.waitForLoadState("networkidle");
+
+		const journalRows = page.getByTestId("journal-row");
+		await expect(journalRows).toHaveCount(1);
+		await expect(journalRows.first()).toContainText(
+			firstRowTitle?.trim() ?? "",
+		);
 	});
 
 	// bulkRestoreAppointments is gated the same way as restoreAppointment
@@ -231,7 +249,7 @@ test.describe("Trash Route - Select All Matching Filters", () => {
 		await page.goto("/appts/trash");
 		await page.waitForLoadState("networkidle");
 
-		await page.getByPlaceholder("Termin suchen…").fill(TRASH_QUERY);
+		await searchInput(page).fill(TRASH_QUERY);
 		await expect(page.getByText(/30 von \d+ Ereignissen/)).toBeVisible();
 
 		const rows = page.locator("table tbody tr");
@@ -243,7 +261,7 @@ test.describe("Trash Route - Select All Matching Filters", () => {
 			.click();
 
 		const restoreButton = page.getByRole("button", {
-			name: "Ausgewählte wiederherstellen",
+			name: "Wiederherstellen",
 		});
 		await expect(restoreButton).toBeEnabled();
 		await restoreButton.click();
@@ -271,7 +289,7 @@ test.describe("Trash Route - Select All Matching Filters", () => {
 		await page.goto("/appts/trash");
 		await page.waitForLoadState("networkidle");
 
-		await page.getByPlaceholder("Termin suchen…").fill(TRASH_QUERY);
+		await searchInput(page).fill(TRASH_QUERY);
 		await expect(page.getByText(/30 von \d+ Ereignissen/)).toBeVisible();
 
 		await page
@@ -285,7 +303,7 @@ test.describe("Trash Route - Select All Matching Filters", () => {
 		await expect(page.getByText("29 passend, 1 ausgeschlossen")).toBeVisible();
 
 		const restoreButton = page.getByRole("button", {
-			name: "Ausgewählte wiederherstellen",
+			name: "Wiederherstellen",
 		});
 		await restoreButton.click();
 
@@ -305,5 +323,52 @@ test.describe("Trash Route - Select All Matching Filters", () => {
 		if (firstRowTitle) {
 			await expect(page.getByText(firstRowTitle.trim())).toBeVisible();
 		}
+	});
+
+	test("no select-all-matching control appears and Restore stays disabled when the filter matches nothing", async ({
+		page,
+	}) => {
+		await loginAs(page, "admin");
+		await page.goto("/appts/trash");
+		await page.waitForLoadState("networkidle");
+
+		await searchInput(page).fill("zzz-does-not-exist-zzz");
+		await expect(page.getByText(/^0 von \d+ Ereignissen/)).toBeVisible();
+
+		await expect(
+			page.getByRole("button", { name: /passende Termine auswählen/ }),
+		).not.toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Wiederherstellen" }),
+		).toBeDisabled();
+	});
+
+	test("excluding every loaded row after select-all leaves Restore disabled again", async ({
+		page,
+	}) => {
+		// Overrides the describe's beforeEach seed (30, more than one batch) with
+		// a count that fits in a single loaded page, so the header checkbox can
+		// exclude every matching row down to zero.
+		seedTrashAppointments(5);
+		await loginAs(page, "admin");
+		await page.goto("/appts/trash");
+		await page.waitForLoadState("networkidle");
+
+		await searchInput(page).fill(TRASH_QUERY);
+		await expect(page.getByText(/^5 von \d+ Ereignissen/)).toBeVisible();
+
+		await page
+			.getByRole("button", { name: "5 passende Termine auswählen" })
+			.click();
+
+		const restoreButton = page.getByRole("button", {
+			name: "Wiederherstellen",
+		});
+		await expect(restoreButton).toBeEnabled();
+
+		await page.locator("table thead").getByRole("checkbox").click();
+
+		await expect(page.getByText("0 passend, 5 ausgeschlossen")).toBeVisible();
+		await expect(restoreButton).toBeDisabled();
 	});
 });
