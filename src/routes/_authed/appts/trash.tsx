@@ -4,22 +4,27 @@ import { RotateCcwIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import {
+	type AppointmentWithSeason,
 	bulkRestoreAppointments,
 	getTrashAppointmentsPage,
 } from "@/api/appointments";
 import { getSeasons } from "@/api/seasons";
 import {
+	AppointmentCardList,
+	AppointmentMobileFilters,
 	appointmentFilterSearchSchema,
 	appointmentListColumns,
 	BATCH_SIZE,
+	MobileCommandDock,
 	SelectionStatusBar,
 } from "@/components/appointments/appointmentListShared";
 import { LoadMoreFooter } from "@/components/appointments/LoadMoreFooter";
-import { DetailsList } from "@/components/DetailsList";
+import { type CommandBarItem, DetailsList } from "@/components/DetailsList";
 import { FilterBar } from "@/components/FilterBar";
 import { RestoreModal } from "@/components/modal/RestoreModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAppointmentFilterList } from "@/hooks/useAppointmentFilterList";
+import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 // biome-ignore assist/source/useSortedKeys: validateSearch and loaderDeps need to be before loader
@@ -148,8 +153,27 @@ function RouteComponent() {
 		}
 	};
 
+	const commandBarItems: CommandBarItem<AppointmentWithSeason>[] = [
+		{
+			icon: <RotateCcwIcon className="size-4" />,
+			isDisabled: () => selectedCount === 0,
+			key: "restore-selected",
+			label: m.appointments_restore_selected(),
+			onClick: (selected) => {
+				setPendingRestore(
+					selectAllMatching
+						? { mode: "matching" }
+						: { ids: selected.map((item) => item.id), mode: "ids" },
+				);
+				setIsConfirmingRestore(true);
+			},
+			variant: "secondary",
+		},
+	];
+	const selectedItems = items.filter((item) => selection[item.id]);
+
 	return (
-		<div className="flex flex-col gap-4">
+		<div className="flex flex-col gap-4 pb-20 lg:pb-0">
 			<div>
 				<h1 className="font-bold text-lg">{m.appointments_trash()}</h1>
 				<p className="text-muted-foreground text-sm">
@@ -160,15 +184,25 @@ function RouteComponent() {
 				</p>
 			</div>
 
-			<FilterBar
-				search={{
-					onChange: setQueryInput,
-					placeholder: m.appointments_search_appointment(),
-					value: queryInput,
-				}}
-				segments={filterSegments}
-				onReset={onClearFilters}
-			/>
+			<div className="hidden lg:block">
+				<FilterBar
+					search={{
+						onChange: setQueryInput,
+						placeholder: m.appointments_search_appointment(),
+						value: queryInput,
+					}}
+					segments={filterSegments}
+					onReset={onClearFilters}
+				/>
+			</div>
+			<div className="lg:hidden">
+				<AppointmentMobileFilters
+					queryInput={queryInput}
+					setQueryInput={setQueryInput}
+					segments={filterSegments}
+					onClearFilters={onClearFilters}
+				/>
+			</div>
 
 			<SelectionStatusBar
 				matchedTotal={matchedTotal}
@@ -180,7 +214,10 @@ function RouteComponent() {
 			/>
 
 			<div
-				className={isNavigating ? "pointer-events-none opacity-60" : undefined}
+				className={cn(
+					"hidden lg:block",
+					isNavigating && "pointer-events-none opacity-60",
+				)}
 			>
 				<DetailsList
 					items={items}
@@ -189,25 +226,30 @@ function RouteComponent() {
 					emptyMessage={m.appointments_no_deleted_appointments_found()}
 					selection={selection}
 					onSelectionChange={onSelectionChange}
-					commandBarItems={[
-						{
-							icon: <RotateCcwIcon className="size-4" />,
-							isDisabled: () => selectedCount === 0,
-							key: "restore-selected",
-							label: m.appointments_restore_selected(),
-							onClick: (selected) => {
-								setPendingRestore(
-									selectAllMatching
-										? { mode: "matching" }
-										: { ids: selected.map((item) => item.id), mode: "ids" },
-								);
-								setIsConfirmingRestore(true);
-							},
-							variant: "secondary",
-						},
-					]}
+					commandBarItems={commandBarItems}
 				/>
 			</div>
+
+			<div
+				className={cn(
+					"lg:hidden",
+					isNavigating && "pointer-events-none opacity-60",
+				)}
+			>
+				<AppointmentCardList
+					items={items}
+					getItemId={(item) => item.id}
+					selection={selection}
+					onSelectionChange={onSelectionChange}
+					emptyMessage={m.appointments_no_deleted_appointments_found()}
+				/>
+			</div>
+
+			<MobileCommandDock
+				commandBarItems={commandBarItems}
+				selectedItems={selectedItems}
+				visible={selectedCount > 0}
+			/>
 
 			<LoadMoreFooter
 				itemCount={items.length}

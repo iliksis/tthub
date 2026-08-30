@@ -151,7 +151,7 @@ function TypeGroupTabs({
 	);
 }
 
-function FilterPill({
+export function FilterPill({
 	active,
 	onClick,
 	children,

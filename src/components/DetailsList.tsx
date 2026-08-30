@@ -95,7 +95,7 @@ type DetailsListProps<T> = {
 	) => void;
 };
 
-const commandBarButtonVariant = (
+export const commandBarButtonVariant = (
 	variant: CommandBarItem<unknown>["variant"],
 ) => {
 	if (variant === "error") return "destructive" as const;
