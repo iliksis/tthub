@@ -3,12 +3,18 @@ import type { ReactNode } from "react";
 type SectionProps = {
 	title: string;
 	description?: string;
+	className?: string;
 	children: ReactNode;
 };
 
-export function Section({ title, description, children }: SectionProps) {
+export function Section({
+	title,
+	description,
+	className,
+	children,
+}: SectionProps) {
 	return (
-		<div>
+		<div className={className}>
 			<div className="mb-3 flex flex-wrap items-center gap-2.5">
 				<span className="font-bold text-xs uppercase tracking-wider">
 					{title}
