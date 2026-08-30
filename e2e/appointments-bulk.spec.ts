@@ -253,6 +253,11 @@ test.describe("Bulk Appointments Route - Select All Matching Filters", () => {
 
 		await searchInput(page).fill(BULK_QUERY);
 		await expect(page.getByText(/30 von \d+ Ereignissen/)).toBeVisible();
+		// The search input is debounced (300ms) before it navigates/re-filters;
+		// entering select-all-matching before that commit lands would have its
+		// state wiped by useBulkSelection's filterKey-change reset once the
+		// debounced navigation finally lands.
+		await page.waitForLoadState("networkidle");
 
 		const rows = page.locator("table tbody tr");
 		// Only one loaded batch (25) is rendered even though 30 rows match.
@@ -291,6 +296,10 @@ test.describe("Bulk Appointments Route - Select All Matching Filters", () => {
 
 		await searchInput(page).fill(BULK_QUERY);
 		await expect(page.getByText(/30 von \d+ Ereignissen/)).toBeVisible();
+		// See the comment in the previous test — wait for the debounced search
+		// navigation to settle before entering select-all-matching, or its state
+		// gets wiped once that navigation lands.
+		await page.waitForLoadState("networkidle");
 
 		await page
 			.getByRole("button", { name: "30 passende Termine auswählen" })
@@ -319,7 +328,13 @@ test.describe("Bulk Appointments Route - Select All Matching Filters", () => {
 		// The excluded row survives; the other 29 matching rows are gone.
 		await expect(page.getByText(/^1 von \d+ Ereignissen/)).toBeVisible();
 		if (firstRowTitle) {
-			await expect(page.getByText(firstRowTitle.trim())).toBeVisible();
+			// Scoped to the table rather than page-wide getByText — the mobile
+			// card list renders the same title text in the DOM (hidden via
+			// `lg:hidden`, not removed), which would otherwise resolve to 2
+			// elements on a desktop viewport.
+			await expect(rows.filter({ hasText: firstRowTitle.trim() })).toHaveCount(
+				1,
+			);
 		}
 	});
 
@@ -352,6 +367,7 @@ test.describe("Bulk Appointments Route - Select All Matching Filters", () => {
 
 		await searchInput(page).fill(BULK_QUERY);
 		await expect(page.getByText(/^5 von \d+ Ereignissen/)).toBeVisible();
+		await page.waitForLoadState("networkidle");
 
 		await page
 			.getByRole("button", { name: "5 passende Termine auswählen" })
