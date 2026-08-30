@@ -174,7 +174,7 @@ function RouteComponent() {
 
 	return (
 		<div className="flex flex-col gap-4 pb-20 lg:pb-0">
-			<div>
+			<div className="hidden lg:flex flex-col gap-1">
 				<h1 className="font-bold text-lg">{m.appointments_trash()}</h1>
 				<p className="text-muted-foreground text-sm">
 					{m.appointments_n_of_n_events({

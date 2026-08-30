@@ -232,7 +232,7 @@ function RouteComponent() {
 
 	return (
 		<div className="flex flex-col gap-4 pb-20 lg:pb-0">
-			<div>
+			<div className="hidden lg:flex flex-col gap-1">
 				<h1 className="font-bold text-lg">
 					{m.appointments_bulk_management()}
 				</h1>
