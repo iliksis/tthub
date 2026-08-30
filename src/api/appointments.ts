@@ -490,7 +490,9 @@ export const getBulkAppointmentsPage = createServerFn()
 			const [appointments, matchedTotal, grandTotal] = await Promise.all([
 				prismaClient.appointment.findMany({
 					include: { season: true },
-					orderBy: { startDate: "desc" },
+					// `id` breaks ties between rows sharing a `startDate` so paging
+					// through skip/take can't duplicate or silently skip a row.
+					orderBy: [{ startDate: "desc" }, { id: "asc" }],
 					skip: data.skip,
 					take: data.take,
 					where,
@@ -662,15 +664,55 @@ async function resolveSelectorIds(
 	data: AppointmentSelector,
 	deletedAt: Prisma.AppointmentWhereInput["deletedAt"],
 ) {
-	if ("ids" in data) return data.ids;
+	// Re-verify `deletedAt` against current state even for an explicit `ids`
+	// selector — a stale selection (e.g. another user already restored/deleted
+	// one of these ids) must not act on rows that no longer match the expected
+	// state, matching the `matching` selector's behavior below.
+	const where: Prisma.AppointmentWhereInput =
+		"ids" in data
+			? { deletedAt, id: { in: data.ids } }
+			: {
+					...buildAppointmentsFilterWhere(data.matching, deletedAt),
+					id: { notIn: data.excludeIds },
+				};
 	const appointments = await prismaClient.appointment.findMany({
 		select: { id: true },
-		where: {
-			...buildAppointmentsFilterWhere(data.matching, deletedAt),
-			id: { notIn: data.excludeIds },
-		},
+		where,
 	});
 	return appointments.map((appointment) => appointment.id);
+}
+
+// Shared by bulkDeleteAppointments and bulkRestoreAppointments — both set
+// `deletedAt` on a list of ids and log one Transaction row per id, differing
+// only in the target `deletedAt` value and the TransactionType.
+async function setAppointmentsDeletedState(
+	ids: string[],
+	deletedAt: Date | null,
+	transactionType:
+		| typeof TransactionType.DELETE
+		| typeof TransactionType.RESTORE,
+	userId: string,
+	onEachUpdated?: (appointment: Appointment) => void,
+) {
+	return prismaClient.$transaction(async (tx) => {
+		const updated: Appointment[] = [];
+		for (const id of ids) {
+			const appointment = await tx.appointment.update({
+				data: { deletedAt },
+				where: { id },
+			});
+			onEachUpdated?.(appointment);
+			await tx.transaction.create({
+				data: {
+					appointmentId: appointment.id,
+					type: transactionType,
+					userId,
+				},
+			});
+			updated.push(appointment);
+		}
+		return updated;
+	});
 }
 
 export const bulkDeleteAppointments = createServerFn()
@@ -684,29 +726,17 @@ export const bulkDeleteAppointments = createServerFn()
 		try {
 			const ids = await resolveSelectorIds(data, null);
 
-			const appointments = await prismaClient.$transaction(async (tx) => {
-				const deleted: Appointment[] = [];
-				for (const id of ids) {
-					const appointment = await tx.appointment.update({
-						data: {
-							deletedAt: new Date(),
-						},
-						where: { id },
-					});
-					await tx.transaction.create({
-						data: {
-							appointmentId: appointment.id,
-							type: TransactionType.DELETE,
-							userId: session.id,
-						},
-					});
-					deleted.push(appointment);
-				}
-				return deleted;
-			});
-			for (const appointment of appointments) {
-				cancelAppointmentUpdatedNotification(appointment.id);
-			}
+			// Cancel as soon as each row is marked deleted, not after the whole
+			// (potentially large) bulk transaction resolves — a wide gap here is
+			// what lets a pending 5s update-notification timer slip through for
+			// an appointment that's already soft-deleted.
+			const appointments = await setAppointmentsDeletedState(
+				ids,
+				new Date(),
+				TransactionType.DELETE,
+				session.id,
+				(appointment) => cancelAppointmentUpdatedNotification(appointment.id),
+			);
 			return {
 				data: appointments,
 				message: m.appointments_appointment_deleted_count({
@@ -814,7 +844,9 @@ export const getTrashAppointmentsPage = createServerFn()
 			const [appointments, matchedTotal, grandTotal] = await Promise.all([
 				prismaClient.appointment.findMany({
 					include: { season: true },
-					orderBy: { startDate: "desc" },
+					// `id` breaks ties between rows sharing a `startDate` so paging
+					// through skip/take can't duplicate or silently skip a row.
+					orderBy: [{ startDate: "desc" }, { id: "asc" }],
 					skip: data.skip,
 					take: data.take,
 					where,
@@ -846,26 +878,12 @@ export const bulkRestoreAppointments = createServerFn()
 		try {
 			const ids = await resolveSelectorIds(data, { not: null });
 
-			const appointments = await prismaClient.$transaction(async (tx) => {
-				const restored: Appointment[] = [];
-				for (const id of ids) {
-					const appointment = await tx.appointment.update({
-						data: {
-							deletedAt: null,
-						},
-						where: { id },
-					});
-					await tx.transaction.create({
-						data: {
-							appointmentId: appointment.id,
-							type: TransactionType.RESTORE,
-							userId: session.id,
-						},
-					});
-					restored.push(appointment);
-				}
-				return restored;
-			});
+			const appointments = await setAppointmentsDeletedState(
+				ids,
+				null,
+				TransactionType.RESTORE,
+				session.id,
+			);
 			return {
 				data: appointments,
 				message: m.appointments_appointment_restored_count({

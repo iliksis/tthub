@@ -12,13 +12,13 @@ import {
 	appointmentFilterSearchSchema,
 	appointmentListColumns,
 	BATCH_SIZE,
+	SelectionStatusBar,
 } from "@/components/appointments/appointmentListShared";
 import { LoadMoreFooter } from "@/components/appointments/LoadMoreFooter";
 import { DetailsList } from "@/components/DetailsList";
 import { FilterBar } from "@/components/FilterBar";
 import { RestoreModal } from "@/components/modal/RestoreModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { useAppointmentFilterList } from "@/hooks/useAppointmentFilterList";
 import { m } from "@/paraglide/messages";
 
@@ -170,54 +170,14 @@ function RouteComponent() {
 				onReset={onClearFilters}
 			/>
 
-			{matchedTotal > 0 && (
-				<div className="flex flex-wrap items-center gap-2 text-sm">
-					{selectAllMatching ? (
-						<>
-							<span className="text-muted-foreground">
-								{excludeIds.size > 0
-									? m.appointments_n_matching_excluded({
-											param1: selectedCount.toString(),
-											param2: excludeIds.size.toString(),
-										})
-									: m.appointments_n_matching_selected_count({
-											count: selectedCount,
-										})}
-							</span>
-							<Button
-								type="button"
-								variant="link"
-								size="sm"
-								className="h-auto p-0"
-								onClick={exitSelectAllMatching}
-							>
-								{m.common_clear_selection()}
-							</Button>
-						</>
-					) : (
-						<>
-							{selectedCount > 0 && (
-								<span className="text-muted-foreground">
-									{m.appointments_appointment_selected_count({
-										count: selectedCount,
-									})}
-								</span>
-							)}
-							<Button
-								type="button"
-								variant="link"
-								size="sm"
-								className="h-auto p-0"
-								onClick={enterSelectAllMatching}
-							>
-								{m.appointments_select_all_n_matching_filters({
-									param1: matchedTotal.toString(),
-								})}
-							</Button>
-						</>
-					)}
-				</div>
-			)}
+			<SelectionStatusBar
+				matchedTotal={matchedTotal}
+				selectAllMatching={selectAllMatching}
+				excludeCount={excludeIds.size}
+				selectedCount={selectedCount}
+				onExitSelectAllMatching={exitSelectAllMatching}
+				onEnterSelectAllMatching={enterSelectAllMatching}
+			/>
 
 			<div
 				className={isNavigating ? "pointer-events-none opacity-60" : undefined}

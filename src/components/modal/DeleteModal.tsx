@@ -1,12 +1,4 @@
-import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogClose,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { ConfirmModal } from "@/components/modal/ConfirmModal";
 import { m } from "@/paraglide/messages";
 
 type DeleteModalProps = {
@@ -23,24 +15,13 @@ export const DeleteModal = ({
 	onDelete,
 }: DeleteModalProps) => {
 	return (
-		<Dialog
+		<ConfirmModal
+			label={label}
 			open={open}
-			onOpenChange={(nextOpen) => {
-				if (!nextOpen) onClose();
-			}}
-		>
-			<DialogContent showCloseButton={false}>
-				<DialogTitle className="sr-only">{m.common_dialog()}</DialogTitle>
-				<DialogDescription>{label}</DialogDescription>
-				<DialogFooter>
-					<DialogClose render={<Button type="button" variant="outline" />}>
-						{m.common_close()}
-					</DialogClose>
-					<Button type="button" variant="destructive" onClick={onDelete}>
-						{m.common_delete()}
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+			onClose={onClose}
+			onConfirm={onDelete}
+			confirmLabel={m.common_delete()}
+			confirmVariant="destructive"
+		/>
 	);
 };
