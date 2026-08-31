@@ -747,21 +747,20 @@ async function setAppointmentsDeletedState(
 	const updated: Appointment[] = [];
 	for (const batch of chunk(ids, DELETED_STATE_CHUNK_SIZE)) {
 		const batchUpdated = await prismaClient.$transaction(async (tx) => {
-			const batchResults: Appointment[] = [];
-			for (const id of batch) {
-				const appointment = await tx.appointment.update({
-					data: { deletedAt },
-					where: { id },
-				});
-				await tx.transaction.create({
-					data: {
-						appointmentId: appointment.id,
-						type: transactionType,
-						userId,
-					},
-				});
-				batchResults.push(appointment);
-			}
+			await tx.appointment.updateMany({
+				data: { deletedAt },
+				where: { id: { in: batch } },
+			});
+			const batchResults = await tx.appointment.findMany({
+				where: { id: { in: batch } },
+			});
+			await tx.transaction.createMany({
+				data: batchResults.map((appointment) => ({
+					appointmentId: appointment.id,
+					type: transactionType,
+					userId,
+				})),
+			});
 			return batchResults;
 		});
 		// Only cancel each row's pending notification once its chunk has
