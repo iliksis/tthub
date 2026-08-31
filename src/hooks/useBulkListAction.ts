@@ -91,9 +91,12 @@ export function useBulkListAction<T extends { id: string }>({
 			setPending(null);
 			// The server processes a bulk action in chunks, each in its own
 			// transaction — a failure partway through can leave some rows
-			// already mutated even though this call threw. Resync from the
-			// server instead of leaving `items`/selection reflecting
-			// pre-action state that may no longer be accurate.
+			// already mutated even though this call threw. Clear selection
+			// state too, not just `items`: some previously-selected ids may no
+			// longer exist after the resync below, and there's no reliable way
+			// to tell here which ones were actually affected.
+			setExplicitSelection({});
+			exitSelectAllMatching();
 			await router.navigate({
 				replace: true,
 				search: {
