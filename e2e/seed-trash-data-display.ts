@@ -13,6 +13,14 @@ const SHORT_TITLE_PREFIX = "E2ETRASHDD-";
 async function main() {
 	await cleanupByShortTitlePrefix(SHORT_TITLE_PREFIX);
 
+	// `--cleanup-only` (used in an afterAll to leave no fixture data behind
+	// once the tests that need this fixture finish) stops here — the cleanup
+	// above already removed everything.
+	if (process.argv[2] === "--cleanup-only") {
+		console.log("✅ Cleaned up trash data-display fixture appointments");
+		return;
+	}
+
 	const season = await prismaClient.season.findFirstOrThrow({
 		where: { isActive: true },
 	});

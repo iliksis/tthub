@@ -472,6 +472,31 @@ function buildAppointmentsFilterWhere(
 	};
 }
 
+// Shared by getBulkAppointmentsPage and getTrashAppointmentsPage below — same
+// filter shape and query, only the `deletedAt` scope differs.
+async function getAppointmentsListPage(
+	data: BulkAppointmentsFilter & { skip: number; take: number },
+	deletedAt: Prisma.AppointmentWhereInput["deletedAt"],
+) {
+	const where = buildAppointmentsFilterWhere(data, deletedAt);
+
+	const [appointments, matchedTotal, grandTotal] = await Promise.all([
+		prismaClient.appointment.findMany({
+			include: { season: true },
+			// `id` breaks ties between rows sharing a `startDate` so paging
+			// through skip/take can't duplicate or silently skip a row.
+			orderBy: [{ startDate: "desc" }, { id: "asc" }],
+			skip: data.skip,
+			take: data.take,
+			where,
+		}),
+		prismaClient.appointment.count({ where }),
+		prismaClient.appointment.count({ where: { deletedAt } }),
+	]);
+
+	return { appointments, grandTotal, matchedTotal };
+}
+
 // Distinct from getAppointmentsPage: the bulk-management list is for
 // finding/deleting *any* appointment (including HOLIDAYs and past dates),
 // not the RSVP-centric upcoming list, so it isn't scoped to today-or-later
@@ -485,24 +510,8 @@ export const getBulkAppointmentsPage = createServerFn()
 		}
 
 		try {
-			const where = buildAppointmentsFilterWhere(data, null);
-
-			const [appointments, matchedTotal, grandTotal] = await Promise.all([
-				prismaClient.appointment.findMany({
-					include: { season: true },
-					// `id` breaks ties between rows sharing a `startDate` so paging
-					// through skip/take can't duplicate or silently skip a row.
-					orderBy: [{ startDate: "desc" }, { id: "asc" }],
-					skip: data.skip,
-					take: data.take,
-					where,
-				}),
-				prismaClient.appointment.count({ where }),
-				prismaClient.appointment.count({ where: { deletedAt: null } }),
-			]);
-
 			return {
-				data: { appointments, grandTotal, matchedTotal },
+				data: await getAppointmentsListPage(data, null),
 				message: m.appointments_appointments_found(),
 			};
 		} catch (e) {
@@ -621,23 +630,13 @@ export const deleteAppointment = createServerFn()
 		}
 
 		try {
-			const appointment = await prismaClient.$transaction(async (tx) => {
-				const appointment = await tx.appointment.update({
-					data: {
-						deletedAt: new Date(),
-					},
-					where: { id: data.id },
-				});
-				await tx.transaction.create({
-					data: {
-						appointmentId: appointment.id,
-						type: TransactionType.DELETE,
-						userId: session.id,
-					},
-				});
-				return appointment;
-			});
-			cancelAppointmentUpdatedNotification(appointment.id);
+			const [appointment] = await setAppointmentsDeletedState(
+				[data.id],
+				new Date(),
+				TransactionType.DELETE,
+				session.id,
+				(appointment) => cancelAppointmentUpdatedNotification(appointment.id),
+			);
 			return {
 				data: appointment,
 				message: m.appointments_appointment_deleted(),
@@ -868,8 +867,8 @@ export const bulkCopyAppointmentsToSeason = createServerFn()
 		}
 	});
 
-// The trash listing reuses BulkAppointmentsFilter/buildAppointmentsFilterWhere
-// above — same filter shape, only the `deletedAt` scope passed in differs.
+// The trash listing reuses BulkAppointmentsFilter/getAppointmentsListPage
+// above — same filter shape and query, only the `deletedAt` scope differs.
 export const getTrashAppointmentsPage = createServerFn()
 	.validator((d: BulkAppointmentsFilter & { skip: number; take: number }) => d)
 	.handler(async ({ data }) => {
@@ -879,26 +878,8 @@ export const getTrashAppointmentsPage = createServerFn()
 		}
 
 		try {
-			const where = buildAppointmentsFilterWhere(data, { not: null });
-
-			const [appointments, matchedTotal, grandTotal] = await Promise.all([
-				prismaClient.appointment.findMany({
-					include: { season: true },
-					// `id` breaks ties between rows sharing a `startDate` so paging
-					// through skip/take can't duplicate or silently skip a row.
-					orderBy: [{ startDate: "desc" }, { id: "asc" }],
-					skip: data.skip,
-					take: data.take,
-					where,
-				}),
-				prismaClient.appointment.count({ where }),
-				prismaClient.appointment.count({
-					where: { deletedAt: { not: null } },
-				}),
-			]);
-
 			return {
-				data: { appointments, grandTotal, matchedTotal },
+				data: await getAppointmentsListPage(data, { not: null }),
 				message: m.appointments_appointments_found(),
 			};
 		} catch (e) {
@@ -1226,22 +1207,12 @@ export const restoreAppointment = createServerFn()
 		}
 
 		try {
-			const appointment = await prismaClient.$transaction(async (tx) => {
-				const appointment = await tx.appointment.update({
-					data: {
-						deletedAt: null,
-					},
-					where: { id: data.id },
-				});
-				await tx.transaction.create({
-					data: {
-						appointmentId: appointment.id,
-						type: TransactionType.RESTORE,
-						userId: session.id,
-					},
-				});
-				return appointment;
-			});
+			const [appointment] = await setAppointmentsDeletedState(
+				[data.id],
+				null,
+				TransactionType.RESTORE,
+				session.id,
+			);
 			return {
 				data: appointment,
 				message: m.appointments_appointment_restored(),

@@ -16,6 +16,14 @@ async function main() {
 		where: { name: TARGET_SEASON_NAME },
 	});
 
+	// `--cleanup-only` (used in an afterAll to leave no fixture data behind
+	// once the "Copy to season" tests finish) stops here — the cleanup above
+	// already removed everything.
+	if (process.argv[2] === "--cleanup-only") {
+		console.log("✅ Cleaned up copy-to-season fixture appointments");
+		return;
+	}
+
 	const sourceSeason = await prismaClient.season.findFirstOrThrow({
 		where: { isActive: true },
 	});

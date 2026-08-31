@@ -67,7 +67,23 @@ export function useBulkListAction<T extends { id: string }>({
 			}
 			setIsConfirming(false);
 			setPending(null);
-			await router.invalidate();
+			// Navigate back to the first page (omitting `skip`) rather than a
+			// plain router.invalidate(): invalidate() re-runs the loader for the
+			// *current* skip, which only refetches whatever page the user was on
+			// — if they'd already paged past the first batch via "load more",
+			// `items` would keep the optimistic splice above with no way to
+			// reconcile it against the server for the rest of the list. Resetting
+			// to skip=0 forces useLoadMoreBatch's fresh-view path to fully resync
+			// `items` from authoritative data instead.
+			await router.navigate({
+				replace: true,
+				search: {
+					query: search.query,
+					seasonId: search.seasonId,
+					types: search.types,
+				},
+				to: ".",
+			});
 			toast.success(response.message);
 		} catch (err) {
 			toast.error((err as Error).message);

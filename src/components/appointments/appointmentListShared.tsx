@@ -384,17 +384,25 @@ export function MobileCommandDock<T>({
 	commandBarItems,
 	selectedItems,
 	visible,
+	isNavigating,
 }: {
 	commandBarItems: CommandBarItem<T>[];
 	selectedItems: T[];
 	visible: boolean;
+	isNavigating?: boolean;
 }) {
 	if (!visible || commandBarItems.length === 0) return null;
 
 	return (
-		<div className="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-border/60 border-t bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm lg:hidden">
+		<div
+			className={cn(
+				"fixed inset-x-0 bottom-0 z-40 flex gap-2 border-border/60 border-t bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm lg:hidden",
+				isNavigating && "pointer-events-none opacity-60",
+			)}
+		>
 			{commandBarItems.map((commandItem) => {
-				const isDisabled = commandItem.isDisabled?.(selectedItems);
+				const isDisabled =
+					isNavigating || commandItem.isDisabled?.(selectedItems);
 				const variant = commandBarButtonVariant(commandItem.variant);
 				return (
 					<Button

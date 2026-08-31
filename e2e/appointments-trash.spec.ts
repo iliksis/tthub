@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import { expect, type Page, test } from "@playwright/test";
-import { loginAs, readSummary } from "./helpers";
+import { loginAs, readRowTitle, readSummary } from "./helpers";
 
 const TRASH_QUERY = "E2ETRASH-";
 const DATA_DISPLAY_QUERY = "E2ETRASHDD-";
@@ -24,6 +24,13 @@ function seedTrashAppointments(count: number) {
 // see e2e/seed-trash-data-display.ts.
 function seedTrashDataDisplay() {
 	execSync("npx tsx e2e/seed-trash-data-display.ts", {
+		env: { ...process.env, DATABASE_URL: "file:./prisma/test.db" },
+		stdio: "inherit",
+	});
+}
+
+function cleanupTrashDataDisplay() {
+	execSync("npx tsx e2e/seed-trash-data-display.ts --cleanup-only", {
 		env: { ...process.env, DATABASE_URL: "file:./prisma/test.db" },
 		stdio: "inherit",
 	});
@@ -167,6 +174,12 @@ test.describe("Trash Route - Restore", () => {
 		seedTrashDataDisplay();
 	});
 
+	// Last describe block that needs this fixture — clean it up once these
+	// tests finish, matching the "Select All Matching Filters" blocks below.
+	test.afterAll(() => {
+		cleanupTrashDataDisplay();
+	});
+
 	test("selecting rows enables Restore selected, which clears deletedAt and logs a RESTORE journal entry", async ({
 		page,
 	}) => {
@@ -184,7 +197,7 @@ test.describe("Trash Route - Restore", () => {
 
 		const rows = page.locator("table tbody tr");
 		const rowsBefore = await rows.count();
-		const firstRowTitle = await rows.first().locator("a").first().textContent();
+		const firstRowTitle = await readRowTitle(rows.first());
 		await rows.first().getByRole("checkbox").click();
 
 		await expect(restoreButton).toBeEnabled();
@@ -244,7 +257,12 @@ test.describe("Trash Route - Select All Matching Filters", () => {
 		// The search input is debounced (300ms) before it navigates/re-filters;
 		// entering select-all-matching before that commit lands would have its
 		// state wiped by useBulkSelection's filterKey-change reset once the
-		// debounced navigation finally lands.
+		// debounced navigation finally lands. A plain waitForLoadState right
+		// after fill() isn't enough on its own — the debounce's setTimeout may
+		// not have fired yet, so the page can already look network-idle before
+		// the debounced request even starts; wait out the debounce window
+		// first, then for that request to actually finish.
+		await page.waitForTimeout(350);
 		await page.waitForLoadState("networkidle");
 
 		const rows = page.locator("table tbody tr");
@@ -289,6 +307,7 @@ test.describe("Trash Route - Select All Matching Filters", () => {
 		// See the comment in the previous test — wait for the debounced search
 		// navigation to settle before entering select-all-matching, or its state
 		// gets wiped once that navigation lands.
+		await page.waitForTimeout(350);
 		await page.waitForLoadState("networkidle");
 
 		await page
@@ -296,7 +315,7 @@ test.describe("Trash Route - Select All Matching Filters", () => {
 			.click();
 
 		const rows = page.locator("table tbody tr");
-		const firstRowTitle = await rows.first().locator("a").first().textContent();
+		const firstRowTitle = await readRowTitle(rows.first());
 		await rows.first().getByRole("checkbox").click();
 
 		await expect(page.getByText("29 passend, 1 ausgeschlossen")).toBeVisible();
@@ -361,6 +380,7 @@ test.describe("Trash Route - Select All Matching Filters", () => {
 
 		await searchInput(page).fill(TRASH_QUERY);
 		await expect(page.getByText(/^5 von \d+ Ereignissen/)).toBeVisible();
+		await page.waitForTimeout(350);
 		await page.waitForLoadState("networkidle");
 
 		await page

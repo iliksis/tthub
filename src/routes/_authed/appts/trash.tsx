@@ -223,6 +223,7 @@ function RouteComponent() {
 				commandBarItems={commandBarItems}
 				selectedItems={selectedItems}
 				visible={selectedCount > 0}
+				isNavigating={isNavigating}
 			/>
 
 			<LoadMoreFooter

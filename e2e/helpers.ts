@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { prismaClient } from "../src/lib/db";
 
 /**
@@ -115,4 +115,14 @@ export async function readSummary(page: Page) {
 		matched: Number(text?.match(/^(\d+) von/)?.[1]),
 		total: Number(text?.match(/von (\d+) Ereignissen/)?.[1]),
 	};
+}
+
+/**
+ * Reads the appointment title link text out of a bulk/trash table row.
+ * Shared by the tests in appointments-bulk.spec.ts/appointments-trash.spec.ts
+ * that grab a row's title before acting on it, to later confirm the same row
+ * elsewhere (e.g. the journal).
+ */
+export async function readRowTitle(row: Locator) {
+	return row.locator("a").first().textContent();
 }
