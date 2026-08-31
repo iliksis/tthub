@@ -205,8 +205,15 @@ function RouteComponent() {
 	const commandBarItems: CommandBarItem<AppointmentWithSeason>[] = [
 		{
 			icon: <CopyIcon className="size-4" />,
+			// `selected` reflects the currently loaded rows that are part of the
+			// selection (see useBulkSelection's `selection` memo, which marks all
+			// loaded items as selected minus excludeIds when selectAllMatching is
+			// on) — checking it the same way in both modes means "select all
+			// matching" filtered down to an all-HOLIDAY result (seasonId: null)
+			// correctly disables Copy instead of opening a modal that copies
+			// nothing.
 			isDisabled: (selected) =>
-				!selectAllMatching && !selected.some((item) => item.seasonId !== null),
+				!selected.some((item) => item.seasonId !== null),
 			key: "copy-to-season",
 			label: m.appointments_copy_to_season(),
 			onClick: (selected) => {
