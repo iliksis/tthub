@@ -181,6 +181,23 @@ function RouteComponent() {
 			toast.success(response.message);
 		} catch (err) {
 			toast.error((err as Error).message);
+			setIsConfirmingCopy(false);
+			setPendingCopy(null);
+			// See useBulkListAction's catch: a partial failure can leave some rows
+			// already mutated even though this call threw, and there's no reliable
+			// way to tell here which ones — clear selection state and resync from
+			// the server instead of leaving a stale selection in place.
+			setExplicitSelection({});
+			exitSelectAllMatching();
+			await router.navigate({
+				replace: true,
+				search: {
+					query: search.query,
+					seasonId: search.seasonId,
+					types: search.types,
+				},
+				to: ".",
+			});
 		}
 	};
 
