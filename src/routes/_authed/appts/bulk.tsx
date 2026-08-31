@@ -28,6 +28,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAppointmentFilterList } from "@/hooks/useAppointmentFilterList";
 import { useBulkListAction } from "@/hooks/useBulkListAction";
 import { useMutation } from "@/hooks/useMutation";
+import { AppointmentType } from "@/lib/prisma/enums";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -205,15 +206,20 @@ function RouteComponent() {
 	const commandBarItems: CommandBarItem<AppointmentWithSeason>[] = [
 		{
 			icon: <CopyIcon className="size-4" />,
-			// `selected` reflects the currently loaded rows that are part of the
-			// selection (see useBulkSelection's `selection` memo, which marks all
-			// loaded items as selected minus excludeIds when selectAllMatching is
-			// on) — checking it the same way in both modes means "select all
-			// matching" filtered down to an all-HOLIDAY result (seasonId: null)
-			// correctly disables Copy instead of opening a modal that copies
-			// nothing.
+			// In explicit-selection mode `selected` is exactly what the user
+			// checked, so checking it directly is precise. In select-all-matching
+			// mode `selected` only reflects the *loaded* page (see
+			// useBulkSelection's `selection` memo) — the full matching set can be
+			// much larger, so a loaded page that happens to be all-HOLIDAY isn't
+			// proof the whole set is uncopyable. There we only disable when the
+			// active type filter itself guarantees every matching row is HOLIDAY
+			// (seasonId: null); otherwise leave it enabled and let the server's
+			// "copied X, skipped Y" response report the outcome.
 			isDisabled: (selected) =>
-				!selected.some((item) => item.seasonId !== null),
+				selectAllMatching
+					? search.types?.length === 1 &&
+						search.types[0] === AppointmentType.HOLIDAY
+					: !selected.some((item) => item.seasonId !== null),
 			key: "copy-to-season",
 			label: m.appointments_copy_to_season(),
 			onClick: (selected) => {
