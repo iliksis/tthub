@@ -1,11 +1,11 @@
 import { useRouter, useRouterState } from "@tanstack/react-router";
-import React from "react";
 import {
 	ALL_SEASONS,
 	typeFilterOptions,
 } from "@/components/appointments/appointmentListShared";
 import type { FilterBarSegment } from "@/components/FilterBar";
 import { useBulkSelection } from "@/hooks/useBulkSelection";
+import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
 import type { AppointmentType } from "@/lib/prisma/enums";
 import { m } from "@/paraglide/messages";
@@ -41,37 +41,25 @@ export function useAppointmentFilterList<T>({
 	const router = useRouter();
 	const isNavigating = useRouterState({ select: (s) => s.isLoading });
 
-	const [queryInput, setQueryInput] = React.useState(search.query ?? "");
-
 	const filterKey = `${search.query ?? ""}|${search.seasonId ?? ""}|${(search.types ?? []).join(",")}`;
 	const { items, setItems } = useLoadMoreBatch(batch, skip, filterKey);
 
 	const selection = useBulkSelection(items, matchedTotal, filterKey, getItemId);
 
-	const searchRef = React.useRef(search);
-	searchRef.current = search;
-	const routerRef = React.useRef(router);
-	routerRef.current = router;
-
-	// Debounced so typing doesn't fire a loader request per keystroke; the
-	// input itself still updates instantly for a responsive feel.
-	React.useEffect(() => {
-		const timeout = setTimeout(() => {
-			const current = searchRef.current;
-			if (queryInput !== (current.query ?? "")) {
-				routerRef.current.navigate({
-					replace: true,
-					search: {
-						query: queryInput || undefined,
-						seasonId: current.seasonId,
-						types: current.types,
-					},
-					to: ".",
-				});
-			}
-		}, 300);
-		return () => clearTimeout(timeout);
-	}, [queryInput]);
+	const { queryInput, setQueryInput } = useDebouncedSearch(
+		search.query,
+		(value) => {
+			router.navigate({
+				replace: true,
+				search: {
+					query: value || undefined,
+					seasonId: search.seasonId,
+					types: search.types,
+				},
+				to: ".",
+			});
+		},
+	);
 
 	const onSeasonChange = (value: string) => {
 		router.navigate({

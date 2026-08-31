@@ -25,7 +25,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import { AppointmentType } from "@/lib/prisma/enums";
-import { cn } from "@/lib/utils";
+import { cn, formatShortDate } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 export const BATCH_SIZE = 25;
@@ -49,14 +49,6 @@ export const appointmentFilterSearchSchema = z.object({
 	skip: z.number().int().nonnegative().optional(),
 	types: z.array(z.nativeEnum(AppointmentType)).optional(),
 });
-
-function formatDate(date: Date | string) {
-	return new Date(date).toLocaleDateString("de-DE", {
-		day: "2-digit",
-		month: "2-digit",
-		year: "2-digit",
-	});
-}
 
 const appointmentTypeIcon: Record<AppointmentType, typeof TrophyIcon> = {
 	HOLIDAY: CalendarOffIcon,
@@ -89,7 +81,7 @@ export const appointmentListColumns: DetailsListColumn<AppointmentWithSeason>[] 
 		{
 			key: "startDate",
 			label: m.appointments_startdate(),
-			render: (item) => formatDate(item.startDate),
+			render: (item) => formatShortDate(item.startDate),
 		},
 		{
 			key: "location",
@@ -360,7 +352,7 @@ export function AppointmentCardList({
 									<Icon className="size-3.5" />
 									{appointmentTypeLabel[item.type]}
 								</span>
-								<span>{formatDate(item.startDate)}</span>
+								<span>{formatShortDate(item.startDate)}</span>
 								{item.season && <span>{item.season.name}</span>}
 								{item.location && (
 									<span className="truncate">{item.location}</span>

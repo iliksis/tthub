@@ -48,7 +48,12 @@ import { Link as EntityLink } from "@/components/ui/link";
 import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
 import { buildMonthGrid } from "@/lib/calendarGrid";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
-import { cn, isDayInPast, isInformationalAppointmentType } from "@/lib/utils";
+import {
+	cn,
+	formatShortDate,
+	isDayInPast,
+	isInformationalAppointmentType,
+} from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
@@ -526,14 +531,6 @@ function RouteComponent() {
 	);
 }
 
-function formatDate(date: Date | string) {
-	return new Date(date).toLocaleDateString("de-DE", {
-		day: "2-digit",
-		month: "2-digit",
-		year: "2-digit",
-	});
-}
-
 function formatTime(date: Date | string) {
 	return new Date(date).toLocaleTimeString("de-DE", {
 		hour: "2-digit",
@@ -763,7 +760,7 @@ const AppointmentTimeline = ({
 														{formatTime(item.startDate)}
 													</span>
 													{isMultipleDays && item.endDate && (
-														<span>– {formatDate(item.endDate)}</span>
+														<span>– {formatShortDate(item.endDate)}</span>
 													)}
 													{item.location && (
 														<span className="inline-flex items-center gap-1">

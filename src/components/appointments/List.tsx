@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
+import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import type { Appointment, Response, Season, Team } from "@/lib/prisma/client";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -57,7 +58,6 @@ function toggleInList<T>(list: T[] | undefined, value: T): T[] | undefined {
 // navigation per keystroke, everything else navigates on change.
 const useAppointmentLiveFilters = (props: FiltersProps) => {
 	const router = useRouter();
-	const [queryInput, setQueryInput] = React.useState(props.query ?? "");
 
 	const navigate = React.useCallback(
 		(next: Partial<FiltersProps>) => {
@@ -70,19 +70,10 @@ const useAppointmentLiveFilters = (props: FiltersProps) => {
 		[router, props],
 	);
 
-	const navigateRef = React.useRef(navigate);
-	navigateRef.current = navigate;
-	const propsQueryRef = React.useRef(props.query);
-	propsQueryRef.current = props.query;
-
-	React.useEffect(() => {
-		const timeout = setTimeout(() => {
-			if (queryInput !== (propsQueryRef.current ?? "")) {
-				navigateRef.current({ query: queryInput || undefined });
-			}
-		}, 300);
-		return () => clearTimeout(timeout);
-	}, [queryInput]);
+	const { queryInput, setQueryInput } = useDebouncedSearch(
+		props.query,
+		(value) => navigate({ query: value || undefined }),
+	);
 
 	const setTypeGroup = (key: TypeGroup) =>
 		navigate({

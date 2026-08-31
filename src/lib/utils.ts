@@ -74,6 +74,17 @@ const relativeTimeFormat = new Intl.RelativeTimeFormat("de-DE", {
 });
 
 /**
+ * Formats a date as a short DD.MM.YY string.
+ */
+export function formatShortDate(date: Date | string) {
+	return new Date(date).toLocaleDateString("de-DE", {
+		day: "2-digit",
+		month: "2-digit",
+		year: "2-digit",
+	});
+}
+
+/**
  * Formats a date as a relative time string (e.g. "vor 5 Minuten", "gestern").
  */
 export const formatRelativeTime = (date: Date | string) => {
