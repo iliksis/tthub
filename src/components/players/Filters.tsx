@@ -20,6 +20,7 @@ import {
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
+import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import type { Team } from "@/lib/prisma/client";
 import { calculateAgeGroup } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -57,7 +58,6 @@ const teamOptions = (teams: Team[]) => [
 // (src/components/appointments/List.tsx).
 const usePlayerLiveFilters = (props: FiltersProps) => {
 	const router = useRouter();
-	const [queryInput, setQueryInput] = React.useState(props.query ?? "");
 
 	const navigate = React.useCallback(
 		(next: Partial<FiltersProps>) => {
@@ -70,15 +70,10 @@ const usePlayerLiveFilters = (props: FiltersProps) => {
 		[router, props],
 	);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: only re-runs when the local input changes; navigate/props.query are read, not resynced on
-	React.useEffect(() => {
-		const timeout = setTimeout(() => {
-			if (queryInput !== (props.query ?? "")) {
-				navigate({ query: queryInput || undefined });
-			}
-		}, 300);
-		return () => clearTimeout(timeout);
-	}, [queryInput]);
+	const { queryInput, setQueryInput } = useDebouncedSearch(
+		props.query,
+		(value) => navigate({ query: value || undefined }),
+	);
 
 	const onClear = () => {
 		setQueryInput("");

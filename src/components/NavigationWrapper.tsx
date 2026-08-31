@@ -5,9 +5,11 @@ import {
 	CalendarsIcon,
 	HistoryIcon,
 	HouseIcon,
+	ListChecksIcon,
 	LogOutIcon,
 	Settings2Icon,
 	ShieldIcon,
+	Trash2Icon,
 	UsersIcon,
 } from "lucide-react";
 import React from "react";
@@ -68,6 +70,18 @@ const navigationItems: NavigationItem[] = [
 				icon: HistoryIcon,
 				isHidden: (role) => role === "USER",
 				name: m.common_journal(),
+			},
+			{
+				href: "/appts/bulk",
+				icon: ListChecksIcon,
+				isHidden: (role) => role === "USER",
+				name: m.appointments_bulk_management(),
+			},
+			{
+				href: "/appts/trash",
+				icon: Trash2Icon,
+				isHidden: (role) => role === "USER",
+				name: m.appointments_trash(),
 			},
 		],
 		icon: CalendarsIcon,

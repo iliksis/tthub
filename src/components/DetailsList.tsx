@@ -84,9 +84,18 @@ type DetailsListProps<T> = {
 	// whatever rows happen to be loaded client-side.
 	sorting?: SortingState;
 	onSortingChange?: (sorting: SortingState) => void;
+	// When provided, row selection is controlled by the parent (e.g. to
+	// implement a "select all matching filters" mode spanning rows beyond
+	// what's currently loaded) instead of being tracked internally.
+	selection?: RowSelectionState;
+	onSelectionChange?: (
+		updater:
+			| RowSelectionState
+			| ((old: RowSelectionState) => RowSelectionState),
+	) => void;
 };
 
-const commandBarButtonVariant = (
+export const commandBarButtonVariant = (
 	variant: CommandBarItem<unknown>["variant"],
 ) => {
 	if (variant === "error") return "destructive" as const;
@@ -107,12 +116,23 @@ export function DetailsList<T extends RowData>({
 	selectMode = "multiple",
 	sorting: controlledSorting,
 	onSortingChange,
+	selection: controlledSelection,
+	onSelectionChange,
 }: DetailsListProps<T>) {
 	const [internalSorting, setInternalSorting] = React.useState<SortingState>(
 		[],
 	);
 	const sorting = controlledSorting ?? internalSorting;
-	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+	const [internalRowSelection, setInternalRowSelection] =
+		React.useState<RowSelectionState>({});
+	const rowSelection = controlledSelection ?? internalRowSelection;
+	const applySelection = onSelectionChange ?? setInternalRowSelection;
+	// Anchor for shift-click range selection, tracking the last row that was
+	// explicitly (non-shift) selected/deselected.
+	const lastSelectedRowIdRef = React.useRef<string | null>(null);
+	// Indirection so the checkbox column (defined before `table` exists) can
+	// call the range-selection logic (defined after `table` exists).
+	const selectRangeRef = React.useRef<(targetRowId: string) => void>(() => {});
 
 	// Convert custom columns to TanStack Table column definitions
 	const tableColumns = React.useMemo<ColumnDef<typeof features, T>[]>(() => {
@@ -124,7 +144,15 @@ export function DetailsList<T extends RowData>({
 				cell: ({ row }) => (
 					<Checkbox
 						checked={row.getIsSelected()}
-						onCheckedChange={(checked) => row.toggleSelected(checked === true)}
+						onCheckedChange={(checked, eventDetails) => {
+							const nativeEvent = eventDetails.event as MouseEvent | undefined;
+							if (selectMode === "multiple" && nativeEvent?.shiftKey) {
+								selectRangeRef.current?.(row.id);
+							} else {
+								row.toggleSelected(checked === true);
+								lastSelectedRowIdRef.current = row.id;
+							}
+						}}
 						onClick={(e) => e.stopPropagation()}
 					/>
 				),
@@ -194,12 +222,12 @@ export function DetailsList<T extends RowData>({
 				if (selectedIds.length > 1) {
 					// Keep only the most recently selected
 					const lastSelected = selectedIds[selectedIds.length - 1];
-					setRowSelection({ [lastSelected]: true });
+					applySelection({ [lastSelected]: true });
 				} else {
-					setRowSelection(newSelection);
+					applySelection(newSelection);
 				}
 			} else {
-				setRowSelection(updater);
+				applySelection(updater);
 			}
 		},
 		onSortingChange: (updater) => {
@@ -220,6 +248,37 @@ export function DetailsList<T extends RowData>({
 		.getSelectedRowModel()
 		.rows.map((row) => row.original);
 
+	// Selects every row between the last explicitly (non-shift) clicked row
+	// and `targetRowId`, in the table's current display order, without
+	// disturbing selections outside that range.
+	const selectRange = React.useCallback(
+		(targetRowId: string) => {
+			const rows = table.getRowModel().rows;
+			const anchorId = lastSelectedRowIdRef.current;
+			const anchorIndex = anchorId
+				? rows.findIndex((r) => r.id === anchorId)
+				: -1;
+			const targetIndex = rows.findIndex((r) => r.id === targetRowId);
+			if (targetIndex === -1) return;
+			if (anchorIndex === -1) {
+				rows[targetIndex].toggleSelected();
+				lastSelectedRowIdRef.current = targetRowId;
+				return;
+			}
+			const start = Math.min(anchorIndex, targetIndex);
+			const end = Math.max(anchorIndex, targetIndex);
+			applySelection((old) => {
+				const next = { ...old };
+				for (let i = start; i <= end; i++) {
+					next[rows[i].id] = true;
+				}
+				return next;
+			});
+		},
+		[table, applySelection],
+	);
+	selectRangeRef.current = selectRange;
+
 	const handleItemClick = (
 		row: ReturnType<typeof table.getRowModel>["rows"][number],
 		e: React.MouseEvent,
@@ -234,8 +293,13 @@ export function DetailsList<T extends RowData>({
 		) {
 			return;
 		}
+		if (selectMode === "multiple" && e.shiftKey) {
+			selectRange(row.id);
+			return;
+		}
 		if (selectMode !== "none") {
 			row.toggleSelected();
+			lastSelectedRowIdRef.current = row.id;
 		}
 		if (onItemClick) {
 			onItemClick(row.original);
@@ -415,6 +479,11 @@ export function DetailsList<T extends RowData>({
 										"h-10 cursor-pointer",
 										row.getIsSelected() && "bg-muted",
 									)}
+									onMouseDown={(e) => {
+										// Avoid the browser's native text-selection drag when
+										// shift-clicking to select a range of rows.
+										if (e.shiftKey) e.preventDefault();
+									}}
 									onClick={(e) => handleItemClick(row, e)}
 								>
 									{children}

@@ -105,6 +105,31 @@ test.describe("Appointments - Data Display", () => {
 	});
 });
 
+test.describe("Appointments - Filters", () => {
+	test("the desktop filter bar no longer shows a show-deleted toggle", async ({
+		page,
+	}) => {
+		await loginAs(page, "admin");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		await expect(page.getByText("Gelöschte anzeigen?")).not.toBeVisible();
+		await expect(page.getByText("Inkl. gelöschte")).not.toBeVisible();
+	});
+
+	test("the mobile filter sheet no longer shows a show-deleted checkbox", async ({
+		page,
+	}) => {
+		await page.setViewportSize({ height: 800, width: 500 });
+		await loginAs(page, "admin");
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+
+		await page.getByRole("button", { name: "Filter" }).click();
+		await expect(page.getByText("Gelöschte anzeigen?")).not.toBeVisible();
+	});
+});
+
 test.describe("Appointments - Edit Functionality", () => {
 	test("ADMIN can edit an appointment", async ({ page }) => {
 		await loginAs(page, "admin");

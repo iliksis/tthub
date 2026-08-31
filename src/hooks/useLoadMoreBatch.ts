@@ -8,18 +8,31 @@ import React from "react";
 // an input changes without a useEffect round-trip. `appended` exposes just
 // the newly-appended slice (empty on a fresh view) for callers that want to
 // highlight newly loaded rows.
+//
+// `skip === 0` also resyncs on a new `batch` reference even when filterKey/skip
+// are unchanged — needed for `router.invalidate()` after a mutation (e.g. a
+// bulk action), which re-runs the loader for the same URL/search and would
+// otherwise leave `items` stuck on whatever a caller locally spliced it to.
 export function useLoadMoreBatch<T>(
 	batch: T[],
 	skip: number,
 	filterKey: string,
 ) {
 	const [items, setItems] = React.useState<T[]>(batch);
-	const [appliedLoad, setAppliedLoad] = React.useState({ filterKey, skip });
+	const [appliedLoad, setAppliedLoad] = React.useState({
+		batch,
+		filterKey,
+		skip,
+	});
 	const [appended, setAppended] = React.useState<T[]>([]);
 
-	if (appliedLoad.filterKey !== filterKey || appliedLoad.skip !== skip) {
+	if (
+		appliedLoad.filterKey !== filterKey ||
+		appliedLoad.skip !== skip ||
+		(skip === 0 && appliedLoad.batch !== batch)
+	) {
 		const isFreshView = skip === 0 || appliedLoad.filterKey !== filterKey;
-		setAppliedLoad({ filterKey, skip });
+		setAppliedLoad({ batch, filterKey, skip });
 		setItems((prev) => (isFreshView ? batch : [...prev, ...batch]));
 		setAppended(isFreshView ? [] : batch);
 	}

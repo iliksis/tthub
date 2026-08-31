@@ -17,8 +17,8 @@ const responseBadgeVariant: Record<
 };
 
 const responseBadgeLabel: Record<string, string> = {
-	[ResponseType.ACCEPT]: m.common_accept(),
-	[ResponseType.DECLINE]: m.common_decline(),
+	[ResponseType.ACCEPT]: m.common_accepted(),
+	[ResponseType.DECLINE]: m.common_declined(),
 	[ResponseType.MAYBE]: m.common_maybe(),
 };
 
@@ -49,7 +49,10 @@ export function ResponsesPanel({
 	);
 
 	return (
-		<Section title={m.appointments_responses()}>
+		<Section
+			title={m.appointments_responses()}
+			className={cn(visible.length === 0 && "hidden lg:block")}
+		>
 			{showActions && (
 				<div className="mb-4 grid grid-cols-3 gap-2">
 					<Button
@@ -94,7 +97,7 @@ export function ResponsesPanel({
 				</div>
 			)}
 
-			<ul className="flex flex-col gap-2 border-border/60 border-t pt-3">
+			<ul className="flex flex-col gap-2 border-border/60 lg:border-t pt-3">
 				{visible.map((r) => {
 					const userColor = createColorForUserId(r.userId);
 					return (

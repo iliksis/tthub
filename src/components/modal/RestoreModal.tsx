@@ -1,27 +1,26 @@
 import { ConfirmModal } from "@/components/modal/ConfirmModal";
 import { m } from "@/paraglide/messages";
 
-type DeleteModalProps = {
+type RestoreModalProps = {
 	label: string;
 	open: boolean;
 	onClose: () => void;
-	onDelete: () => void;
+	onRestore: () => void;
 };
 
-export const DeleteModal = ({
+export const RestoreModal = ({
 	label,
 	open,
 	onClose,
-	onDelete,
-}: DeleteModalProps) => {
+	onRestore,
+}: RestoreModalProps) => {
 	return (
 		<ConfirmModal
 			label={label}
 			open={open}
 			onClose={onClose}
-			onConfirm={onDelete}
-			confirmLabel={m.common_delete()}
-			confirmVariant="destructive"
+			onConfirm={onRestore}
+			confirmLabel={m.common_restore()}
 		/>
 	);
 };

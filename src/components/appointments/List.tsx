@@ -4,12 +4,12 @@ import React from "react";
 import { z } from "zod";
 import { FilterBar, type FilterBarSegment } from "@/components/FilterBar";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
+import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import type { Appointment, Response, Season, Team } from "@/lib/prisma/client";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -20,7 +20,6 @@ export const getUserResponse = (
 ) => item.responses?.find((r) => r.userId === userId)?.responseType ?? "MAYBE";
 
 export const filterSchema = z.object({
-	deleted: z.boolean().optional(),
 	query: z.string().optional(),
 	responses: z.array(z.enum(["ACCEPT", "MAYBE", "DECLINE", "NONE"])).optional(),
 	seasonId: z.string().optional(),
@@ -59,7 +58,6 @@ function toggleInList<T>(list: T[] | undefined, value: T): T[] | undefined {
 // navigation per keystroke, everything else navigates on change.
 const useAppointmentLiveFilters = (props: FiltersProps) => {
 	const router = useRouter();
-	const [queryInput, setQueryInput] = React.useState(props.query ?? "");
 
 	const navigate = React.useCallback(
 		(next: Partial<FiltersProps>) => {
@@ -72,19 +70,10 @@ const useAppointmentLiveFilters = (props: FiltersProps) => {
 		[router, props],
 	);
 
-	const navigateRef = React.useRef(navigate);
-	navigateRef.current = navigate;
-	const propsQueryRef = React.useRef(props.query);
-	propsQueryRef.current = props.query;
-
-	React.useEffect(() => {
-		const timeout = setTimeout(() => {
-			if (queryInput !== (propsQueryRef.current ?? "")) {
-				navigateRef.current({ query: queryInput || undefined });
-			}
-		}, 300);
-		return () => clearTimeout(timeout);
-	}, [queryInput]);
+	const { queryInput, setQueryInput } = useDebouncedSearch(
+		props.query,
+		(value) => navigate({ query: value || undefined }),
+	);
 
 	const setTypeGroup = (key: TypeGroup) =>
 		navigate({
@@ -103,8 +92,7 @@ const useAppointmentLiveFilters = (props: FiltersProps) => {
 		!!props.query ||
 		!!props.typeGroup ||
 		!!props.responses?.length ||
-		!!props.teamIds?.length ||
-		!!props.deleted;
+		!!props.teamIds?.length;
 
 	const onClear = () => {
 		setQueryInput("");
@@ -154,7 +142,7 @@ function TypeGroupTabs({
 	);
 }
 
-function FilterPill({
+export function FilterPill({
 	active,
 	onClick,
 	children,
@@ -259,14 +247,6 @@ export const CommandBarFilters = (props: FiltersProps & SeasonFiltersProps) => {
 			values: search.teamIds ?? [],
 		});
 	}
-	segments.push({
-		active: !!search.deleted,
-		key: "deleted",
-		label: m.appointments_show_deleted(),
-		onToggle: () => navigate({ deleted: search.deleted ? undefined : true }),
-		tokenLabel: m.appointments_incl_deleted(),
-		type: "toggle",
-	});
 
 	return (
 		<FilterBar
@@ -299,12 +279,10 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 	const secondaryActive =
 		!!search.typeGroup ||
 		!!search.responses?.length ||
-		!!search.teamIds?.length ||
-		!!search.deleted;
+		!!search.teamIds?.length;
 
 	const clearSecondary = () =>
 		navigate({
-			deleted: undefined,
 			responses: undefined,
 			teamIds: undefined,
 			typeGroup: undefined,
@@ -432,20 +410,6 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 								</div>
 							</fieldset>
 						)}
-
-						<label
-							htmlFor="mobile-filters-deleted"
-							className="flex items-center gap-2 text-sm text-muted-foreground"
-						>
-							<Checkbox
-								id="mobile-filters-deleted"
-								checked={search.deleted ?? false}
-								onCheckedChange={(checked) =>
-									navigate({ deleted: checked === true ? true : undefined })
-								}
-							/>
-							{m.appointments_show_deleted()}
-						</label>
 					</div>
 				</SheetContent>
 			</Sheet>
