@@ -165,7 +165,19 @@ function RouteComponent() {
 			}
 			setIsConfirmingCopy(false);
 			setPendingCopy(null);
-			await router.invalidate();
+			// See useBulkListAction's `run`: a plain router.invalidate() only
+			// refetches the current `skip`, which can't reconcile `items` against
+			// a changed `matchedTotal` after paging via "load more" — reset to
+			// skip=0 instead so useLoadMoreBatch fully resyncs from fresh data.
+			await router.navigate({
+				replace: true,
+				search: {
+					query: search.query,
+					seasonId: search.seasonId,
+					types: search.types,
+				},
+				to: ".",
+			});
 			toast.success(response.message);
 		} catch (err) {
 			toast.error((err as Error).message);

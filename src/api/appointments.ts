@@ -630,8 +630,16 @@ export const deleteAppointment = createServerFn()
 		}
 
 		try {
+			// Re-verify the appointment is still active (deletedAt: null) before
+			// acting, same as the bulk path — without this, calling delete twice
+			// on an already-deleted appointment (e.g. a stale tab) would silently
+			// succeed again and write a second DELETE Transaction audit row.
+			const ids = await resolveSelectorIds({ ids: [data.id] }, null);
+			if (ids.length === 0) {
+				throw new Error(m.appointments_appointment_not_found());
+			}
 			const [appointment] = await setAppointmentsDeletedState(
-				[data.id],
+				ids,
 				new Date(),
 				TransactionType.DELETE,
 				session.id,
@@ -670,6 +678,10 @@ async function resolveSelectorIds(
 	data: AppointmentSelector,
 	deletedAt: Prisma.AppointmentWhereInput["deletedAt"],
 ) {
+	// For an explicit `ids` selector this list feeds directly into the `in`
+	// clause below, so check it up front too — but for a `matching` selector
+	// this only measures the exclude-list, not how many rows actually match,
+	// so it can't be the only check (see the resolved-count check below).
 	const idListSize = "ids" in data ? data.ids.length : data.excludeIds.length;
 	if (idListSize > MAX_BULK_SELECTION_IDS) {
 		throw new Error(
@@ -692,6 +704,17 @@ async function resolveSelectorIds(
 		select: { id: true },
 		where,
 	});
+
+	// The check above can't bound a "matching" selector's resolved count (an
+	// empty/small `excludeIds` says nothing about how many rows match), so
+	// check the actual resolved list too — this is what feeds the unchunked
+	// `id: { in: ids } }` query in bulkCopyAppointmentsToSeason downstream.
+	if (appointments.length > MAX_BULK_SELECTION_IDS) {
+		throw new Error(
+			m.appointments_bulk_selection_too_large({ max: MAX_BULK_SELECTION_IDS }),
+		);
+	}
+
 	return appointments.map((appointment) => appointment.id);
 }
 
@@ -730,7 +753,6 @@ async function setAppointmentsDeletedState(
 					data: { deletedAt },
 					where: { id },
 				});
-				onEachUpdated?.(appointment);
 				await tx.transaction.create({
 					data: {
 						appointmentId: appointment.id,
@@ -742,6 +764,14 @@ async function setAppointmentsDeletedState(
 			}
 			return batchResults;
 		});
+		// Only cancel each row's pending notification once its chunk has
+		// actually committed — `onEachUpdated` is a non-transactional in-memory
+		// side effect (clearing a debounce timer), so calling it from inside
+		// the transaction would permanently drop a real notification for a row
+		// whose chunk later rolls back.
+		for (const appointment of batchUpdated) {
+			onEachUpdated?.(appointment);
+		}
 		updated.push(...batchUpdated);
 	}
 	return updated;
@@ -758,10 +788,11 @@ export const bulkDeleteAppointments = createServerFn()
 		try {
 			const ids = await resolveSelectorIds(data, null);
 
-			// Cancel as soon as each row is marked deleted, not after the whole
-			// (potentially large) bulk transaction resolves — a wide gap here is
-			// what lets a pending 5s update-notification timer slip through for
-			// an appointment that's already soft-deleted.
+			// Cancel each row's pending update-notification once its chunk
+			// commits, not after the whole (potentially large) bulk action
+			// resolves — a wide gap here is what lets a pending 5s
+			// update-notification timer slip through for an appointment
+			// that's already soft-deleted.
 			const appointments = await setAppointmentsDeletedState(
 				ids,
 				new Date(),
@@ -1207,8 +1238,16 @@ export const restoreAppointment = createServerFn()
 		}
 
 		try {
+			// Re-verify the appointment is still deleted before acting, same as
+			// the bulk path — without this, calling restore twice on an
+			// already-active appointment would silently succeed again and write
+			// a second RESTORE Transaction audit row.
+			const ids = await resolveSelectorIds({ ids: [data.id] }, { not: null });
+			if (ids.length === 0) {
+				throw new Error(m.appointments_appointment_not_found());
+			}
 			const [appointment] = await setAppointmentsDeletedState(
-				[data.id],
+				ids,
 				null,
 				TransactionType.RESTORE,
 				session.id,

@@ -87,6 +87,22 @@ export function useBulkListAction<T extends { id: string }>({
 			toast.success(response.message);
 		} catch (err) {
 			toast.error((err as Error).message);
+			setIsConfirming(false);
+			setPending(null);
+			// The server processes a bulk action in chunks, each in its own
+			// transaction — a failure partway through can leave some rows
+			// already mutated even though this call threw. Resync from the
+			// server instead of leaving `items`/selection reflecting
+			// pre-action state that may no longer be accurate.
+			await router.navigate({
+				replace: true,
+				search: {
+					query: search.query,
+					seasonId: search.seasonId,
+					types: search.types,
+				},
+				to: ".",
+			});
 		}
 	};
 
