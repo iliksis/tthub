@@ -27,6 +27,7 @@ import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAppointmentFilterList } from "@/hooks/useAppointmentFilterList";
 import { useBulkListAction } from "@/hooks/useBulkListAction";
+import { useMutation } from "@/hooks/useMutation";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -140,24 +141,37 @@ function RouteComponent() {
 	});
 
 	const bulkCopyServerFn = useServerFn(bulkCopyAppointmentsToSeason);
-	const onCopy = async () => {
-		if (!pendingCopy || !targetSeasonId) return;
-		try {
-			const response = await bulkCopyServerFn({
-				data: {
-					targetSeasonId,
-					...(pendingCopy.mode === "matching"
-						? {
-								excludeIds: Array.from(excludeIds),
-								matching: {
-									query: search.query,
-									seasonId: search.seasonId,
-									types: search.types,
-								},
-							}
-						: { ids: pendingCopy.ids }),
-				},
-			});
+	// See useBulkListAction's `resyncToFirstPage`: a plain router.invalidate()
+	// only refetches the current `skip`, which can't reconcile `items` against
+	// a changed `matchedTotal` after paging via "load more" — reset to skip=0
+	// instead so useLoadMoreBatch fully resyncs from fresh data.
+	const resyncToFirstPage = () =>
+		router.navigate({
+			replace: true,
+			search: {
+				query: search.query,
+				seasonId: search.seasonId,
+				types: search.types,
+			},
+			to: ".",
+		});
+	const copyMutation = useMutation({
+		fn: bulkCopyServerFn,
+		onError: async (err) => {
+			toast.error((err as Error).message);
+			setIsConfirmingCopy(false);
+			setPendingCopy(null);
+			// See useBulkListAction's onError: a partial failure can leave some
+			// rows already mutated even though this call threw, and there's no
+			// reliable way to tell here which ones — clear selection state and
+			// resync from the server instead of leaving a stale selection in
+			// place.
+			setExplicitSelection({});
+			exitSelectAllMatching();
+			await resyncToFirstPage();
+		},
+		onSuccess: async (ctx) => {
+			if (!pendingCopy) return;
 			if (pendingCopy.mode === "matching") {
 				exitSelectAllMatching();
 			} else {
@@ -165,40 +179,27 @@ function RouteComponent() {
 			}
 			setIsConfirmingCopy(false);
 			setPendingCopy(null);
-			// See useBulkListAction's `run`: a plain router.invalidate() only
-			// refetches the current `skip`, which can't reconcile `items` against
-			// a changed `matchedTotal` after paging via "load more" — reset to
-			// skip=0 instead so useLoadMoreBatch fully resyncs from fresh data.
-			await router.navigate({
-				replace: true,
-				search: {
-					query: search.query,
-					seasonId: search.seasonId,
-					types: search.types,
-				},
-				to: ".",
-			});
-			toast.success(response.message);
-		} catch (err) {
-			toast.error((err as Error).message);
-			setIsConfirmingCopy(false);
-			setPendingCopy(null);
-			// See useBulkListAction's catch: a partial failure can leave some rows
-			// already mutated even though this call threw, and there's no reliable
-			// way to tell here which ones — clear selection state and resync from
-			// the server instead of leaving a stale selection in place.
-			setExplicitSelection({});
-			exitSelectAllMatching();
-			await router.navigate({
-				replace: true,
-				search: {
-					query: search.query,
-					seasonId: search.seasonId,
-					types: search.types,
-				},
-				to: ".",
-			});
-		}
+			await resyncToFirstPage();
+			toast.success(ctx.data.message);
+		},
+	});
+	const onCopy = async () => {
+		if (!pendingCopy || !targetSeasonId) return;
+		await copyMutation.mutate({
+			data: {
+				targetSeasonId,
+				...(pendingCopy.mode === "matching"
+					? {
+							excludeIds: Array.from(excludeIds),
+							matching: {
+								query: search.query,
+								seasonId: search.seasonId,
+								types: search.types,
+							},
+						}
+					: { ids: pendingCopy.ids }),
+			},
+		});
 	};
 
 	const commandBarItems: CommandBarItem<AppointmentWithSeason>[] = [
