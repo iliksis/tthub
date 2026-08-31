@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { CopyIcon, Trash2Icon } from "lucide-react";
 import React from "react";
-import { toast } from "sonner";
 import {
 	type AppointmentWithSeason,
 	bulkCopyAppointmentsToSeason,
@@ -26,8 +25,7 @@ import { CopyToSeasonModal } from "@/components/modal/CopyToSeasonModal";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAppointmentFilterList } from "@/hooks/useAppointmentFilterList";
-import { useBulkListAction } from "@/hooks/useBulkListAction";
-import { useMutation } from "@/hooks/useMutation";
+import { useBulkAppointmentAction } from "@/hooks/useBulkAppointmentAction";
 import { AppointmentType } from "@/lib/prisma/enums";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -89,16 +87,11 @@ function RouteComponent() {
 	} = Route.useLoaderData();
 	const search = Route.useSearch();
 
-	const [isConfirmingCopy, setIsConfirmingCopy] = React.useState(false);
-	const [pendingCopy, setPendingCopy] = React.useState<
-		{ mode: "ids"; ids: string[] } | { mode: "matching" } | null
-	>(null);
 	const [targetSeasonId, setTargetSeasonId] = React.useState<
 		string | undefined
 	>(seasons.find((season) => season.isActive)?.id);
 
 	const {
-		router,
 		isNavigating,
 		queryInput,
 		setQueryInput,
@@ -108,6 +101,7 @@ function RouteComponent() {
 		onClearFilters,
 		onLoadMore,
 		remaining,
+		resyncToFirstPage,
 		selection,
 		onSelectionChange,
 		selectAllMatching,
@@ -131,77 +125,39 @@ function RouteComponent() {
 		pending: pendingDelete,
 		setPending: setPendingDelete,
 		run: onDelete,
-	} = useBulkListAction({
+	} = useBulkAppointmentAction({
+		buildPayload: (base) => base,
 		excludeIds,
 		exitSelectAllMatching,
-		router,
+		resync: resyncToFirstPage,
 		search,
 		serverFn: useServerFn(bulkDeleteAppointments),
 		setExplicitSelection,
 		setItems,
 	});
 
-	const bulkCopyServerFn = useServerFn(bulkCopyAppointmentsToSeason);
-	// See useBulkListAction's `resyncToFirstPage`: a plain router.invalidate()
-	// only refetches the current `skip`, which can't reconcile `items` against
-	// a changed `matchedTotal` after paging via "load more" — reset to skip=0
-	// instead so useLoadMoreBatch fully resyncs from fresh data.
-	const resyncToFirstPage = () =>
-		router.navigate({
-			replace: true,
-			search: {
-				query: search.query,
-				seasonId: search.seasonId,
-				types: search.types,
-			},
-			to: ".",
-		});
-	const copyMutation = useMutation({
-		fn: bulkCopyServerFn,
-		onError: async (err) => {
-			toast.error((err as Error).message);
-			setIsConfirmingCopy(false);
-			setPendingCopy(null);
-			// See useBulkListAction's onError: a partial failure can leave some
-			// rows already mutated even though this call threw, and there's no
-			// reliable way to tell here which ones — clear selection state and
-			// resync from the server instead of leaving a stale selection in
-			// place.
-			setExplicitSelection({});
-			exitSelectAllMatching();
-			await resyncToFirstPage();
-		},
-		onSuccess: async (ctx) => {
-			if (!pendingCopy) return;
-			if (pendingCopy.mode === "matching") {
-				exitSelectAllMatching();
-			} else {
-				setExplicitSelection({});
-			}
-			setIsConfirmingCopy(false);
-			setPendingCopy(null);
-			await resyncToFirstPage();
-			toast.success(ctx.data.message);
-		},
+	const {
+		isConfirming: isConfirmingCopy,
+		setIsConfirming: setIsConfirmingCopy,
+		pending: pendingCopy,
+		setPending: setPendingCopy,
+		run: onCopy,
+	} = useBulkAppointmentAction({
+		// targetSeasonId is only undefined before a season is picked, and
+		// CopyToSeasonModal disables its confirm button (which triggers `run`)
+		// until one is — so it's always set by the time this runs.
+		buildPayload: (base) => ({
+			...base,
+			targetSeasonId: targetSeasonId as string,
+		}),
+		excludeIds,
+		exitSelectAllMatching,
+		resync: resyncToFirstPage,
+		search,
+		serverFn: useServerFn(bulkCopyAppointmentsToSeason),
+		setExplicitSelection,
+		// No setItems: copying doesn't remove the source rows from this list.
 	});
-	const onCopy = async () => {
-		if (!pendingCopy || !targetSeasonId) return;
-		await copyMutation.mutate({
-			data: {
-				targetSeasonId,
-				...(pendingCopy.mode === "matching"
-					? {
-							excludeIds: Array.from(excludeIds),
-							matching: {
-								query: search.query,
-								seasonId: search.seasonId,
-								types: search.types,
-							},
-						}
-					: { ids: pendingCopy.ids }),
-			},
-		});
-	};
 
 	const commandBarItems: CommandBarItem<AppointmentWithSeason>[] = [
 		{
