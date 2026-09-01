@@ -35,8 +35,8 @@ function buildBaseSelector(
 // success) or leaves it untouched (on error) — always via `resync`, since the
 // server processes a bulk action in chunks and a failure partway through can
 // leave some rows already mutated even though the call threw. Never rejects:
-// both outcomes are fully handled here (toast included, and `resync` failing
-// doesn't cancel that), so callers don't need a try/catch of their own.
+// both outcomes are fully handled here (toast included), so callers don't
+// need a try/catch of their own.
 export async function runBulkAppointmentAction<TPayload>({
 	pending,
 	excludeIds,
@@ -68,13 +68,12 @@ export async function runBulkAppointmentAction<TPayload>({
 	} catch (err) {
 		toast.error((err as Error).message);
 	}
-	// Runs after the outcome is already reported, and is itself best-effort:
-	// a rejected navigation shouldn't stop callers from resetting their UI
-	// state (see useBulkAppointmentAction), so it's never allowed to escape.
-	try {
-		await resync();
-	} catch {
-		// The list may be stale until the next navigation; the action's own
-		// outcome has already been toasted above.
-	}
+	// Fire-and-forget: not awaited, so callers (see useBulkAppointmentAction)
+	// can reset their confirm-modal/selection state as soon as the outcome
+	// above is known, instead of leaving the modal open — and its confirm
+	// button clickable — for the extra round-trip this navigation takes. A
+	// rejected navigation just leaves the list stale until the next one; the
+	// action's own outcome has already been toasted above, so it's never
+	// allowed to escape as an unhandled rejection.
+	resync().catch(() => {});
 }

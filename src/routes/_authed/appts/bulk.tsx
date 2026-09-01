@@ -143,9 +143,9 @@ function RouteComponent() {
 		setPending: setPendingCopy,
 		run: onCopy,
 	} = useBulkAppointmentAction({
-		// targetSeasonId is only undefined before a season is picked, and
-		// CopyToSeasonModal disables its confirm button (which triggers `run`)
-		// until one is — so it's always set by the time this runs.
+		// targetSeasonId is only undefined before a season is picked; the
+		// onCopy guard below (and CopyToSeasonModal's disabled confirm button)
+		// keep `run` from firing until one is set.
 		buildPayload: (base) => ({
 			...base,
 			targetSeasonId: targetSeasonId as string,
@@ -327,7 +327,13 @@ function RouteComponent() {
 					setIsConfirmingCopy(false);
 					setPendingCopy(null);
 				}}
-				onCopy={onCopy}
+				onCopy={() => {
+					// CopyToSeasonModal disables its confirm button until a season is
+					// picked, but guard here too rather than trust that alone —
+					// buildPayload below casts targetSeasonId to string.
+					if (!targetSeasonId) return;
+					onCopy();
+				}}
 			/>
 		</div>
 	);
