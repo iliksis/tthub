@@ -39,8 +39,13 @@ jobs:
         run: npm test
 
   e2e-tests:
-    name: E2E Tests
+    name: E2E Tests (shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: [1, 2, 3, 4]
+        shardTotal: [4]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -80,10 +85,13 @@ jobs:
         if: steps.cache-playwright.outputs.cache-hit == 'true'
         run: npx playwright install-deps
 
+      - name: Reset & seed test database
+        run: npx dotenv -e .env.test -- npm run test:e2e:setup
+
       - name: Run E2E tests (chromium only, PR builds)
         if: github.event_name == 'pull_request'
-        run: npm run test:e2e:pr
+        run: npx dotenv -e .env.test -- playwright test --project=chromium --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
 
       - name: Run E2E tests (full browser matrix, main/release)
         if: github.event_name == 'push'
-        run: npm run test:e2e
+        run: npx dotenv -e .env.test -- playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
