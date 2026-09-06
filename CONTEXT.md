@@ -27,3 +27,11 @@ _Avoid_: Placement alone when referring to a Team's league rank — always quali
 **Placement**:
 A Player's result in one category of one tournament Appointment (existing `Placement` model). Unrelated to a Team's league standing.
 _Avoid_: Ranking, result (when precision matters).
+
+**Label**:
+An editor-created tag (name + color) attached to a tournament Appointment to convey an arbitrary attribute — e.g. the region it takes place in, or that it matters for coaches. Labels are purely informational: they never gate RSVP or notification behavior for the appointment itself. A tournament can carry any number of Labels, including none. Replaces the old `TOURNAMENT`/`TOURNAMENT_DE` type split, which conflated "region" with the appointment's type and silently suppressed RSVP/notifications for one of the two.
+_Avoid_: Tag, category, type (Label is the canonical term; "type" now refers only to `AppointmentType`, which Labels are independent of).
+
+**Muted Label** (in a user's notification/feed preferences):
+A Label a user has chosen to suppress — appointments carrying it are excluded from that user's push notifications or calendar feed, but remain unaffected for every other user. Muting is a personal preference, not a property of the Label or the Appointment.
+_Avoid_: Hidden, blocked, filtered (when precision matters — "muted" ties it to the notification/feed context specifically).
