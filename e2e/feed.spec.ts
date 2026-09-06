@@ -63,7 +63,6 @@ test.describe("Calendar Feed - Configuration Options", () => {
 		// Check for Appointment Types section
 		await expect(page.locator("text=Terminarten")).toBeVisible();
 		await expect(page.locator("text=Turnier").first()).toBeVisible();
-		await expect(page.locator("text=Turnier (Deutschland)")).toBeVisible();
 		await expect(page.locator("text=Ferien")).toBeVisible();
 	});
 

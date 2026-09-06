@@ -58,7 +58,6 @@ async function persistEntity(
 					id: entity.externalId,
 					ownTeamId: entity.teamMatch?.ownTeamId,
 					seasonId,
-					shortTitle: entity.title,
 					startDate: new Date(entity.startsAt),
 					title: entity.title,
 					type: entity.appointmentType,

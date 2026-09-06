@@ -10,6 +10,7 @@ import {
 	CalendarRangeIcon,
 	ChevronDownIcon,
 	ImportIcon,
+	TagIcon,
 	UserCogIcon,
 	UserPenIcon,
 } from "lucide-react";
@@ -66,6 +67,14 @@ const sections: SettingsSection[] = [
 		isHidden: (role) => role === "USER",
 		label: m.common_seasons(),
 		routeId: "/_authed/settings/seasons",
+	},
+	{
+		description: m.settings_manage_tournament_labels(),
+		href: "/settings/labels",
+		icon: TagIcon,
+		isHidden: (role) => role === "USER",
+		label: m.labels_labels(),
+		routeId: "/_authed/settings/labels",
 	},
 	{
 		description: m.settings_manage_club_members_and_invitations(),

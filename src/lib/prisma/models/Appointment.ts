@@ -31,7 +31,6 @@ export type AppointmentMinAggregateOutputType = {
   startDate: Date | null
   endDate: Date | null
   title: string | null
-  shortTitle: string | null
   location: string | null
   link: string | null
   type: $Enums.AppointmentType | null
@@ -50,7 +49,6 @@ export type AppointmentMaxAggregateOutputType = {
   startDate: Date | null
   endDate: Date | null
   title: string | null
-  shortTitle: string | null
   location: string | null
   link: string | null
   type: $Enums.AppointmentType | null
@@ -69,7 +67,6 @@ export type AppointmentCountAggregateOutputType = {
   startDate: number
   endDate: number
   title: number
-  shortTitle: number
   location: number
   link: number
   type: number
@@ -90,7 +87,6 @@ export type AppointmentMinAggregateInputType = {
   startDate?: true
   endDate?: true
   title?: true
-  shortTitle?: true
   location?: true
   link?: true
   type?: true
@@ -109,7 +105,6 @@ export type AppointmentMaxAggregateInputType = {
   startDate?: true
   endDate?: true
   title?: true
-  shortTitle?: true
   location?: true
   link?: true
   type?: true
@@ -128,7 +123,6 @@ export type AppointmentCountAggregateInputType = {
   startDate?: true
   endDate?: true
   title?: true
-  shortTitle?: true
   location?: true
   link?: true
   type?: true
@@ -220,7 +214,6 @@ export type AppointmentGroupByOutputType = {
   startDate: Date
   endDate: Date | null
   title: string
-  shortTitle: string
   location: string | null
   link: string | null
   type: $Enums.AppointmentType
@@ -260,7 +253,6 @@ export type AppointmentWhereInput = {
   startDate?: Prisma.DateTimeFilter<"Appointment"> | Date | string
   endDate?: Prisma.DateTimeNullableFilter<"Appointment"> | Date | string | null
   title?: Prisma.StringFilter<"Appointment"> | string
-  shortTitle?: Prisma.StringFilter<"Appointment"> | string
   location?: Prisma.StringNullableFilter<"Appointment"> | string | null
   link?: Prisma.StringNullableFilter<"Appointment"> | string | null
   type?: Prisma.EnumAppointmentTypeFilter<"Appointment"> | $Enums.AppointmentType
@@ -277,6 +269,7 @@ export type AppointmentWhereInput = {
   transactions?: Prisma.TransactionListRelationFilter
   ownTeam?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
   season?: Prisma.XOR<Prisma.SeasonNullableScalarRelationFilter, Prisma.SeasonWhereInput> | null
+  labels?: Prisma.AppointmentLabelListRelationFilter
 }
 
 export type AppointmentOrderByWithRelationInput = {
@@ -286,7 +279,6 @@ export type AppointmentOrderByWithRelationInput = {
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrderInput | Prisma.SortOrder
   title?: Prisma.SortOrder
-  shortTitle?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   link?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -303,6 +295,7 @@ export type AppointmentOrderByWithRelationInput = {
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
   ownTeam?: Prisma.TeamOrderByWithRelationInput
   season?: Prisma.SeasonOrderByWithRelationInput
+  labels?: Prisma.AppointmentLabelOrderByRelationAggregateInput
 }
 
 export type AppointmentWhereUniqueInput = Prisma.AtLeast<{
@@ -315,7 +308,6 @@ export type AppointmentWhereUniqueInput = Prisma.AtLeast<{
   startDate?: Prisma.DateTimeFilter<"Appointment"> | Date | string
   endDate?: Prisma.DateTimeNullableFilter<"Appointment"> | Date | string | null
   title?: Prisma.StringFilter<"Appointment"> | string
-  shortTitle?: Prisma.StringFilter<"Appointment"> | string
   location?: Prisma.StringNullableFilter<"Appointment"> | string | null
   link?: Prisma.StringNullableFilter<"Appointment"> | string | null
   type?: Prisma.EnumAppointmentTypeFilter<"Appointment"> | $Enums.AppointmentType
@@ -332,6 +324,7 @@ export type AppointmentWhereUniqueInput = Prisma.AtLeast<{
   transactions?: Prisma.TransactionListRelationFilter
   ownTeam?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
   season?: Prisma.XOR<Prisma.SeasonNullableScalarRelationFilter, Prisma.SeasonWhereInput> | null
+  labels?: Prisma.AppointmentLabelListRelationFilter
 }, "id">
 
 export type AppointmentOrderByWithAggregationInput = {
@@ -341,7 +334,6 @@ export type AppointmentOrderByWithAggregationInput = {
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrderInput | Prisma.SortOrder
   title?: Prisma.SortOrder
-  shortTitle?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   link?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -366,7 +358,6 @@ export type AppointmentScalarWhereWithAggregatesInput = {
   startDate?: Prisma.DateTimeWithAggregatesFilter<"Appointment"> | Date | string
   endDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Appointment"> | Date | string | null
   title?: Prisma.StringWithAggregatesFilter<"Appointment"> | string
-  shortTitle?: Prisma.StringWithAggregatesFilter<"Appointment"> | string
   location?: Prisma.StringNullableWithAggregatesFilter<"Appointment"> | string | null
   link?: Prisma.StringNullableWithAggregatesFilter<"Appointment"> | string | null
   type?: Prisma.EnumAppointmentTypeWithAggregatesFilter<"Appointment"> | $Enums.AppointmentType
@@ -385,7 +376,6 @@ export type AppointmentCreateInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -399,6 +389,7 @@ export type AppointmentCreateInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
   ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
   season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
+  labels?: Prisma.AppointmentLabelCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentUncheckedCreateInput = {
@@ -408,7 +399,6 @@ export type AppointmentUncheckedCreateInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -422,6 +412,7 @@ export type AppointmentUncheckedCreateInput = {
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
   previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAppointmentInput
+  labels?: Prisma.AppointmentLabelUncheckedCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentUpdateInput = {
@@ -431,7 +422,6 @@ export type AppointmentUpdateInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -445,6 +435,7 @@ export type AppointmentUpdateInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
   ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
   season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
+  labels?: Prisma.AppointmentLabelUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentUncheckedUpdateInput = {
@@ -454,7 +445,6 @@ export type AppointmentUncheckedUpdateInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -468,6 +458,7 @@ export type AppointmentUncheckedUpdateInput = {
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
   previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAppointmentNestedInput
+  labels?: Prisma.AppointmentLabelUncheckedUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentCreateManyInput = {
@@ -477,7 +468,6 @@ export type AppointmentCreateManyInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -496,7 +486,6 @@ export type AppointmentUpdateManyMutationInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -512,7 +501,6 @@ export type AppointmentUncheckedUpdateManyInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -546,7 +534,6 @@ export type AppointmentCountOrderByAggregateInput = {
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  shortTitle?: Prisma.SortOrder
   location?: Prisma.SortOrder
   link?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -565,7 +552,6 @@ export type AppointmentMaxOrderByAggregateInput = {
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  shortTitle?: Prisma.SortOrder
   location?: Prisma.SortOrder
   link?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -584,7 +570,6 @@ export type AppointmentMinOrderByAggregateInput = {
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  shortTitle?: Prisma.SortOrder
   location?: Prisma.SortOrder
   link?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -713,6 +698,20 @@ export type AppointmentUncheckedUpdateManyWithoutSeasonNestedInput = {
   deleteMany?: Prisma.AppointmentScalarWhereInput | Prisma.AppointmentScalarWhereInput[]
 }
 
+export type AppointmentCreateNestedOneWithoutLabelsInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutLabelsInput, Prisma.AppointmentUncheckedCreateWithoutLabelsInput>
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutLabelsInput
+  connect?: Prisma.AppointmentWhereUniqueInput
+}
+
+export type AppointmentUpdateOneRequiredWithoutLabelsNestedInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutLabelsInput, Prisma.AppointmentUncheckedCreateWithoutLabelsInput>
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutLabelsInput
+  upsert?: Prisma.AppointmentUpsertWithoutLabelsInput
+  connect?: Prisma.AppointmentWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AppointmentUpdateToOneWithWhereWithoutLabelsInput, Prisma.AppointmentUpdateWithoutLabelsInput>, Prisma.AppointmentUncheckedUpdateWithoutLabelsInput>
+}
+
 export type AppointmentCreateNestedOneWithoutResponsesInput = {
   create?: Prisma.XOR<Prisma.AppointmentCreateWithoutResponsesInput, Prisma.AppointmentUncheckedCreateWithoutResponsesInput>
   connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutResponsesInput
@@ -804,7 +803,6 @@ export type AppointmentCreateWithoutPreviousAppointmentsInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -817,6 +815,7 @@ export type AppointmentCreateWithoutPreviousAppointmentsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
   ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
   season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
+  labels?: Prisma.AppointmentLabelCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentUncheckedCreateWithoutPreviousAppointmentsInput = {
@@ -826,7 +825,6 @@ export type AppointmentUncheckedCreateWithoutPreviousAppointmentsInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -839,6 +837,7 @@ export type AppointmentUncheckedCreateWithoutPreviousAppointmentsInput = {
   responses?: Prisma.ResponseUncheckedCreateNestedManyWithoutAppointmentInput
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAppointmentInput
+  labels?: Prisma.AppointmentLabelUncheckedCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentCreateOrConnectWithoutPreviousAppointmentsInput = {
@@ -853,7 +852,6 @@ export type AppointmentCreateWithoutNextAppointmentInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -866,6 +864,7 @@ export type AppointmentCreateWithoutNextAppointmentInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
   ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
   season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
+  labels?: Prisma.AppointmentLabelCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentUncheckedCreateWithoutNextAppointmentInput = {
@@ -875,7 +874,6 @@ export type AppointmentUncheckedCreateWithoutNextAppointmentInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -888,6 +886,7 @@ export type AppointmentUncheckedCreateWithoutNextAppointmentInput = {
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
   previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAppointmentInput
+  labels?: Prisma.AppointmentLabelUncheckedCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentCreateOrConnectWithoutNextAppointmentInput = {
@@ -917,7 +916,6 @@ export type AppointmentUpdateWithoutPreviousAppointmentsInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -930,6 +928,7 @@ export type AppointmentUpdateWithoutPreviousAppointmentsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
   ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
   season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
+  labels?: Prisma.AppointmentLabelUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentUncheckedUpdateWithoutPreviousAppointmentsInput = {
@@ -939,7 +938,6 @@ export type AppointmentUncheckedUpdateWithoutPreviousAppointmentsInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -952,6 +950,7 @@ export type AppointmentUncheckedUpdateWithoutPreviousAppointmentsInput = {
   responses?: Prisma.ResponseUncheckedUpdateManyWithoutAppointmentNestedInput
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAppointmentNestedInput
+  labels?: Prisma.AppointmentLabelUncheckedUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentUpsertWithWhereUniqueWithoutNextAppointmentInput = {
@@ -980,7 +979,6 @@ export type AppointmentScalarWhereInput = {
   startDate?: Prisma.DateTimeFilter<"Appointment"> | Date | string
   endDate?: Prisma.DateTimeNullableFilter<"Appointment"> | Date | string | null
   title?: Prisma.StringFilter<"Appointment"> | string
-  shortTitle?: Prisma.StringFilter<"Appointment"> | string
   location?: Prisma.StringNullableFilter<"Appointment"> | string | null
   link?: Prisma.StringNullableFilter<"Appointment"> | string | null
   type?: Prisma.EnumAppointmentTypeFilter<"Appointment"> | $Enums.AppointmentType
@@ -999,7 +997,6 @@ export type AppointmentCreateWithoutSeasonInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -1012,6 +1009,7 @@ export type AppointmentCreateWithoutSeasonInput = {
   previousAppointments?: Prisma.AppointmentCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
   ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
+  labels?: Prisma.AppointmentLabelCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentUncheckedCreateWithoutSeasonInput = {
@@ -1021,7 +1019,6 @@ export type AppointmentUncheckedCreateWithoutSeasonInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -1034,6 +1031,7 @@ export type AppointmentUncheckedCreateWithoutSeasonInput = {
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
   previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAppointmentInput
+  labels?: Prisma.AppointmentLabelUncheckedCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentCreateOrConnectWithoutSeasonInput = {
@@ -1061,6 +1059,110 @@ export type AppointmentUpdateManyWithWhereWithoutSeasonInput = {
   data: Prisma.XOR<Prisma.AppointmentUpdateManyMutationInput, Prisma.AppointmentUncheckedUpdateManyWithoutSeasonInput>
 }
 
+export type AppointmentCreateWithoutLabelsInput = {
+  id?: string
+  createdAt?: Date | string
+  deletedAt?: Date | string | null
+  startDate: Date | string
+  endDate?: Date | string | null
+  title: string
+  location?: string | null
+  link?: string | null
+  type: $Enums.AppointmentType
+  status?: $Enums.AppointmentStatus | null
+  homeTeam?: string | null
+  awayTeam?: string | null
+  responses?: Prisma.ResponseCreateNestedManyWithoutAppointmentInput
+  placements?: Prisma.PlacementCreateNestedManyWithoutAppointmentInput
+  nextAppointment?: Prisma.AppointmentCreateNestedOneWithoutPreviousAppointmentsInput
+  previousAppointments?: Prisma.AppointmentCreateNestedManyWithoutNextAppointmentInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
+  ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
+  season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
+}
+
+export type AppointmentUncheckedCreateWithoutLabelsInput = {
+  id?: string
+  createdAt?: Date | string
+  deletedAt?: Date | string | null
+  startDate: Date | string
+  endDate?: Date | string | null
+  title: string
+  location?: string | null
+  link?: string | null
+  type: $Enums.AppointmentType
+  status?: $Enums.AppointmentStatus | null
+  nextAppointmentId?: string | null
+  ownTeamId?: string | null
+  homeTeam?: string | null
+  awayTeam?: string | null
+  seasonId?: string | null
+  responses?: Prisma.ResponseUncheckedCreateNestedManyWithoutAppointmentInput
+  placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
+  previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAppointmentInput
+}
+
+export type AppointmentCreateOrConnectWithoutLabelsInput = {
+  where: Prisma.AppointmentWhereUniqueInput
+  create: Prisma.XOR<Prisma.AppointmentCreateWithoutLabelsInput, Prisma.AppointmentUncheckedCreateWithoutLabelsInput>
+}
+
+export type AppointmentUpsertWithoutLabelsInput = {
+  update: Prisma.XOR<Prisma.AppointmentUpdateWithoutLabelsInput, Prisma.AppointmentUncheckedUpdateWithoutLabelsInput>
+  create: Prisma.XOR<Prisma.AppointmentCreateWithoutLabelsInput, Prisma.AppointmentUncheckedCreateWithoutLabelsInput>
+  where?: Prisma.AppointmentWhereInput
+}
+
+export type AppointmentUpdateToOneWithWhereWithoutLabelsInput = {
+  where?: Prisma.AppointmentWhereInput
+  data: Prisma.XOR<Prisma.AppointmentUpdateWithoutLabelsInput, Prisma.AppointmentUncheckedUpdateWithoutLabelsInput>
+}
+
+export type AppointmentUpdateWithoutLabelsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
+  status?: Prisma.NullableEnumAppointmentStatusFieldUpdateOperationsInput | $Enums.AppointmentStatus | null
+  homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responses?: Prisma.ResponseUpdateManyWithoutAppointmentNestedInput
+  placements?: Prisma.PlacementUpdateManyWithoutAppointmentNestedInput
+  nextAppointment?: Prisma.AppointmentUpdateOneWithoutPreviousAppointmentsNestedInput
+  previousAppointments?: Prisma.AppointmentUpdateManyWithoutNextAppointmentNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
+  ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
+  season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
+}
+
+export type AppointmentUncheckedUpdateWithoutLabelsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
+  status?: Prisma.NullableEnumAppointmentStatusFieldUpdateOperationsInput | $Enums.AppointmentStatus | null
+  nextAppointmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  homeTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  awayTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seasonId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responses?: Prisma.ResponseUncheckedUpdateManyWithoutAppointmentNestedInput
+  placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
+  previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAppointmentNestedInput
+}
+
 export type AppointmentCreateWithoutResponsesInput = {
   id?: string
   createdAt?: Date | string
@@ -1068,7 +1170,6 @@ export type AppointmentCreateWithoutResponsesInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -1081,6 +1182,7 @@ export type AppointmentCreateWithoutResponsesInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
   ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
   season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
+  labels?: Prisma.AppointmentLabelCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentUncheckedCreateWithoutResponsesInput = {
@@ -1090,7 +1192,6 @@ export type AppointmentUncheckedCreateWithoutResponsesInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -1103,6 +1204,7 @@ export type AppointmentUncheckedCreateWithoutResponsesInput = {
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
   previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAppointmentInput
+  labels?: Prisma.AppointmentLabelUncheckedCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentCreateOrConnectWithoutResponsesInput = {
@@ -1128,7 +1230,6 @@ export type AppointmentUpdateWithoutResponsesInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1141,6 +1242,7 @@ export type AppointmentUpdateWithoutResponsesInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
   ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
   season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
+  labels?: Prisma.AppointmentLabelUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentUncheckedUpdateWithoutResponsesInput = {
@@ -1150,7 +1252,6 @@ export type AppointmentUncheckedUpdateWithoutResponsesInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1163,6 +1264,7 @@ export type AppointmentUncheckedUpdateWithoutResponsesInput = {
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
   previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAppointmentNestedInput
+  labels?: Prisma.AppointmentLabelUncheckedUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentCreateWithoutOwnTeamInput = {
@@ -1172,7 +1274,6 @@ export type AppointmentCreateWithoutOwnTeamInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -1185,6 +1286,7 @@ export type AppointmentCreateWithoutOwnTeamInput = {
   previousAppointments?: Prisma.AppointmentCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
   season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
+  labels?: Prisma.AppointmentLabelCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentUncheckedCreateWithoutOwnTeamInput = {
@@ -1194,7 +1296,6 @@ export type AppointmentUncheckedCreateWithoutOwnTeamInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -1207,6 +1308,7 @@ export type AppointmentUncheckedCreateWithoutOwnTeamInput = {
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
   previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAppointmentInput
+  labels?: Prisma.AppointmentLabelUncheckedCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentCreateOrConnectWithoutOwnTeamInput = {
@@ -1241,7 +1343,6 @@ export type AppointmentCreateWithoutPlacementsInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -1254,6 +1355,7 @@ export type AppointmentCreateWithoutPlacementsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutAppointmentInput
   ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
   season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
+  labels?: Prisma.AppointmentLabelCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentUncheckedCreateWithoutPlacementsInput = {
@@ -1263,7 +1365,6 @@ export type AppointmentUncheckedCreateWithoutPlacementsInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -1276,6 +1377,7 @@ export type AppointmentUncheckedCreateWithoutPlacementsInput = {
   responses?: Prisma.ResponseUncheckedCreateNestedManyWithoutAppointmentInput
   previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAppointmentInput
+  labels?: Prisma.AppointmentLabelUncheckedCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentCreateOrConnectWithoutPlacementsInput = {
@@ -1301,7 +1403,6 @@ export type AppointmentUpdateWithoutPlacementsInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1314,6 +1415,7 @@ export type AppointmentUpdateWithoutPlacementsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
   ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
   season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
+  labels?: Prisma.AppointmentLabelUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentUncheckedUpdateWithoutPlacementsInput = {
@@ -1323,7 +1425,6 @@ export type AppointmentUncheckedUpdateWithoutPlacementsInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1336,6 +1437,7 @@ export type AppointmentUncheckedUpdateWithoutPlacementsInput = {
   responses?: Prisma.ResponseUncheckedUpdateManyWithoutAppointmentNestedInput
   previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAppointmentNestedInput
+  labels?: Prisma.AppointmentLabelUncheckedUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentCreateWithoutTransactionsInput = {
@@ -1345,7 +1447,6 @@ export type AppointmentCreateWithoutTransactionsInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -1358,6 +1459,7 @@ export type AppointmentCreateWithoutTransactionsInput = {
   previousAppointments?: Prisma.AppointmentCreateNestedManyWithoutNextAppointmentInput
   ownTeam?: Prisma.TeamCreateNestedOneWithoutAppointmentsInput
   season?: Prisma.SeasonCreateNestedOneWithoutAppointmentsInput
+  labels?: Prisma.AppointmentLabelCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentUncheckedCreateWithoutTransactionsInput = {
@@ -1367,7 +1469,6 @@ export type AppointmentUncheckedCreateWithoutTransactionsInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -1380,6 +1481,7 @@ export type AppointmentUncheckedCreateWithoutTransactionsInput = {
   responses?: Prisma.ResponseUncheckedCreateNestedManyWithoutAppointmentInput
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutAppointmentInput
   previousAppointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutNextAppointmentInput
+  labels?: Prisma.AppointmentLabelUncheckedCreateNestedManyWithoutAppointmentInput
 }
 
 export type AppointmentCreateOrConnectWithoutTransactionsInput = {
@@ -1405,7 +1507,6 @@ export type AppointmentUpdateWithoutTransactionsInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1418,6 +1519,7 @@ export type AppointmentUpdateWithoutTransactionsInput = {
   previousAppointments?: Prisma.AppointmentUpdateManyWithoutNextAppointmentNestedInput
   ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
   season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
+  labels?: Prisma.AppointmentLabelUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentUncheckedUpdateWithoutTransactionsInput = {
@@ -1427,7 +1529,6 @@ export type AppointmentUncheckedUpdateWithoutTransactionsInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1440,6 +1541,7 @@ export type AppointmentUncheckedUpdateWithoutTransactionsInput = {
   responses?: Prisma.ResponseUncheckedUpdateManyWithoutAppointmentNestedInput
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
   previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
+  labels?: Prisma.AppointmentLabelUncheckedUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentCreateManyNextAppointmentInput = {
@@ -1449,7 +1551,6 @@ export type AppointmentCreateManyNextAppointmentInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -1467,7 +1568,6 @@ export type AppointmentUpdateWithoutNextAppointmentInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1480,6 +1580,7 @@ export type AppointmentUpdateWithoutNextAppointmentInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
   ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
   season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
+  labels?: Prisma.AppointmentLabelUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentUncheckedUpdateWithoutNextAppointmentInput = {
@@ -1489,7 +1590,6 @@ export type AppointmentUncheckedUpdateWithoutNextAppointmentInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1502,6 +1602,7 @@ export type AppointmentUncheckedUpdateWithoutNextAppointmentInput = {
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
   previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAppointmentNestedInput
+  labels?: Prisma.AppointmentLabelUncheckedUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentUncheckedUpdateManyWithoutNextAppointmentInput = {
@@ -1511,7 +1612,6 @@ export type AppointmentUncheckedUpdateManyWithoutNextAppointmentInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1529,7 +1629,6 @@ export type AppointmentCreateManySeasonInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -1547,7 +1646,6 @@ export type AppointmentUpdateWithoutSeasonInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1560,6 +1658,7 @@ export type AppointmentUpdateWithoutSeasonInput = {
   previousAppointments?: Prisma.AppointmentUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
   ownTeam?: Prisma.TeamUpdateOneWithoutAppointmentsNestedInput
+  labels?: Prisma.AppointmentLabelUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentUncheckedUpdateWithoutSeasonInput = {
@@ -1569,7 +1668,6 @@ export type AppointmentUncheckedUpdateWithoutSeasonInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1582,6 +1680,7 @@ export type AppointmentUncheckedUpdateWithoutSeasonInput = {
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
   previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAppointmentNestedInput
+  labels?: Prisma.AppointmentLabelUncheckedUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentUncheckedUpdateManyWithoutSeasonInput = {
@@ -1591,7 +1690,6 @@ export type AppointmentUncheckedUpdateManyWithoutSeasonInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1609,7 +1707,6 @@ export type AppointmentCreateManyOwnTeamInput = {
   startDate: Date | string
   endDate?: Date | string | null
   title: string
-  shortTitle: string
   location?: string | null
   link?: string | null
   type: $Enums.AppointmentType
@@ -1627,7 +1724,6 @@ export type AppointmentUpdateWithoutOwnTeamInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1640,6 +1736,7 @@ export type AppointmentUpdateWithoutOwnTeamInput = {
   previousAppointments?: Prisma.AppointmentUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutAppointmentNestedInput
   season?: Prisma.SeasonUpdateOneWithoutAppointmentsNestedInput
+  labels?: Prisma.AppointmentLabelUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentUncheckedUpdateWithoutOwnTeamInput = {
@@ -1649,7 +1746,6 @@ export type AppointmentUncheckedUpdateWithoutOwnTeamInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1662,6 +1758,7 @@ export type AppointmentUncheckedUpdateWithoutOwnTeamInput = {
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutAppointmentNestedInput
   previousAppointments?: Prisma.AppointmentUncheckedUpdateManyWithoutNextAppointmentNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAppointmentNestedInput
+  labels?: Prisma.AppointmentLabelUncheckedUpdateManyWithoutAppointmentNestedInput
 }
 
 export type AppointmentUncheckedUpdateManyWithoutOwnTeamInput = {
@@ -1671,7 +1768,6 @@ export type AppointmentUncheckedUpdateManyWithoutOwnTeamInput = {
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  shortTitle?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumAppointmentTypeFieldUpdateOperationsInput | $Enums.AppointmentType
@@ -1692,6 +1788,7 @@ export type AppointmentCountOutputType = {
   placements: number
   previousAppointments: number
   transactions: number
+  labels: number
 }
 
 export type AppointmentCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1699,6 +1796,7 @@ export type AppointmentCountOutputTypeSelect<ExtArgs extends runtime.Types.Exten
   placements?: boolean | AppointmentCountOutputTypeCountPlacementsArgs
   previousAppointments?: boolean | AppointmentCountOutputTypeCountPreviousAppointmentsArgs
   transactions?: boolean | AppointmentCountOutputTypeCountTransactionsArgs
+  labels?: boolean | AppointmentCountOutputTypeCountLabelsArgs
 }
 
 /**
@@ -1739,6 +1837,13 @@ export type AppointmentCountOutputTypeCountTransactionsArgs<ExtArgs extends runt
   where?: Prisma.TransactionWhereInput
 }
 
+/**
+ * AppointmentCountOutputType without action
+ */
+export type AppointmentCountOutputTypeCountLabelsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AppointmentLabelWhereInput
+}
+
 
 export type AppointmentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1747,7 +1852,6 @@ export type AppointmentSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   startDate?: boolean
   endDate?: boolean
   title?: boolean
-  shortTitle?: boolean
   location?: boolean
   link?: boolean
   type?: boolean
@@ -1764,6 +1868,7 @@ export type AppointmentSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   transactions?: boolean | Prisma.Appointment$transactionsArgs<ExtArgs>
   ownTeam?: boolean | Prisma.Appointment$ownTeamArgs<ExtArgs>
   season?: boolean | Prisma.Appointment$seasonArgs<ExtArgs>
+  labels?: boolean | Prisma.Appointment$labelsArgs<ExtArgs>
   _count?: boolean | Prisma.AppointmentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["appointment"]>
 
@@ -1774,7 +1879,6 @@ export type AppointmentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   startDate?: boolean
   endDate?: boolean
   title?: boolean
-  shortTitle?: boolean
   location?: boolean
   link?: boolean
   type?: boolean
@@ -1796,7 +1900,6 @@ export type AppointmentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   startDate?: boolean
   endDate?: boolean
   title?: boolean
-  shortTitle?: boolean
   location?: boolean
   link?: boolean
   type?: boolean
@@ -1818,7 +1921,6 @@ export type AppointmentSelectScalar = {
   startDate?: boolean
   endDate?: boolean
   title?: boolean
-  shortTitle?: boolean
   location?: boolean
   link?: boolean
   type?: boolean
@@ -1830,7 +1932,7 @@ export type AppointmentSelectScalar = {
   seasonId?: boolean
 }
 
-export type AppointmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "deletedAt" | "startDate" | "endDate" | "title" | "shortTitle" | "location" | "link" | "type" | "status" | "nextAppointmentId" | "ownTeamId" | "homeTeam" | "awayTeam" | "seasonId", ExtArgs["result"]["appointment"]>
+export type AppointmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "deletedAt" | "startDate" | "endDate" | "title" | "location" | "link" | "type" | "status" | "nextAppointmentId" | "ownTeamId" | "homeTeam" | "awayTeam" | "seasonId", ExtArgs["result"]["appointment"]>
 export type AppointmentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   responses?: boolean | Prisma.Appointment$responsesArgs<ExtArgs>
   placements?: boolean | Prisma.Appointment$placementsArgs<ExtArgs>
@@ -1839,6 +1941,7 @@ export type AppointmentInclude<ExtArgs extends runtime.Types.Extensions.Internal
   transactions?: boolean | Prisma.Appointment$transactionsArgs<ExtArgs>
   ownTeam?: boolean | Prisma.Appointment$ownTeamArgs<ExtArgs>
   season?: boolean | Prisma.Appointment$seasonArgs<ExtArgs>
+  labels?: boolean | Prisma.Appointment$labelsArgs<ExtArgs>
   _count?: boolean | Prisma.AppointmentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AppointmentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1862,6 +1965,7 @@ export type $AppointmentPayload<ExtArgs extends runtime.Types.Extensions.Interna
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
     ownTeam: Prisma.$TeamPayload<ExtArgs> | null
     season: Prisma.$SeasonPayload<ExtArgs> | null
+    labels: Prisma.$AppointmentLabelPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1870,7 +1974,6 @@ export type $AppointmentPayload<ExtArgs extends runtime.Types.Extensions.Interna
     startDate: Date
     endDate: Date | null
     title: string
-    shortTitle: string
     location: string | null
     link: string | null
     type: $Enums.AppointmentType
@@ -2281,6 +2384,7 @@ export interface Prisma__AppointmentClient<T, Null = never, ExtArgs extends runt
   transactions<T extends Prisma.Appointment$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Appointment$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   ownTeam<T extends Prisma.Appointment$ownTeamArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Appointment$ownTeamArgs<ExtArgs>>): Prisma.Prisma__TeamClient<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   season<T extends Prisma.Appointment$seasonArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Appointment$seasonArgs<ExtArgs>>): Prisma.Prisma__SeasonClient<runtime.Types.Result.GetResult<Prisma.$SeasonPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  labels<T extends Prisma.Appointment$labelsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Appointment$labelsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentLabelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2316,7 +2420,6 @@ export interface AppointmentFieldRefs {
   readonly startDate: Prisma.FieldRef<"Appointment", 'DateTime'>
   readonly endDate: Prisma.FieldRef<"Appointment", 'DateTime'>
   readonly title: Prisma.FieldRef<"Appointment", 'String'>
-  readonly shortTitle: Prisma.FieldRef<"Appointment", 'String'>
   readonly location: Prisma.FieldRef<"Appointment", 'String'>
   readonly link: Prisma.FieldRef<"Appointment", 'String'>
   readonly type: Prisma.FieldRef<"Appointment", 'AppointmentType'>
@@ -2875,6 +2978,30 @@ export type Appointment$seasonArgs<ExtArgs extends runtime.Types.Extensions.Inte
    */
   include?: Prisma.SeasonInclude<ExtArgs> | null
   where?: Prisma.SeasonWhereInput
+}
+
+/**
+ * Appointment.labels
+ */
+export type Appointment$labelsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AppointmentLabel
+   */
+  select?: Prisma.AppointmentLabelSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AppointmentLabel
+   */
+  omit?: Prisma.AppointmentLabelOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AppointmentLabelInclude<ExtArgs> | null
+  where?: Prisma.AppointmentLabelWhereInput
+  orderBy?: Prisma.AppointmentLabelOrderByWithRelationInput | Prisma.AppointmentLabelOrderByWithRelationInput[]
+  cursor?: Prisma.AppointmentLabelWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AppointmentLabelScalarFieldEnum | Prisma.AppointmentLabelScalarFieldEnum[]
 }
 
 /**

@@ -92,7 +92,7 @@ export const Route = createFileRoute("/_authed/appts/$apptId")({
 	head: ({ loaderData }) => ({
 		meta: [
 			{
-				title: loaderData?.appointment?.shortTitle,
+				title: loaderData?.appointment?.title,
 			},
 		],
 	}),
@@ -100,8 +100,6 @@ export const Route = createFileRoute("/_authed/appts/$apptId")({
 
 function typeLabel(type: string) {
 	if (type === AppointmentType.HOLIDAY) return m.common_holiday();
-	if (type === AppointmentType.TOURNAMENT_DE)
-		return m.common_tournament_germany();
 	if (type === AppointmentType.TEAM_MATCH) return m.appointments_team_match();
 	return m.common_tournament();
 }
@@ -118,7 +116,6 @@ function formatDateTime(date: Date | string) {
 
 type EditableDraft = {
 	title: string;
-	shortTitle: string;
 	location: string;
 	link: string;
 	startDate: Date;
@@ -139,7 +136,6 @@ function RouteComponent() {
 		link: "",
 		location: "",
 		seasonId: "",
-		shortTitle: "",
 		startDate: new Date(),
 		title: "",
 	});
@@ -257,7 +253,6 @@ function RouteComponent() {
 			link: appointment.link ?? "",
 			location: appointment.location ?? "",
 			seasonId: appointment.seasonId ?? "",
-			shortTitle: appointment.shortTitle,
 			startDate: new Date(appointment.startDate),
 			title: appointment.title,
 		});
@@ -595,9 +590,6 @@ function RouteComponent() {
 							</div>
 							<div>
 								<h1 className="font-bold text-2xl">{appointment.title}</h1>
-								<p className="text-muted-foreground text-sm">
-									{appointment.shortTitle}
-								</p>
 							</div>
 						</div>
 					</div>
@@ -786,16 +778,6 @@ function RouteComponent() {
 								autoFocus
 								value={draft.title}
 								onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-							/>
-						</fieldset>
-						<fieldset className="flex flex-col gap-1.5">
-							<Label htmlFor="shortTitle">{m.appointments_shorttitle()}</Label>
-							<Input
-								id="shortTitle"
-								value={draft.shortTitle}
-								onChange={(e) =>
-									setDraft({ ...draft, shortTitle: e.target.value })
-								}
 							/>
 						</fieldset>
 						<fieldset className="flex flex-col gap-1.5">

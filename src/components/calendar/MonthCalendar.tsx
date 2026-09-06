@@ -2,7 +2,6 @@ import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 import { Link } from "@tanstack/react-router";
 import {
 	CalendarDaysIcon,
-	GlobeIcon,
 	MapPinIcon,
 	PartyPopperIcon,
 	TrophyIcon,
@@ -29,7 +28,6 @@ import { CalendarToolbar } from "./CalendarToolbar";
 export type CalendarAppointment = {
 	id: string;
 	title: string;
-	shortTitle: string;
 	start: Date;
 	end: Date;
 	type: AppointmentType;
@@ -40,7 +38,6 @@ const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
 	HOLIDAY: PartyPopperIcon,
 	TEAM_MATCH: UsersIcon,
 	TOURNAMENT: TrophyIcon,
-	TOURNAMENT_DE: GlobeIcon,
 };
 
 // Fixed height regardless of content: a day-number row plus a fixed number
@@ -74,11 +71,6 @@ export const categoryStyle: Record<
 		dot: "bg-success",
 		gradient: "bg-gradient-to-br from-success to-success/70",
 		solidText: "text-success-foreground",
-	},
-	TOURNAMENT_DE: {
-		dot: "bg-info",
-		gradient: "bg-gradient-to-br from-info to-info/70",
-		solidText: "text-info-foreground",
 	},
 };
 
@@ -212,7 +204,7 @@ export const MonthCalendar = ({
 											/>
 										}
 									>
-										{bar.isTrueStart ? bar.event.shortTitle : ""}
+										{bar.isTrueStart ? bar.event.title : ""}
 									</TooltipPrimitive.Trigger>
 									<TooltipPrimitive.Portal>
 										<TooltipPrimitive.Positioner

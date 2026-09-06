@@ -10,7 +10,6 @@ import {
 	CalendarDaysIcon,
 	CheckIcon,
 	CircleQuestionMarkIcon,
-	GlobeIcon,
 	ListIcon,
 	MapPinIcon,
 	PartyPopperIcon,
@@ -60,14 +59,12 @@ const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
 	HOLIDAY: PartyPopperIcon,
 	TEAM_MATCH: UsersIcon,
 	TOURNAMENT: TrophyIcon,
-	TOURNAMENT_DE: GlobeIcon,
 };
 
 const typeIconColor: Record<AppointmentType, string> = {
 	HOLIDAY: "text-primary",
 	TEAM_MATCH: "text-warning",
 	TOURNAMENT: "text-success",
-	TOURNAMENT_DE: "text-info",
 };
 
 const BATCH_SIZE = 25;
@@ -217,7 +214,6 @@ function toCalendarAppointments(
 		end: item.endDate ?? item.startDate,
 		id: item.id,
 		location: item.location,
-		shortTitle: item.shortTitle,
 		start: item.startDate,
 		title: item.title,
 		type: item.type,
@@ -746,7 +742,7 @@ const AppointmentTimeline = ({
 														to="/appts/$apptId"
 														params={{ apptId: item.id }}
 													>
-														{item.shortTitle}
+														{item.title}
 													</EntityLink>
 												</div>
 												<div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">

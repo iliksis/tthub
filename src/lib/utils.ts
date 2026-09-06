@@ -133,7 +133,10 @@ export const createGoogleMapsLink = (location: string) => {
 	return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
 };
 
-const colorNames = [
+// Fixed Catppuccin swatches shared by every feature that needs a small,
+// visually consistent color set to pick or derive from (user avatars,
+// editor-assigned Labels, …) — see getCatppuccinColorStyle.
+export const catppuccinColorNames = [
 	"rosewater",
 	"flamingo",
 	"pink",
@@ -148,14 +151,14 @@ const colorNames = [
 	"sapphire",
 	"blue",
 	"lavender",
-];
+] as const;
 
-const userColors: {
-	[key: (typeof colorNames)[number]]: {
-		backgroundColor: string;
-		foregroundColor: string;
-	};
-} = {
+const colorNames = catppuccinColorNames;
+
+const userColors: Record<
+	(typeof colorNames)[number],
+	{ backgroundColor: string; foregroundColor: string }
+> = {
 	blue: {
 		backgroundColor: "var(--catppuccin-color-blue-100)",
 		foregroundColor: "var(--catppuccin-color-blue-900)",
@@ -227,6 +230,14 @@ export const createColorForUserId = (userId: string) => {
 	const index = Math.abs(hash) % colorNames.length;
 	return userColors[colorNames[index]];
 };
+
+/**
+ * Looks up the {backgroundColor, foregroundColor} pair for one of the fixed
+ * catppuccinColorNames swatches (e.g. a Label's stored color).
+ */
+export const getCatppuccinColorStyle = (
+	name: (typeof catppuccinColorNames)[number],
+) => userColors[name];
 
 export const formatTanstackRouterPath = (
 	path: FileRouteTypes["fullPaths"],

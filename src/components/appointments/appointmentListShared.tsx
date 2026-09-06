@@ -1,7 +1,6 @@
 import type { RowSelectionState } from "@tanstack/react-table";
 import {
 	CalendarOffIcon,
-	GlobeIcon,
 	SlidersHorizontalIcon,
 	TrophyIcon,
 	UsersIcon,
@@ -35,7 +34,6 @@ export const appointmentTypeLabel: Record<AppointmentType, string> = {
 	HOLIDAY: m.common_holiday(),
 	TEAM_MATCH: m.common_team_matches(),
 	TOURNAMENT: m.common_tournament(),
-	TOURNAMENT_DE: m.common_tournament_germany(),
 };
 
 export const typeFilterOptions = Object.values(AppointmentType).map((type) => ({
@@ -54,17 +52,16 @@ const appointmentTypeIcon: Record<AppointmentType, typeof TrophyIcon> = {
 	HOLIDAY: CalendarOffIcon,
 	TEAM_MATCH: UsersIcon,
 	TOURNAMENT: TrophyIcon,
-	TOURNAMENT_DE: GlobeIcon,
 };
 
 export const appointmentListColumns: DetailsListColumn<AppointmentWithSeason>[] =
 	[
 		{
-			key: "shortTitle",
+			key: "title",
 			label: m.appointments_appointment(),
 			render: (item) => (
 				<EntityLink to="/appts/$apptId" params={{ apptId: item.id }}>
-					{item.shortTitle}
+					{item.title}
 				</EntityLink>
 			),
 		},
@@ -345,7 +342,7 @@ export function AppointmentCardList({
 								params={{ apptId: item.id }}
 								className="block truncate font-medium"
 							>
-								{item.shortTitle}
+								{item.title}
 							</EntityLink>
 							<div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
 								<span className="inline-flex items-center gap-1">

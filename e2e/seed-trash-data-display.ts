@@ -1,5 +1,5 @@
 import { prismaClient } from "../src/lib/db";
-import { cleanupByShortTitlePrefix } from "./helpers";
+import { cleanupByTitlePrefix } from "./helpers";
 
 // Standalone fixture script (run via `npx tsx e2e/seed-trash-data-display.ts`
 // with DATABASE_URL pointed at the e2e test.db) for
@@ -11,7 +11,7 @@ import { cleanupByShortTitlePrefix } from "./helpers";
 const SHORT_TITLE_PREFIX = "E2ETRASHDD-";
 
 async function main() {
-	await cleanupByShortTitlePrefix(SHORT_TITLE_PREFIX);
+	await cleanupByTitlePrefix(SHORT_TITLE_PREFIX);
 
 	// `--cleanup-only` (used in an afterAll to leave no fixture data behind
 	// once the tests that need this fixture finish) stops here — the cleanup
@@ -32,9 +32,8 @@ async function main() {
 		data: {
 			deletedAt: now,
 			endDate: null,
-			shortTitle: `${SHORT_TITLE_PREFIX}Feiertag1`,
 			startDate: now,
-			title: "E2ETRASHDD Feiertag 1",
+			title: `${SHORT_TITLE_PREFIX}Feiertag1`,
 			type: "HOLIDAY",
 		},
 	});
@@ -42,9 +41,8 @@ async function main() {
 		data: {
 			deletedAt: now,
 			endDate: null,
-			shortTitle: `${SHORT_TITLE_PREFIX}Feiertag2`,
 			startDate: now,
-			title: "E2ETRASHDD Feiertag 2",
+			title: `${SHORT_TITLE_PREFIX}Feiertag2`,
 			type: "HOLIDAY",
 		},
 	});
@@ -54,10 +52,9 @@ async function main() {
 			endDate: now,
 			location: "Sporthalle",
 			seasonId: season.id,
-			shortTitle: `${SHORT_TITLE_PREFIX}Turnier1`,
 			startDate: now,
 			status: "PUBLISHED",
-			title: "E2ETRASHDD Turnier 1",
+			title: `${SHORT_TITLE_PREFIX}Turnier1`,
 			type: "TOURNAMENT",
 		},
 	});

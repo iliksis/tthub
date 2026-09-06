@@ -1,0 +1,16 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"labels_color": "Farbe",
+	"labels_create_label": "Label erstellen",
+	"labels_label_created": "Label erstellt",
+	"labels_label_deleted": "Label gelöscht",
+	"labels_label_not_found": "Label nicht gefunden",
+	"labels_label_updated": "Label aktualisiert",
+	"labels_labels": "Labels",
+	"labels_labels_found": "Labels gefunden",
+	"labels_manage_tournament_labels": "Turnier-Labels verwalten",
+	"labels_name": "Name",
+	"labels_rename_label": "Label umbenennen",
+	"labels_are_you_sure_you_want_to_delete_this_label": "Bist du sicher, dass du dieses Label löschen möchtest? Es wird von allen Terminen entfernt, die es tragen.",
+	"labels_you_do_not_have_permission_to_access_label_settings": "Du hast keine Berechtigung, um auf die Label-Einstellungen zuzugreifen"
+}

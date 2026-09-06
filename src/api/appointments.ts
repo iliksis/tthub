@@ -21,15 +21,13 @@ import { sendNotification } from "./notifications";
 type ICreateAppointment =
 	| {
 			title: string;
-			shortTitle: string;
 			type: "HOLIDAY";
 			startDate: Date;
 			endDate: Date | null;
 	  }
 	| {
 			title: string;
-			shortTitle: string;
-			type: "TOURNAMENT" | "TOURNAMENT_DE";
+			type: "TOURNAMENT";
 			startDate: Date;
 			endDate: Date | null;
 			location: string | null;
@@ -54,7 +52,6 @@ export const createAppointment = createServerFn()
 						endDate: data.endDate,
 						location: data.type === "HOLIDAY" ? undefined : data.location,
 						seasonId: data.type === "HOLIDAY" ? undefined : data.seasonId,
-						shortTitle: data.shortTitle,
 						startDate: data.startDate,
 						status: data.type === "HOLIDAY" ? undefined : data.status,
 						title: data.title,
@@ -168,9 +165,6 @@ export const searchAppointments = createServerFn()
 							title: { contains: data.query ?? "" },
 						},
 						{
-							shortTitle: { contains: data.query ?? "" },
-						},
-						{
 							location: { contains: data.query ?? "" },
 						},
 					],
@@ -207,7 +201,6 @@ export const getTransactionsPage = createServerFn()
 					? {
 							OR: [
 								{ appointment: { title: { contains: data.query } } },
-								{ appointment: { shortTitle: { contains: data.query } } },
 								{ user: { name: { contains: data.query } } },
 							],
 						}
@@ -256,7 +249,7 @@ export const getRecentTransactions = createServerFn({ method: "GET" })
 			const transactions = await prismaClient.transaction.findMany({
 				orderBy: { createdAt: "desc" },
 				select: {
-					appointment: { select: { id: true, shortTitle: true } },
+					appointment: { select: { id: true, title: true } },
 					createdAt: true,
 					id: true,
 					type: true,
@@ -299,18 +292,8 @@ export const getAppointments = createServerFn()
 					},
 					OR: [
 						{
-							OR: [
-								{ type: AppointmentType.TOURNAMENT },
-								{ type: AppointmentType.TOURNAMENT_DE },
-							],
 							title: { contains: data.title ?? "" },
-						},
-						{
-							OR: [
-								{ type: AppointmentType.TOURNAMENT },
-								{ type: AppointmentType.TOURNAMENT_DE },
-							],
-							shortTitle: { contains: data.title ?? "" },
+							type: AppointmentType.TOURNAMENT,
 						},
 					],
 					seasonId: data.seasonId,
@@ -368,7 +351,6 @@ export const getAppointmentsPage = createServerFn()
 					{
 						OR: [
 							{ title: { contains: data.query ?? "" } },
-							{ shortTitle: { contains: data.query ?? "" } },
 							{ location: { contains: data.query ?? "" } },
 						],
 					},
@@ -402,9 +384,7 @@ export const getAppointmentsPage = createServerFn()
 				startDate: { gte: todayStart },
 				type:
 					data.typeGroup === "TOURNAMENT"
-						? {
-								in: [AppointmentType.TOURNAMENT, AppointmentType.TOURNAMENT_DE],
-							}
+						? AppointmentType.TOURNAMENT
 						: data.typeGroup === "TEAM_MATCH"
 							? AppointmentType.TEAM_MATCH
 							: undefined,
@@ -461,7 +441,6 @@ function buildAppointmentsFilterWhere(
 		deletedAt,
 		OR: [
 			{ title: { contains: filter.query ?? "" } },
-			{ shortTitle: { contains: filter.query ?? "" } },
 			{ location: { contains: filter.query ?? "" } },
 		],
 		seasonId: filter.seasonId,
@@ -576,7 +555,6 @@ export const updateAppointment = createServerFn()
 						location: data.updates.location,
 						nextAppointmentId: data.updates.nextAppointmentId,
 						seasonId: data.updates.seasonId,
-						shortTitle: data.updates.shortTitle,
 						startDate: data.updates.startDate,
 						status: data.updates.status,
 						title: data.updates.title,
@@ -863,7 +841,6 @@ export const bulkCopyAppointmentsToSeason = createServerFn()
 								location: source.location,
 								ownTeamId: source.ownTeamId,
 								seasonId: data.targetSeasonId,
-								shortTitle: source.shortTitle,
 								startDate: oneYearLater(source.startDate),
 								status: AppointmentStatus.DRAFT,
 								title: source.title,
@@ -1115,7 +1092,6 @@ export const getCalendarAppointments = createServerFn()
 				end: a.endDate ?? a.startDate,
 				id: a.id,
 				location: a.location,
-				shortTitle: a.shortTitle,
 				start: a.startDate,
 				title: a.title,
 				type: a.type,

@@ -28,6 +28,7 @@ import { Route as AuthedPlayersPlayerIdRouteImport } from './routes/_authed/play
 import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settings/index'
 import { Route as AuthedSettingsFeedRouteImport } from './routes/_authed/settings/feed'
 import { Route as AuthedSettingsImportsRouteImport } from './routes/_authed/settings/imports'
+import { Route as AuthedSettingsLabelsRouteImport } from './routes/_authed/settings/labels'
 import { Route as AuthedSettingsProfileRouteImport } from './routes/_authed/settings/profile'
 import { Route as AuthedSettingsSeasonsRouteImport } from './routes/_authed/settings/seasons'
 import { Route as AuthedSettingsUsersRouteImport } from './routes/_authed/settings/users'
@@ -128,6 +129,11 @@ const AuthedSettingsImportsRoute = AuthedSettingsImportsRouteImport.update({
   path: '/imports',
   getParentRoute: () => AuthedSettingsRoute,
 } as any)
+const AuthedSettingsLabelsRoute = AuthedSettingsLabelsRouteImport.update({
+  id: '/labels',
+  path: '/labels',
+  getParentRoute: () => AuthedSettingsRoute,
+} as any)
 const AuthedSettingsProfileRoute = AuthedSettingsProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/players/$playerId': typeof AuthedPlayersPlayerIdRoute
   '/settings/feed': typeof AuthedSettingsFeedRoute
   '/settings/imports': typeof AuthedSettingsImportsRoute
+  '/settings/labels': typeof AuthedSettingsLabelsRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
   '/settings/seasons': typeof AuthedSettingsSeasonsRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/players/$playerId': typeof AuthedPlayersPlayerIdRoute
   '/settings/feed': typeof AuthedSettingsFeedRoute
   '/settings/imports': typeof AuthedSettingsImportsRoute
+  '/settings/labels': typeof AuthedSettingsLabelsRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
   '/settings/seasons': typeof AuthedSettingsSeasonsRoute
   '/settings/users': typeof AuthedSettingsUsersRoute
@@ -221,6 +229,7 @@ export interface FileRoutesById {
   '/_authed/players/$playerId': typeof AuthedPlayersPlayerIdRoute
   '/_authed/settings/feed': typeof AuthedSettingsFeedRoute
   '/_authed/settings/imports': typeof AuthedSettingsImportsRoute
+  '/_authed/settings/labels': typeof AuthedSettingsLabelsRoute
   '/_authed/settings/profile': typeof AuthedSettingsProfileRoute
   '/_authed/settings/seasons': typeof AuthedSettingsSeasonsRoute
   '/_authed/settings/users': typeof AuthedSettingsUsersRoute
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
     | '/players/$playerId'
     | '/settings/feed'
     | '/settings/imports'
+    | '/settings/labels'
     | '/settings/profile'
     | '/settings/seasons'
     | '/settings/users'
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
     | '/players/$playerId'
     | '/settings/feed'
     | '/settings/imports'
+    | '/settings/labels'
     | '/settings/profile'
     | '/settings/seasons'
     | '/settings/users'
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/_authed/players/$playerId'
     | '/_authed/settings/feed'
     | '/_authed/settings/imports'
+    | '/_authed/settings/labels'
     | '/_authed/settings/profile'
     | '/_authed/settings/seasons'
     | '/_authed/settings/users'
@@ -451,6 +463,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSettingsImportsRouteImport
       parentRoute: typeof AuthedSettingsRoute
     }
+    '/_authed/settings/labels': {
+      id: '/_authed/settings/labels'
+      path: '/labels'
+      fullPath: '/settings/labels'
+      preLoaderRoute: typeof AuthedSettingsLabelsRouteImport
+      parentRoute: typeof AuthedSettingsRoute
+    }
     '/_authed/settings/profile': {
       id: '/_authed/settings/profile'
       path: '/profile'
@@ -492,6 +511,7 @@ declare module '@tanstack/react-router' {
 interface AuthedSettingsRouteChildren {
   AuthedSettingsFeedRoute: typeof AuthedSettingsFeedRoute
   AuthedSettingsImportsRoute: typeof AuthedSettingsImportsRoute
+  AuthedSettingsLabelsRoute: typeof AuthedSettingsLabelsRoute
   AuthedSettingsProfileRoute: typeof AuthedSettingsProfileRoute
   AuthedSettingsSeasonsRoute: typeof AuthedSettingsSeasonsRoute
   AuthedSettingsUsersRoute: typeof AuthedSettingsUsersRoute
@@ -501,6 +521,7 @@ interface AuthedSettingsRouteChildren {
 const AuthedSettingsRouteChildren: AuthedSettingsRouteChildren = {
   AuthedSettingsFeedRoute: AuthedSettingsFeedRoute,
   AuthedSettingsImportsRoute: AuthedSettingsImportsRoute,
+  AuthedSettingsLabelsRoute: AuthedSettingsLabelsRoute,
   AuthedSettingsProfileRoute: AuthedSettingsProfileRoute,
   AuthedSettingsSeasonsRoute: AuthedSettingsSeasonsRoute,
   AuthedSettingsUsersRoute: AuthedSettingsUsersRoute,

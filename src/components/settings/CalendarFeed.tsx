@@ -24,11 +24,9 @@ const appointmentTypeMeta: Record<AppointmentType, { label: string }> = {
 	HOLIDAY: { label: m.common_holiday() },
 	TEAM_MATCH: { label: m.common_team_matches() },
 	TOURNAMENT: { label: m.common_tournament() },
-	TOURNAMENT_DE: { label: m.common_tournament_germany() },
 };
 const appointmentTypeOrder: AppointmentType[] = [
 	"TOURNAMENT",
-	"TOURNAMENT_DE",
 	"HOLIDAY",
 	"TEAM_MATCH",
 ];

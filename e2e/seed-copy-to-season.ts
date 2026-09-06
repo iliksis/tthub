@@ -1,5 +1,5 @@
 import { prismaClient } from "../src/lib/db";
-import { cleanupByShortTitlePrefix } from "./helpers";
+import { cleanupByTitlePrefix } from "./helpers";
 
 // Standalone fixture script (run via `npx tsx e2e/seed-copy-to-season.ts` with
 // DATABASE_URL pointed at the e2e test.db) for appointments-bulk.spec.ts's
@@ -11,7 +11,7 @@ const SHORT_TITLE_PREFIX = "E2ECOPY-";
 const TARGET_SEASON_NAME = "E2ECOPY-Target";
 
 async function main() {
-	await cleanupByShortTitlePrefix(SHORT_TITLE_PREFIX);
+	await cleanupByTitlePrefix(SHORT_TITLE_PREFIX);
 	await prismaClient.season.deleteMany({
 		where: { name: TARGET_SEASON_NAME },
 	});
@@ -39,10 +39,9 @@ async function main() {
 			endDate: now,
 			location: "Sporthalle",
 			seasonId: sourceSeason.id,
-			shortTitle: `${SHORT_TITLE_PREFIX}Turnier1`,
 			startDate: now,
 			status: "PUBLISHED",
-			title: "E2ECOPY Turnier 1",
+			title: `${SHORT_TITLE_PREFIX}Turnier1`,
 			type: "TOURNAMENT",
 		},
 	});
@@ -51,19 +50,17 @@ async function main() {
 			endDate: now,
 			location: "Sporthalle",
 			seasonId: sourceSeason.id,
-			shortTitle: `${SHORT_TITLE_PREFIX}Turnier2`,
 			startDate: now,
 			status: "DRAFT",
-			title: "E2ECOPY Turnier 2",
+			title: `${SHORT_TITLE_PREFIX}Turnier2`,
 			type: "TOURNAMENT",
 		},
 	});
 	await prismaClient.appointment.create({
 		data: {
 			endDate: null,
-			shortTitle: `${SHORT_TITLE_PREFIX}Feiertag`,
 			startDate: now,
-			title: "E2ECOPY Feiertag",
+			title: `${SHORT_TITLE_PREFIX}Feiertag`,
 			type: "HOLIDAY",
 		},
 	});

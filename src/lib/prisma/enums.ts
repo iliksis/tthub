@@ -28,7 +28,6 @@ export type AppointmentStatus = (typeof AppointmentStatus)[keyof typeof Appointm
 
 export const AppointmentType = {
   TOURNAMENT: 'TOURNAMENT',
-  TOURNAMENT_DE: 'TOURNAMENT_DE',
   HOLIDAY: 'HOLIDAY',
   TEAM_MATCH: 'TEAM_MATCH'
 } as const

@@ -40,7 +40,6 @@ export const CreateAppointmentForm = ({
 
 	const defaultFormValues: {
 		title: string;
-		shortTitle: string;
 		startDate: Date;
 		endDate: Date | null;
 		location: string;
@@ -50,7 +49,6 @@ export const CreateAppointmentForm = ({
 		endDate: null,
 		location: "",
 		seasonId: activeSeason?.id ?? seasons[0]?.id ?? "",
-		shortTitle: "",
 		startDate: getTodayAtTen(),
 		status: AppointmentStatus.DRAFT,
 		title: "",
@@ -78,7 +76,6 @@ export const CreateAppointmentForm = ({
 				createMutation.mutate({
 					data: {
 						endDate: value.endDate,
-						shortTitle: value.shortTitle,
 						startDate: value.startDate,
 						title: value.title,
 						type: "HOLIDAY",
@@ -91,11 +88,10 @@ export const CreateAppointmentForm = ({
 					endDate: value.endDate,
 					location: value.location,
 					seasonId: value.seasonId,
-					shortTitle: value.shortTitle,
 					startDate: value.startDate,
 					status: value.status,
 					title: value.title,
-					type: tournamentType === "bavaria" ? "TOURNAMENT" : "TOURNAMENT_DE",
+					type: "TOURNAMENT",
 				},
 			});
 		},
@@ -207,20 +203,6 @@ export const CreateAppointmentForm = ({
 					{(field) => (
 						<fieldset className="flex flex-col gap-1.5">
 							<Label htmlFor={field.name}>{m.common_title()}:</Label>
-							<Input
-								id={field.name}
-								name={field.name}
-								value={field.state.value}
-								onBlur={field.handleBlur}
-								onChange={(e) => field.handleChange(e.target.value)}
-							/>
-						</fieldset>
-					)}
-				</form.Field>
-				<form.Field name="shortTitle">
-					{(field) => (
-						<fieldset className="flex flex-col gap-1.5">
-							<Label htmlFor={field.name}>{m.appointments_shorttitle()}:</Label>
 							<Input
 								id={field.name}
 								name={field.name}

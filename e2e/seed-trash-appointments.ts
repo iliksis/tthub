@@ -1,9 +1,9 @@
 import { prismaClient } from "../src/lib/db";
-import { cleanupByShortTitlePrefix } from "./helpers";
+import { cleanupByTitlePrefix } from "./helpers";
 
 // Standalone fixture script (run via `npx tsx e2e/seed-trash-appointments.ts <count>`
 // with DATABASE_URL pointed at the e2e test.db) that seeds a batch of
-// soft-deleted appointments distinguishable by a shortTitle prefix, for tests
+// soft-deleted appointments distinguishable by a title prefix, for tests
 // in appointments-trash.spec.ts that need more matching rows than fit in one
 // loaded page (BATCH_SIZE in src/routes/_authed/appts/trash.tsx). Re-run
 // clears any appointments from a previous run first, so it's safe to call
@@ -21,8 +21,8 @@ const SHORT_TITLE_PREFIX = "E2ETRASH-";
 const NOISE_PREFIX = "E2ETRASHNOISE-";
 
 async function main() {
-	await cleanupByShortTitlePrefix(SHORT_TITLE_PREFIX);
-	await cleanupByShortTitlePrefix(NOISE_PREFIX);
+	await cleanupByTitlePrefix(SHORT_TITLE_PREFIX);
+	await cleanupByTitlePrefix(NOISE_PREFIX);
 
 	const count = Number(process.argv[2] ?? 30);
 	const now = new Date();
@@ -32,9 +32,8 @@ async function main() {
 			data: {
 				deletedAt: now,
 				endDate: null,
-				shortTitle: `${SHORT_TITLE_PREFIX}${i}`,
 				startDate: new Date(now.getTime() + i * 86_400_000),
-				title: `E2E Trash Appointment ${i}`,
+				title: `${SHORT_TITLE_PREFIX}${i}`,
 				type: "HOLIDAY",
 			},
 		});
@@ -45,9 +44,8 @@ async function main() {
 			data: {
 				deletedAt: now,
 				endDate: null,
-				shortTitle: `${NOISE_PREFIX}0`,
 				startDate: now,
-				title: "E2E Trash Noise Appointment",
+				title: `${NOISE_PREFIX}0`,
 				type: "HOLIDAY",
 			},
 		});

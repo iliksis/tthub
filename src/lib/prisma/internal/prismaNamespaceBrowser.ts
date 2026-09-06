@@ -57,6 +57,8 @@ export const ModelName = {
   PasswordReset: 'PasswordReset',
   Appointment: 'Appointment',
   Season: 'Season',
+  Label: 'Label',
+  AppointmentLabel: 'AppointmentLabel',
   Response: 'Response',
   Player: 'Player',
   Team: 'Team',
@@ -130,7 +132,6 @@ export const AppointmentScalarFieldEnum = {
   startDate: 'startDate',
   endDate: 'endDate',
   title: 'title',
-  shortTitle: 'shortTitle',
   location: 'location',
   link: 'link',
   type: 'type',
@@ -153,6 +154,24 @@ export const SeasonScalarFieldEnum = {
 } as const
 
 export type SeasonScalarFieldEnum = (typeof SeasonScalarFieldEnum)[keyof typeof SeasonScalarFieldEnum]
+
+
+export const LabelScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  name: 'name',
+  color: 'color'
+} as const
+
+export type LabelScalarFieldEnum = (typeof LabelScalarFieldEnum)[keyof typeof LabelScalarFieldEnum]
+
+
+export const AppointmentLabelScalarFieldEnum = {
+  appointmentId: 'appointmentId',
+  labelId: 'labelId'
+} as const
+
+export type AppointmentLabelScalarFieldEnum = (typeof AppointmentLabelScalarFieldEnum)[keyof typeof AppointmentLabelScalarFieldEnum]
 
 
 export const ResponseScalarFieldEnum = {

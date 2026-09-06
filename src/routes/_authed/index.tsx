@@ -1,11 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import {
-	GlobeIcon,
-	PartyPopperIcon,
-	TrophyIcon,
-	UsersIcon,
-} from "lucide-react";
+import { PartyPopperIcon, TrophyIcon, UsersIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
 	createResponse,
@@ -51,7 +46,6 @@ const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
 	HOLIDAY: PartyPopperIcon,
 	TEAM_MATCH: UsersIcon,
 	TOURNAMENT: TrophyIcon,
-	TOURNAMENT_DE: GlobeIcon,
 };
 
 export const Route = createFileRoute("/_authed/")({
@@ -121,7 +115,7 @@ function App() {
 									<AppointmentRow
 										key={a.id}
 										appointmentId={a.id}
-										title={a.shortTitle}
+										title={a.title}
 										date={a.startDate}
 										dateLabel={shortRangeFmt(a.startDate, a.endDate)}
 										time={timeFmt(a.startDate)}
@@ -156,7 +150,7 @@ function App() {
 												params={{ apptId: a.id }}
 												className="min-w-0 truncate"
 											>
-												{a.shortTitle}
+												{a.title}
 											</Link>
 										</div>
 										<div className="flex shrink-0 gap-1">
@@ -215,7 +209,7 @@ function App() {
 													to="/appts/$apptId"
 													params={{ apptId: tx.appointment.id }}
 												>
-													{tx.appointment.shortTitle}
+													{tx.appointment.title}
 												</Link>
 											</span>
 											<span className="shrink-0 text-muted-foreground">

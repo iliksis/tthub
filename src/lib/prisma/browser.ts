@@ -48,6 +48,16 @@ export type Appointment = Prisma.AppointmentModel
  */
 export type Season = Prisma.SeasonModel
 /**
+ * Model Label
+ * 
+ */
+export type Label = Prisma.LabelModel
+/**
+ * Model AppointmentLabel
+ * 
+ */
+export type AppointmentLabel = Prisma.AppointmentLabelModel
+/**
  * Model Response
  * 
  */
