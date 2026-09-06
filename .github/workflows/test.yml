@@ -5,6 +5,10 @@ on:
     branches:
       - main
       - release
+  push:
+    branches:
+      - main
+      - release
 
 jobs:
   unit-tests:
@@ -76,5 +80,10 @@ jobs:
         if: steps.cache-playwright.outputs.cache-hit == 'true'
         run: npx playwright install-deps
 
-      - name: Run E2E tests
+      - name: Run E2E tests (chromium only, PR builds)
+        if: github.event_name == 'pull_request'
+        run: npm run test:e2e:pr
+
+      - name: Run E2E tests (full browser matrix, main/release)
+        if: github.event_name == 'push'
         run: npm run test:e2e
