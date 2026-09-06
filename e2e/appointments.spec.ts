@@ -71,6 +71,7 @@ test.describe("Create Appointment Route", () => {
 
 	test("USER cannot access create page", async ({ page }) => {
 		await loginAs(page, "user");
+		await page.waitForLoadState("networkidle");
 		await expect(page.locator("a[href='/create']")).not.toBeVisible();
 		await page.goto("/create");
 		await expect(page).toHaveURL("/create");

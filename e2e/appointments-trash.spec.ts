@@ -253,17 +253,16 @@ test.describe("Trash Route - Select All Matching Filters", () => {
 		await page.waitForLoadState("networkidle");
 
 		await searchInput(page).fill(TRASH_QUERY);
-		await expect(page.getByText(/30 von \d+ Ereignissen/)).toBeVisible();
 		// The search input is debounced (300ms) before it navigates/re-filters;
 		// entering select-all-matching before that commit lands would have its
 		// state wiped by useBulkSelection's filterKey-change reset once the
-		// debounced navigation finally lands. A plain waitForLoadState right
-		// after fill() isn't enough on its own — the debounce's setTimeout may
-		// not have fired yet, so the page can already look network-idle before
-		// the debounced request even starts; wait out the debounce window
-		// first, then for that request to actually finish.
-		await page.waitForTimeout(350);
-		await page.waitForLoadState("networkidle");
+		// debounced navigation finally lands. seedTrashAppointments always adds
+		// one non-matching "noise" row alongside the TRASH_QUERY batch, so the
+		// unfiltered total can never coincidentally equal the filtered count —
+		// meaning this assertion can only pass once the debounced filter has
+		// actually committed (matchedTotal and the search-derived filterKey
+		// land in the same render), making it safe to act on immediately after.
+		await expect(page.getByText(/30 von \d+ Ereignissen/)).toBeVisible();
 
 		const rows = page.locator("table tbody tr");
 		// Only one loaded batch (25) is rendered even though 30 rows match.
@@ -303,12 +302,10 @@ test.describe("Trash Route - Select All Matching Filters", () => {
 		await page.waitForLoadState("networkidle");
 
 		await searchInput(page).fill(TRASH_QUERY);
+		// See the comment in the previous test — the noise row seeded alongside
+		// TRASH_QUERY guarantees this assertion only passes once the debounced
+		// search navigation has actually committed.
 		await expect(page.getByText(/30 von \d+ Ereignissen/)).toBeVisible();
-		// See the comment in the previous test — wait for the debounced search
-		// navigation to settle before entering select-all-matching, or its state
-		// gets wiped once that navigation lands.
-		await page.waitForTimeout(350);
-		await page.waitForLoadState("networkidle");
 
 		await page
 			.getByRole("button", { name: "30 passende Termine auswählen" })
@@ -379,9 +376,10 @@ test.describe("Trash Route - Select All Matching Filters", () => {
 		await page.waitForLoadState("networkidle");
 
 		await searchInput(page).fill(TRASH_QUERY);
+		// See the comment in the first test of this describe block — the noise
+		// row guarantees this assertion only passes once the debounced search
+		// navigation has actually committed.
 		await expect(page.getByText(/^5 von \d+ Ereignissen/)).toBeVisible();
-		await page.waitForTimeout(350);
-		await page.waitForLoadState("networkidle");
 
 		await page
 			.getByRole("button", { name: "5 passende Termine auswählen" })
