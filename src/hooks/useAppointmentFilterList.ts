@@ -103,6 +103,25 @@ export function useAppointmentFilterList<T>({
 		});
 	};
 
+	// Navigate back to the first page (omitting `skip`) rather than a plain
+	// router.invalidate(): invalidate() re-runs the loader for the *current*
+	// skip, which only refetches whatever page the user was on — if they'd
+	// already paged past the first batch via "load more", `items` would keep
+	// any optimistic local update with no way to reconcile it against the
+	// server for the rest of the list. Resetting to skip=0 forces
+	// useLoadMoreBatch's fresh-view path to fully resync `items` from
+	// authoritative data instead.
+	const resyncToFirstPage = () =>
+		router.navigate({
+			replace: true,
+			search: {
+				query: search.query,
+				seasonId: search.seasonId,
+				types: search.types,
+			},
+			to: ".",
+		});
+
 	const remaining = matchedTotal - items.length;
 
 	const filterSegments: FilterBarSegment[] = [
@@ -139,6 +158,7 @@ export function useAppointmentFilterList<T>({
 		onLoadMore,
 		queryInput,
 		remaining,
+		resyncToFirstPage,
 		router,
 		setItems,
 		setQueryInput,

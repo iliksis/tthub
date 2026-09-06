@@ -22,7 +22,7 @@ import { FilterBar } from "@/components/FilterBar";
 import { RestoreModal } from "@/components/modal/RestoreModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAppointmentFilterList } from "@/hooks/useAppointmentFilterList";
-import { useBulkListAction } from "@/hooks/useBulkListAction";
+import { useBulkAppointmentAction } from "@/hooks/useBulkAppointmentAction";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -84,7 +84,6 @@ function RouteComponent() {
 	const search = Route.useSearch();
 
 	const {
-		router,
 		isNavigating,
 		queryInput,
 		setQueryInput,
@@ -94,6 +93,7 @@ function RouteComponent() {
 		onClearFilters,
 		onLoadMore,
 		remaining,
+		resyncToFirstPage,
 		selection,
 		onSelectionChange,
 		selectAllMatching,
@@ -117,10 +117,11 @@ function RouteComponent() {
 		pending: pendingRestore,
 		setPending: setPendingRestore,
 		run: onRestore,
-	} = useBulkListAction({
+	} = useBulkAppointmentAction({
+		buildPayload: (base) => base,
 		excludeIds,
 		exitSelectAllMatching,
-		router,
+		resync: resyncToFirstPage,
 		search,
 		serverFn: useServerFn(bulkRestoreAppointments),
 		setExplicitSelection,
