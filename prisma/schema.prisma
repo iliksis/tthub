@@ -36,7 +36,7 @@ model FeedConfig {
   user                    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   includeResponseTypes    String?          // Comma-separated: ACCEPT,MAYBE,DECLINE
   includeDraftStatus      Boolean          @default(false)
-  includeAppointmentTypes String?          // Comma-separated: TOURNAMENT,TOURNAMENT_DE,HOLIDAY,TEAM_MATCH
+  includeAppointmentTypes String?          // Comma-separated: TOURNAMENT,HOLIDAY,TEAM_MATCH
 }
 
 model UserInvitation {
@@ -104,9 +104,7 @@ enum AppointmentType {
 }
 
 // Editor-managed tag attachable to TOURNAMENT appointments (e.g. region,
-// coach relevance). Purely informational — see docs/adr/0002. Attaching
-// labels to appointments is not implemented yet: this model and its join
-// table exist so the label catalog can be built ahead of that.
+// coach relevance). Purely informational — see docs/adr/0002.
 model Label {
   id           String             @id @default(nanoid(6))
   createdAt    DateTime           @default(now())

@@ -5,10 +5,10 @@ export type TransactionChanges = Record<string, { old: unknown; new: unknown }>;
 
 export const fieldLabels: Record<string, string> = {
 	endDate: m.appointments_enddate(),
+	labels: m.labels_labels(),
 	link: m.appointments_link(),
 	location: m.appointments_location(),
 	nextAppointmentId: m.appointments_next_appointment(),
-	shortTitle: m.appointments_shorttitle(),
 	startDate: m.appointments_startdate(),
 	status: m.appointments_status(),
 	title: m.common_title(),
@@ -28,6 +28,9 @@ const isIsoDateString = (value: string) => /^\d{4}-\d{2}-\d{2}T/.test(value);
 
 export const formatChangeValue = (field: string, value: unknown): string => {
 	if (value === null || value === undefined || value === "") return "—";
+	if (Array.isArray(value)) {
+		return value.length > 0 ? value.join(", ") : "—";
+	}
 	if (field === "status" && typeof value === "string") {
 		return statusLabels[value] ?? value;
 	}

@@ -425,12 +425,12 @@ test.describe("Bulk Appointments Route - Copy to Season", () => {
 
 		const rows = page.locator("table tbody tr");
 		await expect(rows).toHaveCount(3);
-		// td index 0 is the selection checkbox column, so startDate is index 4
-		// (shortTitle, type, season, startDate).
+		// td index 0 is the selection checkbox column, so startDate is index 5
+		// (title, type, labels, season, startDate).
 		const sourceDateText = await rows
 			.filter({ hasText: "E2ECOPY-Turnier1" })
 			.locator("td")
-			.nth(4)
+			.nth(5)
 			.textContent();
 
 		await page.locator("table thead").getByRole("checkbox").click();
@@ -468,7 +468,7 @@ test.describe("Bulk Appointments Route - Copy to Season", () => {
 			copiedRow.locator("td").filter({ hasText: COPY_TARGET_SEASON }),
 		).toBeVisible();
 		if (sourceDateText) {
-			const copiedDateText = await copiedRow.locator("td").nth(4).textContent();
+			const copiedDateText = await copiedRow.locator("td").nth(5).textContent();
 			const [day, month, sourceYear] = sourceDateText.trim().split(".");
 			const expectedYear = (Number(sourceYear) + 1).toString().padStart(2, "0");
 			expect(copiedDateText?.trim()).toBe(`${day}.${month}.${expectedYear}`);

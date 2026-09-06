@@ -4,19 +4,20 @@ import { CalendarIcon, CheckIcon, TrophyIcon } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 import { createAppointment } from "@/api/appointments";
+import { LabelBadges } from "@/components/labels/LabelBadges";
+import { LabelMultiSelect } from "@/components/labels/LabelMultiSelect";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EntitySelect } from "@/components/ui/entity-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
-import type { Season } from "@/lib/prisma/client";
+import type { Label as LabelRecord, Season } from "@/lib/prisma/client";
 import { AppointmentStatus } from "@/lib/prisma/enums";
 import { cn, dateToInputValue } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 type AppointmentType = "holiday" | "tournament";
-type TournamentType = "bavaria" | "germany";
 
 const getTodayAtTen = () => {
 	const date = new Date();
@@ -27,16 +28,18 @@ const getTodayAtTen = () => {
 type CreateAppointmentFormProps = {
 	seasons: Season[];
 	activeSeason: Season | null | undefined;
+	labels: LabelRecord[];
 };
 
 export const CreateAppointmentForm = ({
 	seasons,
 	activeSeason,
+	labels,
 }: CreateAppointmentFormProps) => {
 	const router = useRouter();
 	const [step, setStep] = React.useState(0);
 	const [type, setType] = React.useState<AppointmentType>();
-	const [tournamentType, setTournamentType] = React.useState<TournamentType>();
+	const [selectedLabels, setSelectedLabels] = React.useState<LabelRecord[]>([]);
 
 	const defaultFormValues: {
 		title: string;
@@ -86,6 +89,7 @@ export const CreateAppointmentForm = ({
 			createMutation.mutate({
 				data: {
 					endDate: value.endDate,
+					labelIds: selectedLabels.map((l) => l.id),
 					location: value.location,
 					seasonId: value.seasonId,
 					startDate: value.startDate,
@@ -102,7 +106,7 @@ export const CreateAppointmentForm = ({
 		m.common_details(),
 		m.appointments_review(),
 	];
-	const canAdvanceFromType = type === "tournament" ? !!tournamentType : !!type;
+	const canAdvanceFromType = !!type;
 
 	const typeStep = (
 		<div className="duration-300 animate-in fade-in slide-in-from-right-2">
@@ -155,35 +159,6 @@ export const CreateAppointmentForm = ({
 					</div>
 				</button>
 			</div>
-
-			{type === "tournament" && (
-				<div className="mt-4 grid grid-cols-1 gap-4 duration-200 animate-in fade-in slide-in-from-top-1 sm:grid-cols-2">
-					<button
-						type="button"
-						onClick={() => setTournamentType("bavaria")}
-						className={cn(
-							"rounded-lg border px-4 py-2.5 text-left text-sm transition-colors duration-150",
-							tournamentType === "bavaria"
-								? "border-success bg-success/10 font-medium"
-								: "border-border/60 hover:bg-accent/50",
-						)}
-					>
-						{m.appointments_bavaria()}
-					</button>
-					<button
-						type="button"
-						onClick={() => setTournamentType("germany")}
-						className={cn(
-							"rounded-lg border px-4 py-2.5 text-left text-sm transition-colors duration-150",
-							tournamentType === "germany"
-								? "border-info bg-info/10 font-medium"
-								: "border-border/60 hover:bg-accent/50",
-						)}
-					>
-						{m.appointments_germany()}
-					</button>
-				</div>
-			)}
 
 			<Button
 				className="mt-6"
@@ -288,6 +263,16 @@ export const CreateAppointmentForm = ({
 						)}
 					</form.Field>
 				)}
+				{type === "tournament" && (
+					<fieldset className="flex flex-col gap-1.5 sm:col-span-2">
+						<Label>{m.labels_labels()}:</Label>
+						<LabelMultiSelect
+							availableLabels={labels}
+							selectedIds={selectedLabels.map((l) => l.id)}
+							onChange={setSelectedLabels}
+						/>
+					</fieldset>
+				)}
 			</div>
 			<div className="mt-6 flex justify-between">
 				<Button variant="outline" onClick={() => setStep(0)}>
@@ -348,6 +333,14 @@ export const CreateAppointmentForm = ({
 									{m.appointments_location()}
 								</div>
 								<div className="text-sm">{values.location || "—"}</div>
+							</div>
+						)}
+						{type === "tournament" && selectedLabels.length > 0 && (
+							<div className="sm:col-span-2">
+								<div className="text-muted-foreground text-xs uppercase">
+									{m.labels_labels()}
+								</div>
+								<LabelBadges labels={selectedLabels} className="mt-1" />
 							</div>
 						)}
 					</div>

@@ -40,6 +40,7 @@ import { LoadMoreFooter } from "@/components/appointments/LoadMoreFooter";
 import { MobileCalendar } from "@/components/calendar/MobileCalendar";
 import type { CalendarAppointment } from "@/components/calendar/MonthCalendar";
 import { MonthCalendar } from "@/components/calendar/MonthCalendar";
+import { LabelBadges } from "@/components/labels/LabelBadges";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -213,6 +214,7 @@ function toCalendarAppointments(
 	return items.map((item) => ({
 		end: item.endDate ?? item.startDate,
 		id: item.id,
+		labels: item.labels.map((l) => l.label),
 		location: item.location,
 		start: item.startDate,
 		title: item.title,
@@ -766,6 +768,10 @@ const AppointmentTimeline = ({
 													)}
 												</div>
 												<ParticipationSummary appointment={item} />
+												<LabelBadges
+													labels={item.labels.map((l) => l.label)}
+													className="mt-1"
+												/>
 											</div>
 											<div className="shrink-0">
 												<ResponseCell

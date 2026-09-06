@@ -15,6 +15,7 @@ import {
 	type DetailsListColumn,
 } from "@/components/DetailsList";
 import type { FilterBarSegment } from "@/components/FilterBar";
+import { LabelBadges } from "@/components/labels/LabelBadges";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -69,6 +70,13 @@ export const appointmentListColumns: DetailsListColumn<AppointmentWithSeason>[] 
 			key: "type",
 			label: m.appointments_type(),
 			render: (item) => appointmentTypeLabel[item.type],
+		},
+		{
+			key: "labels",
+			label: m.labels_labels(),
+			render: (item) => (
+				<LabelBadges labels={item.labels.map((l) => l.label)} />
+			),
 		},
 		{
 			key: "season",
@@ -355,6 +363,10 @@ export function AppointmentCardList({
 									<span className="truncate">{item.location}</span>
 								)}
 							</div>
+							<LabelBadges
+								labels={item.labels.map((l) => l.label)}
+								className="mt-1"
+							/>
 						</div>
 					</div>
 				);

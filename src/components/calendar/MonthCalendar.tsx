@@ -7,6 +7,7 @@ import {
 	TrophyIcon,
 	UsersIcon,
 } from "lucide-react";
+import { LabelBadges } from "@/components/labels/LabelBadges";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -32,6 +33,7 @@ export type CalendarAppointment = {
 	end: Date;
 	type: AppointmentType;
 	location: string | null;
+	labels?: { id: string; name: string; color: string }[];
 };
 
 const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
@@ -237,6 +239,13 @@ export const MonthCalendar = ({
 																{bar.event.location}
 															</div>
 														)}
+														{bar.event.labels &&
+															bar.event.labels.length > 0 && (
+																<LabelBadges
+																	labels={bar.event.labels}
+																	className="mt-1.5"
+																/>
+															)}
 													</div>
 												</div>
 											</TooltipPrimitive.Popup>
