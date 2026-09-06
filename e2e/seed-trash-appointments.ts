@@ -10,8 +10,19 @@ import { cleanupByShortTitlePrefix } from "./helpers";
 // before each test.
 const SHORT_TITLE_PREFIX = "E2ETRASH-";
 
+// A single non-matching trashed appointment seeded alongside the TRASH_QUERY
+// batch so the page's unfiltered total is never accidentally equal to the
+// filtered (matching) count. Without this, an empty trash otherwise seeded
+// with exactly N TRASH_QUERY rows makes "N von N Ereignissen" true before
+// the search box's debounced filter has actually committed, letting tests
+// race ahead of the real navigation — see the "Select All Matching Filters"
+// tests in appointments-trash.spec.ts, which assert on that summary text to
+// know the filter has landed.
+const NOISE_PREFIX = "E2ETRASHNOISE-";
+
 async function main() {
 	await cleanupByShortTitlePrefix(SHORT_TITLE_PREFIX);
+	await cleanupByShortTitlePrefix(NOISE_PREFIX);
 
 	const count = Number(process.argv[2] ?? 30);
 	const now = new Date();
@@ -24,6 +35,19 @@ async function main() {
 				shortTitle: `${SHORT_TITLE_PREFIX}${i}`,
 				startDate: new Date(now.getTime() + i * 86_400_000),
 				title: `E2E Trash Appointment ${i}`,
+				type: "HOLIDAY",
+			},
+		});
+	}
+
+	if (count > 0) {
+		await prismaClient.appointment.create({
+			data: {
+				deletedAt: now,
+				endDate: null,
+				shortTitle: `${NOISE_PREFIX}0`,
+				startDate: now,
+				title: "E2E Trash Noise Appointment",
 				type: "HOLIDAY",
 			},
 		});
