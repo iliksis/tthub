@@ -78,9 +78,5 @@ export default defineConfig({
     port: 3001,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
-    env: {
-      DATABASE_URL: 'file:./prisma/test.db',
-      NODE_ENV: 'test',
-    },
   },
 });
