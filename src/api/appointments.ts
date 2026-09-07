@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { labelsInclude } from "@/api/labels";
 import { prismaClient } from "@/lib/db";
 import type {
 	Appointment,
@@ -103,7 +104,7 @@ export const createAppointment = createServerFn()
 	});
 
 const appointmentDetailInclude = {
-	labels: { include: { label: true } },
+	labels: labelsInclude,
 	nextAppointment: true,
 	ownTeam: true,
 	placements: {
@@ -161,7 +162,7 @@ export const searchAppointments = createServerFn()
 		try {
 			const appointments = await prismaClient.appointment.findMany({
 				include: {
-					labels: { include: { label: true } },
+					labels: labelsInclude,
 					placements: {
 						distinct: "playerId",
 					},
@@ -406,7 +407,7 @@ export const getAppointmentsPage = createServerFn()
 			const [appointments, matchedTotal, grandTotal] = await Promise.all([
 				prismaClient.appointment.findMany({
 					include: {
-						labels: { include: { label: true } },
+						labels: labelsInclude,
 						ownTeam: true,
 						responses: true,
 					},
@@ -481,7 +482,10 @@ async function getAppointmentsListPage(
 
 	const [appointments, matchedTotal, grandTotal] = await Promise.all([
 		prismaClient.appointment.findMany({
-			include: { labels: { include: { label: true } }, season: true },
+			include: {
+				labels: labelsInclude,
+				season: true,
+			},
 			// `id` breaks ties between rows sharing a `startDate` so paging
 			// through skip/take can't duplicate or silently skip a row.
 			orderBy: [{ startDate: "desc" }, { id: "asc" }],
@@ -1142,7 +1146,9 @@ export const getCalendarAppointments = createServerFn()
 			const start = new Date(data.start);
 			const end = new Date(data.end);
 			const appointments = await prismaClient.appointment.findMany({
-				include: { labels: { include: { label: true } } },
+				include: {
+					labels: labelsInclude,
+				},
 				where: {
 					deletedAt: null,
 					OR: [

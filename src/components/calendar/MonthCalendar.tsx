@@ -7,6 +7,7 @@ import {
 	TrophyIcon,
 	UsersIcon,
 } from "lucide-react";
+import type { LabelColor } from "@/api/labels";
 import { LabelBadges } from "@/components/labels/LabelBadges";
 import {
 	DropdownMenu,
@@ -22,8 +23,9 @@ import {
 	type WeekBar,
 	weekdayLabels,
 } from "@/lib/calendarGrid";
+import { resolveTopPriorityLabel } from "@/lib/labelColor";
 import type { AppointmentType } from "@/lib/prisma/enums";
-import { cn } from "@/lib/utils";
+import { cn, getCatppuccinColorStyle } from "@/lib/utils";
 import { CalendarToolbar } from "./CalendarToolbar";
 
 export type CalendarAppointment = {
@@ -33,7 +35,7 @@ export type CalendarAppointment = {
 	end: Date;
 	type: AppointmentType;
 	location: string | null;
-	labels?: { id: string; name: string; color: string }[];
+	labels?: { id: string; name: string; color: string; priority: number }[];
 };
 
 const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
@@ -75,6 +77,43 @@ export const categoryStyle: Record<
 		solidText: "text-success-foreground",
 	},
 };
+
+export type EventColorStyle = {
+	barClassName: string;
+	barStyle?: React.CSSProperties;
+	dotClassName: string;
+	dotStyle?: React.CSSProperties;
+};
+
+// Resolves how a single event should be colored: the highest-priority
+// attached Label's color when it has any (theme-adaptive, via the same
+// getCatppuccinColorStyle mechanism Label badges already use), falling back
+// to the existing type-based categoryStyle when it has none. Shared by the
+// desktop (MonthCalendar) and mobile (MobileCalendar) calendar views so both
+// resolve "which color represents this event" the same way.
+export function resolveEventColorStyle(
+	event: CalendarAppointment,
+): EventColorStyle {
+	const topLabel = resolveTopPriorityLabel(event.labels ?? []);
+
+	if (topLabel) {
+		const { backgroundColor, foregroundColor } = getCatppuccinColorStyle(
+			topLabel.color as LabelColor,
+		);
+		return {
+			barClassName: "",
+			barStyle: { backgroundColor, color: foregroundColor },
+			dotClassName: "",
+			dotStyle: { backgroundColor },
+		};
+	}
+
+	const style = categoryStyle[event.type];
+	return {
+		barClassName: `${style.gradient} ${style.solidText}`,
+		dotClassName: style.dot,
+	};
+}
 
 const formatTime = (date: Date) =>
 	date.toLocaleTimeString("de-DE", { timeStyle: "short" });
@@ -189,7 +228,7 @@ export const MonthCalendar = ({
 						))}
 
 						{visibleBars.map((bar) => {
-							const style = categoryStyle[bar.event.type];
+							const colorStyle = resolveEventColorStyle(bar.event);
 							const Icon = typeIcon[bar.event.type];
 							return (
 								<TooltipPrimitive.Root key={bar.event.id}>
@@ -201,8 +240,9 @@ export const MonthCalendar = ({
 												style={{
 													gridColumn: `${bar.startCol + 1} / ${bar.endCol + 2}`,
 													gridRow: bar.lane + 2,
+													...colorStyle.barStyle,
 												}}
-												className={`mx-1 flex h-6.5 items-center truncate rounded-lg px-2 text-[11px] font-semibold ${style.gradient} ${style.solidText} ${bar.isTrueStart ? "" : "rounded-l-none"} ${bar.isTrueEnd ? "" : "rounded-r-none"}`}
+												className={`mx-1 flex h-6.5 items-center truncate rounded-lg px-2 text-[11px] font-semibold ${colorStyle.barClassName} ${bar.isTrueStart ? "" : "rounded-l-none"} ${bar.isTrueEnd ? "" : "rounded-r-none"}`}
 											/>
 										}
 									>
@@ -219,9 +259,9 @@ export const MonthCalendar = ({
 													<span
 														className={cn(
 															"flex size-6 shrink-0 items-center justify-center rounded-full",
-															style.gradient,
-															style.solidText,
+															colorStyle.barClassName,
 														)}
+														style={colorStyle.barStyle}
 													>
 														<Icon className="size-3.5" />
 													</span>
@@ -279,28 +319,32 @@ export const MonthCalendar = ({
 												...new Map(
 													hidden.map((b) => [b.event.id, b.event]),
 												).values(),
-											].map((event) => (
-												<DropdownMenuItem
-													key={event.id}
-													render={
-														<Link
-															to="/appts/$apptId"
-															params={{ apptId: event.id }}
-															className="flex items-center gap-2"
+											].map((event) => {
+												const colorStyle = resolveEventColorStyle(event);
+												return (
+													<DropdownMenuItem
+														key={event.id}
+														render={
+															<Link
+																to="/appts/$apptId"
+																params={{ apptId: event.id }}
+																className="flex items-center gap-2"
+															/>
+														}
+													>
+														<span
+															className={`size-1.5 shrink-0 rounded-full ${colorStyle.dotClassName}`}
+															style={colorStyle.dotStyle}
 														/>
-													}
-												>
-													<span
-														className={`size-1.5 shrink-0 rounded-full ${categoryStyle[event.type].dot}`}
-													/>
-													<span className="truncate font-medium">
-														{event.title}
-													</span>
-													<span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
-														{formatTime(event.start)}
-													</span>
-												</DropdownMenuItem>
-											))}
+														<span className="truncate font-medium">
+															{event.title}
+														</span>
+														<span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
+															{formatTime(event.start)}
+														</span>
+													</DropdownMenuItem>
+												);
+											})}
 										</div>
 									</DropdownMenuContent>
 								</DropdownMenu>

@@ -9,6 +9,8 @@
 	"labels_label_updated": "Label aktualisiert",
 	"labels_labels": "Labels",
 	"labels_labels_found": "Labels gefunden",
+	"labels_labels_reordered": "Reihenfolge gespeichert",
+	"labels_drag_to_reorder": "Ziehen, um die Priorität zu ändern",
 	"labels_manage_tournament_labels": "Turnier-Labels verwalten",
 	"labels_name": "Name",
 	"labels_remove_label": "Label entfernen",

@@ -162,7 +162,8 @@ export const LabelScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
   name: 'name',
-  color: 'color'
+  color: 'color',
+  priority: 'priority'
 } as const
 
 export type LabelScalarFieldEnum = (typeof LabelScalarFieldEnum)[keyof typeof LabelScalarFieldEnum]

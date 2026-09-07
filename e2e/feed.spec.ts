@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { prismaClient } from "../src/lib/db";
+import { catppuccinLatteHex } from "../src/lib/labelColor";
 import { cleanupByTitlePrefix, loginAs } from "./helpers";
 
 test.describe("Settings - Calendar Feed Route", () => {
@@ -218,6 +219,109 @@ test.describe("Calendar Feed - Exclude by Label", () => {
 		});
 		await prismaClient.appointment.delete({
 			where: { id: includedAppointment.id },
+		});
+	});
+});
+
+test.describe("Calendar Feed - Label Color", () => {
+	const LABEL_PREFIX = "E2EFEEDCOLOR-";
+	const TITLE_PREFIX = "E2EFEEDCOLOR-";
+
+	test.beforeAll(async () => {
+		await cleanupByTitlePrefix(TITLE_PREFIX);
+		await prismaClient.label.deleteMany({
+			where: { name: { startsWith: LABEL_PREFIX } },
+		});
+	});
+
+	test.afterAll(async () => {
+		await cleanupByTitlePrefix(TITLE_PREFIX);
+		await prismaClient.label.deleteMany({
+			where: { name: { startsWith: LABEL_PREFIX } },
+		});
+		await prismaClient.feedConfig.deleteMany({
+			where: { user: { userName: "admin" } },
+		});
+		await prismaClient.$disconnect();
+	});
+
+	test("the feed emits COLOR from the highest-priority label, and none for an unlabeled appointment", async ({
+		page,
+		request,
+	}) => {
+		const winnerName = `${LABEL_PREFIX}Winner`;
+		const loserName = `${LABEL_PREFIX}Loser`;
+		const coloredTitle = `${TITLE_PREFIX}Colored`;
+		const plainTitle = `${TITLE_PREFIX}Plain`;
+		// Priority values far outside the normal 0..n-1 range so this fixture's
+		// ordering can't collide with whatever the rest of the catalog holds.
+		const winner = await prismaClient.label.create({
+			data: { color: "mauve", name: winnerName, priority: -1000 },
+		});
+		const loser = await prismaClient.label.create({
+			data: { color: "peach", name: loserName, priority: 1000 },
+		});
+		const season = await prismaClient.season.findFirstOrThrow({
+			where: { isActive: true },
+		});
+		const startDate = new Date(Date.now() + 86400000);
+		const coloredAppointment = await prismaClient.appointment.create({
+			data: {
+				labels: {
+					create: [{ labelId: loser.id }, { labelId: winner.id }],
+				},
+				seasonId: season.id,
+				startDate,
+				status: "PUBLISHED",
+				title: coloredTitle,
+				type: "TOURNAMENT",
+			},
+		});
+		const plainAppointment = await prismaClient.appointment.create({
+			data: {
+				seasonId: season.id,
+				startDate,
+				status: "PUBLISHED",
+				title: plainTitle,
+				type: "TOURNAMENT",
+			},
+		});
+
+		await loginAs(page, "admin");
+		await page.goto("/settings/feed");
+		await page.waitForLoadState("networkidle");
+
+		const tournamentCheckbox = page.locator("#type-TOURNAMENT");
+		if (!(await tournamentCheckbox.isChecked())) {
+			await page.locator('label[for="type-TOURNAMENT"]').click();
+		}
+		await page.getByRole("button", { name: "Aktualisieren" }).click();
+		await expect(
+			page.getByText("Feed-Einstellungen aktualisiert"),
+		).toBeVisible();
+
+		const feedUrlInput = page.locator('input[type="text"][readonly]').first();
+		const feedUrl = await feedUrlInput.inputValue();
+		const feedPath = new URL(feedUrl).pathname;
+		const response = await request.get(feedPath);
+		const body = await response.text();
+
+		// Find the VEVENT for the colored appointment and confirm its COLOR
+		// line uses the winning (lowest-priority-value) label's color, not the
+		// other attached label's — then confirm the unlabeled appointment's
+		// VEVENT has no COLOR line at all.
+		const events = body.split("BEGIN:VEVENT");
+		const coloredEvent = events.find((e) => e.includes(coloredTitle));
+		const plainEvent = events.find((e) => e.includes(plainTitle));
+		expect(coloredEvent).toContain(`COLOR:${catppuccinLatteHex.mauve}`);
+		expect(coloredEvent).not.toContain(catppuccinLatteHex.peach);
+		expect(plainEvent).not.toContain("COLOR:");
+
+		await prismaClient.appointment.delete({
+			where: { id: coloredAppointment.id },
+		});
+		await prismaClient.appointment.delete({
+			where: { id: plainAppointment.id },
 		});
 	});
 });

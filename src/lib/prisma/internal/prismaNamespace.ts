@@ -1954,7 +1954,8 @@ export const LabelScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
   name: 'name',
-  color: 'color'
+  color: 'color',
+  priority: 'priority'
 } as const
 
 export type LabelScalarFieldEnum = (typeof LabelScalarFieldEnum)[keyof typeof LabelScalarFieldEnum]
@@ -2184,16 +2185,16 @@ export type EnumAppointmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
- * Reference to a field of type 'ResponseType'
+ * Reference to a field of type 'Int'
  */
-export type EnumResponseTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResponseType'>
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
     
 
 
 /**
- * Reference to a field of type 'Int'
+ * Reference to a field of type 'ResponseType'
  */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+export type EnumResponseTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResponseType'>
     
 
 

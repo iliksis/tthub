@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { labelsInclude } from "@/api/labels";
 import { parseFeedConfig } from "@/api/users";
 import { prismaClient } from "@/lib/db";
-import { IcalGenerator } from "@/lib/ical";
-import type { Appointment, Prisma } from "@/lib/prisma/client";
+import { type IcalAppointment, IcalGenerator } from "@/lib/ical";
+import type { Prisma } from "@/lib/prisma/client";
 
 export const Route = createFileRoute("/feed/$feedId")({
 	server: {
@@ -58,7 +59,7 @@ export const Route = createFileRoute("/feed/$feedId")({
 					}
 
 					// Get appointments based on response types
-					let appointments: Appointment[] = [];
+					let appointments: IcalAppointment[] = [];
 
 					if (
 						config.includeResponseTypes &&
@@ -73,6 +74,7 @@ export const Route = createFileRoute("/feed/$feedId")({
 
 						if (appointmentIds.length > 0) {
 							appointments = await prismaClient.appointment.findMany({
+								include: { labels: labelsInclude },
 								orderBy: { startDate: "asc" },
 								where: {
 									...where,
@@ -83,6 +85,7 @@ export const Route = createFileRoute("/feed/$feedId")({
 					} else {
 						// No response filter, get all appointments matching other criteria
 						appointments = await prismaClient.appointment.findMany({
+							include: { labels: labelsInclude },
 							orderBy: { startDate: "asc" },
 							where,
 						});

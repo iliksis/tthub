@@ -7,6 +7,7 @@ import {
 	createLabel,
 	deleteLabel,
 	type LabelColor,
+	reorderLabels,
 	updateLabel,
 } from "@/api/labels";
 import { DetailsList } from "@/components/DetailsList";
@@ -23,6 +24,12 @@ type LabelManagementProps = {
 
 export const LabelManagement = ({ labels }: LabelManagementProps) => {
 	const router = useRouter();
+
+	// Reflects the drag-and-drop order immediately (before the server
+	// round-trip resolves), so a drop doesn't visually snap back to the old
+	// order while `router.invalidate()` is still in flight.
+	const [localLabels, setLocalLabels] = React.useState(labels);
+	React.useEffect(() => setLocalLabels(labels), [labels]);
 
 	const [showCreateModal, setShowCreateModal] = React.useState(false);
 	const [editingLabel, setEditingLabel] = React.useState<LabelRecord | null>(
@@ -56,6 +63,26 @@ export const LabelManagement = ({ labels }: LabelManagementProps) => {
 		},
 	});
 
+	const reorderLabelsServerFn = useServerFn(reorderLabels);
+	const onReorder = async (newLabels: LabelRecord[]) => {
+		setLocalLabels(newLabels);
+		try {
+			await reorderLabelsServerFn({
+				data: { ids: newLabels.map((l) => l.id) },
+			});
+			// Keeps `labels` (the loader data other mutations also refresh
+			// through) in sync with the server's reconciled order, rather than
+			// leaving `localLabels` as the only place reflecting it.
+			await router.invalidate();
+		} catch (err) {
+			toast.error((err as Error).message);
+			// Re-fetches the authoritative order instead of reverting to the
+			// `labels` closure captured when this drag started, which could
+			// already be stale if another reorder succeeded in the meantime.
+			await router.invalidate();
+		}
+	};
+
 	const deleteLabelServerFn = useServerFn(deleteLabel);
 	const onDelete = async () => {
 		if (!deletingLabel) return;
@@ -74,9 +101,10 @@ export const LabelManagement = ({ labels }: LabelManagementProps) => {
 	return (
 		<div className="overflow-x-auto">
 			<DetailsList
-				items={labels}
+				items={localLabels}
 				getItemId={(item) => item.id}
 				selectMode="single"
+				onReorder={onReorder}
 				columns={[
 					{
 						key: "name",
@@ -93,8 +121,6 @@ export const LabelManagement = ({ labels }: LabelManagementProps) => {
 								</span>
 							);
 						},
-						sortable: true,
-						sortFn: (a, b) => a.name.localeCompare(b.name),
 					},
 					{
 						key: "createdAt",

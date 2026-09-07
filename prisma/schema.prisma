@@ -112,6 +112,13 @@ model Label {
   createdAt    DateTime           @default(now())
   name         String
   color        String
+  // Editor-set rank via drag-and-drop on the label management page. Lower
+  // value = higher priority (0 is top of the list). Determines which of an
+  // appointment's Labels wins when a single color is needed (calendar bar,
+  // iCal COLOR) — see resolveTopPriorityLabel in src/lib/labelColor.ts.
+  // Not enforced unique at the DB level: reorderLabels/createLabel always
+  // write a contiguous 0..n-1 sequence, so duplicates can't arise in practice.
+  priority     Int                @default(0)
   appointments AppointmentLabel[]
   mutedBy      UserMutedLabel[]
 }
