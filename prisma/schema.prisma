@@ -22,6 +22,7 @@ model User {
   passwordReset        PasswordReset?
   feedConfig           FeedConfig?
   transactions         Transaction[]
+  mutedLabels          UserMutedLabel[]
 }
 
 enum Role {
@@ -111,6 +112,7 @@ model Label {
   name         String
   color        String
   appointments AppointmentLabel[]
+  mutedBy      UserMutedLabel[]
 }
 
 model AppointmentLabel {
@@ -120,6 +122,21 @@ model AppointmentLabel {
   label         Label       @relation(fields: [labelId], references: [id], onDelete: Cascade)
 
   @@id([appointmentId, labelId])
+}
+
+// A user's personal "Muted Label" set (see CONTEXT.md) — a Label they've
+// chosen to suppress from their own push notifications; currently read only
+// by src/api/notifications.ts's sendNotification. Scoped to User (not
+// Subscription/FeedConfig) rather than per-device or per-feed-config, since
+// CONTEXT.md defines muting as one personal preference meant to eventually
+// also cover the calendar feed (not yet wired up there).
+model UserMutedLabel {
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  labelId String
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([userId, labelId])
 }
 
 model Response {

@@ -175,6 +175,7 @@ export type LabelWhereInput = {
   name?: Prisma.StringFilter<"Label"> | string
   color?: Prisma.StringFilter<"Label"> | string
   appointments?: Prisma.AppointmentLabelListRelationFilter
+  mutedBy?: Prisma.UserMutedLabelListRelationFilter
 }
 
 export type LabelOrderByWithRelationInput = {
@@ -183,6 +184,7 @@ export type LabelOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   color?: Prisma.SortOrder
   appointments?: Prisma.AppointmentLabelOrderByRelationAggregateInput
+  mutedBy?: Prisma.UserMutedLabelOrderByRelationAggregateInput
 }
 
 export type LabelWhereUniqueInput = Prisma.AtLeast<{
@@ -194,6 +196,7 @@ export type LabelWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Label"> | string
   color?: Prisma.StringFilter<"Label"> | string
   appointments?: Prisma.AppointmentLabelListRelationFilter
+  mutedBy?: Prisma.UserMutedLabelListRelationFilter
 }, "id">
 
 export type LabelOrderByWithAggregationInput = {
@@ -222,6 +225,7 @@ export type LabelCreateInput = {
   name: string
   color: string
   appointments?: Prisma.AppointmentLabelCreateNestedManyWithoutLabelInput
+  mutedBy?: Prisma.UserMutedLabelCreateNestedManyWithoutLabelInput
 }
 
 export type LabelUncheckedCreateInput = {
@@ -230,6 +234,7 @@ export type LabelUncheckedCreateInput = {
   name: string
   color: string
   appointments?: Prisma.AppointmentLabelUncheckedCreateNestedManyWithoutLabelInput
+  mutedBy?: Prisma.UserMutedLabelUncheckedCreateNestedManyWithoutLabelInput
 }
 
 export type LabelUpdateInput = {
@@ -238,6 +243,7 @@ export type LabelUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   appointments?: Prisma.AppointmentLabelUpdateManyWithoutLabelNestedInput
+  mutedBy?: Prisma.UserMutedLabelUpdateManyWithoutLabelNestedInput
 }
 
 export type LabelUncheckedUpdateInput = {
@@ -246,6 +252,7 @@ export type LabelUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   appointments?: Prisma.AppointmentLabelUncheckedUpdateManyWithoutLabelNestedInput
+  mutedBy?: Prisma.UserMutedLabelUncheckedUpdateManyWithoutLabelNestedInput
 }
 
 export type LabelCreateManyInput = {
@@ -309,11 +316,26 @@ export type LabelUpdateOneRequiredWithoutAppointmentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.LabelUpdateToOneWithWhereWithoutAppointmentsInput, Prisma.LabelUpdateWithoutAppointmentsInput>, Prisma.LabelUncheckedUpdateWithoutAppointmentsInput>
 }
 
+export type LabelCreateNestedOneWithoutMutedByInput = {
+  create?: Prisma.XOR<Prisma.LabelCreateWithoutMutedByInput, Prisma.LabelUncheckedCreateWithoutMutedByInput>
+  connectOrCreate?: Prisma.LabelCreateOrConnectWithoutMutedByInput
+  connect?: Prisma.LabelWhereUniqueInput
+}
+
+export type LabelUpdateOneRequiredWithoutMutedByNestedInput = {
+  create?: Prisma.XOR<Prisma.LabelCreateWithoutMutedByInput, Prisma.LabelUncheckedCreateWithoutMutedByInput>
+  connectOrCreate?: Prisma.LabelCreateOrConnectWithoutMutedByInput
+  upsert?: Prisma.LabelUpsertWithoutMutedByInput
+  connect?: Prisma.LabelWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.LabelUpdateToOneWithWhereWithoutMutedByInput, Prisma.LabelUpdateWithoutMutedByInput>, Prisma.LabelUncheckedUpdateWithoutMutedByInput>
+}
+
 export type LabelCreateWithoutAppointmentsInput = {
   id?: string
   createdAt?: Date | string
   name: string
   color: string
+  mutedBy?: Prisma.UserMutedLabelCreateNestedManyWithoutLabelInput
 }
 
 export type LabelUncheckedCreateWithoutAppointmentsInput = {
@@ -321,6 +343,7 @@ export type LabelUncheckedCreateWithoutAppointmentsInput = {
   createdAt?: Date | string
   name: string
   color: string
+  mutedBy?: Prisma.UserMutedLabelUncheckedCreateNestedManyWithoutLabelInput
 }
 
 export type LabelCreateOrConnectWithoutAppointmentsInput = {
@@ -344,6 +367,7 @@ export type LabelUpdateWithoutAppointmentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  mutedBy?: Prisma.UserMutedLabelUpdateManyWithoutLabelNestedInput
 }
 
 export type LabelUncheckedUpdateWithoutAppointmentsInput = {
@@ -351,6 +375,55 @@ export type LabelUncheckedUpdateWithoutAppointmentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  mutedBy?: Prisma.UserMutedLabelUncheckedUpdateManyWithoutLabelNestedInput
+}
+
+export type LabelCreateWithoutMutedByInput = {
+  id?: string
+  createdAt?: Date | string
+  name: string
+  color: string
+  appointments?: Prisma.AppointmentLabelCreateNestedManyWithoutLabelInput
+}
+
+export type LabelUncheckedCreateWithoutMutedByInput = {
+  id?: string
+  createdAt?: Date | string
+  name: string
+  color: string
+  appointments?: Prisma.AppointmentLabelUncheckedCreateNestedManyWithoutLabelInput
+}
+
+export type LabelCreateOrConnectWithoutMutedByInput = {
+  where: Prisma.LabelWhereUniqueInput
+  create: Prisma.XOR<Prisma.LabelCreateWithoutMutedByInput, Prisma.LabelUncheckedCreateWithoutMutedByInput>
+}
+
+export type LabelUpsertWithoutMutedByInput = {
+  update: Prisma.XOR<Prisma.LabelUpdateWithoutMutedByInput, Prisma.LabelUncheckedUpdateWithoutMutedByInput>
+  create: Prisma.XOR<Prisma.LabelCreateWithoutMutedByInput, Prisma.LabelUncheckedCreateWithoutMutedByInput>
+  where?: Prisma.LabelWhereInput
+}
+
+export type LabelUpdateToOneWithWhereWithoutMutedByInput = {
+  where?: Prisma.LabelWhereInput
+  data: Prisma.XOR<Prisma.LabelUpdateWithoutMutedByInput, Prisma.LabelUncheckedUpdateWithoutMutedByInput>
+}
+
+export type LabelUpdateWithoutMutedByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  appointments?: Prisma.AppointmentLabelUpdateManyWithoutLabelNestedInput
+}
+
+export type LabelUncheckedUpdateWithoutMutedByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  color?: Prisma.StringFieldUpdateOperationsInput | string
+  appointments?: Prisma.AppointmentLabelUncheckedUpdateManyWithoutLabelNestedInput
 }
 
 
@@ -360,10 +433,12 @@ export type LabelUncheckedUpdateWithoutAppointmentsInput = {
 
 export type LabelCountOutputType = {
   appointments: number
+  mutedBy: number
 }
 
 export type LabelCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   appointments?: boolean | LabelCountOutputTypeCountAppointmentsArgs
+  mutedBy?: boolean | LabelCountOutputTypeCountMutedByArgs
 }
 
 /**
@@ -383,6 +458,13 @@ export type LabelCountOutputTypeCountAppointmentsArgs<ExtArgs extends runtime.Ty
   where?: Prisma.AppointmentLabelWhereInput
 }
 
+/**
+ * LabelCountOutputType without action
+ */
+export type LabelCountOutputTypeCountMutedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserMutedLabelWhereInput
+}
+
 
 export type LabelSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -390,6 +472,7 @@ export type LabelSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   name?: boolean
   color?: boolean
   appointments?: boolean | Prisma.Label$appointmentsArgs<ExtArgs>
+  mutedBy?: boolean | Prisma.Label$mutedByArgs<ExtArgs>
   _count?: boolean | Prisma.LabelCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["label"]>
 
@@ -417,6 +500,7 @@ export type LabelSelectScalar = {
 export type LabelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "name" | "color", ExtArgs["result"]["label"]>
 export type LabelInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   appointments?: boolean | Prisma.Label$appointmentsArgs<ExtArgs>
+  mutedBy?: boolean | Prisma.Label$mutedByArgs<ExtArgs>
   _count?: boolean | Prisma.LabelCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type LabelIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -426,6 +510,7 @@ export type $LabelPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   name: "Label"
   objects: {
     appointments: Prisma.$AppointmentLabelPayload<ExtArgs>[]
+    mutedBy: Prisma.$UserMutedLabelPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -827,6 +912,7 @@ readonly fields: LabelFieldRefs;
 export interface Prisma__LabelClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   appointments<T extends Prisma.Label$appointmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Label$appointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentLabelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  mutedBy<T extends Prisma.Label$mutedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Label$mutedByArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserMutedLabelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1272,6 +1358,30 @@ export type Label$appointmentsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.AppointmentLabelScalarFieldEnum | Prisma.AppointmentLabelScalarFieldEnum[]
+}
+
+/**
+ * Label.mutedBy
+ */
+export type Label$mutedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserMutedLabel
+   */
+  select?: Prisma.UserMutedLabelSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserMutedLabel
+   */
+  omit?: Prisma.UserMutedLabelOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserMutedLabelInclude<ExtArgs> | null
+  where?: Prisma.UserMutedLabelWhereInput
+  orderBy?: Prisma.UserMutedLabelOrderByWithRelationInput | Prisma.UserMutedLabelOrderByWithRelationInput[]
+  cursor?: Prisma.UserMutedLabelWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserMutedLabelScalarFieldEnum | Prisma.UserMutedLabelScalarFieldEnum[]
 }
 
 /**

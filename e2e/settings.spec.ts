@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { prismaClient } from "../src/lib/db";
 import { loginAs } from "./helpers";
 
 test.describe("Settings - Profile Route", () => {
@@ -21,6 +22,79 @@ test.describe("Settings - Profile Route", () => {
 		await page.goto("/settings/profile");
 		await expect(page).toHaveURL("/settings/profile");
 		await expect(page.locator("body")).toBeVisible();
+	});
+});
+
+test.describe("Settings - Notification Muting by Label", () => {
+	const LABEL_PREFIX = "E2EMUTE-";
+
+	test.beforeAll(async () => {
+		await prismaClient.userMutedLabel.deleteMany({
+			where: { label: { name: { startsWith: LABEL_PREFIX } } },
+		});
+		await prismaClient.label.deleteMany({
+			where: { name: { startsWith: LABEL_PREFIX } },
+		});
+	});
+
+	test.afterAll(async () => {
+		await prismaClient.userMutedLabel.deleteMany({
+			where: { label: { name: { startsWith: LABEL_PREFIX } } },
+		});
+		await prismaClient.label.deleteMany({
+			where: { name: { startsWith: LABEL_PREFIX } },
+		});
+		await prismaClient.$disconnect();
+	});
+
+	test("USER can mute a label and the selection persists across a reload", async ({
+		page,
+	}) => {
+		const labelName = `${LABEL_PREFIX}Mute`;
+		await prismaClient.label.create({
+			data: { color: "mauve", name: labelName },
+		});
+
+		await loginAs(page, "user");
+		await page.goto("/settings/profile");
+		await page.waitForLoadState("networkidle");
+
+		const section = page.getByTestId("muted-labels-section");
+		await expect(
+			section.getByText("Turniere nach Label stummschalten"),
+		).toBeVisible();
+
+		const labelInput = section.getByPlaceholder("Label suchen…");
+		await labelInput.fill(labelName);
+		await section.getByRole("button", { exact: true, name: labelName }).click();
+
+		await section.getByRole("button", { name: "Aktualisieren" }).click();
+		await expect(page.getByText("Einstellungen aktualisiert")).toBeVisible();
+
+		await page.reload();
+		await page.waitForLoadState("networkidle");
+		const reloadedSection = page.getByTestId("muted-labels-section");
+		await expect(
+			reloadedSection.getByRole("button", { name: "Aktualisieren" }),
+		).toBeDisabled();
+		await expect(reloadedSection.getByText(labelName)).toBeVisible();
+	});
+
+	test("USER cannot quick-create a label from the muting picker", async ({
+		page,
+	}) => {
+		await loginAs(page, "user");
+		await page.goto("/settings/profile");
+		await page.waitForLoadState("networkidle");
+
+		const section = page.getByTestId("muted-labels-section");
+		const labelInput = section.getByPlaceholder("Label suchen…");
+		await labelInput.fill(`${LABEL_PREFIX}NoSuchLabel`);
+		await expect(
+			section.getByRole("button", {
+				name: `„${LABEL_PREFIX}NoSuchLabel“ erstellen`,
+			}),
+		).not.toBeVisible();
 	});
 });
 

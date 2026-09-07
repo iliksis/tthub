@@ -13,6 +13,7 @@
 	"labels_name": "Name",
 	"labels_remove_label": "Label entfernen",
 	"labels_rename_label": "Label umbenennen",
+	"labels_search_label": "Label suchen…",
 	"labels_search_or_create_label": "Label suchen oder erstellen…",
 	"labels_are_you_sure_you_want_to_delete_this_label": "Bist du sicher, dass du dieses Label löschen möchtest? Es wird von allen Terminen entfernt, die es tragen.",
 	"labels_you_do_not_have_permission_to_access_label_settings": "Du hast keine Berechtigung, um auf die Label-Einstellungen zuzugreifen"

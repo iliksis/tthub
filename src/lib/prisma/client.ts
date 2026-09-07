@@ -82,6 +82,11 @@ export type Label = Prisma.LabelModel
  */
 export type AppointmentLabel = Prisma.AppointmentLabelModel
 /**
+ * Model UserMutedLabel
+ * 
+ */
+export type UserMutedLabel = Prisma.UserMutedLabelModel
+/**
  * Model Response
  * 
  */

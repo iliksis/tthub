@@ -82,6 +82,7 @@ export const createAppointment = createServerFn()
 				appointment.status === AppointmentStatus.PUBLISHED
 			) {
 				await sendNotification({
+					appointmentId: appointment.id,
 					body: appointment.title,
 					scope: "new",
 					title: m.appointments_new_appointment(),
@@ -535,6 +536,7 @@ function scheduleAppointmentUpdatedNotification(appointment: Appointment) {
 		setTimeout(() => {
 			pendingUpdateNotifications.delete(appointment.id);
 			void sendNotification({
+				appointmentId: appointment.id,
 				body: appointment.title,
 				scope: "updated",
 				title: m.appointments_appointment_updated(),
@@ -1207,6 +1209,7 @@ export const publishAppointment = createServerFn()
 			});
 			if (statusChanged && appointment.type === AppointmentType.TOURNAMENT) {
 				await sendNotification({
+					appointmentId: appointment.id,
 					body: appointment.title,
 					scope: "new",
 					title: m.appointments_new_appointment(),

@@ -59,6 +59,7 @@ export const ModelName = {
   Season: 'Season',
   Label: 'Label',
   AppointmentLabel: 'AppointmentLabel',
+  UserMutedLabel: 'UserMutedLabel',
   Response: 'Response',
   Player: 'Player',
   Team: 'Team',
@@ -172,6 +173,14 @@ export const AppointmentLabelScalarFieldEnum = {
 } as const
 
 export type AppointmentLabelScalarFieldEnum = (typeof AppointmentLabelScalarFieldEnum)[keyof typeof AppointmentLabelScalarFieldEnum]
+
+
+export const UserMutedLabelScalarFieldEnum = {
+  userId: 'userId',
+  labelId: 'labelId'
+} as const
+
+export type UserMutedLabelScalarFieldEnum = (typeof UserMutedLabelScalarFieldEnum)[keyof typeof UserMutedLabelScalarFieldEnum]
 
 
 export const ResponseScalarFieldEnum = {

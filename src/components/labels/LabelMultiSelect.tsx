@@ -18,12 +18,16 @@ type LabelMultiSelectProps = {
 	availableLabels: LabelRecord[];
 	selectedIds: string[];
 	onChange: (labels: LabelRecord[]) => void;
+	/** Quick-create calls the EDITOR/ADMIN-only createLabel endpoint — hide it
+	 * for pickers a plain USER can reach (e.g. notification muting). */
+	allowCreate?: boolean;
 };
 
 export function LabelMultiSelect({
 	availableLabels,
 	selectedIds,
 	onChange,
+	allowCreate = true,
 }: LabelMultiSelectProps) {
 	const [query, setQuery] = React.useState("");
 	const [knownLabels, setKnownLabels] = React.useState(availableLabels);
@@ -54,7 +58,7 @@ export function LabelMultiSelect({
 	const hasExactMatch = knownLabels.some(
 		(l) => l.name.toLowerCase() === trimmedQuery.toLowerCase(),
 	);
-	const canCreate = trimmedQuery.length > 0 && !hasExactMatch;
+	const canCreate = allowCreate && trimmedQuery.length > 0 && !hasExactMatch;
 
 	const select = (label: LabelRecord) => {
 		onChange([...selected, label]);
@@ -109,11 +113,15 @@ export function LabelMultiSelect({
 				</div>
 			)}
 			<Input
-				placeholder={m.labels_search_or_create_label()}
+				placeholder={
+					allowCreate
+						? m.labels_search_or_create_label()
+						: m.labels_search_label()
+				}
 				value={query}
 				onChange={(e) => setQuery(e.target.value)}
 			/>
-			{trimmedQuery.length > 0 && (
+			{trimmedQuery.length > 0 && (filtered.length > 0 || canCreate) && (
 				<div className="flex flex-wrap gap-1.5">
 					{filtered.map((label) => (
 						<button
