@@ -1,5 +1,6 @@
 import { Link, useRouteContext } from "@tanstack/react-router";
 import {
+	BarChart3Icon,
 	CalendarDaysIcon,
 	CalendarPlusIcon,
 	CalendarsIcon,
@@ -89,6 +90,7 @@ const navigationItems: NavigationItem[] = [
 	},
 	{ href: "/players", icon: UsersIcon, name: m.common_players() },
 	{ href: "/teams", icon: ShieldIcon, name: m.common_teams() },
+	{ href: "/stats", icon: BarChart3Icon, name: m.stats_statistics() },
 	{
 		activeExact: false,
 		href: "/settings",
