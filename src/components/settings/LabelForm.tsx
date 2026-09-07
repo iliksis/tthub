@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { CheckIcon } from "lucide-react";
 import type { LabelColor } from "@/api/labels";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogClose,
@@ -14,7 +15,11 @@ import { Label as FieldLabel } from "@/components/ui/label";
 import { catppuccinColorNames, cn, getCatppuccinColorStyle } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
-type LabelFormValues = { name: string; color: LabelColor };
+type LabelFormValues = {
+	name: string;
+	color: LabelColor;
+	countsForStats: boolean;
+};
 
 type LabelFormProps = {
 	open: boolean;
@@ -96,6 +101,22 @@ export const LabelForm = ({
 									})}
 								</div>
 							</fieldset>
+						)}
+					</form.Field>
+					<form.Field name="countsForStats">
+						{(field) => (
+							<label
+								htmlFor={field.name}
+								className="flex cursor-pointer items-center gap-2"
+							>
+								<Checkbox
+									id={field.name}
+									checked={field.state.value}
+									onBlur={field.handleBlur}
+									onCheckedChange={(c) => field.handleChange(c === true)}
+								/>
+								<span className="text-sm">{m.labels_counts_for_stats()}</span>
+							</label>
 						)}
 					</form.Field>
 				</form>

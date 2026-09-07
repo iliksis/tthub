@@ -143,6 +143,39 @@ test.describe("Labels Route - Create, Rename, Delete", () => {
 
 		await prismaClient.appointment.delete({ where: { id: appointment.id } });
 	});
+
+	test("EDITOR can flag a label as counting toward top-level tournament stats, and it persists across reload", async ({
+		page,
+	}) => {
+		const name = `${LABEL_PREFIX}TopLevel`;
+		await prismaClient.label.create({
+			data: { color: "blue", name },
+		});
+
+		await loginAs(page, "editor");
+		await page.goto("/settings/labels");
+		await page.waitForLoadState("networkidle");
+
+		await page.getByText(name).click();
+		await page.getByTitle("Label umbenennen").click();
+
+		const renameDialog = page.getByRole("dialog");
+		await renameDialog.getByText("Zählt für Saisonstatistik").click();
+		await renameDialog.getByRole("button", { name: "Speichern" }).click();
+		await expect(renameDialog).not.toBeVisible();
+
+		const stored = await prismaClient.label.findFirstOrThrow({
+			where: { name },
+		});
+		expect(stored.countsForStats).toBe(true);
+
+		await page.reload();
+		await page.waitForLoadState("networkidle");
+		await page.getByText(name).click();
+		await page.getByTitle("Label umbenennen").click();
+		const reopenedDialog = page.getByRole("dialog");
+		await expect(reopenedDialog.getByRole("checkbox")).toBeChecked();
+	});
 });
 
 test.describe("Labels Route - Priority Ordering", () => {

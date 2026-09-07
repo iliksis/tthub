@@ -29,8 +29,16 @@ A Player's result in one category of one tournament Appointment (existing `Place
 _Avoid_: Ranking, result (when precision matters).
 
 **Label**:
-An editor-created tag (name + color) attached to a tournament Appointment to convey an arbitrary attribute — e.g. the region it takes place in, or that it matters for coaches. Labels are purely informational: they never gate RSVP or notification behavior for the appointment itself. A tournament can carry any number of Labels, including none. Replaces the old `TOURNAMENT`/`TOURNAMENT_DE` type split, which conflated "region" with the appointment's type and silently suppressed RSVP/notifications for one of the two.
+An editor-created tag (name + color) attached to a tournament Appointment to convey an arbitrary attribute — e.g. the region it takes place in, or that it matters for coaches. Labels are purely informational: they never gate RSVP or notification behavior for the appointment itself. A tournament can carry any number of Labels, including none. Replaces the old `TOURNAMENT`/`TOURNAMENT_DE` type split, which conflated "region" with the appointment's type and silently suppressed RSVP/notifications for one of the two. An editor can additionally flag a Label as counting toward **Top-Level Tournament** stats (below) — this still doesn't gate RSVP/notifications, it only feeds the season statistics page.
 _Avoid_: Tag, category, type (Label is the canonical term; "type" now refers only to `AppointmentType`, which Labels are independent of).
+
+**Top-Level Tournament**:
+A `TOURNAMENT`-type Appointment carrying at least one Label an editor has flagged as counting toward top-level tournament stats (e.g. a regional/national championship). "Top-level" is entirely a function of which Label(s) a tournament carries — there's no separate tier field on Appointment itself.
+_Avoid_: Major tournament, championship (imprecise — the actual set of qualifying tournaments is whatever Labels editors flag, not a fixed category).
+
+**Participating Player**:
+A Player who, within one Season, both holds a Roster Membership and has at least one Placement on any Appointment in that Season — i.e. actually played, not just rostered. Independent of whether that Placement came from a Top-Level Tournament specifically.
+_Avoid_: Active player (collides with **Active Season**'s existing, unrelated meaning — "active" always refers to the single `isActive` Season).
 
 **Muted Label** (in a user's notification/feed preferences):
 A Label a user has chosen to suppress — appointments carrying it are excluded from that user's push notifications or calendar feed, but remain unaffected for every other user. Muting is a personal preference, not a property of the Label or the Appointment.
