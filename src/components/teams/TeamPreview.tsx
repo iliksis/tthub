@@ -16,7 +16,9 @@ export function TeamPreview({ team }: { team: TeamDetail }) {
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center gap-3">
 				<div className="min-w-0 flex-1">
-					<div className="truncate font-semibold text-sm">{team.title}</div>
+					<div className="min-w-[6ch] truncate font-semibold text-sm">
+						{team.title}
+					</div>
 					<div className="truncate text-muted-foreground text-xs">
 						{team.league || "–"}
 					</div>

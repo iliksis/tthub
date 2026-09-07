@@ -148,7 +148,7 @@ function App() {
 											<Link
 												to="/appts/$apptId"
 												params={{ apptId: a.id }}
-												className="min-w-0 truncate"
+												className="block min-w-[6ch] flex-1 truncate"
 											>
 												{a.title}
 											</Link>
@@ -200,14 +200,15 @@ function App() {
 											>
 												{badge.label}
 											</Badge>
-											<span className="min-w-0 flex-1 truncate text-muted-foreground">
-												<span className="font-medium text-foreground">
+											<span className="flex min-w-0 flex-1 items-baseline gap-1 text-muted-foreground">
+												<span className="shrink-0 font-medium text-foreground">
 													{tx.user?.name ?? "—"}
-												</span>{" "}
-												·{" "}
+												</span>
+												<span className="shrink-0">·</span>
 												<Link
 													to="/appts/$apptId"
 													params={{ apptId: tx.appointment.id }}
+													className="block min-w-[6ch] flex-1 truncate"
 												>
 													{tx.appointment.title}
 												</Link>

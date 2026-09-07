@@ -348,7 +348,7 @@ export function AppointmentCardList({
 							<EntityLink
 								to="/appts/$apptId"
 								params={{ apptId: item.id }}
-								className="block truncate font-medium"
+								className="block min-w-[6ch] truncate font-medium"
 							>
 								{item.title}
 							</EntityLink>

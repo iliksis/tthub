@@ -739,14 +739,13 @@ const AppointmentTimeline = ({
 											)}
 										>
 											<div className="min-w-0 flex-1">
-												<div className="truncate">
-													<EntityLink
-														to="/appts/$apptId"
-														params={{ apptId: item.id }}
-													>
-														{item.title}
-													</EntityLink>
-												</div>
+												<EntityLink
+													to="/appts/$apptId"
+													params={{ apptId: item.id }}
+													className="block min-w-[6ch] truncate"
+												>
+													{item.title}
+												</EntityLink>
 												<div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
 													<span className="inline-flex items-center gap-1">
 														<Icon

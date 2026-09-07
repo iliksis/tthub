@@ -195,7 +195,7 @@ export const MobileCalendar = ({
 									style={colorStyle.dotStyle}
 								/>
 								<div className="min-w-0 flex-1">
-									<div className="truncate font-semibold text-sm">
+									<div className="min-w-[6ch] truncate font-semibold text-sm">
 										{event.title}
 									</div>
 									<div className="text-muted-foreground text-xs">

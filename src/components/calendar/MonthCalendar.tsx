@@ -242,11 +242,17 @@ export const MonthCalendar = ({
 													gridRow: bar.lane + 2,
 													...colorStyle.barStyle,
 												}}
-												className={`mx-1 flex h-6.5 items-center truncate rounded-lg px-2 text-[11px] font-semibold ${colorStyle.barClassName} ${bar.isTrueStart ? "" : "rounded-l-none"} ${bar.isTrueEnd ? "" : "rounded-r-none"}`}
+												className={`mx-1 flex h-6.5 items-center rounded-lg px-2 text-[11px] font-semibold ${colorStyle.barClassName} ${bar.isTrueStart ? "" : "rounded-l-none"} ${bar.isTrueEnd ? "" : "rounded-r-none"}`}
 											/>
 										}
 									>
-										{bar.isTrueStart ? bar.event.title : ""}
+										{bar.isTrueStart ? (
+											<span className="min-w-[6ch] truncate">
+												{bar.event.title}
+											</span>
+										) : (
+											""
+										)}
 									</TooltipPrimitive.Trigger>
 									<TooltipPrimitive.Portal>
 										<TooltipPrimitive.Positioner
@@ -336,7 +342,7 @@ export const MonthCalendar = ({
 															className={`size-1.5 shrink-0 rounded-full ${colorStyle.dotClassName}`}
 															style={colorStyle.dotStyle}
 														/>
-														<span className="truncate font-medium">
+														<span className="min-w-[6ch] truncate font-medium">
 															{event.title}
 														</span>
 														<span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
