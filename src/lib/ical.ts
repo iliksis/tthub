@@ -2,6 +2,12 @@ import Mustache from "mustache";
 import type { Appointment } from "./prisma/client";
 
 export class IcalGenerator {
+	// Passed in rather than read from `document`/`window` at call time so this
+	// also works server-side (the /feed/$feedId route constructs this with the
+	// incoming request's origin) — only createAndDownloadIcalFile is
+	// inherently client-only.
+	constructor(private baseUrl: string) {}
+
 	template: string = `BEGIN:VCALENDAR
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
@@ -64,8 +70,7 @@ END:VCALENDAR`.replace(/\n/g, "\r\n");
 	}
 
 	private _createIcalDescription(id: string) {
-		const base = document.location.origin;
-		return `${base}/appts/${id}`;
+		return `${this.baseUrl}/appts/${id}`;
 	}
 
 	createAndDownloadIcalFile(...events: Appointment[]) {

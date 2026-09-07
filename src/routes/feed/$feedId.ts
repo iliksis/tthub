@@ -1,14 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import type { FeedConfig } from "@/api/users";
+import { parseFeedConfig } from "@/api/users";
 import { prismaClient } from "@/lib/db";
 import { IcalGenerator } from "@/lib/ical";
 import type { Appointment, Prisma } from "@/lib/prisma/client";
-import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
 
 export const Route = createFileRoute("/feed/$feedId")({
 	server: {
 		handlers: {
-			GET: async ({ params }) => {
+			GET: async ({ params, request }) => {
 				const { feedId } = params;
 
 				try {
@@ -31,19 +30,7 @@ export const Route = createFileRoute("/feed/$feedId")({
 					}
 
 					// Parse feed configuration from database
-					const config: FeedConfig = {
-						includeAppointmentTypes: user.feedConfig?.includeAppointmentTypes
-							? (user.feedConfig.includeAppointmentTypes.split(
-									",",
-								) as AppointmentType[])
-							: undefined,
-						includeDraftStatus: user.feedConfig?.includeDraftStatus ?? false,
-						includeResponseTypes: user.feedConfig?.includeResponseTypes
-							? (user.feedConfig.includeResponseTypes.split(
-									",",
-								) as ResponseType[])
-							: undefined,
-					};
+					const config = parseFeedConfig(user.feedConfig);
 
 					// Build query for appointments
 					// Deliberately not season-scoped: a personal calendar feed is
@@ -59,6 +46,15 @@ export const Route = createFileRoute("/feed/$feedId")({
 					// Filter by draft status if configured
 					if (config.includeDraftStatus === false) {
 						where.OR = [{ status: "PUBLISHED" }, { status: null }];
+					}
+
+					// Exclude-by-label only (no include-by-label): an appointment
+					// carrying any excluded label is omitted entirely, regardless of
+					// its other labels.
+					if (config.excludeLabelIds?.length) {
+						where.labels = {
+							none: { labelId: { in: config.excludeLabelIds } },
+						};
 					}
 
 					// Get appointments based on response types
@@ -93,7 +89,7 @@ export const Route = createFileRoute("/feed/$feedId")({
 					}
 
 					// Generate iCal feed
-					const icalGenerator = new IcalGenerator();
+					const icalGenerator = new IcalGenerator(new URL(request.url).origin);
 					const icalContent = icalGenerator.createIcalString(...appointments);
 
 					return new Response(icalContent, {

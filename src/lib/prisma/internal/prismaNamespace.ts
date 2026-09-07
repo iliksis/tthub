@@ -1894,7 +1894,8 @@ export const FeedConfigScalarFieldEnum = {
   userId: 'userId',
   includeResponseTypes: 'includeResponseTypes',
   includeDraftStatus: 'includeDraftStatus',
-  includeAppointmentTypes: 'includeAppointmentTypes'
+  includeAppointmentTypes: 'includeAppointmentTypes',
+  excludeLabelIds: 'excludeLabelIds'
 } as const
 
 export type FeedConfigScalarFieldEnum = (typeof FeedConfigScalarFieldEnum)[keyof typeof FeedConfigScalarFieldEnum]

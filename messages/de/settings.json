@@ -5,6 +5,8 @@
 	"settings_calendar_feed_settings": "Kalender-Feed Einstellungen",
 	"settings_configuration": "Konfiguration",
 	"settings_copy": "Kopieren",
+	"settings_exclude_by_label": "Nach Label ausschließen",
+	"settings_exclude_by_label_description": "Termine mit diesen Labels werden aus deinem Kalender-Feed ausgeschlossen.",
 	"settings_feed_url_copied_to_clipboard": "Feed-URL kopiert",
 	"settings_holidays_and_mytischtennis_data": "Feiertage und myTischtennis-Daten",
 	"settings_include_draft_appointments": "Entwurfs-Termine hinzufügen",

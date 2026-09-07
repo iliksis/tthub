@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { loginAs } from "./helpers";
+import { prismaClient } from "../src/lib/db";
+import { cleanupByTitlePrefix, loginAs } from "./helpers";
 
 test.describe("Settings - Calendar Feed Route", () => {
 	test("ADMIN can access calendar feed settings", async ({ page }) => {
@@ -110,5 +111,113 @@ test.describe("Calendar Feed - API Endpoint", () => {
 		const invalidFeedId = "00000000-0000-0000-0000-000000000000";
 		const response = await request.get(`/feed/${invalidFeedId}`);
 		expect(response.status()).toBe(404);
+	});
+});
+
+test.describe("Calendar Feed - Exclude by Label", () => {
+	const LABEL_PREFIX = "E2EFEEDLABEL-";
+	const TITLE_PREFIX = "E2EFEED-";
+
+	test.beforeAll(async () => {
+		await cleanupByTitlePrefix(TITLE_PREFIX);
+		await prismaClient.label.deleteMany({
+			where: { name: { startsWith: LABEL_PREFIX } },
+		});
+	});
+
+	test.afterAll(async () => {
+		await cleanupByTitlePrefix(TITLE_PREFIX);
+		await prismaClient.label.deleteMany({
+			where: { name: { startsWith: LABEL_PREFIX } },
+		});
+		// This test saves real feed config for the shared "user" fixture
+		// account (enabling TOURNAMENT, adding the exclusion) — reset it so
+		// other specs see the same blank-slate FeedConfig they'd otherwise get.
+		await prismaClient.feedConfig.deleteMany({
+			where: { user: { userName: "user" } },
+		});
+		await prismaClient.$disconnect();
+	});
+
+	test("the label-exclusion picker appears, persists, and the feed omits appointments carrying an excluded label", async ({
+		page,
+		request,
+	}) => {
+		const excludedLabelName = `${LABEL_PREFIX}Excluded`;
+		const excludedTitle = `${TITLE_PREFIX}Excluded`;
+		const includedTitle = `${TITLE_PREFIX}Included`;
+		const label = await prismaClient.label.create({
+			data: { color: "red", name: excludedLabelName },
+		});
+		const season = await prismaClient.season.findFirstOrThrow({
+			where: { isActive: true },
+		});
+		const startDate = new Date(Date.now() + 86400000);
+		const excludedAppointment = await prismaClient.appointment.create({
+			data: {
+				labels: { create: { labelId: label.id } },
+				seasonId: season.id,
+				startDate,
+				status: "PUBLISHED",
+				title: excludedTitle,
+				type: "TOURNAMENT",
+			},
+		});
+		const includedAppointment = await prismaClient.appointment.create({
+			data: {
+				seasonId: season.id,
+				startDate,
+				status: "PUBLISHED",
+				title: includedTitle,
+				type: "TOURNAMENT",
+			},
+		});
+
+		await loginAs(page, "user");
+		await page.goto("/settings/feed");
+		await page.waitForLoadState("networkidle");
+
+		// The feed's own appointment-type filter defaults to "none" until a type
+		// is explicitly checked — TOURNAMENT must be on for either fixture
+		// appointment to appear in the feed at all. The real checkbox input is
+		// visually hidden behind a styled control, so toggle it via its
+		// associated <label> instead of clicking the (offscreen) input directly.
+		const tournamentCheckbox = page.locator("#type-TOURNAMENT");
+		if (!(await tournamentCheckbox.isChecked())) {
+			await page.locator('label[for="type-TOURNAMENT"]').click();
+		}
+
+		await expect(page.getByText("Nach Label ausschließen")).toBeVisible();
+		const labelInput = page.getByPlaceholder("Label suchen…");
+		await labelInput.fill(excludedLabelName);
+		await page
+			.getByRole("button", { exact: true, name: excludedLabelName })
+			.click();
+
+		await page.getByRole("button", { name: "Aktualisieren" }).click();
+		await expect(
+			page.getByText("Feed-Einstellungen aktualisiert"),
+		).toBeVisible();
+
+		await page.reload();
+		await page.waitForLoadState("networkidle");
+		await expect(page.getByText(excludedLabelName)).toBeVisible();
+		await expect(page.locator("#type-TOURNAMENT")).toBeChecked();
+
+		const feedUrlInput = page.locator('input[type="text"][readonly]').first();
+		const feedUrl = await feedUrlInput.inputValue();
+		const feedPath = new URL(feedUrl).pathname;
+		const response = await request.get(feedPath);
+		const body = await response.text();
+
+		expect(body).not.toContain(excludedTitle);
+		expect(body).toContain(includedTitle);
+
+		await prismaClient.appointment.delete({
+			where: { id: excludedAppointment.id },
+		});
+		await prismaClient.appointment.delete({
+			where: { id: includedAppointment.id },
+		});
 	});
 });

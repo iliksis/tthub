@@ -240,7 +240,7 @@ function RouteComponent() {
 	};
 
 	const onDownloadIcal = async () => {
-		const icalGenerator = new IcalGenerator();
+		const icalGenerator = new IcalGenerator(window.location.origin);
 		icalGenerator.createAndDownloadIcalFile(appointment);
 	};
 

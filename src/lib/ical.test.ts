@@ -7,7 +7,7 @@ describe("IcalGenerator", () => {
 	let generator: IcalGenerator;
 
 	beforeEach(() => {
-		generator = new IcalGenerator();
+		generator = new IcalGenerator("https://example.com");
 		// Mock Date to ensure consistent output
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date("2026-01-17T12:00:00Z"));

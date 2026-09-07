@@ -38,6 +38,7 @@ model FeedConfig {
   includeResponseTypes    String?          // Comma-separated: ACCEPT,MAYBE,DECLINE
   includeDraftStatus      Boolean          @default(false)
   includeAppointmentTypes String?          // Comma-separated: TOURNAMENT,HOLIDAY,TEAM_MATCH
+  excludeLabelIds         String?          // Comma-separated Label ids — exclude only, no include-by-label
 }
 
 model UserInvitation {
@@ -124,12 +125,12 @@ model AppointmentLabel {
   @@id([appointmentId, labelId])
 }
 
-// A user's personal "Muted Label" set (see CONTEXT.md) — a Label they've
-// chosen to suppress from their own push notifications; currently read only
-// by src/api/notifications.ts's sendNotification. Scoped to User (not
-// Subscription/FeedConfig) rather than per-device or per-feed-config, since
-// CONTEXT.md defines muting as one personal preference meant to eventually
-// also cover the calendar feed (not yet wired up there).
+// A user's personal notification-mute set (see CONTEXT.md's "Muted Label") —
+// a Label they've chosen to suppress from their own push notifications, read
+// by src/api/notifications.ts's sendNotification. The calendar feed's
+// exclude-by-label filtering is a separate, independently configured list
+// (FeedConfig.excludeLabelIds below) — the two are not the same preference
+// and can be set differently.
 model UserMutedLabel {
   userId  String
   user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)

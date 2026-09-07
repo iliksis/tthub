@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { hashPassword, prismaClient } from "@/lib/db";
+import type { FeedConfig as FeedConfigRecord } from "@/lib/prisma/client";
 import type { AppointmentType, ResponseType, Role } from "@/lib/prisma/enums";
 import { useAppSession, useIsRole, useIsUserOrRole } from "@/lib/session";
 import { m } from "@/paraglide/messages";
@@ -8,6 +9,44 @@ export interface FeedConfig {
 	includeResponseTypes?: ResponseType[];
 	includeDraftStatus?: boolean;
 	includeAppointmentTypes?: AppointmentType[];
+	excludeLabelIds?: string[];
+}
+
+function parseCommaList<T extends string>(
+	value: string | null | undefined,
+): T[] | undefined {
+	return value ? (value.split(",") as T[]) : undefined;
+}
+
+function joinCommaList(value: string[] | undefined): string | undefined {
+	return value?.join(",");
+}
+
+// Shared by getFeedConfig/updateFeedConfig here and the /feed/$feedId route,
+// which all reconstruct the same FeedConfig shape from the same comma-joined
+// FeedConfig DB columns.
+export function parseFeedConfig(
+	row:
+		| Pick<
+				FeedConfigRecord,
+				| "excludeLabelIds"
+				| "includeAppointmentTypes"
+				| "includeDraftStatus"
+				| "includeResponseTypes"
+		  >
+		| null
+		| undefined,
+): FeedConfig {
+	return {
+		excludeLabelIds: parseCommaList(row?.excludeLabelIds),
+		includeAppointmentTypes: parseCommaList<AppointmentType>(
+			row?.includeAppointmentTypes,
+		),
+		includeDraftStatus: row?.includeDraftStatus ?? false,
+		includeResponseTypes: parseCommaList<ResponseType>(
+			row?.includeResponseTypes,
+		),
+	};
 }
 
 export const fetchUsers = createServerFn({ method: "GET" }).handler(
@@ -258,20 +297,11 @@ export const getFeedConfig = createServerFn({ method: "GET" }).handler(
 				throw new Error(m.users_user_not_found());
 			}
 
-			const config: FeedConfig = {
-				includeAppointmentTypes: user.feedConfig?.includeAppointmentTypes
-					? (user.feedConfig.includeAppointmentTypes.split(
-							",",
-						) as AppointmentType[])
-					: undefined,
-				includeDraftStatus: user.feedConfig?.includeDraftStatus ?? false,
-				includeResponseTypes: user.feedConfig?.includeResponseTypes
-					? (user.feedConfig.includeResponseTypes.split(",") as ResponseType[])
-					: undefined,
-			};
-
 			return {
-				data: { config, feedId: user.feedId },
+				data: {
+					config: parseFeedConfig(user.feedConfig),
+					feedId: user.feedId,
+				},
 				message: m.users_feed_config_loaded(),
 			};
 		} catch (e) {
@@ -290,21 +320,16 @@ export const updateFeedConfig = createServerFn({ method: "POST" })
 		}
 
 		try {
+			const feedConfigData = {
+				excludeLabelIds: joinCommaList(data.excludeLabelIds),
+				includeAppointmentTypes: joinCommaList(data.includeAppointmentTypes),
+				includeDraftStatus: data.includeDraftStatus ?? false,
+				includeResponseTypes: joinCommaList(data.includeResponseTypes),
+			};
 			const feedConfig = await prismaClient.feedConfig.upsert({
-				create: {
-					includeAppointmentTypes: data.includeAppointmentTypes?.join(","),
-					includeDraftStatus: data.includeDraftStatus ?? false,
-					includeResponseTypes: data.includeResponseTypes?.join(","),
-					userId: session.data.id,
-				},
-				update: {
-					includeAppointmentTypes: data.includeAppointmentTypes?.join(","),
-					includeDraftStatus: data.includeDraftStatus ?? false,
-					includeResponseTypes: data.includeResponseTypes?.join(","),
-				},
-				where: {
-					userId: session.data.id,
-				},
+				create: { ...feedConfigData, userId: session.data.id },
+				update: feedConfigData,
+				where: { userId: session.data.id },
 			});
 
 			const user = await prismaClient.user.findUnique({
@@ -312,18 +337,11 @@ export const updateFeedConfig = createServerFn({ method: "POST" })
 				where: { id: session.data.id },
 			});
 
-			const config: FeedConfig = {
-				includeAppointmentTypes: feedConfig.includeAppointmentTypes
-					? (feedConfig.includeAppointmentTypes.split(",") as AppointmentType[])
-					: undefined,
-				includeDraftStatus: feedConfig.includeDraftStatus,
-				includeResponseTypes: feedConfig.includeResponseTypes
-					? (feedConfig.includeResponseTypes.split(",") as ResponseType[])
-					: undefined,
-			};
-
 			return {
-				data: { config, feedId: user?.feedId || "" },
+				data: {
+					config: parseFeedConfig(feedConfig),
+					feedId: user?.feedId || "",
+				},
 				message: m.users_feed_settings_updated(),
 			};
 		} catch (e) {

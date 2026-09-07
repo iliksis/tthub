@@ -30,6 +30,7 @@ export type FeedConfigMinAggregateOutputType = {
   includeResponseTypes: string | null
   includeDraftStatus: boolean | null
   includeAppointmentTypes: string | null
+  excludeLabelIds: string | null
 }
 
 export type FeedConfigMaxAggregateOutputType = {
@@ -38,6 +39,7 @@ export type FeedConfigMaxAggregateOutputType = {
   includeResponseTypes: string | null
   includeDraftStatus: boolean | null
   includeAppointmentTypes: string | null
+  excludeLabelIds: string | null
 }
 
 export type FeedConfigCountAggregateOutputType = {
@@ -46,6 +48,7 @@ export type FeedConfigCountAggregateOutputType = {
   includeResponseTypes: number
   includeDraftStatus: number
   includeAppointmentTypes: number
+  excludeLabelIds: number
   _all: number
 }
 
@@ -56,6 +59,7 @@ export type FeedConfigMinAggregateInputType = {
   includeResponseTypes?: true
   includeDraftStatus?: true
   includeAppointmentTypes?: true
+  excludeLabelIds?: true
 }
 
 export type FeedConfigMaxAggregateInputType = {
@@ -64,6 +68,7 @@ export type FeedConfigMaxAggregateInputType = {
   includeResponseTypes?: true
   includeDraftStatus?: true
   includeAppointmentTypes?: true
+  excludeLabelIds?: true
 }
 
 export type FeedConfigCountAggregateInputType = {
@@ -72,6 +77,7 @@ export type FeedConfigCountAggregateInputType = {
   includeResponseTypes?: true
   includeDraftStatus?: true
   includeAppointmentTypes?: true
+  excludeLabelIds?: true
   _all?: true
 }
 
@@ -153,6 +159,7 @@ export type FeedConfigGroupByOutputType = {
   includeResponseTypes: string | null
   includeDraftStatus: boolean
   includeAppointmentTypes: string | null
+  excludeLabelIds: string | null
   _count: FeedConfigCountAggregateOutputType | null
   _min: FeedConfigMinAggregateOutputType | null
   _max: FeedConfigMaxAggregateOutputType | null
@@ -182,6 +189,7 @@ export type FeedConfigWhereInput = {
   includeResponseTypes?: Prisma.StringNullableFilter<"FeedConfig"> | string | null
   includeDraftStatus?: Prisma.BoolFilter<"FeedConfig"> | boolean
   includeAppointmentTypes?: Prisma.StringNullableFilter<"FeedConfig"> | string | null
+  excludeLabelIds?: Prisma.StringNullableFilter<"FeedConfig"> | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
@@ -191,6 +199,7 @@ export type FeedConfigOrderByWithRelationInput = {
   includeResponseTypes?: Prisma.SortOrderInput | Prisma.SortOrder
   includeDraftStatus?: Prisma.SortOrder
   includeAppointmentTypes?: Prisma.SortOrderInput | Prisma.SortOrder
+  excludeLabelIds?: Prisma.SortOrderInput | Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
 }
 
@@ -203,6 +212,7 @@ export type FeedConfigWhereUniqueInput = Prisma.AtLeast<{
   includeResponseTypes?: Prisma.StringNullableFilter<"FeedConfig"> | string | null
   includeDraftStatus?: Prisma.BoolFilter<"FeedConfig"> | boolean
   includeAppointmentTypes?: Prisma.StringNullableFilter<"FeedConfig"> | string | null
+  excludeLabelIds?: Prisma.StringNullableFilter<"FeedConfig"> | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id" | "userId">
 
@@ -212,6 +222,7 @@ export type FeedConfigOrderByWithAggregationInput = {
   includeResponseTypes?: Prisma.SortOrderInput | Prisma.SortOrder
   includeDraftStatus?: Prisma.SortOrder
   includeAppointmentTypes?: Prisma.SortOrderInput | Prisma.SortOrder
+  excludeLabelIds?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.FeedConfigCountOrderByAggregateInput
   _max?: Prisma.FeedConfigMaxOrderByAggregateInput
   _min?: Prisma.FeedConfigMinOrderByAggregateInput
@@ -226,6 +237,7 @@ export type FeedConfigScalarWhereWithAggregatesInput = {
   includeResponseTypes?: Prisma.StringNullableWithAggregatesFilter<"FeedConfig"> | string | null
   includeDraftStatus?: Prisma.BoolWithAggregatesFilter<"FeedConfig"> | boolean
   includeAppointmentTypes?: Prisma.StringNullableWithAggregatesFilter<"FeedConfig"> | string | null
+  excludeLabelIds?: Prisma.StringNullableWithAggregatesFilter<"FeedConfig"> | string | null
 }
 
 export type FeedConfigCreateInput = {
@@ -233,6 +245,7 @@ export type FeedConfigCreateInput = {
   includeResponseTypes?: string | null
   includeDraftStatus?: boolean
   includeAppointmentTypes?: string | null
+  excludeLabelIds?: string | null
   user: Prisma.UserCreateNestedOneWithoutFeedConfigInput
 }
 
@@ -242,6 +255,7 @@ export type FeedConfigUncheckedCreateInput = {
   includeResponseTypes?: string | null
   includeDraftStatus?: boolean
   includeAppointmentTypes?: string | null
+  excludeLabelIds?: string | null
 }
 
 export type FeedConfigUpdateInput = {
@@ -249,6 +263,7 @@ export type FeedConfigUpdateInput = {
   includeResponseTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   includeDraftStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
   includeAppointmentTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  excludeLabelIds?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutFeedConfigNestedInput
 }
 
@@ -258,6 +273,7 @@ export type FeedConfigUncheckedUpdateInput = {
   includeResponseTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   includeDraftStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
   includeAppointmentTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  excludeLabelIds?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type FeedConfigCreateManyInput = {
@@ -266,6 +282,7 @@ export type FeedConfigCreateManyInput = {
   includeResponseTypes?: string | null
   includeDraftStatus?: boolean
   includeAppointmentTypes?: string | null
+  excludeLabelIds?: string | null
 }
 
 export type FeedConfigUpdateManyMutationInput = {
@@ -273,6 +290,7 @@ export type FeedConfigUpdateManyMutationInput = {
   includeResponseTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   includeDraftStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
   includeAppointmentTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  excludeLabelIds?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type FeedConfigUncheckedUpdateManyInput = {
@@ -281,6 +299,7 @@ export type FeedConfigUncheckedUpdateManyInput = {
   includeResponseTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   includeDraftStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
   includeAppointmentTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  excludeLabelIds?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type FeedConfigNullableScalarRelationFilter = {
@@ -294,6 +313,7 @@ export type FeedConfigCountOrderByAggregateInput = {
   includeResponseTypes?: Prisma.SortOrder
   includeDraftStatus?: Prisma.SortOrder
   includeAppointmentTypes?: Prisma.SortOrder
+  excludeLabelIds?: Prisma.SortOrder
 }
 
 export type FeedConfigMaxOrderByAggregateInput = {
@@ -302,6 +322,7 @@ export type FeedConfigMaxOrderByAggregateInput = {
   includeResponseTypes?: Prisma.SortOrder
   includeDraftStatus?: Prisma.SortOrder
   includeAppointmentTypes?: Prisma.SortOrder
+  excludeLabelIds?: Prisma.SortOrder
 }
 
 export type FeedConfigMinOrderByAggregateInput = {
@@ -310,6 +331,7 @@ export type FeedConfigMinOrderByAggregateInput = {
   includeResponseTypes?: Prisma.SortOrder
   includeDraftStatus?: Prisma.SortOrder
   includeAppointmentTypes?: Prisma.SortOrder
+  excludeLabelIds?: Prisma.SortOrder
 }
 
 export type FeedConfigCreateNestedOneWithoutUserInput = {
@@ -353,6 +375,7 @@ export type FeedConfigCreateWithoutUserInput = {
   includeResponseTypes?: string | null
   includeDraftStatus?: boolean
   includeAppointmentTypes?: string | null
+  excludeLabelIds?: string | null
 }
 
 export type FeedConfigUncheckedCreateWithoutUserInput = {
@@ -360,6 +383,7 @@ export type FeedConfigUncheckedCreateWithoutUserInput = {
   includeResponseTypes?: string | null
   includeDraftStatus?: boolean
   includeAppointmentTypes?: string | null
+  excludeLabelIds?: string | null
 }
 
 export type FeedConfigCreateOrConnectWithoutUserInput = {
@@ -383,6 +407,7 @@ export type FeedConfigUpdateWithoutUserInput = {
   includeResponseTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   includeDraftStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
   includeAppointmentTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  excludeLabelIds?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type FeedConfigUncheckedUpdateWithoutUserInput = {
@@ -390,6 +415,7 @@ export type FeedConfigUncheckedUpdateWithoutUserInput = {
   includeResponseTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   includeDraftStatus?: Prisma.BoolFieldUpdateOperationsInput | boolean
   includeAppointmentTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  excludeLabelIds?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -400,6 +426,7 @@ export type FeedConfigSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   includeResponseTypes?: boolean
   includeDraftStatus?: boolean
   includeAppointmentTypes?: boolean
+  excludeLabelIds?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["feedConfig"]>
 
@@ -409,6 +436,7 @@ export type FeedConfigSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   includeResponseTypes?: boolean
   includeDraftStatus?: boolean
   includeAppointmentTypes?: boolean
+  excludeLabelIds?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["feedConfig"]>
 
@@ -418,6 +446,7 @@ export type FeedConfigSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   includeResponseTypes?: boolean
   includeDraftStatus?: boolean
   includeAppointmentTypes?: boolean
+  excludeLabelIds?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["feedConfig"]>
 
@@ -427,9 +456,10 @@ export type FeedConfigSelectScalar = {
   includeResponseTypes?: boolean
   includeDraftStatus?: boolean
   includeAppointmentTypes?: boolean
+  excludeLabelIds?: boolean
 }
 
-export type FeedConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "includeResponseTypes" | "includeDraftStatus" | "includeAppointmentTypes", ExtArgs["result"]["feedConfig"]>
+export type FeedConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "includeResponseTypes" | "includeDraftStatus" | "includeAppointmentTypes" | "excludeLabelIds", ExtArgs["result"]["feedConfig"]>
 export type FeedConfigInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -451,6 +481,7 @@ export type $FeedConfigPayload<ExtArgs extends runtime.Types.Extensions.Internal
     includeResponseTypes: string | null
     includeDraftStatus: boolean
     includeAppointmentTypes: string | null
+    excludeLabelIds: string | null
   }, ExtArgs["result"]["feedConfig"]>
   composites: {}
 }
@@ -880,6 +911,7 @@ export interface FeedConfigFieldRefs {
   readonly includeResponseTypes: Prisma.FieldRef<"FeedConfig", 'String'>
   readonly includeDraftStatus: Prisma.FieldRef<"FeedConfig", 'Boolean'>
   readonly includeAppointmentTypes: Prisma.FieldRef<"FeedConfig", 'String'>
+  readonly excludeLabelIds: Prisma.FieldRef<"FeedConfig", 'String'>
 }
     
 

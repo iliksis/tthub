@@ -4,12 +4,14 @@ import { CopyIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { type FeedConfig, updateFeedConfig } from "@/api/users";
+import { LabelMultiSelect } from "@/components/labels/LabelMultiSelect";
 import { Section } from "@/components/Section";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
+import type { Label as LabelRecord } from "@/lib/prisma/client";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
 import { m } from "@/paraglide/messages";
 
@@ -34,8 +36,9 @@ const appointmentTypeOrder: AppointmentType[] = [
 type CalendarFeedProps = {
 	feedId?: string;
 	config?: FeedConfig | null;
+	labels?: LabelRecord[];
 };
-export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
+export const CalendarFeed = ({ config, feedId, labels }: CalendarFeedProps) => {
 	const router = useRouter();
 
 	const updateMutation = useMutation({
@@ -51,6 +54,7 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 
 	const form = useForm({
 		defaultValues: {
+			excludeLabelIds: config?.excludeLabelIds || [],
 			includeAppointmentTypes: config?.includeAppointmentTypes || [],
 			includeDraftStatus: config?.includeDraftStatus ?? false,
 			includeResponseTypes: config?.includeResponseTypes || [],
@@ -183,6 +187,28 @@ export const CalendarFeed = ({ config, feedId }: CalendarFeedProps) => {
 						)}
 					</form.Field>
 				</Section>
+
+				{labels && labels.length > 0 && (
+					<div className="lg:col-span-2">
+						<Section
+							title={m.settings_exclude_by_label()}
+							description={m.settings_exclude_by_label_description()}
+						>
+							<form.Field name="excludeLabelIds">
+								{(field) => (
+									<LabelMultiSelect
+										availableLabels={labels}
+										selectedIds={field.state.value}
+										allowCreate={false}
+										onChange={(next) =>
+											field.handleChange(next.map((l) => l.id))
+										}
+									/>
+								)}
+							</form.Field>
+						</Section>
+					</div>
+				)}
 
 				<div className="lg:col-span-2">
 					<Section title={m.settings_configuration()}>
