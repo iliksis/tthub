@@ -21,7 +21,6 @@ export function LabelBadges({ labels, className }: LabelBadgesProps) {
 						key={label.id}
 						style={{
 							backgroundColor: style.backgroundColor,
-							color: style.foregroundColor,
 						}}
 					>
 						{label.name}

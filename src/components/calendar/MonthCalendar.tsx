@@ -95,20 +95,20 @@ export function resolveEventColorStyle(
 	event: CalendarAppointment,
 ): EventColorStyle {
 	const topLabel = resolveTopPriorityLabel(event.labels ?? []);
+	const style = categoryStyle[event.type];
 
 	if (topLabel) {
-		const { backgroundColor, foregroundColor } = getCatppuccinColorStyle(
+		const { backgroundColor } = getCatppuccinColorStyle(
 			topLabel.color as LabelColor,
 		);
 		return {
-			barClassName: "",
-			barStyle: { backgroundColor, color: foregroundColor },
+			barClassName: style.solidText,
+			barStyle: { backgroundColor },
 			dotClassName: "",
 			dotStyle: { backgroundColor },
 		};
 	}
 
-	const style = categoryStyle[event.type];
 	return {
 		barClassName: `${style.gradient} ${style.solidText}`,
 		dotClassName: style.dot,

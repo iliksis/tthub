@@ -92,10 +92,9 @@ export function LabelMultiSelect({
 						return (
 							<span
 								key={label.id}
-								className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+								className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-primary-foreground"
 								style={{
 									backgroundColor: style.backgroundColor,
-									color: style.foregroundColor,
 								}}
 							>
 								{label.name}
