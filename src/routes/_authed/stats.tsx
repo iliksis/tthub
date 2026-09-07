@@ -1,6 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import { getActiveSeason, getSeasons } from "@/api/seasons";
+import { getTopLevelTournamentParticipation } from "@/api/stats";
 import { getTeams } from "@/api/teams";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { Section } from "@/components/Section";
@@ -26,8 +27,16 @@ export const Route = createFileRoute("/_authed/stats")({
 		const seasons = seasonsRes.data ?? [];
 		const activeSeason = activeSeasonRes.data ?? null;
 		const seasonId = deps.seasonId ?? activeSeason?.id;
-		const teamsRes = await getTeams({ data: { seasonId } });
-		return { seasonId, seasons, teams: teamsRes.data ?? [] };
+		const [teamsRes, topLevelParticipationRes] = await Promise.all([
+			getTeams({ data: { seasonId } }),
+			getTopLevelTournamentParticipation({ data: { seasonId } }),
+		]);
+		return {
+			seasonId,
+			seasons,
+			teams: teamsRes.data ?? [],
+			topLevelParticipation: topLevelParticipationRes.data ?? 0,
+		};
 	},
 	head: () => ({
 		meta: [{ title: m.stats_statistics() }],
@@ -122,7 +131,7 @@ function SeasonSwitcher() {
 }
 
 function RouteComponent() {
-	const { teams } = Route.useLoaderData();
+	const { teams, topLevelParticipation } = Route.useLoaderData();
 
 	return (
 		<div className="flex flex-col gap-8">
@@ -135,6 +144,13 @@ function RouteComponent() {
 			<div className="hidden items-center gap-3 lg:flex">
 				<h1 className="flex-1 font-bold text-lg">{m.stats_statistics()}</h1>
 				<SeasonSwitcher />
+			</div>
+
+			<div className="rounded-lg bg-card p-4">
+				<div className="text-muted-foreground text-xs uppercase">
+					{m.stats_top_level_tournament_participants()}
+				</div>
+				<div className="font-bold text-3xl">{topLevelParticipation}</div>
 			</div>
 
 			<Section title={m.stats_teams_league_and_placement()}>

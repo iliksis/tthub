@@ -1,6 +1,8 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
 	"stats_no_teams_in_this_season": "Keine Teams in dieser Saison",
+	"stats_stats_found": "Statistik gefunden",
 	"stats_statistics": "Statistik",
-	"stats_teams_league_and_placement": "Ligen & Platzierungen"
+	"stats_teams_league_and_placement": "Ligen & Platzierungen",
+	"stats_top_level_tournament_participants": "Spieler:innen bei Top-Turnieren"
 }

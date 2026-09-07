@@ -2,27 +2,44 @@ import { expect, test } from "@playwright/test";
 import { prismaClient } from "../src/lib/db";
 import { loginAs } from "./helpers";
 
-// Fixture seasons/teams created by this spec are named with this prefix so
-// tests can find their own rows regardless of leftover state from other
-// runs, and so cleanup only ever removes what this spec created.
+// Fixture seasons/teams/labels/players/appointments created by this spec are
+// named with this prefix so tests can find their own rows regardless of
+// leftover state from other runs, and so cleanup only ever removes what this
+// spec created.
 const PREFIX = "E2ESTATS-";
 
-test.beforeAll(async () => {
+// Placement rows have no cascade delete on their Player/Appointment FKs (see
+// e2e/helpers.ts's cleanupByTitlePrefix), so they must be deleted before the
+// Appointments/Players they reference.
+async function cleanupFixtures() {
+	const staleAppointments = await prismaClient.appointment.findMany({
+		select: { id: true },
+		where: { title: { startsWith: PREFIX } },
+	});
+	await prismaClient.placement.deleteMany({
+		where: { appointmentId: { in: staleAppointments.map((a) => a.id) } },
+	});
+	await prismaClient.appointment.deleteMany({
+		where: { title: { startsWith: PREFIX } },
+	});
+	await prismaClient.player.deleteMany({
+		where: { name: { startsWith: PREFIX } },
+	});
+	await prismaClient.label.deleteMany({
+		where: { name: { startsWith: PREFIX } },
+	});
 	await prismaClient.team.deleteMany({
 		where: { title: { startsWith: PREFIX } },
 	});
 	await prismaClient.season.deleteMany({
 		where: { name: { startsWith: PREFIX } },
 	});
-});
+}
+
+test.beforeAll(cleanupFixtures);
 
 test.afterAll(async () => {
-	await prismaClient.team.deleteMany({
-		where: { title: { startsWith: PREFIX } },
-	});
-	await prismaClient.season.deleteMany({
-		where: { name: { startsWith: PREFIX } },
-	});
+	await cleanupFixtures();
 	await prismaClient.$disconnect();
 });
 
@@ -143,5 +160,119 @@ test.describe("Stats Route - Team League/Placement Table", () => {
 				.locator(":visible", { hasText: "Keine Teams in dieser Saison" })
 				.first(),
 		).toBeVisible();
+	});
+});
+
+test.describe("Stats Route - Top-Level Tournament Participation", () => {
+	// The stat tile isn't split into mobile/desktop trees (unlike the team
+	// table above), so this class-based locator resolves to exactly one
+	// element without needing a `:visible` filter.
+	const participationValue = (page: import("@playwright/test").Page) =>
+		page.locator(".font-bold.text-3xl");
+
+	test("counts distinct players placed in a Top-Level Tournament, ignoring non-flagged labels and repeat categories", async ({
+		page,
+	}) => {
+		const season = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}Participation` },
+		});
+		const topLabel = await prismaClient.label.create({
+			data: { color: "blue", countsForStats: true, name: `${PREFIX}TopLabel` },
+		});
+		const otherLabel = await prismaClient.label.create({
+			data: {
+				color: "green",
+				countsForStats: false,
+				name: `${PREFIX}OtherLabel`,
+			},
+		});
+
+		const player1 = await prismaClient.player.create({
+			data: { name: `${PREFIX}P1`, qttr: 1000, year: 2010 },
+		});
+		const player2 = await prismaClient.player.create({
+			data: { name: `${PREFIX}P2`, qttr: 1000, year: 2010 },
+		});
+		const player3 = await prismaClient.player.create({
+			data: { name: `${PREFIX}P3`, qttr: 1000, year: 2010 },
+		});
+
+		const topAppointment = await prismaClient.appointment.create({
+			data: {
+				labels: { create: { labelId: topLabel.id } },
+				seasonId: season.id,
+				startDate: new Date(),
+				status: "PUBLISHED",
+				title: `${PREFIX}TopAppt`,
+				type: "TOURNAMENT",
+			},
+		});
+		const otherAppointment = await prismaClient.appointment.create({
+			data: {
+				labels: { create: { labelId: otherLabel.id } },
+				seasonId: season.id,
+				startDate: new Date(),
+				status: "PUBLISHED",
+				title: `${PREFIX}OtherAppt`,
+				type: "TOURNAMENT",
+			},
+		});
+
+		// player1: placed in two categories on the top-level tournament — must
+		// count once, not twice.
+		await prismaClient.placement.create({
+			data: {
+				appointmentId: topAppointment.id,
+				category: "Einzel",
+				placement: "1",
+				playerId: player1.id,
+			},
+		});
+		await prismaClient.placement.create({
+			data: {
+				appointmentId: topAppointment.id,
+				category: "Doppel",
+				placement: "2",
+				playerId: player1.id,
+			},
+		});
+		// player2: placed only in the top-level tournament.
+		await prismaClient.placement.create({
+			data: {
+				appointmentId: topAppointment.id,
+				category: "Einzel",
+				placement: "3",
+				playerId: player2.id,
+			},
+		});
+		// player3: placed only in the non-top-level tournament — must not count.
+		await prismaClient.placement.create({
+			data: {
+				appointmentId: otherAppointment.id,
+				category: "Einzel",
+				placement: "1",
+				playerId: player3.id,
+			},
+		});
+
+		await loginAs(page, "user");
+		await page.goto(`/stats?seasonId=${season.id}`);
+		await page.waitForLoadState("networkidle");
+
+		await expect(participationValue(page)).toHaveText("2");
+	});
+
+	test("shows 0 for a season with no top-level tournaments", async ({
+		page,
+	}) => {
+		const emptySeason = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}NoParticipation` },
+		});
+
+		await loginAs(page, "user");
+		await page.goto(`/stats?seasonId=${emptySeason.id}`);
+		await page.waitForLoadState("networkidle");
+
+		await expect(participationValue(page)).toHaveText("0");
 	});
 });
