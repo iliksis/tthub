@@ -1,4 +1,20 @@
 import {
+	DndContext,
+	type DragEndEvent,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+} from "@dnd-kit/core";
+import {
+	arrayMove,
+	SortableContext,
+	sortableKeyboardCoordinates,
+	useSortable,
+	verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
 	type ColumnDef,
 	columnSizingFeature,
 	createSortedRowModel,
@@ -11,7 +27,12 @@ import {
 	tableFeatures,
 	useTable,
 } from "@tanstack/react-table";
-import { ChevronDown, ChevronsDownUp, ChevronUp } from "lucide-react";
+import {
+	ChevronDown,
+	ChevronsDownUp,
+	ChevronUp,
+	GripVerticalIcon,
+} from "lucide-react";
 import React from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -32,6 +53,11 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
+
+// Module-level (not recreated per render) so useSensor's internal useMemo,
+// keyed on each options object's identity, actually holds across renders.
+const pointerSensorOptions = { activationConstraint: { distance: 4 } };
+const keyboardSensorOptions = { coordinateGetter: sortableKeyboardCoordinates };
 
 const features = tableFeatures({
 	columnSizingFeature,
@@ -93,6 +119,10 @@ type DetailsListProps<T> = {
 			| RowSelectionState
 			| ((old: RowSelectionState) => RowSelectionState),
 	) => void;
+	// When provided, rows get a drag handle and become reorderable; on drop,
+	// this is called with `items` in their new order (the parent owns
+	// persisting it — this component has no concept of "saving").
+	onReorder?: (newItems: T[]) => void;
 };
 
 export const commandBarButtonVariant = (
@@ -118,7 +148,12 @@ export function DetailsList<T extends RowData>({
 	onSortingChange,
 	selection: controlledSelection,
 	onSelectionChange,
+	onReorder,
 }: DetailsListProps<T>) {
+	const dragSensors = useSensors(
+		useSensor(PointerSensor, pointerSensorOptions),
+		useSensor(KeyboardSensor, keyboardSensorOptions),
+	);
 	const [internalSorting, setInternalSorting] = React.useState<SortingState>(
 		[],
 	);
@@ -306,6 +341,33 @@ export function DetailsList<T extends RowData>({
 		}
 	};
 
+	const handleDragEnd = (e: DragEndEvent) => {
+		const { active, over } = e;
+		if (!onReorder || !over || active.id === over.id) return;
+		const oldIndex = items.findIndex((item) => getItemId(item) === active.id);
+		const newIndex = items.findIndex((item) => getItemId(item) === over.id);
+		if (oldIndex === -1 || newIndex === -1) return;
+		onReorder(arrayMove(items, oldIndex, newIndex));
+	};
+
+	const renderCells = (
+		row: ReturnType<typeof table.getRowModel>["rows"][number],
+	) =>
+		row.getAllCells().map((cell) => {
+			const align = columns.find((c) => c.key === cell.column.id)?.align;
+			return (
+				<TableCell
+					key={cell.id}
+					className={cn(
+						align === "right" && "text-right",
+						align === "center" && "text-center",
+					)}
+				>
+					{flexRender(cell.column.columnDef.cell, cell.getContext())}
+				</TableCell>
+			);
+		});
+
 	return (
 		<div className={`flex flex-col gap-4 ${className}`}>
 			{commandBarItems.length > 0 && (
@@ -389,6 +451,7 @@ export function DetailsList<T extends RowData>({
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className="hover:bg-transparent">
+								{onReorder && <TableHead className="w-8" />}
 								{headerGroup.headers.map((header) => {
 									const align = columns.find(
 										(c) => c.key === header.column.id,
@@ -442,57 +505,110 @@ export function DetailsList<T extends RowData>({
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows.map((row) => {
-							const children = (
-								<>
-									{row.getAllCells().map((cell) => {
-										const align = columns.find(
-											(c) => c.key === cell.column.id,
-										)?.align;
-										return (
-											<TableCell
-												key={cell.id}
-												className={cn(
-													align === "right" && "text-right",
-													align === "center" && "text-center",
-												)}
-											>
-												{flexRender(
-													cell.column.columnDef.cell,
-													cell.getContext(),
-												)}
-											</TableCell>
-										);
-									})}
-								</>
-							);
+					{onReorder ? (
+						<DndContext sensors={dragSensors} onDragEnd={handleDragEnd}>
+							<SortableContext
+								items={table.getRowModel().rows.map((row) => row.id)}
+								strategy={verticalListSortingStrategy}
+							>
+								<TableBody>
+									{table.getRowModel().rows.map((row) => (
+										<SortableRow
+											key={row.id}
+											rowId={row.id}
+											isSelected={row.getIsSelected()}
+											onMouseDown={(e) => {
+												if (e.shiftKey) e.preventDefault();
+											}}
+											onClick={(e) => handleItemClick(row, e)}
+										>
+											{renderCells(row)}
+										</SortableRow>
+									))}
+								</TableBody>
+							</SortableContext>
+						</DndContext>
+					) : (
+						<TableBody>
+							{table.getRowModel().rows.map((row) => {
+								const children = renderCells(row);
 
-							if (onRenderRow) {
-								return onRenderRow(row.original, children);
-							}
+								if (onRenderRow) {
+									return onRenderRow(row.original, children);
+								}
 
-							return (
-								<TableRow
-									key={row.id}
-									className={cn(
-										"h-10 cursor-pointer",
-										row.getIsSelected() && "bg-muted",
-									)}
-									onMouseDown={(e) => {
-										// Avoid the browser's native text-selection drag when
-										// shift-clicking to select a range of rows.
-										if (e.shiftKey) e.preventDefault();
-									}}
-									onClick={(e) => handleItemClick(row, e)}
-								>
-									{children}
-								</TableRow>
-							);
-						})}
-					</TableBody>
+								return (
+									<TableRow
+										key={row.id}
+										className={cn(
+											"h-10 cursor-pointer",
+											row.getIsSelected() && "bg-muted",
+										)}
+										onMouseDown={(e) => {
+											// Avoid the browser's native text-selection drag when
+											// shift-clicking to select a range of rows.
+											if (e.shiftKey) e.preventDefault();
+										}}
+										onClick={(e) => handleItemClick(row, e)}
+									>
+										{children}
+									</TableRow>
+								);
+							})}
+						</TableBody>
+					)}
 				</Table>
 			)}
 		</div>
+	);
+}
+
+// Extracted so `useSortable` (a hook) can be called once per row rather than
+// inside the row-rendering .map — hooks can't be called conditionally/in a
+// loop directly, so each row needs its own component instance.
+function SortableRow({
+	rowId,
+	isSelected,
+	onMouseDown,
+	onClick,
+	children,
+}: {
+	rowId: string;
+	isSelected: boolean;
+	onMouseDown: (e: React.MouseEvent) => void;
+	onClick: (e: React.MouseEvent) => void;
+	children: React.ReactNode;
+}) {
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
+		transition,
+		isDragging,
+	} = useSortable({ id: rowId });
+
+	return (
+		<TableRow
+			ref={setNodeRef}
+			style={{ transform: CSS.Transform.toString(transform), transition }}
+			className={cn(
+				"h-10 cursor-pointer",
+				isSelected && "bg-muted",
+				isDragging && "relative z-10 bg-accent",
+			)}
+			onMouseDown={onMouseDown}
+			onClick={onClick}
+		>
+			<TableCell
+				className="w-8 cursor-grab touch-none px-2 text-muted-foreground active:cursor-grabbing"
+				onClick={(e) => e.stopPropagation()}
+				{...attributes}
+				{...listeners}
+			>
+				<GripVerticalIcon className="size-4" />
+			</TableCell>
+			{children}
+		</TableRow>
 	);
 }

@@ -2,12 +2,13 @@ import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 import { Link } from "@tanstack/react-router";
 import {
 	CalendarDaysIcon,
-	GlobeIcon,
 	MapPinIcon,
 	PartyPopperIcon,
 	TrophyIcon,
 	UsersIcon,
 } from "lucide-react";
+import type { LabelColor } from "@/api/labels";
+import { LabelBadges } from "@/components/labels/LabelBadges";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -22,25 +23,25 @@ import {
 	type WeekBar,
 	weekdayLabels,
 } from "@/lib/calendarGrid";
+import { resolveTopPriorityLabel } from "@/lib/labelColor";
 import type { AppointmentType } from "@/lib/prisma/enums";
-import { cn } from "@/lib/utils";
+import { cn, getCatppuccinColorStyle } from "@/lib/utils";
 import { CalendarToolbar } from "./CalendarToolbar";
 
 export type CalendarAppointment = {
 	id: string;
 	title: string;
-	shortTitle: string;
 	start: Date;
 	end: Date;
 	type: AppointmentType;
 	location: string | null;
+	labels?: { id: string; name: string; color: string; priority: number }[];
 };
 
 const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
 	HOLIDAY: PartyPopperIcon,
 	TEAM_MATCH: UsersIcon,
 	TOURNAMENT: TrophyIcon,
-	TOURNAMENT_DE: GlobeIcon,
 };
 
 // Fixed height regardless of content: a day-number row plus a fixed number
@@ -75,12 +76,44 @@ export const categoryStyle: Record<
 		gradient: "bg-gradient-to-br from-success to-success/70",
 		solidText: "text-success-foreground",
 	},
-	TOURNAMENT_DE: {
-		dot: "bg-info",
-		gradient: "bg-gradient-to-br from-info to-info/70",
-		solidText: "text-info-foreground",
-	},
 };
+
+export type EventColorStyle = {
+	barClassName: string;
+	barStyle?: React.CSSProperties;
+	dotClassName: string;
+	dotStyle?: React.CSSProperties;
+};
+
+// Resolves how a single event should be colored: the highest-priority
+// attached Label's color when it has any (theme-adaptive, via the same
+// getCatppuccinColorStyle mechanism Label badges already use), falling back
+// to the existing type-based categoryStyle when it has none. Shared by the
+// desktop (MonthCalendar) and mobile (MobileCalendar) calendar views so both
+// resolve "which color represents this event" the same way.
+export function resolveEventColorStyle(
+	event: CalendarAppointment,
+): EventColorStyle {
+	const topLabel = resolveTopPriorityLabel(event.labels ?? []);
+	const style = categoryStyle[event.type];
+
+	if (topLabel) {
+		const { backgroundColor } = getCatppuccinColorStyle(
+			topLabel.color as LabelColor,
+		);
+		return {
+			barClassName: style.solidText,
+			barStyle: { backgroundColor },
+			dotClassName: "",
+			dotStyle: { backgroundColor },
+		};
+	}
+
+	return {
+		barClassName: `${style.gradient} ${style.solidText}`,
+		dotClassName: style.dot,
+	};
+}
 
 const formatTime = (date: Date) =>
 	date.toLocaleTimeString("de-DE", { timeStyle: "short" });
@@ -195,7 +228,7 @@ export const MonthCalendar = ({
 						))}
 
 						{visibleBars.map((bar) => {
-							const style = categoryStyle[bar.event.type];
+							const colorStyle = resolveEventColorStyle(bar.event);
 							const Icon = typeIcon[bar.event.type];
 							return (
 								<TooltipPrimitive.Root key={bar.event.id}>
@@ -207,12 +240,19 @@ export const MonthCalendar = ({
 												style={{
 													gridColumn: `${bar.startCol + 1} / ${bar.endCol + 2}`,
 													gridRow: bar.lane + 2,
+													...colorStyle.barStyle,
 												}}
-												className={`mx-1 flex h-6.5 items-center truncate rounded-lg px-2 text-[11px] font-semibold ${style.gradient} ${style.solidText} ${bar.isTrueStart ? "" : "rounded-l-none"} ${bar.isTrueEnd ? "" : "rounded-r-none"}`}
+												className={`mx-1 flex h-6.5 items-center rounded-lg px-2 text-[11px] font-semibold ${colorStyle.barClassName} ${bar.isTrueStart ? "" : "rounded-l-none"} ${bar.isTrueEnd ? "" : "rounded-r-none"}`}
 											/>
 										}
 									>
-										{bar.isTrueStart ? bar.event.shortTitle : ""}
+										{bar.isTrueStart ? (
+											<span className="min-w-[6ch] truncate">
+												{bar.event.title}
+											</span>
+										) : (
+											""
+										)}
 									</TooltipPrimitive.Trigger>
 									<TooltipPrimitive.Portal>
 										<TooltipPrimitive.Positioner
@@ -225,9 +265,9 @@ export const MonthCalendar = ({
 													<span
 														className={cn(
 															"flex size-6 shrink-0 items-center justify-center rounded-full",
-															style.gradient,
-															style.solidText,
+															colorStyle.barClassName,
 														)}
+														style={colorStyle.barStyle}
 													>
 														<Icon className="size-3.5" />
 													</span>
@@ -245,6 +285,13 @@ export const MonthCalendar = ({
 																{bar.event.location}
 															</div>
 														)}
+														{bar.event.labels &&
+															bar.event.labels.length > 0 && (
+																<LabelBadges
+																	labels={bar.event.labels}
+																	className="mt-1.5"
+																/>
+															)}
 													</div>
 												</div>
 											</TooltipPrimitive.Popup>
@@ -278,28 +325,32 @@ export const MonthCalendar = ({
 												...new Map(
 													hidden.map((b) => [b.event.id, b.event]),
 												).values(),
-											].map((event) => (
-												<DropdownMenuItem
-													key={event.id}
-													render={
-														<Link
-															to="/appts/$apptId"
-															params={{ apptId: event.id }}
-															className="flex items-center gap-2"
+											].map((event) => {
+												const colorStyle = resolveEventColorStyle(event);
+												return (
+													<DropdownMenuItem
+														key={event.id}
+														render={
+															<Link
+																to="/appts/$apptId"
+																params={{ apptId: event.id }}
+																className="flex items-center gap-2"
+															/>
+														}
+													>
+														<span
+															className={`size-1.5 shrink-0 rounded-full ${colorStyle.dotClassName}`}
+															style={colorStyle.dotStyle}
 														/>
-													}
-												>
-													<span
-														className={`size-1.5 shrink-0 rounded-full ${categoryStyle[event.type].dot}`}
-													/>
-													<span className="truncate font-medium">
-														{event.title}
-													</span>
-													<span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
-														{formatTime(event.start)}
-													</span>
-												</DropdownMenuItem>
-											))}
+														<span className="min-w-[6ch] truncate font-medium">
+															{event.title}
+														</span>
+														<span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
+															{formatTime(event.start)}
+														</span>
+													</DropdownMenuItem>
+												);
+											})}
 										</div>
 									</DropdownMenuContent>
 								</DropdownMenu>

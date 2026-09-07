@@ -396,14 +396,6 @@ export type PlayerScalarRelationFilter = {
   isNot?: Prisma.PlayerWhereInput
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type PlayerCreateNestedOneWithoutTeamsInput = {
   create?: Prisma.XOR<Prisma.PlayerCreateWithoutTeamsInput, Prisma.PlayerUncheckedCreateWithoutTeamsInput>
   connectOrCreate?: Prisma.PlayerCreateOrConnectWithoutTeamsInput

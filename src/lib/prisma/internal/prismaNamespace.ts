@@ -403,6 +403,9 @@ export const ModelName = {
   PasswordReset: 'PasswordReset',
   Appointment: 'Appointment',
   Season: 'Season',
+  Label: 'Label',
+  AppointmentLabel: 'AppointmentLabel',
+  UserMutedLabel: 'UserMutedLabel',
   Response: 'Response',
   Player: 'Player',
   Team: 'Team',
@@ -428,7 +431,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "feedConfig" | "userInvitation" | "passwordReset" | "appointment" | "season" | "response" | "player" | "team" | "teamPlayer" | "standing" | "placement" | "transaction" | "subscription" | "importerSetting" | "notificationSettings"
+    modelProps: "user" | "feedConfig" | "userInvitation" | "passwordReset" | "appointment" | "season" | "label" | "appointmentLabel" | "userMutedLabel" | "response" | "player" | "team" | "teamPlayer" | "standing" | "placement" | "transaction" | "subscription" | "importerSetting" | "notificationSettings"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -873,6 +876,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.SeasonCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.SeasonCountAggregateOutputType> | number
+        }
+      }
+    }
+    Label: {
+      payload: Prisma.$LabelPayload<ExtArgs>
+      fields: Prisma.LabelFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LabelFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LabelPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LabelFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LabelPayload>
+        }
+        findFirst: {
+          args: Prisma.LabelFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LabelPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LabelFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LabelPayload>
+        }
+        findMany: {
+          args: Prisma.LabelFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LabelPayload>[]
+        }
+        create: {
+          args: Prisma.LabelCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LabelPayload>
+        }
+        createMany: {
+          args: Prisma.LabelCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LabelCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LabelPayload>[]
+        }
+        delete: {
+          args: Prisma.LabelDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LabelPayload>
+        }
+        update: {
+          args: Prisma.LabelUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LabelPayload>
+        }
+        deleteMany: {
+          args: Prisma.LabelDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LabelUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LabelUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LabelPayload>[]
+        }
+        upsert: {
+          args: Prisma.LabelUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LabelPayload>
+        }
+        aggregate: {
+          args: Prisma.LabelAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLabel>
+        }
+        groupBy: {
+          args: Prisma.LabelGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LabelGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LabelCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LabelCountAggregateOutputType> | number
+        }
+      }
+    }
+    AppointmentLabel: {
+      payload: Prisma.$AppointmentLabelPayload<ExtArgs>
+      fields: Prisma.AppointmentLabelFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AppointmentLabelFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppointmentLabelPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AppointmentLabelFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppointmentLabelPayload>
+        }
+        findFirst: {
+          args: Prisma.AppointmentLabelFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppointmentLabelPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AppointmentLabelFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppointmentLabelPayload>
+        }
+        findMany: {
+          args: Prisma.AppointmentLabelFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppointmentLabelPayload>[]
+        }
+        create: {
+          args: Prisma.AppointmentLabelCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppointmentLabelPayload>
+        }
+        createMany: {
+          args: Prisma.AppointmentLabelCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AppointmentLabelCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppointmentLabelPayload>[]
+        }
+        delete: {
+          args: Prisma.AppointmentLabelDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppointmentLabelPayload>
+        }
+        update: {
+          args: Prisma.AppointmentLabelUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppointmentLabelPayload>
+        }
+        deleteMany: {
+          args: Prisma.AppointmentLabelDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AppointmentLabelUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AppointmentLabelUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppointmentLabelPayload>[]
+        }
+        upsert: {
+          args: Prisma.AppointmentLabelUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppointmentLabelPayload>
+        }
+        aggregate: {
+          args: Prisma.AppointmentLabelAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAppointmentLabel>
+        }
+        groupBy: {
+          args: Prisma.AppointmentLabelGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppointmentLabelGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AppointmentLabelCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppointmentLabelCountAggregateOutputType> | number
+        }
+      }
+    }
+    UserMutedLabel: {
+      payload: Prisma.$UserMutedLabelPayload<ExtArgs>
+      fields: Prisma.UserMutedLabelFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserMutedLabelFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserMutedLabelPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserMutedLabelFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserMutedLabelPayload>
+        }
+        findFirst: {
+          args: Prisma.UserMutedLabelFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserMutedLabelPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserMutedLabelFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserMutedLabelPayload>
+        }
+        findMany: {
+          args: Prisma.UserMutedLabelFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserMutedLabelPayload>[]
+        }
+        create: {
+          args: Prisma.UserMutedLabelCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserMutedLabelPayload>
+        }
+        createMany: {
+          args: Prisma.UserMutedLabelCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserMutedLabelCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserMutedLabelPayload>[]
+        }
+        delete: {
+          args: Prisma.UserMutedLabelDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserMutedLabelPayload>
+        }
+        update: {
+          args: Prisma.UserMutedLabelUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserMutedLabelPayload>
+        }
+        deleteMany: {
+          args: Prisma.UserMutedLabelDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserMutedLabelUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserMutedLabelUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserMutedLabelPayload>[]
+        }
+        upsert: {
+          args: Prisma.UserMutedLabelUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserMutedLabelPayload>
+        }
+        aggregate: {
+          args: Prisma.UserMutedLabelAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserMutedLabel>
+        }
+        groupBy: {
+          args: Prisma.UserMutedLabelGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserMutedLabelGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserMutedLabelCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserMutedLabelCountAggregateOutputType> | number
         }
       }
     }
@@ -1669,7 +1894,8 @@ export const FeedConfigScalarFieldEnum = {
   userId: 'userId',
   includeResponseTypes: 'includeResponseTypes',
   includeDraftStatus: 'includeDraftStatus',
-  includeAppointmentTypes: 'includeAppointmentTypes'
+  includeAppointmentTypes: 'includeAppointmentTypes',
+  excludeLabelIds: 'excludeLabelIds'
 } as const
 
 export type FeedConfigScalarFieldEnum = (typeof FeedConfigScalarFieldEnum)[keyof typeof FeedConfigScalarFieldEnum]
@@ -1700,7 +1926,6 @@ export const AppointmentScalarFieldEnum = {
   startDate: 'startDate',
   endDate: 'endDate',
   title: 'title',
-  shortTitle: 'shortTitle',
   location: 'location',
   link: 'link',
   type: 'type',
@@ -1723,6 +1948,33 @@ export const SeasonScalarFieldEnum = {
 } as const
 
 export type SeasonScalarFieldEnum = (typeof SeasonScalarFieldEnum)[keyof typeof SeasonScalarFieldEnum]
+
+
+export const LabelScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  name: 'name',
+  color: 'color',
+  priority: 'priority'
+} as const
+
+export type LabelScalarFieldEnum = (typeof LabelScalarFieldEnum)[keyof typeof LabelScalarFieldEnum]
+
+
+export const AppointmentLabelScalarFieldEnum = {
+  appointmentId: 'appointmentId',
+  labelId: 'labelId'
+} as const
+
+export type AppointmentLabelScalarFieldEnum = (typeof AppointmentLabelScalarFieldEnum)[keyof typeof AppointmentLabelScalarFieldEnum]
+
+
+export const UserMutedLabelScalarFieldEnum = {
+  userId: 'userId',
+  labelId: 'labelId'
+} as const
+
+export type UserMutedLabelScalarFieldEnum = (typeof UserMutedLabelScalarFieldEnum)[keyof typeof UserMutedLabelScalarFieldEnum]
 
 
 export const ResponseScalarFieldEnum = {
@@ -1933,16 +2185,16 @@ export type EnumAppointmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
- * Reference to a field of type 'ResponseType'
+ * Reference to a field of type 'Int'
  */
-export type EnumResponseTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResponseType'>
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
     
 
 
 /**
- * Reference to a field of type 'Int'
+ * Reference to a field of type 'ResponseType'
  */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+export type EnumResponseTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResponseType'>
     
 
 
@@ -2130,6 +2382,9 @@ export type GlobalOmitConfig = {
   passwordReset?: Prisma.PasswordResetOmit
   appointment?: Prisma.AppointmentOmit
   season?: Prisma.SeasonOmit
+  label?: Prisma.LabelOmit
+  appointmentLabel?: Prisma.AppointmentLabelOmit
+  userMutedLabel?: Prisma.UserMutedLabelOmit
   response?: Prisma.ResponseOmit
   player?: Prisma.PlayerOmit
   team?: Prisma.TeamOmit

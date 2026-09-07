@@ -187,6 +187,67 @@ export const getNotificationSettings = createServerFn({ method: "GET" })
 		}
 	});
 
+export const getMutedLabels = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const session = await useAppSession();
+		if (!session.data.id) {
+			throw new Error(m.common_unauthorized());
+		}
+		try {
+			const muted = await prismaClient.userMutedLabel.findMany({
+				include: { label: true },
+				where: { userId: session.data.id },
+			});
+			return {
+				data: muted.map((entry) => entry.label),
+				message: m.notifications_muted_labels_found(),
+			};
+		} catch (e) {
+			console.error(e);
+			throw new Error((e as Error).message);
+		}
+	},
+);
+
+export const updateMutedLabels = createServerFn({ method: "POST" })
+	.validator((d: { labelIds: string[] }) => d)
+	.handler(async ({ data }) => {
+		const session = await useAppSession();
+		if (!session.data.id) {
+			throw new Error(m.common_unauthorized());
+		}
+		try {
+			const before = await prismaClient.userMutedLabel.findMany({
+				select: { labelId: true },
+				where: { userId: session.data.id },
+			});
+			const sortedBefore = before.map((l) => l.labelId).sort();
+			const sortedAfter = [...data.labelIds].sort();
+			const unchanged =
+				sortedBefore.length === sortedAfter.length &&
+				sortedBefore.every((id, i) => id === sortedAfter[i]);
+			if (!unchanged) {
+				await prismaClient.$transaction(async (tx) => {
+					await tx.userMutedLabel.deleteMany({
+						where: { userId: session.data.id as string },
+					});
+					if (data.labelIds.length > 0) {
+						await tx.userMutedLabel.createMany({
+							data: data.labelIds.map((labelId) => ({
+								labelId,
+								userId: session.data.id as string,
+							})),
+						});
+					}
+				});
+			}
+			return { message: m.common_settings_updated() };
+		} catch (e) {
+			console.error(e);
+			throw new Error((e as Error).message);
+		}
+	});
+
 export const sendTestNotification = createServerFn({ method: "POST" }).handler(
 	async () => {
 		const session = await useAppSession();
@@ -235,6 +296,7 @@ export const sendNotification = createServerOnlyFn(
 		title: string;
 		url: string;
 		scope: "new" | "updated";
+		appointmentId: string;
 	}) => {
 		webpush.setVapidDetails(
 			"mailto:mail@example.com",
@@ -251,6 +313,17 @@ export const sendNotification = createServerOnlyFn(
 
 		const session = await useAppSession();
 
+		// Read the appointment's current labels here (rather than having every
+		// caller snapshot and pass them) so the debounced "updated" notification
+		// — sent up to 5s after the triggering save — always reflects the
+		// appointment's actual labels at send time, not whatever they were when
+		// the save request came in.
+		const labels = await prismaClient.appointmentLabel.findMany({
+			select: { labelId: true },
+			where: { appointmentId: data.appointmentId },
+		});
+		const labelIds = labels.map((l) => l.labelId);
+
 		const userSettings = await prismaClient.notificationSettings.findMany({
 			include: {
 				subscription: true,
@@ -261,6 +334,15 @@ export const sendNotification = createServerOnlyFn(
 					userId: session.data.id,
 				},
 				newAppointment: data.scope === "new" ? true : undefined,
+				// A recipient whose muted-label set intersects the appointment's
+				// labels is skipped entirely — muting is per-user and otherwise
+				// leaves who-gets-notified unaffected (see CONTEXT.md's "Muted
+				// Label" entry). No labels on the appointment means no possible
+				// intersection, so the clause is omitted rather than querying it.
+				user:
+					labelIds.length > 0
+						? { mutedLabels: { none: { labelId: { in: labelIds } } } }
+						: undefined,
 			},
 		});
 		for (const setting of userSettings) {

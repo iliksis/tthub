@@ -50,7 +50,7 @@ export function AppointmentRow({
 					{time}
 				</span>
 			)}
-			<span className="min-w-0 flex-1 truncate text-primary">{title}</span>
+			<span className="min-w-[6ch] flex-1 truncate text-primary">{title}</span>
 			{secondary && (
 				<span className="hidden shrink-0 text-muted-foreground text-xs sm:inline">
 					{secondary}

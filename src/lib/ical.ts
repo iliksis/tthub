@@ -1,7 +1,23 @@
 import Mustache from "mustache";
+import type { LabelColor } from "@/api/labels";
+import { catppuccinLatteHex, resolveTopPriorityLabel } from "./labelColor";
 import type { Appointment } from "./prisma/client";
 
+// Appointments passed in may optionally carry their attached Labels (join
+// rows shaped like Prisma's `labels: { include: { label: true } }`) so the
+// top-priority one can drive this event's COLOR. Omitting `labels` (or
+// passing none) is fine — the event just gets no COLOR property.
+export type IcalAppointment = Appointment & {
+	labels?: Array<{ label: { color: string; priority: number } }>;
+};
+
 export class IcalGenerator {
+	// Passed in rather than read from `document`/`window` at call time so this
+	// also works server-side (the /feed/$feedId route constructs this with the
+	// incoming request's origin) — only createAndDownloadIcalFile is
+	// inherently client-only.
+	constructor(private baseUrl: string) {}
+
 	template: string = `BEGIN:VCALENDAR
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
@@ -18,11 +34,14 @@ DTEND:{{end}}
 LOCATION:{{&location}}
 SUMMARY:{{&title}}
 DESCRIPTION:{{&description}}
+{{#color}}
+COLOR:{{color}}
+{{/color}}
 END:VEVENT
 {{/appointments}}
 END:VCALENDAR`.replace(/\n/g, "\r\n");
 
-	private _createIcalEvent(event: Appointment) {
+	private _createIcalEvent(event: IcalAppointment) {
 		const start = this._createIcalDate(new Date(event.startDate));
 		const end = event.endDate
 			? this._createIcalDate(new Date(event.endDate))
@@ -30,8 +49,15 @@ END:VCALENDAR`.replace(/\n/g, "\r\n");
 		const location = this._formatIcalEntry(event.location ?? "");
 		const title = this._formatIcalEntry(event.title);
 		const description = this._createIcalDescription(event.id);
+		const topLabel = resolveTopPriorityLabel(
+			(event.labels ?? []).map((l) => l.label),
+		);
+		const color = topLabel
+			? catppuccinLatteHex[topLabel.color as LabelColor]
+			: undefined;
 
 		return {
+			color,
 			description,
 			end,
 			id: event.id,
@@ -64,11 +90,10 @@ END:VCALENDAR`.replace(/\n/g, "\r\n");
 	}
 
 	private _createIcalDescription(id: string) {
-		const base = document.location.origin;
-		return `${base}/appts/${id}`;
+		return `${this.baseUrl}/appts/${id}`;
 	}
 
-	createAndDownloadIcalFile(...events: Appointment[]) {
+	createAndDownloadIcalFile(...events: IcalAppointment[]) {
 		const now = Date.now();
 		const ical = this.createIcalString(...events);
 		const file = new Blob([ical], {
@@ -81,7 +106,7 @@ END:VCALENDAR`.replace(/\n/g, "\r\n");
 		link.click();
 	}
 
-	createIcalString(...events: Appointment[]): string {
+	createIcalString(...events: IcalAppointment[]): string {
 		return Mustache.render(this.template, {
 			appointments: events.map((event) => this._createIcalEvent(event)),
 		});

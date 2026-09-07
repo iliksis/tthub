@@ -22,6 +22,7 @@ model User {
   passwordReset        PasswordReset?
   feedConfig           FeedConfig?
   transactions         Transaction[]
+  mutedLabels          UserMutedLabel[]
 }
 
 enum Role {
@@ -36,7 +37,8 @@ model FeedConfig {
   user                    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   includeResponseTypes    String?          // Comma-separated: ACCEPT,MAYBE,DECLINE
   includeDraftStatus      Boolean          @default(false)
-  includeAppointmentTypes String?          // Comma-separated: TOURNAMENT,TOURNAMENT_DE,HOLIDAY,TEAM_MATCH
+  includeAppointmentTypes String?          // Comma-separated: TOURNAMENT,HOLIDAY,TEAM_MATCH
+  excludeLabelIds         String?          // Comma-separated Label ids — exclude only, no include-by-label
 }
 
 model UserInvitation {
@@ -60,7 +62,6 @@ model Appointment {
   startDate            DateTime
   endDate              DateTime?
   title                String
-  shortTitle           String
   location             String?
   link                 String?
   type                 AppointmentType
@@ -80,6 +81,7 @@ model Appointment {
   // other appointment types require it, enforced in the API layer.
   seasonId             String?
   season               Season?            @relation(fields: [seasonId], references: [id])
+  labels               AppointmentLabel[]
 }
 
 model Season {
@@ -99,9 +101,50 @@ enum AppointmentStatus {
 
 enum AppointmentType {
   TOURNAMENT
-  TOURNAMENT_DE
   HOLIDAY
   TEAM_MATCH
+}
+
+// Editor-managed tag attachable to TOURNAMENT appointments (e.g. region,
+// coach relevance). Purely informational — see docs/adr/0002.
+model Label {
+  id           String             @id @default(nanoid(6))
+  createdAt    DateTime           @default(now())
+  name         String
+  color        String
+  // Editor-set rank via drag-and-drop on the label management page. Lower
+  // value = higher priority (0 is top of the list). Determines which of an
+  // appointment's Labels wins when a single color is needed (calendar bar,
+  // iCal COLOR) — see resolveTopPriorityLabel in src/lib/labelColor.ts.
+  // Not enforced unique at the DB level: reorderLabels/createLabel always
+  // write a contiguous 0..n-1 sequence, so duplicates can't arise in practice.
+  priority     Int                @default(0)
+  appointments AppointmentLabel[]
+  mutedBy      UserMutedLabel[]
+}
+
+model AppointmentLabel {
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  labelId       String
+  label         Label       @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([appointmentId, labelId])
+}
+
+// A user's personal notification-mute set (see CONTEXT.md's "Muted Label") —
+// a Label they've chosen to suppress from their own push notifications, read
+// by src/api/notifications.ts's sendNotification. The calendar feed's
+// exclude-by-label filtering is a separate, independently configured list
+// (FeedConfig.excludeLabelIds below) — the two are not the same preference
+// and can be set differently.
+model UserMutedLabel {
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  labelId String
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([userId, labelId])
 }
 
 model Response {

@@ -10,7 +10,6 @@ import {
 	CalendarDaysIcon,
 	CheckIcon,
 	CircleQuestionMarkIcon,
-	GlobeIcon,
 	ListIcon,
 	MapPinIcon,
 	PartyPopperIcon,
@@ -41,6 +40,7 @@ import { LoadMoreFooter } from "@/components/appointments/LoadMoreFooter";
 import { MobileCalendar } from "@/components/calendar/MobileCalendar";
 import type { CalendarAppointment } from "@/components/calendar/MonthCalendar";
 import { MonthCalendar } from "@/components/calendar/MonthCalendar";
+import { LabelBadges } from "@/components/labels/LabelBadges";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,14 +60,12 @@ const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
 	HOLIDAY: PartyPopperIcon,
 	TEAM_MATCH: UsersIcon,
 	TOURNAMENT: TrophyIcon,
-	TOURNAMENT_DE: GlobeIcon,
 };
 
 const typeIconColor: Record<AppointmentType, string> = {
 	HOLIDAY: "text-primary",
 	TEAM_MATCH: "text-warning",
 	TOURNAMENT: "text-success",
-	TOURNAMENT_DE: "text-info",
 };
 
 const BATCH_SIZE = 25;
@@ -216,8 +214,8 @@ function toCalendarAppointments(
 	return items.map((item) => ({
 		end: item.endDate ?? item.startDate,
 		id: item.id,
+		labels: item.labels.map((l) => l.label),
 		location: item.location,
-		shortTitle: item.shortTitle,
 		start: item.startDate,
 		title: item.title,
 		type: item.type,
@@ -741,14 +739,13 @@ const AppointmentTimeline = ({
 											)}
 										>
 											<div className="min-w-0 flex-1">
-												<div className="truncate">
-													<EntityLink
-														to="/appts/$apptId"
-														params={{ apptId: item.id }}
-													>
-														{item.shortTitle}
-													</EntityLink>
-												</div>
+												<EntityLink
+													to="/appts/$apptId"
+													params={{ apptId: item.id }}
+													className="block min-w-[6ch] truncate"
+												>
+													{item.title}
+												</EntityLink>
 												<div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
 													<span className="inline-flex items-center gap-1">
 														<Icon
@@ -770,6 +767,10 @@ const AppointmentTimeline = ({
 													)}
 												</div>
 												<ParticipationSummary appointment={item} />
+												<LabelBadges
+													labels={item.labels.map((l) => l.label)}
+													className="mt-1"
+												/>
 											</div>
 											<div className="shrink-0">
 												<ResponseCell

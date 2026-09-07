@@ -34,7 +34,7 @@ export function PlayerRosterRow({
 				params={{ playerId: player.id }}
 				className="flex items-center gap-2 rounded-md text-muted-foreground py-1.5 text-sm no-underline hover:bg-muted/60 hover:no-underline"
 			>
-				<span className="min-w-0 flex-1 truncate text-primary">
+				<span className="min-w-[6ch] flex-1 truncate text-primary">
 					{player.name}
 				</span>
 				<span className="shrink-0 text-xs">
@@ -62,7 +62,9 @@ export function PlayerRosterRow({
 				{shortenUserName(player.name)}
 			</div>
 			<div className="min-w-0 flex-1">
-				<div className="truncate font-medium text-sm">{player.name}</div>
+				<div className="min-w-[6ch] truncate font-medium text-sm">
+					{player.name}
+				</div>
 				<div className="text-muted-foreground text-xs">
 					{calculateAgeGroup(player.year)} · {player.year}
 				</div>

@@ -1,11 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import {
-	GlobeIcon,
-	PartyPopperIcon,
-	TrophyIcon,
-	UsersIcon,
-} from "lucide-react";
+import { PartyPopperIcon, TrophyIcon, UsersIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
 	createResponse,
@@ -51,7 +46,6 @@ const typeIcon: Record<AppointmentType, typeof TrophyIcon> = {
 	HOLIDAY: PartyPopperIcon,
 	TEAM_MATCH: UsersIcon,
 	TOURNAMENT: TrophyIcon,
-	TOURNAMENT_DE: GlobeIcon,
 };
 
 export const Route = createFileRoute("/_authed/")({
@@ -121,7 +115,7 @@ function App() {
 									<AppointmentRow
 										key={a.id}
 										appointmentId={a.id}
-										title={a.shortTitle}
+										title={a.title}
 										date={a.startDate}
 										dateLabel={shortRangeFmt(a.startDate, a.endDate)}
 										time={timeFmt(a.startDate)}
@@ -154,9 +148,9 @@ function App() {
 											<Link
 												to="/appts/$apptId"
 												params={{ apptId: a.id }}
-												className="min-w-0 truncate"
+												className="block min-w-[6ch] flex-1 truncate"
 											>
-												{a.shortTitle}
+												{a.title}
 											</Link>
 										</div>
 										<div className="flex shrink-0 gap-1">
@@ -206,16 +200,17 @@ function App() {
 											>
 												{badge.label}
 											</Badge>
-											<span className="min-w-0 flex-1 truncate text-muted-foreground">
-												<span className="font-medium text-foreground">
+											<span className="flex min-w-0 flex-1 items-baseline gap-1 text-muted-foreground">
+												<span className="shrink-0 font-medium text-foreground">
 													{tx.user?.name ?? "—"}
-												</span>{" "}
-												·{" "}
+												</span>
+												<span className="shrink-0">·</span>
 												<Link
 													to="/appts/$apptId"
 													params={{ apptId: tx.appointment.id }}
+													className="block min-w-[6ch] flex-1 truncate"
 												>
-													{tx.appointment.shortTitle}
+													{tx.appointment.title}
 												</Link>
 											</span>
 											<span className="shrink-0 text-muted-foreground">

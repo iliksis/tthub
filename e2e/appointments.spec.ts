@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { loginAs } from "./helpers";
+import { prismaClient } from "../src/lib/db";
+import { cleanupByTitlePrefix, loginAs } from "./helpers";
 
 test.describe("Appointments List Route - Access Control", () => {
 	test("ADMIN can access appointments list", async ({ page }) => {
@@ -282,5 +283,307 @@ test.describe("Appointments - Delete and Restore", () => {
 		await expect(restoreButton).toBeVisible();
 		await restoreButton.click();
 		await expect(page.getByText(/wiederhergestellt/)).toBeVisible();
+	});
+});
+
+test.describe("Appointments - Labels", () => {
+	const TITLE_PREFIX = "E2EAPPTLABEL-";
+	const LABEL_PREFIX = "E2EAPPTLABEL-";
+
+	test.beforeAll(async () => {
+		await cleanupByTitlePrefix(TITLE_PREFIX);
+		await prismaClient.label.deleteMany({
+			where: { name: { startsWith: LABEL_PREFIX } },
+		});
+	});
+
+	test.afterAll(async () => {
+		await cleanupByTitlePrefix(TITLE_PREFIX);
+		await prismaClient.label.deleteMany({
+			where: { name: { startsWith: LABEL_PREFIX } },
+		});
+		await prismaClient.$disconnect();
+	});
+
+	test("EDITOR can attach an existing label and quick-create a new one while creating a tournament", async ({
+		page,
+	}) => {
+		const existingName = `${LABEL_PREFIX}Existing`;
+		const newName = `${LABEL_PREFIX}QuickCreated`;
+		const title = `${TITLE_PREFIX}Create`;
+		await prismaClient.label.create({
+			data: { color: "teal", name: existingName },
+		});
+
+		await loginAs(page, "editor");
+		await page.goto("/create");
+		await page.waitForLoadState("networkidle");
+
+		await page.getByRole("button", { name: /Turnier/ }).click();
+		await page.getByRole("button", { name: "Weiter" }).click();
+
+		await page.locator("input#title").fill(title);
+
+		const labelInput = page.getByPlaceholder("Label suchen oder erstellen…");
+		await labelInput.fill(existingName);
+		await page.getByRole("button", { exact: true, name: existingName }).click();
+		await labelInput.fill(newName);
+		await page.getByRole("button", { name: `„${newName}“ erstellen` }).click();
+
+		await expect(page.getByText(existingName)).toBeVisible();
+		await expect(page.getByText(newName)).toBeVisible();
+
+		await page.getByRole("button", { name: "Weiter" }).click();
+		await page.getByRole("button", { name: "Erstellen" }).click();
+
+		await page.waitForURL(/\/appts\/.+/);
+		await page.waitForLoadState("networkidle");
+
+		// The detail page shows both attached labels as badges, and the RSVP
+		// panel appears unconditionally for TOURNAMENT appointments regardless
+		// of which labels they carry. The mobile and desktop layouts both exist
+		// in the DOM simultaneously (toggled via CSS), so scope every assertion
+		// to the one that's actually visible at this viewport.
+		await expect(
+			page.locator('[data-slot="badge"]:visible', { hasText: existingName }),
+		).toBeVisible();
+		await expect(
+			page.locator('[data-slot="badge"]:visible', { hasText: newName }),
+		).toBeVisible();
+		await expect(
+			page.locator("button:visible", { hasText: "Annehmen" }),
+		).toBeVisible();
+	});
+
+	test("label badges attached via the edit sheet appear in the appointments list and detail page", async ({
+		page,
+	}) => {
+		const labelName = `${LABEL_PREFIX}Editable`;
+		const title = `${TITLE_PREFIX}Edit`;
+		const label = await prismaClient.label.create({
+			data: { color: "peach", name: labelName },
+		});
+		const season = await prismaClient.season.findFirstOrThrow({
+			where: { isActive: true },
+		});
+		const appointment = await prismaClient.appointment.create({
+			data: {
+				seasonId: season.id,
+				startDate: new Date(Date.now() + 86400000),
+				status: "PUBLISHED",
+				title,
+				type: "TOURNAMENT",
+			},
+		});
+
+		await loginAs(page, "editor");
+		await page.goto(`/appts/${appointment.id}`);
+		await page.waitForLoadState("networkidle");
+		await page.waitForTimeout(500);
+
+		// Both the mobile (icon-only) and desktop (labeled) edit buttons are
+		// always present in the DOM — only one is actually visible at a given
+		// viewport — so the CSS `:visible` filter is required, not just `.first()`.
+		await page.locator('button:visible:has-text("Bearbeiten")').first().click();
+		const editSheet = page.getByRole("dialog");
+		const labelInput = editSheet.getByPlaceholder(
+			"Label suchen oder erstellen…",
+		);
+		await labelInput.fill(labelName);
+		await editSheet
+			.getByRole("button", { exact: true, name: labelName })
+			.click();
+		await editSheet.getByRole("button", { name: "Speichern" }).click();
+
+		await expect(
+			page.locator('[data-slot="badge"]:visible', { hasText: labelName }),
+		).toBeVisible();
+		await expect(
+			page.locator("button:visible", { hasText: "Annehmen" }),
+		).toBeVisible();
+
+		await page.goto("/appts");
+		await page.waitForLoadState("networkidle");
+		await page
+			.locator('input:visible[placeholder*="Termin"]')
+			.first()
+			.fill(title);
+		await expect(
+			page.locator('[data-slot="badge"]:visible', { hasText: labelName }),
+		).toBeVisible();
+
+		await cleanupByTitlePrefix(TITLE_PREFIX);
+		await prismaClient.label.delete({ where: { id: label.id } });
+	});
+
+	test("the appointment detail page's ICS download includes the highest-priority label's COLOR", async ({
+		page,
+	}) => {
+		const labelName = `${LABEL_PREFIX}DownloadColor`;
+		const title = `${TITLE_PREFIX}Download`;
+		const label = await prismaClient.label.create({
+			data: { color: "blue", name: labelName, priority: -500 },
+		});
+		const season = await prismaClient.season.findFirstOrThrow({
+			where: { isActive: true },
+		});
+		const appointment = await prismaClient.appointment.create({
+			data: {
+				labels: { create: { labelId: label.id } },
+				seasonId: season.id,
+				startDate: new Date(),
+				status: "PUBLISHED",
+				title,
+				type: "TOURNAMENT",
+			},
+		});
+
+		await loginAs(page, "editor");
+		await page.setViewportSize({ height: 900, width: 1280 });
+		await page.goto(`/appts/${appointment.id}`);
+		await page.waitForLoadState("networkidle");
+
+		const downloadPromise = page.waitForEvent("download");
+		await page
+			.locator("button:visible", { hasText: "Termin speichern" })
+			.click();
+		const download = await downloadPromise;
+		const stream = await download.createReadStream();
+		const chunks: Buffer[] = [];
+		for await (const chunk of stream) {
+			chunks.push(chunk as Buffer);
+		}
+		const icsContent = Buffer.concat(chunks).toString("utf-8");
+
+		expect(icsContent).toContain("COLOR:#1e66f5");
+
+		await cleanupByTitlePrefix(TITLE_PREFIX);
+		await prismaClient.label.delete({ where: { id: label.id } });
+	});
+});
+
+test.describe("Appointments Calendar Route - Label Colors", () => {
+	const LABEL_PREFIX = "E2ECALCOLOR-";
+	const TITLE_PREFIX = "E2ECALCOLOR-";
+
+	test.beforeAll(async () => {
+		await cleanupByTitlePrefix(TITLE_PREFIX);
+		await prismaClient.label.deleteMany({
+			where: { name: { startsWith: LABEL_PREFIX } },
+		});
+	});
+
+	test.afterAll(async () => {
+		await cleanupByTitlePrefix(TITLE_PREFIX);
+		await prismaClient.label.deleteMany({
+			where: { name: { startsWith: LABEL_PREFIX } },
+		});
+		await prismaClient.$disconnect();
+	});
+
+	test("an unlabeled appointment keeps its type-based calendar bar color", async ({
+		page,
+	}) => {
+		const title = `${TITLE_PREFIX}Unlabeled`;
+		const season = await prismaClient.season.findFirstOrThrow({
+			where: { isActive: true },
+		});
+		const appointment = await prismaClient.appointment.create({
+			data: {
+				seasonId: season.id,
+				startDate: new Date(),
+				status: "PUBLISHED",
+				title,
+				type: "TOURNAMENT",
+			},
+		});
+
+		await loginAs(page, "editor");
+		// This page also renders an appointment list whose rows link to the
+		// same URL, so the selector must target the calendar bar specifically
+		// — identified by its grid-positioning inline style, which only the
+		// MonthCalendar bar (not a list row) carries.
+		await page.setViewportSize({ height: 900, width: 1280 });
+		await page.goto("/appts/calendar");
+		await page.waitForLoadState("networkidle");
+
+		const bar = page
+			.locator(
+				`a[href="/appts/${appointment.id}"][style*="grid-column"]:visible`,
+			)
+			.first();
+		await expect(bar).toBeVisible();
+		const style = await bar.getAttribute("style");
+		expect(style ?? "").not.toContain("background-color");
+
+		await prismaClient.appointment.delete({ where: { id: appointment.id } });
+	});
+
+	test("an appointment's calendar bar uses its highest-priority label's color, and updates live when priority changes", async ({
+		page,
+	}) => {
+		const nameA = `${LABEL_PREFIX}A`;
+		const nameB = `${LABEL_PREFIX}B`;
+		const title = `${TITLE_PREFIX}Labeled`;
+		const labelA = await prismaClient.label.create({
+			data: { color: "mauve", name: nameA, priority: -1000 },
+		});
+		const labelB = await prismaClient.label.create({
+			data: { color: "peach", name: nameB, priority: 1000 },
+		});
+		const season = await prismaClient.season.findFirstOrThrow({
+			where: { isActive: true },
+		});
+		const appointment = await prismaClient.appointment.create({
+			data: {
+				labels: {
+					create: [{ labelId: labelB.id }, { labelId: labelA.id }],
+				},
+				seasonId: season.id,
+				startDate: new Date(),
+				status: "PUBLISHED",
+				title,
+				type: "TOURNAMENT",
+			},
+		});
+
+		await loginAs(page, "editor");
+		await page.setViewportSize({ height: 900, width: 1280 });
+		await page.goto("/appts/calendar");
+		await page.waitForLoadState("networkidle");
+
+		const bar = page
+			.locator(
+				`a[href="/appts/${appointment.id}"][style*="grid-column"]:visible`,
+			)
+			.first();
+		await expect(bar).toBeVisible();
+		let style = await bar.getAttribute("style");
+		expect(style).toContain("--catppuccin-color-mauve-100");
+		expect(style).not.toContain("--catppuccin-color-peach-100");
+
+		// Flip priority (as a drag-and-drop reorder on the label catalog
+		// would) and confirm the bar's color is resolved live, not cached.
+		await prismaClient.label.update({
+			data: { priority: 2000 },
+			where: { id: labelA.id },
+		});
+		await prismaClient.label.update({
+			data: { priority: -2000 },
+			where: { id: labelB.id },
+		});
+
+		await page.reload();
+		await page.waitForLoadState("networkidle");
+		const barAfter = page
+			.locator(
+				`a[href="/appts/${appointment.id}"][style*="grid-column"]:visible`,
+			)
+			.first();
+		style = await barAfter.getAttribute("style");
+		expect(style).toContain("--catppuccin-color-peach-100");
+		expect(style).not.toContain("--catppuccin-color-mauve-100");
+
+		await prismaClient.appointment.delete({ where: { id: appointment.id } });
 	});
 });

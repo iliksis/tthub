@@ -11,7 +11,10 @@ import {
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { CalendarToolbar } from "./CalendarToolbar";
-import { type CalendarAppointment, categoryStyle } from "./MonthCalendar";
+import {
+	type CalendarAppointment,
+	resolveEventColorStyle,
+} from "./MonthCalendar";
 
 type MobileCalendarProps = {
 	appointments: CalendarAppointment[];
@@ -138,15 +141,19 @@ export const MobileCalendar = ({
 										{cell.date}
 									</span>
 									<div className="flex h-1.5 gap-1">
-										{dots.map((event) => (
-											<span
-												key={event.id}
-												className={cn(
-													"size-1.5 rounded-full",
-													categoryStyle[event.type].dot,
-												)}
-											/>
-										))}
+										{dots.map((event) => {
+											const colorStyle = resolveEventColorStyle(event);
+											return (
+												<span
+													key={event.id}
+													className={cn(
+														"size-1.5 rounded-full",
+														colorStyle.dotClassName,
+													)}
+													style={colorStyle.dotStyle}
+												/>
+											);
+										})}
 									</div>
 								</button>
 							);
@@ -171,29 +178,33 @@ export const MobileCalendar = ({
 						{m.appointments_no_appointment_set()}
 					</div>
 				) : (
-					selectedEvents.map((event) => (
-						<Link
-							key={event.id}
-							to="/appts/$apptId"
-							params={{ apptId: event.id }}
-							className="flex items-stretch gap-3 rounded-xl border border-border/60 bg-background/40 p-3"
-						>
-							<span
-								className={cn(
-									"w-1 shrink-0 rounded-full",
-									categoryStyle[event.type].dot,
-								)}
-							/>
-							<div className="min-w-0 flex-1">
-								<div className="truncate font-semibold text-sm">
-									{event.title}
+					selectedEvents.map((event) => {
+						const colorStyle = resolveEventColorStyle(event);
+						return (
+							<Link
+								key={event.id}
+								to="/appts/$apptId"
+								params={{ apptId: event.id }}
+								className="flex items-stretch gap-3 rounded-xl border border-border/60 bg-background/40 p-3"
+							>
+								<span
+									className={cn(
+										"w-1 shrink-0 rounded-full",
+										colorStyle.dotClassName,
+									)}
+									style={colorStyle.dotStyle}
+								/>
+								<div className="min-w-0 flex-1">
+									<div className="min-w-[6ch] truncate font-semibold text-sm">
+										{event.title}
+									</div>
+									<div className="text-muted-foreground text-xs">
+										{formatEventTiming(event)}
+									</div>
 								</div>
-								<div className="text-muted-foreground text-xs">
-									{formatEventTiming(event)}
-								</div>
-							</div>
-						</Link>
-					))
+							</Link>
+						);
+					})
 				)}
 			</div>
 		</div>

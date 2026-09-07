@@ -22,7 +22,8 @@
       "./messages/{locale}/placements.json",
       "./messages/{locale}/invitations.json",
       "./messages/{locale}/auth.json",
-      "./messages/{locale}/dashboard.json"
+      "./messages/{locale}/dashboard.json",
+      "./messages/{locale}/labels.json"
     ]
   }
 }

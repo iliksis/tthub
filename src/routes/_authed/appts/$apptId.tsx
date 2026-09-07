@@ -19,6 +19,7 @@ import {
 	unpublishAppointment,
 	updateAppointment,
 } from "@/api/appointments";
+import { getLabels } from "@/api/labels";
 import { getUniqueCategories } from "@/api/placements";
 import { getPlayers } from "@/api/players";
 import { getSeasons } from "@/api/seasons";
@@ -26,6 +27,8 @@ import { EditableNextAppointmentCard } from "@/components/appointments/editable/
 import { RecordInfoPanel } from "@/components/appointments/RecordInfoPanel";
 import { ResponsesPanel } from "@/components/appointments/ResponsesPanel";
 import { TransactionHistory } from "@/components/appointments/TransactionHistory";
+import { LabelBadges } from "@/components/labels/LabelBadges";
+import { LabelMultiSelect } from "@/components/labels/LabelMultiSelect";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlacementsPanel } from "@/components/placement/PlacementsPanel";
 import { PlacementsSheet } from "@/components/placement/PlacementsSheet";
@@ -72,19 +75,25 @@ export const Route = createFileRoute("/_authed/appts/$apptId")({
 	loader: async ({ params }) => {
 		const res = await getAppointment({ data: { id: params.apptId } });
 
-		const [players, categories, appointments, seasons] = await Promise.all([
-			getPlayers({ data: {} }),
-			getUniqueCategories(),
-			getAppointments({
-				data: { minDate: res.data?.startDate, orderBy: { startDate: "desc" } },
-			}),
-			getSeasons(),
-		]);
+		const [players, categories, appointments, seasons, labels] =
+			await Promise.all([
+				getPlayers({ data: {} }),
+				getUniqueCategories(),
+				getAppointments({
+					data: {
+						minDate: res.data?.startDate,
+						orderBy: { startDate: "desc" },
+					},
+				}),
+				getSeasons(),
+				getLabels(),
+			]);
 
 		return {
 			appointment: res.data,
 			appointments: appointments.data,
 			categories: categories.data,
+			labels: labels.data ?? [],
 			players: players.data,
 			seasons: seasons.data ?? [],
 		};
@@ -92,7 +101,7 @@ export const Route = createFileRoute("/_authed/appts/$apptId")({
 	head: ({ loaderData }) => ({
 		meta: [
 			{
-				title: loaderData?.appointment?.shortTitle,
+				title: loaderData?.appointment?.title,
 			},
 		],
 	}),
@@ -100,8 +109,6 @@ export const Route = createFileRoute("/_authed/appts/$apptId")({
 
 function typeLabel(type: string) {
 	if (type === AppointmentType.HOLIDAY) return m.common_holiday();
-	if (type === AppointmentType.TOURNAMENT_DE)
-		return m.common_tournament_germany();
 	if (type === AppointmentType.TEAM_MATCH) return m.appointments_team_match();
 	return m.common_tournament();
 }
@@ -118,12 +125,12 @@ function formatDateTime(date: Date | string) {
 
 type EditableDraft = {
 	title: string;
-	shortTitle: string;
 	location: string;
 	link: string;
 	startDate: Date;
 	endDate: Date | null;
 	seasonId: string;
+	labelIds: string[];
 };
 
 function RouteComponent() {
@@ -136,10 +143,10 @@ function RouteComponent() {
 	const [isEditSheetOpen, setIsEditSheetOpen] = React.useState(false);
 	const [draft, setDraft] = React.useState<EditableDraft>({
 		endDate: null,
+		labelIds: [],
 		link: "",
 		location: "",
 		seasonId: "",
-		shortTitle: "",
 		startDate: new Date(),
 		title: "",
 	});
@@ -151,7 +158,7 @@ function RouteComponent() {
 	const restore = useServerFn(restoreAppointment);
 	const updateAppointmentServerFn = useServerFn(updateAppointment);
 
-	const { appointment, players, categories, appointments, seasons } =
+	const { appointment, players, categories, appointments, seasons, labels } =
 		Route.useLoaderData();
 	const router = useRouter();
 
@@ -233,7 +240,7 @@ function RouteComponent() {
 	};
 
 	const onDownloadIcal = async () => {
-		const icalGenerator = new IcalGenerator();
+		const icalGenerator = new IcalGenerator(window.location.origin);
 		icalGenerator.createAndDownloadIcalFile(appointment);
 	};
 
@@ -254,10 +261,10 @@ function RouteComponent() {
 	const onStartEdit = () => {
 		setDraft({
 			endDate: appointment.endDate ? new Date(appointment.endDate) : null,
+			labelIds: appointment.labels.map((l) => l.labelId),
 			link: appointment.link ?? "",
 			location: appointment.location ?? "",
 			seasonId: appointment.seasonId ?? "",
-			shortTitle: appointment.shortTitle,
 			startDate: new Date(appointment.startDate),
 			title: appointment.title,
 		});
@@ -265,11 +272,16 @@ function RouteComponent() {
 	};
 	const onSaveEdit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		// seasonId is only editable (and only shown) for TOURNAMENT/TOURNAMENT_DE
-		// — HOLIDAY doesn't need one and TEAM_MATCH's stays derived from its team,
-		// so it's dropped from the payload rather than saved as an empty string.
-		const { seasonId, ...rest } = draft;
-		const ok = await onSaveField(isHoliday ? rest : { ...rest, seasonId });
+		// seasonId is only editable (and only shown) for TOURNAMENT — HOLIDAY
+		// doesn't need one and TEAM_MATCH's stays derived from its team, so it's
+		// dropped from the payload rather than saved as an empty string. Labels
+		// only apply to TOURNAMENT appointments too.
+		const { seasonId, labelIds, ...rest } = draft;
+		const ok = await onSaveField({
+			...rest,
+			...(isHoliday ? {} : { seasonId }),
+			...(isTournament ? { labelIds } : {}),
+		});
 		if (ok) setIsEditSheetOpen(false);
 	};
 
@@ -378,6 +390,8 @@ function RouteComponent() {
 							)}
 						</div>
 					</div>
+
+					<LabelBadges labels={appointment.labels.map((l) => l.label)} />
 
 					<Section title={m.common_details()}>
 						<div className="grid grid-cols-2 gap-4 text-sm">
@@ -595,10 +609,11 @@ function RouteComponent() {
 							</div>
 							<div>
 								<h1 className="font-bold text-2xl">{appointment.title}</h1>
-								<p className="text-muted-foreground text-sm">
-									{appointment.shortTitle}
-								</p>
 							</div>
+							<LabelBadges
+								labels={appointment.labels.map((l) => l.label)}
+								className="mt-2"
+							/>
 						</div>
 					</div>
 
@@ -789,16 +804,6 @@ function RouteComponent() {
 							/>
 						</fieldset>
 						<fieldset className="flex flex-col gap-1.5">
-							<Label htmlFor="shortTitle">{m.appointments_shorttitle()}</Label>
-							<Input
-								id="shortTitle"
-								value={draft.shortTitle}
-								onChange={(e) =>
-									setDraft({ ...draft, shortTitle: e.target.value })
-								}
-							/>
-						</fieldset>
-						<fieldset className="flex flex-col gap-1.5">
 							<Label htmlFor="startDate">{m.appointments_startdate()}</Label>
 							<Input
 								id="startDate"
@@ -865,6 +870,18 @@ function RouteComponent() {
 									/>
 								</fieldset>
 							</>
+						)}
+						{isTournament && (
+							<fieldset className="flex flex-col gap-1.5">
+								<Label>{m.labels_labels()}</Label>
+								<LabelMultiSelect
+									availableLabels={labels}
+									selectedIds={draft.labelIds}
+									onChange={(next) =>
+										setDraft({ ...draft, labelIds: next.map((l) => l.id) })
+									}
+								/>
+							</fieldset>
 						)}
 					</form>
 					<SheetFooter>

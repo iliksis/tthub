@@ -110,7 +110,6 @@ async function main() {
 	await prismaClient.appointment.create({
 		data: {
 			title: "Training Session",
-			shortTitle: "Training",
 			type: "TOURNAMENT",
 			status: "PUBLISHED",
 			startDate: daysFromNow(7),
@@ -123,7 +122,6 @@ async function main() {
 	await prismaClient.appointment.create({
 		data: {
 			title: "Bezirksliga Spieltag 1",
-			shortTitle: "Bezirksliga",
 			type: "TOURNAMENT",
 			status: "DRAFT",
 			startDate: daysFromNow(14),
@@ -136,7 +134,6 @@ async function main() {
 	await prismaClient.appointment.create({
 		data: {
 			title: "Kreispokal Finale",
-			shortTitle: "Kreispokal",
 			type: "TOURNAMENT",
 			status: "PUBLISHED",
 			startDate: daysFromNow(21),

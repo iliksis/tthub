@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
+import { labelsInclude } from "@/api/labels";
 import { prismaClient } from "@/lib/db";
 import type {
 	Appointment,
+	AppointmentLabel,
+	Label,
 	Prisma,
 	Response,
 	Season,
@@ -21,20 +24,19 @@ import { sendNotification } from "./notifications";
 type ICreateAppointment =
 	| {
 			title: string;
-			shortTitle: string;
 			type: "HOLIDAY";
 			startDate: Date;
 			endDate: Date | null;
 	  }
 	| {
 			title: string;
-			shortTitle: string;
-			type: "TOURNAMENT" | "TOURNAMENT_DE";
+			type: "TOURNAMENT";
 			startDate: Date;
 			endDate: Date | null;
 			location: string | null;
 			status: AppointmentStatus;
 			seasonId: string;
+			labelIds: string[];
 	  };
 
 export const createAppointment = createServerFn()
@@ -52,9 +54,14 @@ export const createAppointment = createServerFn()
 				const appointment = await tx.appointment.create({
 					data: {
 						endDate: data.endDate,
+						labels:
+							data.type === "HOLIDAY"
+								? undefined
+								: {
+										create: data.labelIds.map((labelId) => ({ labelId })),
+									},
 						location: data.type === "HOLIDAY" ? undefined : data.location,
 						seasonId: data.type === "HOLIDAY" ? undefined : data.seasonId,
-						shortTitle: data.shortTitle,
 						startDate: data.startDate,
 						status: data.type === "HOLIDAY" ? undefined : data.status,
 						title: data.title,
@@ -76,6 +83,7 @@ export const createAppointment = createServerFn()
 				appointment.status === AppointmentStatus.PUBLISHED
 			) {
 				await sendNotification({
+					appointmentId: appointment.id,
 					body: appointment.title,
 					scope: "new",
 					title: m.appointments_new_appointment(),
@@ -96,6 +104,7 @@ export const createAppointment = createServerFn()
 	});
 
 const appointmentDetailInclude = {
+	labels: labelsInclude,
 	nextAppointment: true,
 	ownTeam: true,
 	placements: {
@@ -118,6 +127,7 @@ export type AppointmentDetail = Prisma.AppointmentGetPayload<{
 export type AppointmentWithResponses = Appointment & {
 	responses: Response[];
 	ownTeam: Team | null;
+	labels: (AppointmentLabel & { label: Label })[];
 };
 
 export const getAppointment = createServerFn()
@@ -152,6 +162,7 @@ export const searchAppointments = createServerFn()
 		try {
 			const appointments = await prismaClient.appointment.findMany({
 				include: {
+					labels: labelsInclude,
 					placements: {
 						distinct: "playerId",
 					},
@@ -166,9 +177,6 @@ export const searchAppointments = createServerFn()
 					OR: [
 						{
 							title: { contains: data.query ?? "" },
-						},
-						{
-							shortTitle: { contains: data.query ?? "" },
 						},
 						{
 							location: { contains: data.query ?? "" },
@@ -207,7 +215,6 @@ export const getTransactionsPage = createServerFn()
 					? {
 							OR: [
 								{ appointment: { title: { contains: data.query } } },
-								{ appointment: { shortTitle: { contains: data.query } } },
 								{ user: { name: { contains: data.query } } },
 							],
 						}
@@ -256,7 +263,7 @@ export const getRecentTransactions = createServerFn({ method: "GET" })
 			const transactions = await prismaClient.transaction.findMany({
 				orderBy: { createdAt: "desc" },
 				select: {
-					appointment: { select: { id: true, shortTitle: true } },
+					appointment: { select: { id: true, title: true } },
 					createdAt: true,
 					id: true,
 					type: true,
@@ -299,18 +306,8 @@ export const getAppointments = createServerFn()
 					},
 					OR: [
 						{
-							OR: [
-								{ type: AppointmentType.TOURNAMENT },
-								{ type: AppointmentType.TOURNAMENT_DE },
-							],
 							title: { contains: data.title ?? "" },
-						},
-						{
-							OR: [
-								{ type: AppointmentType.TOURNAMENT },
-								{ type: AppointmentType.TOURNAMENT_DE },
-							],
-							shortTitle: { contains: data.title ?? "" },
+							type: AppointmentType.TOURNAMENT,
 						},
 					],
 					seasonId: data.seasonId,
@@ -368,7 +365,6 @@ export const getAppointmentsPage = createServerFn()
 					{
 						OR: [
 							{ title: { contains: data.query ?? "" } },
-							{ shortTitle: { contains: data.query ?? "" } },
 							{ location: { contains: data.query ?? "" } },
 						],
 					},
@@ -402,9 +398,7 @@ export const getAppointmentsPage = createServerFn()
 				startDate: { gte: todayStart },
 				type:
 					data.typeGroup === "TOURNAMENT"
-						? {
-								in: [AppointmentType.TOURNAMENT, AppointmentType.TOURNAMENT_DE],
-							}
+						? AppointmentType.TOURNAMENT
 						: data.typeGroup === "TEAM_MATCH"
 							? AppointmentType.TEAM_MATCH
 							: undefined,
@@ -412,7 +406,11 @@ export const getAppointmentsPage = createServerFn()
 
 			const [appointments, matchedTotal, grandTotal] = await Promise.all([
 				prismaClient.appointment.findMany({
-					include: { ownTeam: true, responses: true },
+					include: {
+						labels: labelsInclude,
+						ownTeam: true,
+						responses: true,
+					},
 					orderBy: { startDate: data.sortDir ?? "asc" },
 					skip: data.skip,
 					take: data.take,
@@ -439,7 +437,10 @@ export const getAppointmentsPage = createServerFn()
 		}
 	});
 
-export type AppointmentWithSeason = Appointment & { season: Season | null };
+export type AppointmentWithSeason = Appointment & {
+	season: Season | null;
+	labels: (AppointmentLabel & { label: Label })[];
+};
 
 // Shared between getBulkAppointmentsPage (listing) and bulkDeleteAppointments'
 // "matching" selector (bulk action), so "every row matching the active
@@ -461,7 +462,6 @@ function buildAppointmentsFilterWhere(
 		deletedAt,
 		OR: [
 			{ title: { contains: filter.query ?? "" } },
-			{ shortTitle: { contains: filter.query ?? "" } },
 			{ location: { contains: filter.query ?? "" } },
 		],
 		seasonId: filter.seasonId,
@@ -482,7 +482,10 @@ async function getAppointmentsListPage(
 
 	const [appointments, matchedTotal, grandTotal] = await Promise.all([
 		prismaClient.appointment.findMany({
-			include: { season: true },
+			include: {
+				labels: labelsInclude,
+				season: true,
+			},
 			// `id` breaks ties between rows sharing a `startDate` so paging
 			// through skip/take can't duplicate or silently skip a row.
 			orderBy: [{ startDate: "desc" }, { id: "asc" }],
@@ -537,6 +540,7 @@ function scheduleAppointmentUpdatedNotification(appointment: Appointment) {
 		setTimeout(() => {
 			pendingUpdateNotifications.delete(appointment.id);
 			void sendNotification({
+				appointmentId: appointment.id,
 				body: appointment.title,
 				scope: "updated",
 				title: m.appointments_appointment_updated(),
@@ -557,7 +561,12 @@ function cancelAppointmentUpdatedNotification(appointmentId: string) {
 }
 
 export const updateAppointment = createServerFn()
-	.validator((d: { id: string; updates: Partial<Appointment> }) => d)
+	.validator(
+		(d: {
+			id: string;
+			updates: Partial<Appointment> & { labelIds?: string[] };
+		}) => d,
+	)
 	.handler(async ({ data }) => {
 		const session = await requireEditor();
 		if (!session) {
@@ -565,21 +574,22 @@ export const updateAppointment = createServerFn()
 		}
 
 		try {
+			const { labelIds, ...fieldUpdates } = data.updates;
 			const appointment = await prismaClient.$transaction(async (tx) => {
 				const before = await tx.appointment.findUniqueOrThrow({
+					include: { labels: true },
 					where: { id: data.id },
 				});
 				const appointment = await tx.appointment.update({
 					data: {
-						endDate: data.updates.endDate,
-						link: data.updates.link,
-						location: data.updates.location,
-						nextAppointmentId: data.updates.nextAppointmentId,
-						seasonId: data.updates.seasonId,
-						shortTitle: data.updates.shortTitle,
-						startDate: data.updates.startDate,
-						status: data.updates.status,
-						title: data.updates.title,
+						endDate: fieldUpdates.endDate,
+						link: fieldUpdates.link,
+						location: fieldUpdates.location,
+						nextAppointmentId: fieldUpdates.nextAppointmentId,
+						seasonId: fieldUpdates.seasonId,
+						startDate: fieldUpdates.startDate,
+						status: fieldUpdates.status,
+						title: fieldUpdates.title,
 					},
 					where: { id: data.id },
 				});
@@ -588,11 +598,47 @@ export const updateAppointment = createServerFn()
 				// changed value) are logged, matching click-to-edit's
 				// one-field/group-per-save flow.
 				const changes: Record<string, { old: unknown; new: unknown }> = {};
-				for (const key of Object.keys(data.updates) as (keyof Appointment)[]) {
+				for (const key of Object.keys(fieldUpdates) as (keyof Appointment)[]) {
 					if (before[key]?.valueOf() !== appointment[key]?.valueOf()) {
 						changes[key] = { new: appointment[key], old: before[key] };
 					}
 				}
+
+				if (labelIds !== undefined) {
+					const beforeLabelIds = before.labels.map((l) => l.labelId);
+					const sortedBefore = [...beforeLabelIds].sort();
+					const sortedAfter = [...labelIds].sort();
+					const labelsChanged =
+						sortedBefore.length !== sortedAfter.length ||
+						sortedBefore.some((id, i) => id !== sortedAfter[i]);
+					if (labelsChanged) {
+						await tx.appointmentLabel.deleteMany({
+							where: { appointmentId: data.id },
+						});
+						if (labelIds.length > 0) {
+							await tx.appointmentLabel.createMany({
+								data: labelIds.map((labelId) => ({
+									appointmentId: data.id,
+									labelId,
+								})),
+							});
+						}
+						// Both old and new label ids are resolved to names in one
+						// query so the audit journal reads as label names, not ids —
+						// a since-deleted label falls back to its raw id.
+						const labelRecords = await tx.label.findMany({
+							where: {
+								id: { in: [...new Set([...beforeLabelIds, ...labelIds])] },
+							},
+						});
+						const nameById = new Map(labelRecords.map((l) => [l.id, l.name]));
+						changes.labels = {
+							new: labelIds.map((id) => nameById.get(id) ?? id),
+							old: beforeLabelIds.map((id) => nameById.get(id) ?? id),
+						};
+					}
+				}
+
 				if (Object.keys(changes).length > 0) {
 					await tx.transaction.create({
 						data: {
@@ -863,7 +909,6 @@ export const bulkCopyAppointmentsToSeason = createServerFn()
 								location: source.location,
 								ownTeamId: source.ownTeamId,
 								seasonId: data.targetSeasonId,
-								shortTitle: source.shortTitle,
 								startDate: oneYearLater(source.startDate),
 								status: AppointmentStatus.DRAFT,
 								title: source.title,
@@ -1101,6 +1146,9 @@ export const getCalendarAppointments = createServerFn()
 			const start = new Date(data.start);
 			const end = new Date(data.end);
 			const appointments = await prismaClient.appointment.findMany({
+				include: {
+					labels: labelsInclude,
+				},
 				where: {
 					deletedAt: null,
 					OR: [
@@ -1114,8 +1162,8 @@ export const getCalendarAppointments = createServerFn()
 			const calAppointments = appointments.map((a) => ({
 				end: a.endDate ?? a.startDate,
 				id: a.id,
+				labels: a.labels.map((l) => l.label),
 				location: a.location,
-				shortTitle: a.shortTitle,
 				start: a.startDate,
 				title: a.title,
 				type: a.type,
@@ -1167,6 +1215,7 @@ export const publishAppointment = createServerFn()
 			});
 			if (statusChanged && appointment.type === AppointmentType.TOURNAMENT) {
 				await sendNotification({
+					appointmentId: appointment.id,
 					body: appointment.title,
 					scope: "new",
 					title: m.appointments_new_appointment(),

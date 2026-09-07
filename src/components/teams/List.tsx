@@ -30,7 +30,9 @@ export const List = ({ teams }: ListProps) => {
 					className="flex w-full items-center justify-between gap-3 border-b border-b-border py-3.5 text-left last:border-b-0"
 				>
 					<div className="min-w-0 flex-1">
-						<div className="truncate font-medium text-sm">{team.title}</div>
+						<div className="min-w-[6ch] truncate font-medium text-sm">
+							{team.title}
+						</div>
 						<div className="truncate text-muted-foreground text-xs">
 							<TeamMeta team={team} />
 						</div>

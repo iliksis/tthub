@@ -171,7 +171,6 @@
 		}
 	],
 	"appointments_back": "Zurück",
-	"appointments_bavaria": "Bayern",
 	"appointments_bulk_management": "Terminverwaltung",
 	"appointments_bulk_selection_too_large": [
 		{
@@ -257,7 +256,6 @@
 			}
 		}
 	],
-	"appointments_germany": "Deutschland",
 	"appointments_has": "hat",
 	"appointments_last_updated": "Zuletzt aktualisiert",
 	"appointments_link": "Link",
@@ -314,7 +312,6 @@
 	"appointments_search_appointments": "Termine suchen",
 	"appointments_season_not_found": "Saison nicht gefunden",
 	"appointments_select_all_n_matching_filters": "{param1} passende Termine auswählen",
-	"appointments_shorttitle": "Kurztitel",
 	"appointments_start": "Start",
 	"appointments_startdate": "Start",
 	"appointments_status": "Status",

@@ -183,7 +183,7 @@ function TransactionRow({
 						{item.user?.name ?? m.appointments_deleted_user()}
 					</span>{" "}
 					{m.appointments_has()}{" "}
-					<span className="font-medium">{item.appointment.shortTitle}</span>{" "}
+					<span className="font-medium">{item.appointment.title}</span>{" "}
 					<span className={textClass}>{actionParticiple[item.type]}</span>
 					{fields.length > 0 && (
 						<span className="text-muted-foreground">

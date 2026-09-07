@@ -1,14 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import type { FeedConfig } from "@/api/users";
+import { labelsInclude } from "@/api/labels";
+import { parseFeedConfig } from "@/api/users";
 import { prismaClient } from "@/lib/db";
-import { IcalGenerator } from "@/lib/ical";
-import type { Appointment, Prisma } from "@/lib/prisma/client";
-import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
+import { type IcalAppointment, IcalGenerator } from "@/lib/ical";
+import type { Prisma } from "@/lib/prisma/client";
 
 export const Route = createFileRoute("/feed/$feedId")({
 	server: {
 		handlers: {
-			GET: async ({ params }) => {
+			GET: async ({ params, request }) => {
 				const { feedId } = params;
 
 				try {
@@ -31,19 +31,7 @@ export const Route = createFileRoute("/feed/$feedId")({
 					}
 
 					// Parse feed configuration from database
-					const config: FeedConfig = {
-						includeAppointmentTypes: user.feedConfig?.includeAppointmentTypes
-							? (user.feedConfig.includeAppointmentTypes.split(
-									",",
-								) as AppointmentType[])
-							: undefined,
-						includeDraftStatus: user.feedConfig?.includeDraftStatus ?? false,
-						includeResponseTypes: user.feedConfig?.includeResponseTypes
-							? (user.feedConfig.includeResponseTypes.split(
-									",",
-								) as ResponseType[])
-							: undefined,
-					};
+					const config = parseFeedConfig(user.feedConfig);
 
 					// Build query for appointments
 					// Deliberately not season-scoped: a personal calendar feed is
@@ -61,8 +49,17 @@ export const Route = createFileRoute("/feed/$feedId")({
 						where.OR = [{ status: "PUBLISHED" }, { status: null }];
 					}
 
+					// Exclude-by-label only (no include-by-label): an appointment
+					// carrying any excluded label is omitted entirely, regardless of
+					// its other labels.
+					if (config.excludeLabelIds?.length) {
+						where.labels = {
+							none: { labelId: { in: config.excludeLabelIds } },
+						};
+					}
+
 					// Get appointments based on response types
-					let appointments: Appointment[] = [];
+					let appointments: IcalAppointment[] = [];
 
 					if (
 						config.includeResponseTypes &&
@@ -77,6 +74,7 @@ export const Route = createFileRoute("/feed/$feedId")({
 
 						if (appointmentIds.length > 0) {
 							appointments = await prismaClient.appointment.findMany({
+								include: { labels: labelsInclude },
 								orderBy: { startDate: "asc" },
 								where: {
 									...where,
@@ -87,13 +85,14 @@ export const Route = createFileRoute("/feed/$feedId")({
 					} else {
 						// No response filter, get all appointments matching other criteria
 						appointments = await prismaClient.appointment.findMany({
+							include: { labels: labelsInclude },
 							orderBy: { startDate: "asc" },
 							where,
 						});
 					}
 
 					// Generate iCal feed
-					const icalGenerator = new IcalGenerator();
+					const icalGenerator = new IcalGenerator(new URL(request.url).origin);
 					const icalContent = icalGenerator.createIcalString(...appointments);
 
 					return new Response(icalContent, {

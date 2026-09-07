@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { IcalGenerator } from "./ical";
+import { type IcalAppointment, IcalGenerator } from "./ical";
+import { catppuccinLatteHex } from "./labelColor";
 import type { Appointment } from "./prisma/client";
 import { AppointmentStatus, AppointmentType } from "./prisma/enums";
 
@@ -7,7 +8,7 @@ describe("IcalGenerator", () => {
 	let generator: IcalGenerator;
 
 	beforeEach(() => {
-		generator = new IcalGenerator();
+		generator = new IcalGenerator("https://example.com");
 		// Mock Date to ensure consistent output
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date("2026-01-17T12:00:00Z"));
@@ -43,7 +44,6 @@ describe("IcalGenerator", () => {
 				nextAppointmentId: null,
 				ownTeamId: null,
 				seasonId: null,
-				shortTitle: "Test",
 				startDate: new Date("2026-01-20T10:00:00Z"),
 				status: AppointmentStatus.PUBLISHED,
 				title: "Test Event",
@@ -86,7 +86,6 @@ describe("IcalGenerator", () => {
 				nextAppointmentId: null,
 				ownTeamId: null,
 				seasonId: null,
-				shortTitle: "E1",
 				startDate: new Date("2026-01-20T10:00:00Z"),
 				status: AppointmentStatus.PUBLISHED,
 				title: "Event 1",
@@ -105,7 +104,6 @@ describe("IcalGenerator", () => {
 				nextAppointmentId: null,
 				ownTeamId: null,
 				seasonId: null,
-				shortTitle: "E2",
 				startDate: new Date("2026-01-21T10:00:00Z"),
 				status: AppointmentStatus.PUBLISHED,
 				title: "Event 2",
@@ -115,6 +113,53 @@ describe("IcalGenerator", () => {
 			generator.createAndDownloadIcalFile(appointment1, appointment2);
 
 			expect(mockLink.click).toHaveBeenCalled();
+		});
+	});
+
+	describe("COLOR property", () => {
+		const baseAppointment: Appointment = {
+			awayTeam: null,
+			createdAt: new Date(),
+			deletedAt: null,
+			endDate: new Date("2026-01-20T11:00:00Z"),
+			homeTeam: null,
+			id: "appt-color",
+			link: null,
+			location: "Test Location",
+			nextAppointmentId: null,
+			ownTeamId: null,
+			seasonId: null,
+			startDate: new Date("2026-01-20T10:00:00Z"),
+			status: AppointmentStatus.PUBLISHED,
+			title: "Test Event",
+			type: AppointmentType.TOURNAMENT,
+		};
+
+		it("emits no COLOR property for an appointment with no labels", () => {
+			const ical = generator.createIcalString(baseAppointment);
+			expect(ical).not.toContain("COLOR:");
+		});
+
+		it("emits COLOR from the highest-priority (lowest priority value) label", () => {
+			const appointment: IcalAppointment = {
+				...baseAppointment,
+				labels: [
+					{ label: { color: "peach", priority: 5 } },
+					{ label: { color: "mauve", priority: 0 } },
+				],
+			};
+			const ical = generator.createIcalString(appointment);
+			expect(ical).toContain(`COLOR:${catppuccinLatteHex.mauve}`);
+			expect(ical).not.toContain(catppuccinLatteHex.peach);
+		});
+
+		it("emits COLOR for a single labeled appointment", () => {
+			const appointment: IcalAppointment = {
+				...baseAppointment,
+				labels: [{ label: { color: "blue", priority: 0 } }],
+			};
+			const ical = generator.createIcalString(appointment);
+			expect(ical).toContain(`COLOR:${catppuccinLatteHex.blue}`);
 		});
 	});
 
