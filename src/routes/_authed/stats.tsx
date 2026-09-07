@@ -1,7 +1,10 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import { getActiveSeason, getSeasons } from "@/api/seasons";
-import { getTopLevelTournamentParticipation } from "@/api/stats";
+import {
+	getParticipatingPlayersByTeam,
+	getTopLevelTournamentParticipation,
+} from "@/api/stats";
 import { getTeams } from "@/api/teams";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { Section } from "@/components/Section";
@@ -27,11 +30,14 @@ export const Route = createFileRoute("/_authed/stats")({
 		const seasons = seasonsRes.data ?? [];
 		const activeSeason = activeSeasonRes.data ?? null;
 		const seasonId = deps.seasonId ?? activeSeason?.id;
-		const [teamsRes, topLevelParticipationRes] = await Promise.all([
-			getTeams({ data: { seasonId } }),
-			getTopLevelTournamentParticipation({ data: { seasonId } }),
-		]);
+		const [teamsRes, topLevelParticipationRes, participatingByTeamRes] =
+			await Promise.all([
+				getTeams({ data: { seasonId } }),
+				getTopLevelTournamentParticipation({ data: { seasonId } }),
+				getParticipatingPlayersByTeam({ data: { seasonId } }),
+			]);
 		return {
+			participatingByTeam: participatingByTeamRes.data ?? [],
 			seasonId,
 			seasons,
 			teams: teamsRes.data ?? [],
@@ -109,6 +115,62 @@ function TeamStandingsMobileList({ teams }: { teams: TeamRow[] }) {
 	);
 }
 
+type ParticipatingRow = ReturnType<
+	typeof Route.useLoaderData
+>["participatingByTeam"][number];
+
+const participatingColumns: DetailsListColumn<ParticipatingRow>[] = [
+	{
+		key: "teamTitle",
+		label: m.common_name(),
+		render: (item) => (
+			<Link to="/teams/$teamId" params={{ teamId: item.teamId }}>
+				{item.teamTitle}
+			</Link>
+		),
+	},
+	{
+		align: "right",
+		key: "participating",
+		label: m.stats_participating_players(),
+		render: (item) => `${item.participatingCount}/${item.rosterSize}`,
+	},
+];
+
+function ParticipatingPlayersMobileList({
+	rows,
+}: {
+	rows: ParticipatingRow[];
+}) {
+	if (rows.length === 0) {
+		return (
+			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
+				{m.stats_no_teams_in_this_season()}
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex flex-col">
+			{rows.map((row) => (
+				<Link
+					key={row.teamId}
+					to="/teams/$teamId"
+					params={{ teamId: row.teamId }}
+					className="flex w-full items-center justify-between gap-3 border-b border-b-border py-3.5 text-left last:border-b-0"
+				>
+					<div className="min-w-[6ch] truncate font-medium text-sm">
+						{row.teamTitle}
+					</div>
+					<div className="shrink-0 text-muted-foreground text-sm">
+						{row.participatingCount}/{row.rosterSize}
+					</div>
+				</Link>
+			))}
+		</div>
+	);
+}
+
 function SeasonSwitcher() {
 	const { seasons, seasonId } = Route.useLoaderData();
 	const router = useRouter();
@@ -131,7 +193,8 @@ function SeasonSwitcher() {
 }
 
 function RouteComponent() {
-	const { teams, topLevelParticipation } = Route.useLoaderData();
+	const { teams, topLevelParticipation, participatingByTeam } =
+		Route.useLoaderData();
 
 	return (
 		<div className="flex flex-col gap-8">
@@ -152,6 +215,23 @@ function RouteComponent() {
 				</div>
 				<div className="font-bold text-3xl">{topLevelParticipation}</div>
 			</div>
+
+			<Section title={m.stats_participating_players()}>
+				{/* Mobile */}
+				<div className="lg:hidden">
+					<ParticipatingPlayersMobileList rows={participatingByTeam} />
+				</div>
+				{/* Desktop */}
+				<div className="hidden overflow-x-auto lg:block">
+					<DetailsList
+						items={participatingByTeam}
+						getItemId={(item) => item.teamId}
+						columns={participatingColumns}
+						selectMode="none"
+						emptyMessage={m.stats_no_teams_in_this_season()}
+					/>
+				</div>
+			</Section>
 
 			<Section title={m.stats_teams_league_and_placement()}>
 				{/* Mobile */}
