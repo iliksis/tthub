@@ -19,8 +19,6 @@ export function LabelBadges({ labels, className }: LabelBadgesProps) {
 				return (
 					<Badge
 						key={label.id}
-						variant="outline"
-						className="border-transparent"
 						style={{
 							backgroundColor: style.backgroundColor,
 							color: style.foregroundColor,
