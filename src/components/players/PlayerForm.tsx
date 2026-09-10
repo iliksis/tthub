@@ -19,13 +19,8 @@ import {
 import { Gender } from "@/lib/prisma/enums";
 import { m } from "@/paraglide/messages";
 
-// Sentinel for the Select — Radix Select items can't have an empty string
-// value, but "not set" must still be selectable to clear a previously-set
-// gender.
-const GENDER_NOT_SET = "NOT_SET";
-
-const genderOptions = [
-	{ label: m.players_gender_not_set(), value: GENDER_NOT_SET },
+const genderOptions: { label: string; value: Gender | null }[] = [
+	{ label: m.players_gender_not_set(), value: null },
 	{ label: m.players_gender_male(), value: Gender.MALE },
 	{ label: m.players_gender_female(), value: Gender.FEMALE },
 ];
@@ -155,11 +150,9 @@ export const PlayerForm = ({
 								<fieldset className="flex flex-col gap-1.5">
 									<Label htmlFor={field.name}>{m.players_gender()}:</Label>
 									<Select
-										value={field.state.value ?? GENDER_NOT_SET}
+										value={field.state.value}
 										onValueChange={(value) =>
-											field.handleChange(
-												value === GENDER_NOT_SET ? null : (value as Gender),
-											)
+											field.handleChange(value as Gender | null)
 										}
 										onOpenChange={(open) => {
 											if (!open) field.handleBlur();
@@ -167,7 +160,7 @@ export const PlayerForm = ({
 									>
 										<SelectTrigger id={field.name} className="w-full">
 											<SelectValue>
-												{(value: string) =>
+												{(value: Gender | null) =>
 													genderOptions.find((option) => option.value === value)
 														?.label
 												}
@@ -175,7 +168,10 @@ export const PlayerForm = ({
 										</SelectTrigger>
 										<SelectContent>
 											{genderOptions.map((option) => (
-												<SelectItem key={option.value} value={option.value}>
+												<SelectItem
+													key={option.value ?? "unset"}
+													value={option.value}
+												>
 													{option.label}
 												</SelectItem>
 											))}
