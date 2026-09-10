@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
+import type { Gender } from "@/lib/prisma/enums";
 import { activeSeasonFilter } from "@/lib/season";
 import { useIsRole } from "@/lib/session";
 import { m } from "@/paraglide/messages";
@@ -60,7 +61,10 @@ export const getPlayers = createServerFn({ method: "GET" })
 	});
 
 export const createPlayer = createServerFn({ method: "POST" })
-	.validator((d: { name: string; year: number; qttr: number }) => d)
+	.validator(
+		(d: { name: string; year: number; qttr: number; gender: Gender | null }) =>
+			d,
+	)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
@@ -70,6 +74,7 @@ export const createPlayer = createServerFn({ method: "POST" })
 		try {
 			const player = await prismaClient.player.create({
 				data: {
+					gender: data.gender,
 					name: data.name,
 					qttr: data.qttr ?? 0,
 					year: data.year,
@@ -113,7 +118,15 @@ export const getPlayer = createServerFn()
 	});
 
 export const updatePlayer = createServerFn()
-	.validator((d: { id: string; name: string; year: number; qttr: number }) => d)
+	.validator(
+		(d: {
+			id: string;
+			name: string;
+			year: number;
+			qttr: number;
+			gender: Gender | null;
+		}) => d,
+	)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
@@ -123,6 +136,7 @@ export const updatePlayer = createServerFn()
 		try {
 			const player = await prismaClient.player.update({
 				data: {
+					gender: data.gender,
 					name: data.name,
 					qttr: data.qttr,
 					year: data.year,

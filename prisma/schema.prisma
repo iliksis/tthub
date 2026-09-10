@@ -175,8 +175,14 @@ model Player {
   name       String
   year       Int
   qttr       Int
+  gender     Gender?
   teams      TeamPlayer[]
   placements Placement[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
 }
 
 model Team {

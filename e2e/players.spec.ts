@@ -138,6 +138,48 @@ test.describe("Players Route - Edit Functionality", () => {
 		}
 	});
 
+	test("EDITOR can set a player's gender and it persists", async ({ page }) => {
+		await loginAs(page, "editor");
+		await page.goto("/players");
+		await page.waitForLoadState("networkidle");
+
+		const playerLinks = page.locator("tbody tr:visible");
+		const count = await playerLinks.count();
+
+		if (count === 0) {
+			test.skip();
+			return;
+		}
+
+		await playerLinks.first().click();
+		await page.waitForLoadState("networkidle");
+
+		const editButton = page.locator(
+			'button[aria-label*="aktualisieren"]:visible, button svg.lucide-square-pen:visible',
+		);
+		// The edit button is auth-gated behind the root loader's user context,
+		// which can resolve slightly after `networkidle` fires — wait for it
+		// rather than racing a `.count()` check.
+		await editButton.first().waitFor({ state: "visible" });
+		await editButton.first().click();
+
+		await page.getByRole("combobox").click();
+		await page.getByRole("option", { exact: true, name: "Männlich" }).click();
+
+		await page.locator('button[type="submit"]').click();
+		await expect(page.getByText("Spieler:in aktualisiert")).toBeVisible();
+
+		// Reload and reopen the edit form to confirm the value persisted,
+		// not just what's left in the (still-mounted) form's local state.
+		await page.reload();
+		await page.waitForLoadState("networkidle");
+
+		await editButton.first().waitFor({ state: "visible" });
+		await editButton.first().click();
+
+		await expect(page.getByRole("combobox")).toContainText("Männlich");
+	});
+
 	test("USER cannot edit a player", async ({ page }) => {
 		await loginAs(page, "user");
 		await page.goto("/players");

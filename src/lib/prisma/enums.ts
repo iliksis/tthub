@@ -44,6 +44,14 @@ export const ResponseType = {
 export type ResponseType = (typeof ResponseType)[keyof typeof ResponseType]
 
 
+export const Gender = {
+  MALE: 'MALE',
+  FEMALE: 'FEMALE'
+} as const
+
+export type Gender = (typeof Gender)[keyof typeof Gender]
+
+
 export const TransactionType = {
   CREATE: 'CREATE',
   UPDATE: 'UPDATE',

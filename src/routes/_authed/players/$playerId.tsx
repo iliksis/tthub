@@ -258,6 +258,7 @@ function RouteComponent() {
 						}}
 						submitLabel={m.common_update()}
 						defaultValues={{
+							gender: player.gender,
 							name: player.name,
 							qttr: player.qttr,
 							year: player.year,

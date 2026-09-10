@@ -9,7 +9,26 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Gender } from "@/lib/prisma/enums";
 import { m } from "@/paraglide/messages";
+
+// Sentinel for the Select — Radix Select items can't have an empty string
+// value, but "not set" must still be selectable to clear a previously-set
+// gender.
+const GENDER_NOT_SET = "NOT_SET";
+
+const genderOptions = [
+	{ label: m.players_gender_not_set(), value: GENDER_NOT_SET },
+	{ label: m.players_gender_male(), value: Gender.MALE },
+	{ label: m.players_gender_female(), value: Gender.FEMALE },
+];
 
 type PlayerFormProps = {
 	open?: boolean;
@@ -19,11 +38,13 @@ type PlayerFormProps = {
 		name: string;
 		year: number;
 		qttr: number;
+		gender: Gender | null;
 	};
 	onSubmit: (updates: {
 		name: string;
 		year: number;
 		qttr: number;
+		gender: Gender | null;
 	}) => Promise<void>;
 };
 export const PlayerForm = ({
@@ -31,6 +52,7 @@ export const PlayerForm = ({
 	onClose,
 	submitLabel,
 	defaultValues = {
+		gender: null,
 		name: "",
 		qttr: 0,
 		year: new Date().getFullYear(),
@@ -123,6 +145,42 @@ export const PlayerForm = ({
 											{field.state.meta.errors.join(", ")}
 										</p>
 									)}
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+					<div>
+						<form.Field name="gender">
+							{(field) => (
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{m.players_gender()}:</Label>
+									<Select
+										value={field.state.value ?? GENDER_NOT_SET}
+										onValueChange={(value) =>
+											field.handleChange(
+												value === GENDER_NOT_SET ? null : (value as Gender),
+											)
+										}
+										onOpenChange={(open) => {
+											if (!open) field.handleBlur();
+										}}
+									>
+										<SelectTrigger id={field.name} className="w-full">
+											<SelectValue>
+												{(value: string) =>
+													genderOptions.find((option) => option.value === value)
+														?.label
+												}
+											</SelectValue>
+										</SelectTrigger>
+										<SelectContent>
+											{genderOptions.map((option) => (
+												<SelectItem key={option.value} value={option.value}>
+													{option.label}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 								</fieldset>
 							)}
 						</form.Field>
