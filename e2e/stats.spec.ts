@@ -252,3 +252,178 @@ test.describe("Stats Route - Participating Players per Team", () => {
 		await expect(ratioRow(page, team.title, "0/0")).toBeVisible();
 	});
 });
+
+test.describe("Stats Route - Tournament Series & Placements", () => {
+	test("shows a standalone tournament's placements grouped by category and sorted by rank, unranked last", async ({
+		page,
+	}) => {
+		const season = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}Standalone` },
+		});
+		const appointment = await prismaClient.appointment.create({
+			data: {
+				seasonId: season.id,
+				startDate: new Date(),
+				status: "PUBLISHED",
+				title: `${PREFIX}StandaloneAppt`,
+				type: "TOURNAMENT",
+			},
+		});
+		const first = await prismaClient.player.create({
+			data: { name: `${PREFIX}First`, qttr: 1000, year: 2010 },
+		});
+		const second = await prismaClient.player.create({
+			data: { name: `${PREFIX}Second`, qttr: 1000, year: 2010 },
+		});
+		const unranked = await prismaClient.player.create({
+			data: { name: `${PREFIX}Unranked`, qttr: 1000, year: 2010 },
+		});
+		await prismaClient.placement.createMany({
+			data: [
+				{
+					appointmentId: appointment.id,
+					category: "Einzel",
+					placement: "2",
+					playerId: second.id,
+				},
+				{
+					appointmentId: appointment.id,
+					category: "Einzel",
+					placement: null,
+					playerId: unranked.id,
+				},
+				{
+					appointmentId: appointment.id,
+					category: "Einzel",
+					placement: "1",
+					playerId: first.id,
+				},
+			],
+		});
+
+		await loginAs(page, "user");
+		await page.goto(`/stats?seasonId=${season.id}`);
+		await page.waitForLoadState("networkidle");
+
+		const titleLink = page
+			.locator(":visible a", { hasText: appointment.title })
+			.first();
+		await expect(titleLink).toBeVisible();
+
+		// Scope to the tournament card (the title link's parent) rather than the
+		// whole page, so the assertion stays correct even once other page
+		// sections also render player links.
+		const card = titleLink.locator("xpath=..");
+		const playerLinks = card.locator('a[href*="/players/"]');
+		await expect(playerLinks).toHaveText([
+			first.name,
+			second.name,
+			unranked.name,
+		]);
+	});
+
+	test("scopes a linked series to only the appointment(s) that fall in the selected season", async ({
+		page,
+	}) => {
+		const earlierSeason = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}SeriesEarlier` },
+		});
+		const laterSeason = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}SeriesLater` },
+		});
+		const laterAppointment = await prismaClient.appointment.create({
+			data: {
+				seasonId: laterSeason.id,
+				startDate: new Date(),
+				status: "PUBLISHED",
+				title: `${PREFIX}SeriesLaterAppt`,
+				type: "TOURNAMENT",
+			},
+		});
+		const earlierAppointment = await prismaClient.appointment.create({
+			data: {
+				nextAppointmentId: laterAppointment.id,
+				seasonId: earlierSeason.id,
+				startDate: new Date(),
+				status: "PUBLISHED",
+				title: `${PREFIX}SeriesEarlierAppt`,
+				type: "TOURNAMENT",
+			},
+		});
+
+		await loginAs(page, "user");
+		await page.goto(`/stats?seasonId=${earlierSeason.id}`);
+		await page.waitForLoadState("networkidle");
+
+		await expect(
+			page.locator(":visible", { hasText: earlierAppointment.title }).first(),
+		).toBeVisible();
+		await expect(page.locator(`text=${laterAppointment.title}`)).toHaveCount(0);
+
+		await page.goto(`/stats?seasonId=${laterSeason.id}`);
+		await page.waitForLoadState("networkidle");
+
+		await expect(
+			page.locator(":visible", { hasText: laterAppointment.title }).first(),
+		).toBeVisible();
+		await expect(page.locator(`text=${earlierAppointment.title}`)).toHaveCount(
+			0,
+		);
+	});
+
+	test("renders two appointments from the same series in the same season as separate entries", async ({
+		page,
+	}) => {
+		const season = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}SameSeasonSeries` },
+		});
+		const second = await prismaClient.appointment.create({
+			data: {
+				seasonId: season.id,
+				startDate: new Date(),
+				status: "PUBLISHED",
+				title: `${PREFIX}SameSeasonSecond`,
+				type: "TOURNAMENT",
+			},
+		});
+		const first = await prismaClient.appointment.create({
+			data: {
+				nextAppointmentId: second.id,
+				seasonId: season.id,
+				startDate: new Date(Date.now() - 1000 * 60 * 60 * 24),
+				status: "PUBLISHED",
+				title: `${PREFIX}SameSeasonFirst`,
+				type: "TOURNAMENT",
+			},
+		});
+
+		await loginAs(page, "user");
+		await page.goto(`/stats?seasonId=${season.id}`);
+		await page.waitForLoadState("networkidle");
+
+		await expect(
+			page.locator(":visible", { hasText: first.title }).first(),
+		).toBeVisible();
+		await expect(
+			page.locator(":visible", { hasText: second.title }).first(),
+		).toBeVisible();
+	});
+
+	test("a season with no qualifying tournaments shows an empty state instead of an error", async ({
+		page,
+	}) => {
+		const emptySeason = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}NoTournaments` },
+		});
+
+		await loginAs(page, "user");
+		await page.goto(`/stats?seasonId=${emptySeason.id}`);
+		await page.waitForLoadState("networkidle");
+
+		await expect(
+			page
+				.locator(":visible", { hasText: "Keine Turniere in dieser Saison" })
+				.first(),
+		).toBeVisible();
+	});
+});

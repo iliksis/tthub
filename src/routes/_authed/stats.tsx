@@ -1,7 +1,11 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import { getActiveSeason, getSeasons } from "@/api/seasons";
-import { getParticipatingPlayersByTeam } from "@/api/stats";
+import {
+	getParticipatingPlayersByTeam,
+	getTournamentSeriesPlacements,
+	type TournamentSeriesAppointment,
+} from "@/api/stats";
 import { getTeams } from "@/api/teams";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { Section } from "@/components/Section";
@@ -27,15 +31,18 @@ export const Route = createFileRoute("/_authed/stats")({
 		const seasons = seasonsRes.data ?? [];
 		const activeSeason = activeSeasonRes.data ?? null;
 		const seasonId = deps.seasonId ?? activeSeason?.id;
-		const [teamsRes, participatingByTeamRes] = await Promise.all([
-			getTeams({ data: { seasonId } }),
-			getParticipatingPlayersByTeam({ data: { seasonId } }),
-		]);
+		const [teamsRes, participatingByTeamRes, tournamentSeriesRes] =
+			await Promise.all([
+				getTeams({ data: { seasonId } }),
+				getParticipatingPlayersByTeam({ data: { seasonId } }),
+				getTournamentSeriesPlacements({ data: { seasonId } }),
+			]);
 		return {
 			participatingByTeam: participatingByTeamRes.data ?? [],
 			seasonId,
 			seasons,
 			teams: teamsRes.data ?? [],
+			tournamentSeries: tournamentSeriesRes.data ?? [],
 		};
 	},
 	head: () => ({
@@ -165,6 +172,72 @@ function ParticipatingPlayersMobileList({
 	);
 }
 
+function TournamentSeriesList({
+	appointments,
+}: {
+	appointments: TournamentSeriesAppointment[];
+}) {
+	if (appointments.length === 0) {
+		return (
+			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
+				{m.stats_no_tournaments_in_this_season()}
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex flex-col gap-4">
+			{appointments.map((appointment) => (
+				<div
+					key={appointment.appointmentId}
+					className="rounded-xl border border-border bg-card p-4 shadow-sm"
+				>
+					<Link
+						to="/appts/$apptId"
+						params={{ apptId: appointment.appointmentId }}
+						className="font-medium text-sm"
+					>
+						{appointment.title}
+					</Link>
+					<div className="mt-3 flex flex-col gap-4">
+						{appointment.categories.map((group) => (
+							<div key={group.category}>
+								<div className="mb-2 text-muted-foreground text-xs uppercase tracking-wide">
+									{group.category}
+								</div>
+								<div className="flex flex-col gap-1">
+									{group.placements.map((placement) => (
+										<div
+											key={placement.playerId}
+											className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm"
+										>
+											<Link
+												to="/players/$playerId"
+												params={{ playerId: placement.playerId }}
+											>
+												{placement.playerName}
+											</Link>
+											{placement.placement ? (
+												<span className="font-medium text-primary">
+													{placement.placement}
+												</span>
+											) : (
+												<span className="text-muted-foreground italic">
+													{m.placements_pending()}
+												</span>
+											)}
+										</div>
+									))}
+								</div>
+							</div>
+						))}
+					</div>
+				</div>
+			))}
+		</div>
+	);
+}
+
 function SeasonSwitcher() {
 	const { seasons, seasonId } = Route.useLoaderData();
 	const router = useRouter();
@@ -187,7 +260,8 @@ function SeasonSwitcher() {
 }
 
 function RouteComponent() {
-	const { teams, participatingByTeam } = Route.useLoaderData();
+	const { teams, participatingByTeam, tournamentSeries } =
+		Route.useLoaderData();
 
 	return (
 		<div className="flex flex-col gap-8">
@@ -234,6 +308,10 @@ function RouteComponent() {
 						emptyMessage={m.stats_no_teams_in_this_season()}
 					/>
 				</div>
+			</Section>
+
+			<Section title={m.stats_tournament_series_and_placements()}>
+				<TournamentSeriesList appointments={tournamentSeries} />
 			</Section>
 		</div>
 	);
