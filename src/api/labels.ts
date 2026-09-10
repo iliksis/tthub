@@ -45,9 +45,7 @@ export const searchLabels = createServerFn()
 	});
 
 export const createLabel = createServerFn()
-	.validator(
-		(d: { name: string; color: LabelColor; countsForStats: boolean }) => d,
-	)
+	.validator((d: { name: string; color: LabelColor }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
@@ -67,7 +65,6 @@ export const createLabel = createServerFn()
 				return tx.label.create({
 					data: {
 						color: data.color,
-						countsForStats: data.countsForStats,
 						name: data.name,
 						priority: (highestPriority._max.priority ?? -1) + 1,
 					},
@@ -81,14 +78,7 @@ export const createLabel = createServerFn()
 	});
 
 export const updateLabel = createServerFn()
-	.validator(
-		(d: {
-			id: string;
-			name: string;
-			color: LabelColor;
-			countsForStats: boolean;
-		}) => d,
-	)
+	.validator((d: { id: string; name: string; color: LabelColor }) => d)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
@@ -99,7 +89,6 @@ export const updateLabel = createServerFn()
 			const label = await prismaClient.label.update({
 				data: {
 					color: data.color,
-					countsForStats: data.countsForStats,
 					name: data.name,
 				},
 				where: { id: data.id },

@@ -73,7 +73,6 @@ export function LabelMultiSelect({
 		const res = await createMutation.mutate({
 			data: {
 				color: QUICK_CREATE_COLOR,
-				countsForStats: false,
 				name: trimmedQuery,
 			},
 		});

@@ -1,6 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import {
@@ -123,14 +123,6 @@ export const LabelManagement = ({ labels }: LabelManagementProps) => {
 						},
 					},
 					{
-						key: "countsForStats",
-						label: m.labels_counts_for_stats(),
-						render: (item) =>
-							item.countsForStats ? (
-								<CheckIcon className="size-4 text-muted-foreground" />
-							) : null,
-					},
-					{
 						key: "createdAt",
 						label: m.common_created(),
 						render: (item) => item.createdAt.toLocaleDateString("de-DE"),
@@ -168,7 +160,7 @@ export const LabelManagement = ({ labels }: LabelManagementProps) => {
 			<LabelForm
 				open={showCreateModal}
 				title={m.labels_create_label()}
-				defaultValues={{ color: "blue", countsForStats: false, name: "" }}
+				defaultValues={{ color: "blue", name: "" }}
 				onOpenChange={setShowCreateModal}
 				onSubmit={(values) => createMutation.mutate({ data: values })}
 				submitLabel={m.common_create()}
@@ -180,7 +172,6 @@ export const LabelManagement = ({ labels }: LabelManagementProps) => {
 					title={m.labels_rename_label()}
 					defaultValues={{
 						color: editingLabel.color as LabelColor,
-						countsForStats: editingLabel.countsForStats,
 						name: editingLabel.name,
 					}}
 					onOpenChange={(open) => !open && setEditingLabel(null)}
@@ -188,7 +179,6 @@ export const LabelManagement = ({ labels }: LabelManagementProps) => {
 						updateMutation.mutate({
 							data: {
 								color: values.color,
-								countsForStats: values.countsForStats,
 								id: editingLabel.id,
 								name: values.name,
 							},

@@ -119,11 +119,6 @@ model Label {
   // Not enforced unique at the DB level: reorderLabels/createLabel always
   // write a contiguous 0..n-1 sequence, so duplicates can't arise in practice.
   priority       Int                @default(0)
-  // Editor-set flag marking this Label as counting toward "Top-Level
-  // Tournament" stats on the season statistics page — see CONTEXT.md's
-  // "Top-Level Tournament" entry. Purely a stats input: like every other
-  // Label attribute it never gates RSVP/notification/feed behavior.
-  countsForStats Boolean            @default(false)
   appointments   AppointmentLabel[]
   mutedBy        UserMutedLabel[]
 }

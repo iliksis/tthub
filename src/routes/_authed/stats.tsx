@@ -1,10 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import { getActiveSeason, getSeasons } from "@/api/seasons";
-import {
-	getParticipatingPlayersByTeam,
-	getTopLevelTournamentParticipation,
-} from "@/api/stats";
+import { getParticipatingPlayersByTeam } from "@/api/stats";
 import { getTeams } from "@/api/teams";
 import { DetailsList, type DetailsListColumn } from "@/components/DetailsList";
 import { Section } from "@/components/Section";
@@ -30,18 +27,15 @@ export const Route = createFileRoute("/_authed/stats")({
 		const seasons = seasonsRes.data ?? [];
 		const activeSeason = activeSeasonRes.data ?? null;
 		const seasonId = deps.seasonId ?? activeSeason?.id;
-		const [teamsRes, topLevelParticipationRes, participatingByTeamRes] =
-			await Promise.all([
-				getTeams({ data: { seasonId } }),
-				getTopLevelTournamentParticipation({ data: { seasonId } }),
-				getParticipatingPlayersByTeam({ data: { seasonId } }),
-			]);
+		const [teamsRes, participatingByTeamRes] = await Promise.all([
+			getTeams({ data: { seasonId } }),
+			getParticipatingPlayersByTeam({ data: { seasonId } }),
+		]);
 		return {
 			participatingByTeam: participatingByTeamRes.data ?? [],
 			seasonId,
 			seasons,
 			teams: teamsRes.data ?? [],
-			topLevelParticipation: topLevelParticipationRes.data ?? 0,
 		};
 	},
 	head: () => ({
@@ -193,8 +187,7 @@ function SeasonSwitcher() {
 }
 
 function RouteComponent() {
-	const { teams, topLevelParticipation, participatingByTeam } =
-		Route.useLoaderData();
+	const { teams, participatingByTeam } = Route.useLoaderData();
 
 	return (
 		<div className="flex flex-col gap-8">
@@ -207,13 +200,6 @@ function RouteComponent() {
 			<div className="hidden items-center gap-3 lg:flex">
 				<h1 className="flex-1 font-bold text-lg">{m.stats_statistics()}</h1>
 				<SeasonSwitcher />
-			</div>
-
-			<div className="rounded-lg bg-card p-4">
-				<div className="text-muted-foreground text-xs uppercase">
-					{m.stats_top_level_tournament_participants()}
-				</div>
-				<div className="font-bold text-3xl">{topLevelParticipation}</div>
 			</div>
 
 			<Section title={m.stats_participating_players()}>

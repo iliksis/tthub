@@ -163,120 +163,6 @@ test.describe("Stats Route - Team League/Placement Table", () => {
 	});
 });
 
-test.describe("Stats Route - Top-Level Tournament Participation", () => {
-	// The stat tile isn't split into mobile/desktop trees (unlike the team
-	// table above), so this class-based locator resolves to exactly one
-	// element without needing a `:visible` filter.
-	const participationValue = (page: import("@playwright/test").Page) =>
-		page.locator(".font-bold.text-3xl");
-
-	test("counts distinct players placed in a Top-Level Tournament, ignoring non-flagged labels and repeat categories", async ({
-		page,
-	}) => {
-		const season = await prismaClient.season.create({
-			data: { isActive: false, name: `${PREFIX}Participation` },
-		});
-		const topLabel = await prismaClient.label.create({
-			data: { color: "blue", countsForStats: true, name: `${PREFIX}TopLabel` },
-		});
-		const otherLabel = await prismaClient.label.create({
-			data: {
-				color: "green",
-				countsForStats: false,
-				name: `${PREFIX}OtherLabel`,
-			},
-		});
-
-		const player1 = await prismaClient.player.create({
-			data: { name: `${PREFIX}P1`, qttr: 1000, year: 2010 },
-		});
-		const player2 = await prismaClient.player.create({
-			data: { name: `${PREFIX}P2`, qttr: 1000, year: 2010 },
-		});
-		const player3 = await prismaClient.player.create({
-			data: { name: `${PREFIX}P3`, qttr: 1000, year: 2010 },
-		});
-
-		const topAppointment = await prismaClient.appointment.create({
-			data: {
-				labels: { create: { labelId: topLabel.id } },
-				seasonId: season.id,
-				startDate: new Date(),
-				status: "PUBLISHED",
-				title: `${PREFIX}TopAppt`,
-				type: "TOURNAMENT",
-			},
-		});
-		const otherAppointment = await prismaClient.appointment.create({
-			data: {
-				labels: { create: { labelId: otherLabel.id } },
-				seasonId: season.id,
-				startDate: new Date(),
-				status: "PUBLISHED",
-				title: `${PREFIX}OtherAppt`,
-				type: "TOURNAMENT",
-			},
-		});
-
-		// player1: placed in two categories on the top-level tournament — must
-		// count once, not twice.
-		await prismaClient.placement.create({
-			data: {
-				appointmentId: topAppointment.id,
-				category: "Einzel",
-				placement: "1",
-				playerId: player1.id,
-			},
-		});
-		await prismaClient.placement.create({
-			data: {
-				appointmentId: topAppointment.id,
-				category: "Doppel",
-				placement: "2",
-				playerId: player1.id,
-			},
-		});
-		// player2: placed only in the top-level tournament.
-		await prismaClient.placement.create({
-			data: {
-				appointmentId: topAppointment.id,
-				category: "Einzel",
-				placement: "3",
-				playerId: player2.id,
-			},
-		});
-		// player3: placed only in the non-top-level tournament — must not count.
-		await prismaClient.placement.create({
-			data: {
-				appointmentId: otherAppointment.id,
-				category: "Einzel",
-				placement: "1",
-				playerId: player3.id,
-			},
-		});
-
-		await loginAs(page, "user");
-		await page.goto(`/stats?seasonId=${season.id}`);
-		await page.waitForLoadState("networkidle");
-
-		await expect(participationValue(page)).toHaveText("2");
-	});
-
-	test("shows 0 for a season with no top-level tournaments", async ({
-		page,
-	}) => {
-		const emptySeason = await prismaClient.season.create({
-			data: { isActive: false, name: `${PREFIX}NoParticipation` },
-		});
-
-		await loginAs(page, "user");
-		await page.goto(`/stats?seasonId=${emptySeason.id}`);
-		await page.waitForLoadState("networkidle");
-
-		await expect(participationValue(page)).toHaveText("0");
-	});
-});
-
 test.describe("Stats Route - Participating Players per Team", () => {
 	// The same Team title also appears in the League/Placement table's row on
 	// this page, so matching on the title alone is ambiguous. Scoping to a
@@ -301,12 +187,9 @@ test.describe("Stats Route - Participating Players per Team", () => {
 		const team = await prismaClient.team.create({
 			data: { seasonId: season.id, title: `${PREFIX}RosterTeam` },
 		});
-		// Deliberately not flagged for stats — a Participating Player is
-		// independent of Label.countsForStats, unlike the top-level stat above.
 		const label = await prismaClient.label.create({
 			data: {
 				color: "peach",
-				countsForStats: false,
 				name: `${PREFIX}RosterLabel`,
 			},
 		});

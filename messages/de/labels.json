@@ -1,7 +1,6 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
 	"labels_color": "Farbe",
-	"labels_counts_for_stats": "Zählt für Saisonstatistik",
 	"labels_create_label": "Label erstellen",
 	"labels_create_label_named": "„{param1}“ erstellen",
 	"labels_label_created": "Label erstellt",
