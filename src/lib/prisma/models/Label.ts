@@ -40,7 +40,6 @@ export type LabelMinAggregateOutputType = {
   name: string | null
   color: string | null
   priority: number | null
-  countsForStats: boolean | null
 }
 
 export type LabelMaxAggregateOutputType = {
@@ -49,7 +48,6 @@ export type LabelMaxAggregateOutputType = {
   name: string | null
   color: string | null
   priority: number | null
-  countsForStats: boolean | null
 }
 
 export type LabelCountAggregateOutputType = {
@@ -58,7 +56,6 @@ export type LabelCountAggregateOutputType = {
   name: number
   color: number
   priority: number
-  countsForStats: number
   _all: number
 }
 
@@ -77,7 +74,6 @@ export type LabelMinAggregateInputType = {
   name?: true
   color?: true
   priority?: true
-  countsForStats?: true
 }
 
 export type LabelMaxAggregateInputType = {
@@ -86,7 +82,6 @@ export type LabelMaxAggregateInputType = {
   name?: true
   color?: true
   priority?: true
-  countsForStats?: true
 }
 
 export type LabelCountAggregateInputType = {
@@ -95,7 +90,6 @@ export type LabelCountAggregateInputType = {
   name?: true
   color?: true
   priority?: true
-  countsForStats?: true
   _all?: true
 }
 
@@ -191,7 +185,6 @@ export type LabelGroupByOutputType = {
   name: string
   color: string
   priority: number
-  countsForStats: boolean
   _count: LabelCountAggregateOutputType | null
   _avg: LabelAvgAggregateOutputType | null
   _sum: LabelSumAggregateOutputType | null
@@ -223,7 +216,6 @@ export type LabelWhereInput = {
   name?: Prisma.StringFilter<"Label"> | string
   color?: Prisma.StringFilter<"Label"> | string
   priority?: Prisma.IntFilter<"Label"> | number
-  countsForStats?: Prisma.BoolFilter<"Label"> | boolean
   appointments?: Prisma.AppointmentLabelListRelationFilter
   mutedBy?: Prisma.UserMutedLabelListRelationFilter
 }
@@ -234,7 +226,6 @@ export type LabelOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   color?: Prisma.SortOrder
   priority?: Prisma.SortOrder
-  countsForStats?: Prisma.SortOrder
   appointments?: Prisma.AppointmentLabelOrderByRelationAggregateInput
   mutedBy?: Prisma.UserMutedLabelOrderByRelationAggregateInput
 }
@@ -248,7 +239,6 @@ export type LabelWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Label"> | string
   color?: Prisma.StringFilter<"Label"> | string
   priority?: Prisma.IntFilter<"Label"> | number
-  countsForStats?: Prisma.BoolFilter<"Label"> | boolean
   appointments?: Prisma.AppointmentLabelListRelationFilter
   mutedBy?: Prisma.UserMutedLabelListRelationFilter
 }, "id">
@@ -259,7 +249,6 @@ export type LabelOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   color?: Prisma.SortOrder
   priority?: Prisma.SortOrder
-  countsForStats?: Prisma.SortOrder
   _count?: Prisma.LabelCountOrderByAggregateInput
   _avg?: Prisma.LabelAvgOrderByAggregateInput
   _max?: Prisma.LabelMaxOrderByAggregateInput
@@ -276,7 +265,6 @@ export type LabelScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Label"> | string
   color?: Prisma.StringWithAggregatesFilter<"Label"> | string
   priority?: Prisma.IntWithAggregatesFilter<"Label"> | number
-  countsForStats?: Prisma.BoolWithAggregatesFilter<"Label"> | boolean
 }
 
 export type LabelCreateInput = {
@@ -285,7 +273,6 @@ export type LabelCreateInput = {
   name: string
   color: string
   priority?: number
-  countsForStats?: boolean
   appointments?: Prisma.AppointmentLabelCreateNestedManyWithoutLabelInput
   mutedBy?: Prisma.UserMutedLabelCreateNestedManyWithoutLabelInput
 }
@@ -296,7 +283,6 @@ export type LabelUncheckedCreateInput = {
   name: string
   color: string
   priority?: number
-  countsForStats?: boolean
   appointments?: Prisma.AppointmentLabelUncheckedCreateNestedManyWithoutLabelInput
   mutedBy?: Prisma.UserMutedLabelUncheckedCreateNestedManyWithoutLabelInput
 }
@@ -307,7 +293,6 @@ export type LabelUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
-  countsForStats?: Prisma.BoolFieldUpdateOperationsInput | boolean
   appointments?: Prisma.AppointmentLabelUpdateManyWithoutLabelNestedInput
   mutedBy?: Prisma.UserMutedLabelUpdateManyWithoutLabelNestedInput
 }
@@ -318,7 +303,6 @@ export type LabelUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
-  countsForStats?: Prisma.BoolFieldUpdateOperationsInput | boolean
   appointments?: Prisma.AppointmentLabelUncheckedUpdateManyWithoutLabelNestedInput
   mutedBy?: Prisma.UserMutedLabelUncheckedUpdateManyWithoutLabelNestedInput
 }
@@ -329,7 +313,6 @@ export type LabelCreateManyInput = {
   name: string
   color: string
   priority?: number
-  countsForStats?: boolean
 }
 
 export type LabelUpdateManyMutationInput = {
@@ -338,7 +321,6 @@ export type LabelUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
-  countsForStats?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type LabelUncheckedUpdateManyInput = {
@@ -347,7 +329,6 @@ export type LabelUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
-  countsForStats?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type LabelCountOrderByAggregateInput = {
@@ -356,7 +337,6 @@ export type LabelCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   color?: Prisma.SortOrder
   priority?: Prisma.SortOrder
-  countsForStats?: Prisma.SortOrder
 }
 
 export type LabelAvgOrderByAggregateInput = {
@@ -369,7 +349,6 @@ export type LabelMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   color?: Prisma.SortOrder
   priority?: Prisma.SortOrder
-  countsForStats?: Prisma.SortOrder
 }
 
 export type LabelMinOrderByAggregateInput = {
@@ -378,7 +357,6 @@ export type LabelMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   color?: Prisma.SortOrder
   priority?: Prisma.SortOrder
-  countsForStats?: Prisma.SortOrder
 }
 
 export type LabelSumOrderByAggregateInput = {
@@ -432,7 +410,6 @@ export type LabelCreateWithoutAppointmentsInput = {
   name: string
   color: string
   priority?: number
-  countsForStats?: boolean
   mutedBy?: Prisma.UserMutedLabelCreateNestedManyWithoutLabelInput
 }
 
@@ -442,7 +419,6 @@ export type LabelUncheckedCreateWithoutAppointmentsInput = {
   name: string
   color: string
   priority?: number
-  countsForStats?: boolean
   mutedBy?: Prisma.UserMutedLabelUncheckedCreateNestedManyWithoutLabelInput
 }
 
@@ -468,7 +444,6 @@ export type LabelUpdateWithoutAppointmentsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
-  countsForStats?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mutedBy?: Prisma.UserMutedLabelUpdateManyWithoutLabelNestedInput
 }
 
@@ -478,7 +453,6 @@ export type LabelUncheckedUpdateWithoutAppointmentsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
-  countsForStats?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mutedBy?: Prisma.UserMutedLabelUncheckedUpdateManyWithoutLabelNestedInput
 }
 
@@ -488,7 +462,6 @@ export type LabelCreateWithoutMutedByInput = {
   name: string
   color: string
   priority?: number
-  countsForStats?: boolean
   appointments?: Prisma.AppointmentLabelCreateNestedManyWithoutLabelInput
 }
 
@@ -498,7 +471,6 @@ export type LabelUncheckedCreateWithoutMutedByInput = {
   name: string
   color: string
   priority?: number
-  countsForStats?: boolean
   appointments?: Prisma.AppointmentLabelUncheckedCreateNestedManyWithoutLabelInput
 }
 
@@ -524,7 +496,6 @@ export type LabelUpdateWithoutMutedByInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
-  countsForStats?: Prisma.BoolFieldUpdateOperationsInput | boolean
   appointments?: Prisma.AppointmentLabelUpdateManyWithoutLabelNestedInput
 }
 
@@ -534,7 +505,6 @@ export type LabelUncheckedUpdateWithoutMutedByInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
   priority?: Prisma.IntFieldUpdateOperationsInput | number
-  countsForStats?: Prisma.BoolFieldUpdateOperationsInput | boolean
   appointments?: Prisma.AppointmentLabelUncheckedUpdateManyWithoutLabelNestedInput
 }
 
@@ -584,7 +554,6 @@ export type LabelSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   name?: boolean
   color?: boolean
   priority?: boolean
-  countsForStats?: boolean
   appointments?: boolean | Prisma.Label$appointmentsArgs<ExtArgs>
   mutedBy?: boolean | Prisma.Label$mutedByArgs<ExtArgs>
   _count?: boolean | Prisma.LabelCountOutputTypeDefaultArgs<ExtArgs>
@@ -596,7 +565,6 @@ export type LabelSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   name?: boolean
   color?: boolean
   priority?: boolean
-  countsForStats?: boolean
 }, ExtArgs["result"]["label"]>
 
 export type LabelSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -605,7 +573,6 @@ export type LabelSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   name?: boolean
   color?: boolean
   priority?: boolean
-  countsForStats?: boolean
 }, ExtArgs["result"]["label"]>
 
 export type LabelSelectScalar = {
@@ -614,10 +581,9 @@ export type LabelSelectScalar = {
   name?: boolean
   color?: boolean
   priority?: boolean
-  countsForStats?: boolean
 }
 
-export type LabelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "name" | "color" | "priority" | "countsForStats", ExtArgs["result"]["label"]>
+export type LabelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "name" | "color" | "priority", ExtArgs["result"]["label"]>
 export type LabelInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   appointments?: boolean | Prisma.Label$appointmentsArgs<ExtArgs>
   mutedBy?: boolean | Prisma.Label$mutedByArgs<ExtArgs>
@@ -638,7 +604,6 @@ export type $LabelPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     name: string
     color: string
     priority: number
-    countsForStats: boolean
   }, ExtArgs["result"]["label"]>
   composites: {}
 }
@@ -1069,7 +1034,6 @@ export interface LabelFieldRefs {
   readonly name: Prisma.FieldRef<"Label", 'String'>
   readonly color: Prisma.FieldRef<"Label", 'String'>
   readonly priority: Prisma.FieldRef<"Label", 'Int'>
-  readonly countsForStats: Prisma.FieldRef<"Label", 'Boolean'>
 }
     
 
