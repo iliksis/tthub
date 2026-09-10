@@ -37,7 +37,7 @@ An editor-created tag (name + color) attached to a tournament Appointment to con
 _Avoid_: Tag, category, type (Label is the canonical term; "type" now refers only to `AppointmentType`, which Labels are independent of).
 
 **Tournament Series**:
-A chain of one or more `TOURNAMENT` Appointments linked via `nextAppointmentId`/`previousAppointments` — the same mechanism used for "next appointment" links. A standalone tournament with no linked occurrences is a Tournament Series of length one. The season statistics page groups Placements by Tournament Series, scoped to whichever appointment(s) in the chain fall within the Season being viewed.
+The full connected graph of `TOURNAMENT` Appointments reachable via `nextAppointmentId`/`previousAppointments` — the same mechanism used for "next appointment" links. `nextAppointmentId` is a single scalar FK (an Appointment has at most one forward link), but several different Appointments can point at the same next Appointment, so a series can branch (e.g. two regional qualifiers both feeding into one final). A standalone tournament with no linked occurrences is a Tournament Series of length one. The season statistics page shows every Tournament Series with at least one Appointment in the selected Season — once any single Appointment in the series qualifies, the *whole* series is shown, including Appointments in other Seasons, each with its own Placements grouped by category. The Season only decides which series qualify and which Appointment(s) are marked as belonging to the viewed Season; it never trims the series down.
 _Avoid_: Recurring tournament (doesn't capture the length-one case), tournament chain.
 
 **Season Player**:

@@ -322,7 +322,12 @@ test.describe("Stats Route - Tournament Series & Placements", () => {
 		]);
 	});
 
-	test("scopes a linked series to only the appointment(s) that fall in the selected season", async ({
+	// A series is the FULL connected graph reachable via
+	// nextAppointmentId/previousAppointments, not just the appointment(s) that
+	// happen to fall in the selected season — selecting either linked
+	// appointment's season shows the whole series, and the "Diese Saison"
+	// marker follows whichever node actually matches the selected season.
+	test("shows every linked appointment in the series, in every season, once any one of them falls in the selected season", async ({
 		page,
 	}) => {
 		const earlierSeason = await prismaClient.season.create({
@@ -344,7 +349,7 @@ test.describe("Stats Route - Tournament Series & Placements", () => {
 			data: {
 				nextAppointmentId: laterAppointment.id,
 				seasonId: earlierSeason.id,
-				startDate: new Date(),
+				startDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 365),
 				status: "PUBLISHED",
 				title: `${PREFIX}SeriesEarlierAppt`,
 				type: "TOURNAMENT",
@@ -352,23 +357,180 @@ test.describe("Stats Route - Tournament Series & Placements", () => {
 		});
 
 		await loginAs(page, "user");
+
 		await page.goto(`/stats?seasonId=${earlierSeason.id}`);
 		await page.waitForLoadState("networkidle");
-
 		await expect(
 			page.locator(":visible", { hasText: earlierAppointment.title }).first(),
 		).toBeVisible();
-		await expect(page.locator(`text=${laterAppointment.title}`)).toHaveCount(0);
-
-		await page.goto(`/stats?seasonId=${laterSeason.id}`);
-		await page.waitForLoadState("networkidle");
-
 		await expect(
 			page.locator(":visible", { hasText: laterAppointment.title }).first(),
 		).toBeVisible();
-		await expect(page.locator(`text=${earlierAppointment.title}`)).toHaveCount(
-			0,
-		);
+		await expect(
+			page
+				.locator(":visible button", { hasText: earlierAppointment.title })
+				.first()
+				.locator(":visible", { hasText: "Diese Saison" })
+				.first(),
+		).toBeVisible();
+		await expect(
+			page
+				.locator(":visible button", { hasText: laterAppointment.title })
+				.first()
+				.locator(":visible", { hasText: "Diese Saison" }),
+		).toHaveCount(0);
+
+		await page.goto(`/stats?seasonId=${laterSeason.id}`);
+		await page.waitForLoadState("networkidle");
+		await expect(
+			page.locator(":visible", { hasText: earlierAppointment.title }).first(),
+		).toBeVisible();
+		await expect(
+			page.locator(":visible", { hasText: laterAppointment.title }).first(),
+		).toBeVisible();
+		await expect(
+			page
+				.locator(":visible button", { hasText: laterAppointment.title })
+				.first()
+				.locator(":visible", { hasText: "Diese Saison" })
+				.first(),
+		).toBeVisible();
+		await expect(
+			page
+				.locator(":visible button", { hasText: earlierAppointment.title })
+				.first()
+				.locator(":visible", { hasText: "Diese Saison" }),
+		).toHaveCount(0);
+	});
+
+	// nextAppointmentId is a single scalar FK (an appointment has at most one
+	// forward link), but nothing stops several different appointments from
+	// pointing at the SAME next appointment — that's how a series branches.
+	test("shows every branch of a series that converges into one appointment, with each node's own placements", async ({
+		page,
+	}) => {
+		const qualifierSeason = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}BranchQualifier` },
+		});
+		const finalSeason = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}BranchFinal` },
+		});
+		const final = await prismaClient.appointment.create({
+			data: {
+				seasonId: finalSeason.id,
+				startDate: new Date(),
+				status: "PUBLISHED",
+				title: `${PREFIX}BranchFinalAppt`,
+				type: "TOURNAMENT",
+			},
+		});
+		const qualifierA = await prismaClient.appointment.create({
+			data: {
+				nextAppointmentId: final.id,
+				seasonId: qualifierSeason.id,
+				startDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30),
+				status: "PUBLISHED",
+				title: `${PREFIX}BranchQualifierNord`,
+				type: "TOURNAMENT",
+			},
+		});
+		const qualifierB = await prismaClient.appointment.create({
+			data: {
+				nextAppointmentId: final.id,
+				seasonId: qualifierSeason.id,
+				startDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20),
+				status: "PUBLISHED",
+				title: `${PREFIX}BranchQualifierSued`,
+				type: "TOURNAMENT",
+			},
+		});
+		const qualifierAWinner = await prismaClient.player.create({
+			data: { name: `${PREFIX}QualifierAWinner`, qttr: 1000, year: 2010 },
+		});
+		await prismaClient.placement.create({
+			data: {
+				appointmentId: qualifierA.id,
+				category: "Einzel",
+				placement: "1",
+				playerId: qualifierAWinner.id,
+			},
+		});
+
+		await loginAs(page, "user");
+		await page.goto(`/stats?seasonId=${qualifierSeason.id}`);
+		await page.waitForLoadState("networkidle");
+
+		for (const title of [qualifierA.title, qualifierB.title, final.title]) {
+			await expect(
+				page.locator(":visible", { hasText: title }).first(),
+			).toBeVisible();
+		}
+
+		// Neither qualifier is selected by default (the final isn't in the
+		// viewed season), so clicking one reveals its own full placement
+		// detail — same rendering contract as the season-matching node.
+		await page
+			.locator(":visible button", { hasText: qualifierA.title })
+			.first()
+			.click();
+		await expect(
+			page.locator(":visible", { hasText: qualifierAWinner.name }).first(),
+		).toBeVisible();
+
+		await page.goto(`/stats?seasonId=${finalSeason.id}`);
+		await page.waitForLoadState("networkidle");
+		for (const title of [qualifierA.title, qualifierB.title, final.title]) {
+			await expect(
+				page.locator(":visible", { hasText: title }).first(),
+			).toBeVisible();
+		}
+	});
+
+	// Nothing in the app prevents an editor from linking two appointments into
+	// a loop (EditableNextAppointmentCard only disables picking an appointment
+	// as its own next, not an indirect cycle created across two separate
+	// edits). The Flow diagram's client-side layout must not infinitely
+	// recurse or crash the page when that happens.
+	test("does not crash on a cyclic nextAppointmentId link between two appointments", async ({
+		page,
+	}) => {
+		const season = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}Cycle` },
+		});
+		const first = await prismaClient.appointment.create({
+			data: {
+				seasonId: season.id,
+				startDate: new Date(),
+				status: "PUBLISHED",
+				title: `${PREFIX}CycleFirst`,
+				type: "TOURNAMENT",
+			},
+		});
+		const second = await prismaClient.appointment.create({
+			data: {
+				nextAppointmentId: first.id,
+				seasonId: season.id,
+				startDate: new Date(Date.now() - 1000 * 60 * 60 * 24),
+				status: "PUBLISHED",
+				title: `${PREFIX}CycleSecond`,
+				type: "TOURNAMENT",
+			},
+		});
+		await prismaClient.appointment.update({
+			data: { nextAppointmentId: second.id },
+			where: { id: first.id },
+		});
+
+		await loginAs(page, "user");
+		await page.goto(`/stats?seasonId=${season.id}`);
+		await page.waitForLoadState("networkidle");
+
+		await expect(
+			page.locator(":visible", { hasText: first.title }).first(),
+		).toBeVisible();
+		await expect(
+			page.locator(":visible", { hasText: second.title }).first(),
+		).toBeVisible();
 	});
 
 	test("renders two appointments from the same series in the same season as separate entries", async ({

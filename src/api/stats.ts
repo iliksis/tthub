@@ -70,19 +70,35 @@ export type TournamentSeriesCategory = {
 	placements: TournamentSeriesPlacement[];
 };
 
-export type TournamentSeriesAppointment = {
+export type TournamentSeriesNode = {
 	appointmentId: string;
 	title: string;
+	seasonLabel: string;
+	date: Date;
+	isCurrent: boolean;
+	previousIds: string[];
+	nextId: string | null;
 	categories: TournamentSeriesCategory[];
 };
 
-// Every non-deleted TOURNAMENT Appointment dated in the given Season — see
-// CONTEXT.md's "Tournament Series" entry. Appointment.seasonId already scopes
-// each Appointment to a single Season regardless of its
-// nextAppointmentId/previousAppointments chain, so an Appointment that's part
-// of a multi-season series is only ever returned for the Season it actually
-// falls in; other appointments in the same chain (past or future seasons)
-// aren't included here.
+export type TournamentSeries = {
+	seriesId: string;
+	nodes: TournamentSeriesNode[];
+};
+
+// Every Tournament Series with at least one non-deleted TOURNAMENT
+// Appointment in the given Season — see CONTEXT.md's "Tournament Series"
+// entry. A series is the full connected graph reachable by following
+// Appointment.nextAppointmentId/previousAppointments in both directions, not
+// just the appointment(s) that happen to fall in the selected season:
+// nextAppointmentId is a single scalar FK (an appointment has at most one
+// forward link), but nothing enforces uniqueness on it, so several different
+// appointments can all point at the same next appointment — that's how a
+// series branches (e.g. two regional qualifiers both feeding into one
+// final), producing a node with more than one entry in its reverse
+// previousAppointments relation. SQLite via Prisma doesn't support recursive
+// queries, so every non-deleted TOURNAMENT appointment is loaded once and the
+// graph is walked in memory to find each connected component.
 export const getTournamentSeriesPlacements = createServerFn({ method: "GET" })
 	.validator((d: { seasonId?: string }) => d)
 	.handler(async ({ data }) => {
@@ -95,6 +111,7 @@ export const getTournamentSeriesPlacements = createServerFn({ method: "GET" })
 				orderBy: { startDate: "asc" },
 				select: {
 					id: true,
+					nextAppointmentId: true,
 					placements: {
 						select: {
 							category: true,
@@ -103,31 +120,78 @@ export const getTournamentSeriesPlacements = createServerFn({ method: "GET" })
 							playerId: true,
 						},
 					},
+					season: { select: { name: true } },
+					seasonId: true,
+					startDate: true,
 					title: true,
 				},
-				where: {
-					deletedAt: null,
-					seasonId: data.seasonId,
-					type: "TOURNAMENT",
-				},
+				where: { deletedAt: null, type: "TOURNAMENT" },
 			});
 
-			const series: TournamentSeriesAppointment[] = appointments.map(
-				(appointment) => ({
-					appointmentId: appointment.id,
-					categories: groupPlacementsByCategory(appointment.placements).map(
-						(group) => ({
-							category: group.category,
-							placements: sortPlacementsByRank(group.placements).map((p) => ({
-								placement: p.placement,
-								playerId: p.playerId,
-								playerName: p.player.name,
-							})),
-						}),
-					),
-					title: appointment.title,
-				}),
-			);
+			const byId = new Map(appointments.map((a) => [a.id, a]));
+			const previousIdsById = new Map<string, string[]>();
+			for (const a of appointments) {
+				if (!a.nextAppointmentId) continue;
+				const previous = previousIdsById.get(a.nextAppointmentId) ?? [];
+				previous.push(a.id);
+				previousIdsById.set(a.nextAppointmentId, previous);
+			}
+
+			function connectedComponent(seedId: string) {
+				const visited = new Set<string>();
+				const stack = [seedId];
+				while (stack.length > 0) {
+					const id = stack.pop();
+					if (!id || visited.has(id)) continue;
+					visited.add(id);
+					const appointment = byId.get(id);
+					if (appointment?.nextAppointmentId) {
+						stack.push(appointment.nextAppointmentId);
+					}
+					for (const previousId of previousIdsById.get(id) ?? []) {
+						stack.push(previousId);
+					}
+				}
+				return visited;
+			}
+
+			const seedIds = appointments
+				.filter((a) => a.seasonId === data.seasonId)
+				.map((a) => a.id);
+
+			const includedIds = new Set<string>();
+			const series: TournamentSeries[] = [];
+			for (const seedId of seedIds) {
+				if (includedIds.has(seedId)) continue;
+				const componentIds = connectedComponent(seedId);
+				for (const id of componentIds) includedIds.add(id);
+
+				const nodes: TournamentSeriesNode[] = [...componentIds]
+					.map((id) => byId.get(id))
+					.filter((a) => a !== undefined)
+					.sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
+					.map((a) => ({
+						appointmentId: a.id,
+						categories: groupPlacementsByCategory(a.placements).map(
+							(group) => ({
+								category: group.category,
+								placements: sortPlacementsByRank(group.placements).map((p) => ({
+									placement: p.placement,
+									playerId: p.playerId,
+									playerName: p.player.name,
+								})),
+							}),
+						),
+						date: a.startDate,
+						isCurrent: a.seasonId === data.seasonId,
+						nextId: a.nextAppointmentId,
+						previousIds: previousIdsById.get(a.id) ?? [],
+						seasonLabel: a.season?.name ?? "—",
+						title: a.title,
+					}));
+
+				series.push({ nodes, seriesId: seedId });
+			}
 
 			return { data: series, message: m.stats_stats_found() };
 		} catch (e) {
