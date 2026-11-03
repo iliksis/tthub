@@ -136,6 +136,78 @@ const playerCountColumns: DetailsListColumn<PlayerCountRow>[] = [
 	},
 ];
 
+// Dependency-free SVG line chart: the page has no chart library and this is
+// the only chart. The plot gets a fixed width per season and scrolls
+// horizontally rather than squeezing labels when there are many seasons.
+const CHART_STEP = 80;
+const CHART_HEIGHT = 180;
+const CHART_PAD_X = 40;
+const CHART_PAD_TOP = 28;
+const CHART_PAD_BOTTOM = 32;
+
+function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
+	if (rows.length === 0) return null;
+
+	const width = CHART_PAD_X * 2 + CHART_STEP * (rows.length - 1);
+	const max = Math.max(...rows.map((r) => r.playerCount), 1);
+	const plotHeight = CHART_HEIGHT - CHART_PAD_TOP - CHART_PAD_BOTTOM;
+	const points = rows.map((row, i) => ({
+		row,
+		x: CHART_PAD_X + i * CHART_STEP,
+		y: CHART_PAD_TOP + plotHeight * (1 - row.playerCount / max),
+	}));
+	const baseline = CHART_PAD_TOP + plotHeight;
+
+	return (
+		<div className="overflow-x-auto">
+			<svg
+				role="img"
+				aria-label={m.stats_player_count_over_seasons()}
+				viewBox={`0 0 ${width} ${CHART_HEIGHT}`}
+				width={Math.max(width, 280)}
+				height={CHART_HEIGHT}
+				className="mx-auto max-w-none text-primary"
+			>
+				<line
+					x1={CHART_PAD_X / 2}
+					x2={width - CHART_PAD_X / 2}
+					y1={baseline}
+					y2={baseline}
+					className="stroke-border"
+				/>
+				<polyline
+					points={points.map((p) => `${p.x},${p.y}`).join(" ")}
+					fill="none"
+					stroke="currentColor"
+					strokeWidth={2}
+					strokeLinejoin="round"
+				/>
+				{points.map(({ row, x, y }) => (
+					<g key={row.seasonId}>
+						<circle cx={x} cy={y} r={4} fill="currentColor" />
+						<text
+							x={x}
+							y={y - 10}
+							textAnchor="middle"
+							className="fill-foreground font-medium text-xs"
+						>
+							{row.playerCount}
+						</text>
+						<text
+							x={x}
+							y={baseline + 18}
+							textAnchor="middle"
+							className="fill-muted-foreground text-xs"
+						>
+							{row.seasonName}
+						</text>
+					</g>
+				))}
+			</svg>
+		</div>
+	);
+}
+
 function PlayerCountMobileList({ rows }: { rows: PlayerCountRow[] }) {
 	if (rows.length === 0) {
 		return (
@@ -488,6 +560,7 @@ function RouteComponent() {
 			</div>
 
 			<Section title={m.stats_player_count_over_seasons()}>
+				<PlayerCountChart rows={playerCounts} />
 				{/* Mobile */}
 				<div className="lg:hidden">
 					<PlayerCountMobileList rows={playerCounts} />
