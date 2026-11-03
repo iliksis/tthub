@@ -43,6 +43,7 @@ export type PlayerMinAggregateOutputType = {
   name: string | null
   year: number | null
   qttr: number | null
+  gender: $Enums.Gender | null
 }
 
 export type PlayerMaxAggregateOutputType = {
@@ -52,6 +53,7 @@ export type PlayerMaxAggregateOutputType = {
   name: string | null
   year: number | null
   qttr: number | null
+  gender: $Enums.Gender | null
 }
 
 export type PlayerCountAggregateOutputType = {
@@ -61,6 +63,7 @@ export type PlayerCountAggregateOutputType = {
   name: number
   year: number
   qttr: number
+  gender: number
   _all: number
 }
 
@@ -82,6 +85,7 @@ export type PlayerMinAggregateInputType = {
   name?: true
   year?: true
   qttr?: true
+  gender?: true
 }
 
 export type PlayerMaxAggregateInputType = {
@@ -91,6 +95,7 @@ export type PlayerMaxAggregateInputType = {
   name?: true
   year?: true
   qttr?: true
+  gender?: true
 }
 
 export type PlayerCountAggregateInputType = {
@@ -100,6 +105,7 @@ export type PlayerCountAggregateInputType = {
   name?: true
   year?: true
   qttr?: true
+  gender?: true
   _all?: true
 }
 
@@ -196,6 +202,7 @@ export type PlayerGroupByOutputType = {
   name: string
   year: number
   qttr: number
+  gender: $Enums.Gender | null
   _count: PlayerCountAggregateOutputType | null
   _avg: PlayerAvgAggregateOutputType | null
   _sum: PlayerSumAggregateOutputType | null
@@ -228,6 +235,7 @@ export type PlayerWhereInput = {
   name?: Prisma.StringFilter<"Player"> | string
   year?: Prisma.IntFilter<"Player"> | number
   qttr?: Prisma.IntFilter<"Player"> | number
+  gender?: Prisma.EnumGenderNullableFilter<"Player"> | $Enums.Gender | null
   teams?: Prisma.TeamPlayerListRelationFilter
   placements?: Prisma.PlacementListRelationFilter
 }
@@ -239,6 +247,7 @@ export type PlayerOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   year?: Prisma.SortOrder
   qttr?: Prisma.SortOrder
+  gender?: Prisma.SortOrderInput | Prisma.SortOrder
   teams?: Prisma.TeamPlayerOrderByRelationAggregateInput
   placements?: Prisma.PlacementOrderByRelationAggregateInput
 }
@@ -253,6 +262,7 @@ export type PlayerWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Player"> | string
   year?: Prisma.IntFilter<"Player"> | number
   qttr?: Prisma.IntFilter<"Player"> | number
+  gender?: Prisma.EnumGenderNullableFilter<"Player"> | $Enums.Gender | null
   teams?: Prisma.TeamPlayerListRelationFilter
   placements?: Prisma.PlacementListRelationFilter
 }, "id">
@@ -264,6 +274,7 @@ export type PlayerOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   year?: Prisma.SortOrder
   qttr?: Prisma.SortOrder
+  gender?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PlayerCountOrderByAggregateInput
   _avg?: Prisma.PlayerAvgOrderByAggregateInput
   _max?: Prisma.PlayerMaxOrderByAggregateInput
@@ -281,6 +292,7 @@ export type PlayerScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Player"> | string
   year?: Prisma.IntWithAggregatesFilter<"Player"> | number
   qttr?: Prisma.IntWithAggregatesFilter<"Player"> | number
+  gender?: Prisma.EnumGenderNullableWithAggregatesFilter<"Player"> | $Enums.Gender | null
 }
 
 export type PlayerCreateInput = {
@@ -290,6 +302,7 @@ export type PlayerCreateInput = {
   name: string
   year: number
   qttr: number
+  gender?: $Enums.Gender | null
   teams?: Prisma.TeamPlayerCreateNestedManyWithoutPlayerInput
   placements?: Prisma.PlacementCreateNestedManyWithoutPlayerInput
 }
@@ -301,6 +314,7 @@ export type PlayerUncheckedCreateInput = {
   name: string
   year: number
   qttr: number
+  gender?: $Enums.Gender | null
   teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutPlayerInput
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutPlayerInput
 }
@@ -312,6 +326,7 @@ export type PlayerUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   qttr?: Prisma.IntFieldUpdateOperationsInput | number
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   teams?: Prisma.TeamPlayerUpdateManyWithoutPlayerNestedInput
   placements?: Prisma.PlacementUpdateManyWithoutPlayerNestedInput
 }
@@ -323,6 +338,7 @@ export type PlayerUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   qttr?: Prisma.IntFieldUpdateOperationsInput | number
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutPlayerNestedInput
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutPlayerNestedInput
 }
@@ -334,6 +350,7 @@ export type PlayerCreateManyInput = {
   name: string
   year: number
   qttr: number
+  gender?: $Enums.Gender | null
 }
 
 export type PlayerUpdateManyMutationInput = {
@@ -343,6 +360,7 @@ export type PlayerUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   qttr?: Prisma.IntFieldUpdateOperationsInput | number
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
 }
 
 export type PlayerUncheckedUpdateManyInput = {
@@ -352,6 +370,7 @@ export type PlayerUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   qttr?: Prisma.IntFieldUpdateOperationsInput | number
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
 }
 
 export type PlayerCountOrderByAggregateInput = {
@@ -361,6 +380,7 @@ export type PlayerCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   year?: Prisma.SortOrder
   qttr?: Prisma.SortOrder
+  gender?: Prisma.SortOrder
 }
 
 export type PlayerAvgOrderByAggregateInput = {
@@ -375,6 +395,7 @@ export type PlayerMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   year?: Prisma.SortOrder
   qttr?: Prisma.SortOrder
+  gender?: Prisma.SortOrder
 }
 
 export type PlayerMinOrderByAggregateInput = {
@@ -384,6 +405,7 @@ export type PlayerMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   year?: Prisma.SortOrder
   qttr?: Prisma.SortOrder
+  gender?: Prisma.SortOrder
 }
 
 export type PlayerSumOrderByAggregateInput = {
@@ -394,6 +416,10 @@ export type PlayerSumOrderByAggregateInput = {
 export type PlayerScalarRelationFilter = {
   is?: Prisma.PlayerWhereInput
   isNot?: Prisma.PlayerWhereInput
+}
+
+export type NullableEnumGenderFieldUpdateOperationsInput = {
+  set?: $Enums.Gender | null
 }
 
 export type PlayerCreateNestedOneWithoutTeamsInput = {
@@ -431,6 +457,7 @@ export type PlayerCreateWithoutTeamsInput = {
   name: string
   year: number
   qttr: number
+  gender?: $Enums.Gender | null
   placements?: Prisma.PlacementCreateNestedManyWithoutPlayerInput
 }
 
@@ -441,6 +468,7 @@ export type PlayerUncheckedCreateWithoutTeamsInput = {
   name: string
   year: number
   qttr: number
+  gender?: $Enums.Gender | null
   placements?: Prisma.PlacementUncheckedCreateNestedManyWithoutPlayerInput
 }
 
@@ -467,6 +495,7 @@ export type PlayerUpdateWithoutTeamsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   qttr?: Prisma.IntFieldUpdateOperationsInput | number
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   placements?: Prisma.PlacementUpdateManyWithoutPlayerNestedInput
 }
 
@@ -477,6 +506,7 @@ export type PlayerUncheckedUpdateWithoutTeamsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   qttr?: Prisma.IntFieldUpdateOperationsInput | number
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   placements?: Prisma.PlacementUncheckedUpdateManyWithoutPlayerNestedInput
 }
 
@@ -487,6 +517,7 @@ export type PlayerCreateWithoutPlacementsInput = {
   name: string
   year: number
   qttr: number
+  gender?: $Enums.Gender | null
   teams?: Prisma.TeamPlayerCreateNestedManyWithoutPlayerInput
 }
 
@@ -497,6 +528,7 @@ export type PlayerUncheckedCreateWithoutPlacementsInput = {
   name: string
   year: number
   qttr: number
+  gender?: $Enums.Gender | null
   teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutPlayerInput
 }
 
@@ -523,6 +555,7 @@ export type PlayerUpdateWithoutPlacementsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   qttr?: Prisma.IntFieldUpdateOperationsInput | number
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   teams?: Prisma.TeamPlayerUpdateManyWithoutPlayerNestedInput
 }
 
@@ -533,6 +566,7 @@ export type PlayerUncheckedUpdateWithoutPlacementsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   year?: Prisma.IntFieldUpdateOperationsInput | number
   qttr?: Prisma.IntFieldUpdateOperationsInput | number
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutPlayerNestedInput
 }
 
@@ -583,6 +617,7 @@ export type PlayerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name?: boolean
   year?: boolean
   qttr?: boolean
+  gender?: boolean
   teams?: boolean | Prisma.Player$teamsArgs<ExtArgs>
   placements?: boolean | Prisma.Player$placementsArgs<ExtArgs>
   _count?: boolean | Prisma.PlayerCountOutputTypeDefaultArgs<ExtArgs>
@@ -595,6 +630,7 @@ export type PlayerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   name?: boolean
   year?: boolean
   qttr?: boolean
+  gender?: boolean
 }, ExtArgs["result"]["player"]>
 
 export type PlayerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -604,6 +640,7 @@ export type PlayerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   name?: boolean
   year?: boolean
   qttr?: boolean
+  gender?: boolean
 }, ExtArgs["result"]["player"]>
 
 export type PlayerSelectScalar = {
@@ -613,9 +650,10 @@ export type PlayerSelectScalar = {
   name?: boolean
   year?: boolean
   qttr?: boolean
+  gender?: boolean
 }
 
-export type PlayerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "name" | "year" | "qttr", ExtArgs["result"]["player"]>
+export type PlayerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "name" | "year" | "qttr" | "gender", ExtArgs["result"]["player"]>
 export type PlayerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teams?: boolean | Prisma.Player$teamsArgs<ExtArgs>
   placements?: boolean | Prisma.Player$placementsArgs<ExtArgs>
@@ -637,6 +675,7 @@ export type $PlayerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     name: string
     year: number
     qttr: number
+    gender: $Enums.Gender | null
   }, ExtArgs["result"]["player"]>
   composites: {}
 }
@@ -1068,6 +1107,7 @@ export interface PlayerFieldRefs {
   readonly name: Prisma.FieldRef<"Player", 'String'>
   readonly year: Prisma.FieldRef<"Player", 'Int'>
   readonly qttr: Prisma.FieldRef<"Player", 'Int'>
+  readonly gender: Prisma.FieldRef<"Player", 'Gender'>
 }
     
 

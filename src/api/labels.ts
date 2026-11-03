@@ -87,7 +87,10 @@ export const updateLabel = createServerFn()
 
 		try {
 			const label = await prismaClient.label.update({
-				data: { color: data.color, name: data.name },
+				data: {
+					color: data.color,
+					name: data.name,
+				},
 				where: { id: data.id },
 			});
 			return { data: label, message: m.labels_label_updated() };

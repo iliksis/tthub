@@ -83,6 +83,12 @@ test.describe("Settings - Notification Muting by Label", () => {
 	test("USER cannot quick-create a label from the muting picker", async ({
 		page,
 	}) => {
+		// The muting section only renders when at least one label exists, so
+		// seed one rather than relying on another test having created it.
+		await prismaClient.label.create({
+			data: { color: "mauve", name: `${LABEL_PREFIX}Existing` },
+		});
+
 		await loginAs(page, "user");
 		await page.goto("/settings/profile");
 		await page.waitForLoadState("networkidle");

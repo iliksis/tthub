@@ -9,7 +9,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Gender } from "@/lib/prisma/enums";
 import { m } from "@/paraglide/messages";
+
+const genderOptions: { label: string; value: Gender | null }[] = [
+	{ label: m.players_gender_not_set(), value: null },
+	{ label: m.players_gender_male(), value: Gender.MALE },
+	{ label: m.players_gender_female(), value: Gender.FEMALE },
+];
 
 type PlayerFormProps = {
 	open?: boolean;
@@ -19,11 +33,13 @@ type PlayerFormProps = {
 		name: string;
 		year: number;
 		qttr: number;
+		gender: Gender | null;
 	};
 	onSubmit: (updates: {
 		name: string;
 		year: number;
 		qttr: number;
+		gender: Gender | null;
 	}) => Promise<void>;
 };
 export const PlayerForm = ({
@@ -31,6 +47,7 @@ export const PlayerForm = ({
 	onClose,
 	submitLabel,
 	defaultValues = {
+		gender: null,
 		name: "",
 		qttr: 0,
 		year: new Date().getFullYear(),
@@ -123,6 +140,43 @@ export const PlayerForm = ({
 											{field.state.meta.errors.join(", ")}
 										</p>
 									)}
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+					<div>
+						<form.Field name="gender">
+							{(field) => (
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>{m.players_gender()}:</Label>
+									<Select
+										value={field.state.value}
+										onValueChange={(value) =>
+											field.handleChange(value as Gender | null)
+										}
+										onOpenChange={(open) => {
+											if (!open) field.handleBlur();
+										}}
+									>
+										<SelectTrigger id={field.name} className="w-full">
+											<SelectValue>
+												{(value: Gender | null) =>
+													genderOptions.find((option) => option.value === value)
+														?.label
+												}
+											</SelectValue>
+										</SelectTrigger>
+										<SelectContent>
+											{genderOptions.map((option) => (
+												<SelectItem
+													key={option.value ?? "unset"}
+													value={option.value}
+												>
+													{option.label}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 								</fieldset>
 							)}
 						</form.Field>

@@ -87,10 +87,12 @@ export const getTeam = createServerFn()
 						orderBy: { startDate: "asc" },
 						where: { deletedAt: null },
 					},
+					hinrundeTeam: { select: { id: true, title: true } },
 					players: {
 						include: { player: true },
 						orderBy: { player: { name: "asc" } },
 					},
+					rueckrundeTeam: { select: { id: true, title: true } },
 					season: true,
 					standings: { orderBy: { rank: "asc" } },
 				},
@@ -100,6 +102,45 @@ export const getTeam = createServerFn()
 				throw new Error(m.teams_team_not_found());
 			}
 			return { data: team, message: m.teams_team_found() };
+		} catch (e) {
+			console.error(e);
+			throw new Error((e as Error).message);
+		}
+	});
+
+export const createRueckrundeTeam = createServerFn({ method: "POST" })
+	.validator((d: { hinrundeTeamId: string }) => d)
+	.handler(async ({ data }) => {
+		const isAuthorized = await useIsRole("EDITOR");
+		if (!isAuthorized) {
+			throw new Error(m.common_unauthorized());
+		}
+
+		try {
+			const team = await prismaClient.$transaction(async (tx) => {
+				const hinrunde = await tx.team.findUniqueOrThrow({
+					include: { rueckrundeTeam: true },
+					where: { id: data.hinrundeTeamId },
+				});
+				if (hinrunde.half === "RUECKRUNDE" || hinrunde.rueckrundeTeam) {
+					throw new Error(m.teams_team_already_has_a_rueckrunde());
+				}
+
+				// An unpaired team becomes the Hinrunde once it gets a pair.
+				await tx.team.update({
+					data: { half: "HINRUNDE" },
+					where: { id: hinrunde.id },
+				});
+				return tx.team.create({
+					data: {
+						half: "RUECKRUNDE",
+						hinrundeTeamId: hinrunde.id,
+						seasonId: hinrunde.seasonId,
+						title: hinrunde.title,
+					},
+				});
+			});
+			return { data: team, message: m.teams_rueckrunde_created() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -148,11 +189,22 @@ export const deleteTeam = createServerFn()
 		}
 
 		try {
-			// TeamPlayer rows cascade-delete automatically (onDelete: Cascade).
-			await prismaClient.team.delete({
-				where: {
-					id: data.id,
-				},
+			await prismaClient.$transaction(async (tx) => {
+				const team = await tx.team.findUniqueOrThrow({
+					include: { rueckrundeTeam: true },
+					where: { id: data.id },
+				});
+				// TeamPlayer rows cascade-delete automatically (onDelete: Cascade);
+				// the pair's link is nulled by the foreign key.
+				await tx.team.delete({ where: { id: data.id } });
+				// The surviving half is no longer paired, so it is a plain team again.
+				const survivorId = team.hinrundeTeamId ?? team.rueckrundeTeam?.id;
+				if (survivorId) {
+					await tx.team.update({
+						data: { half: null },
+						where: { id: survivorId },
+					});
+				}
 			});
 			return { message: m.teams_team_deleted() };
 		} catch (e) {
@@ -172,6 +224,7 @@ export const applyRosterChanges = createServerFn()
 		try {
 			await prismaClient.$transaction(async (tx) => {
 				const team = await tx.team.findUniqueOrThrow({
+					include: { rueckrundeTeam: { select: { id: true } } },
 					where: { id: data.teamId },
 				});
 
@@ -181,6 +234,26 @@ export const applyRosterChanges = createServerFn()
 					});
 				}
 				if (data.adds.length > 0) {
+					// Uniqueness is per team (a Player sits on both Team Halves), so
+					// "one team per season" is enforced here: the only other team an
+					// added Player may already be on is this team's paired half.
+					const allowedTeamIds = [
+						data.teamId,
+						team.hinrundeTeamId,
+						team.rueckrundeTeam?.id,
+					].filter((id): id is string => !!id);
+					const conflict = await tx.teamPlayer.findFirst({
+						where: {
+							playerId: { in: data.adds },
+							seasonId: team.seasonId,
+							teamId: { notIn: allowedTeamIds },
+						},
+					});
+					if (conflict) {
+						throw new Error(
+							m.teams_player_is_already_assigned_to_a_team_this_season(),
+						);
+					}
 					await tx.teamPlayer.createMany({
 						data: data.adds.map((playerId) => ({
 							playerId,

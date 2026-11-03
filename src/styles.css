@@ -111,6 +111,10 @@
 	--color-tournament-de: var(--catppuccin-color-lavender-400);
 	--color-holiday: var(--catppuccin-color-lavender-400);
 
+	--color-chart-undefined: hsl(var(--muted));
+	--color-chart-female: var(--catppuccin-color-yellow-200);
+	--color-chart-male: var(--catppuccin-color-mauve-200);
+
 	--background: 232 23.40% 18.43%;
 	--foreground: 227 68.25% 87.65%;
 	--card: 233.33 23.08% 15.29%;
@@ -155,6 +159,10 @@
 	--color-appointment-by: hsl(var(--success));
 	--color-tournament-de: var(--catppuccin-color-lavender-400);
 	--color-holiday: var(--color-red-800);
+
+	--color-chart-undefined: hsl(var(--muted));
+	--color-chart-female: var(--catppuccin-color-yellow-300);
+	--color-chart-male: var(--catppuccin-color-mauve-300);
 }
 
 /*#####################*/

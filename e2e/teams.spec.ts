@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
+import { prismaClient } from "../src/lib/db";
 import { loginAs } from "./helpers";
 
 test.describe("Teams Route - Access Control", () => {
@@ -163,5 +164,331 @@ test.describe("Teams Route - Edit Functionality", () => {
 		} else {
 			test.skip();
 		}
+	});
+});
+
+test.describe("Teams Route - Team Halves", () => {
+	async function createSplitFixture(label: string) {
+		const season = await prismaClient.season.findFirstOrThrow();
+		const title = `Half ${label} ${Date.now()}`;
+		const team = await prismaClient.team.create({
+			data: { league: "Hin-Liga", seasonId: season.id, title },
+		});
+		const player = await prismaClient.player.create({
+			data: {
+				gender: "MALE",
+				name: `Half Player ${title}`,
+				qttr: 1000,
+				year: 2012,
+			},
+		});
+		await prismaClient.teamPlayer.create({
+			data: { playerId: player.id, seasonId: season.id, teamId: team.id },
+		});
+		return { player, season, team, title };
+	}
+
+	test("EDITOR can create a Rückrunde half, which is then hidden", async ({
+		page,
+	}) => {
+		const { team, title, player, season } = await createSplitFixture("create");
+		await loginAs(page, "editor");
+		await page.goto(`/teams/${team.id}`);
+		await page.waitForLoadState("networkidle");
+
+		const createButton = page.getByRole("button", {
+			name: "Rückrunde erstellen",
+		});
+		await createButton.click();
+
+		// Lands on the new half: pre-filled title and season, empty roster, no
+		// create action. The link back to the Hinrunde proves the page rendered
+		// before anything is asserted absent.
+		await expect(
+			page.getByRole("link", { name: "Zur Hinrunde" }),
+		).toBeVisible();
+		await expect(page).not.toHaveURL(`/teams/${team.id}`);
+		await expect(
+			page.getByText(title).filter({ visible: true }).first(),
+		).toBeVisible();
+		await expect(
+			page.getByText(season.name).filter({ visible: true }).first(),
+		).toBeVisible();
+		await expect(
+			page.getByText("Rückrunde").filter({ visible: true }).first(),
+		).toBeVisible();
+		await expect(page.getByText(player.name)).toHaveCount(0);
+		await expect(createButton).toHaveCount(0);
+
+		const rueckrunde = await prismaClient.team.findFirstOrThrow({
+			include: { players: true },
+			where: { hinrundeTeamId: team.id },
+		});
+		expect(rueckrunde.title).toBe(title);
+		expect(rueckrunde.seasonId).toBe(season.id);
+		expect(rueckrunde.half).toBe("RUECKRUNDE");
+		expect(rueckrunde.players).toHaveLength(0);
+
+		// The Hinrunde page links over to the half and hides the action too.
+		await page.goto(`/teams/${team.id}`);
+		await page.waitForLoadState("networkidle");
+		await expect(
+			page.getByRole("link", { name: "Zur Rückrunde" }),
+		).toBeVisible();
+		await expect(createButton).toHaveCount(0);
+	});
+
+	test("deleting one half turns the other back into a plain team", async ({
+		page,
+	}) => {
+		const { team } = await createSplitFixture("delete");
+		await loginAs(page, "editor");
+		await page.goto(`/teams/${team.id}`);
+		await page.waitForLoadState("networkidle");
+		await page.getByRole("button", { name: "Rückrunde erstellen" }).click();
+		await expect(
+			page.getByRole("link", { name: "Zur Hinrunde" }),
+		).toBeVisible();
+
+		await page.getByRole("button", { name: "Team löschen" }).click();
+		await page
+			.getByRole("button", { name: /löschen/i })
+			.last()
+			.click();
+		await expect(page).toHaveURL(/\/teams\/?$/);
+
+		const hinrunde = await prismaClient.team.findUniqueOrThrow({
+			where: { id: team.id },
+		});
+		expect(hinrunde.half).toBeNull();
+
+		await page.goto(`/teams/${team.id}`);
+		await expect(
+			page.getByRole("button", { name: "Rückrunde erstellen" }),
+		).toBeVisible();
+		await expect(page.getByRole("link", { name: "Zur Rückrunde" })).toHaveCount(
+			0,
+		);
+	});
+
+	test("halves keep independent rosters and link to each other", async ({
+		page,
+	}) => {
+		const { team, player } = await createSplitFixture("roster");
+		await loginAs(page, "editor");
+		await page.goto(`/teams/${team.id}`);
+		await page.waitForLoadState("networkidle");
+		await page.getByRole("button", { name: "Rückrunde erstellen" }).click();
+		await page.waitForURL((url) => !url.pathname.endsWith(team.id));
+		await page.waitForLoadState("networkidle");
+		const rueckrundeUrl = page.url();
+
+		// Edit the Rückrunde through the form: league plus the same player
+		// the Hinrunde already has rostered.
+		await page.getByRole("button", { name: "Team aktualisieren" }).click();
+		const dialog = page.getByRole("dialog");
+		await dialog.locator("#league").fill("Rück-Liga");
+		await dialog.getByRole("combobox").click();
+		await page.getByRole("option", { name: player.name }).click();
+		await dialog.getByRole("button", { name: "Aktualisieren" }).click();
+		await expect(page.getByText("Kader aktualisiert")).toBeVisible();
+		await dialog.getByRole("button", { name: "Schließen" }).click();
+		await expect(dialog).toBeHidden();
+
+		await expect(page.getByText("Rück-Liga").first()).toBeVisible();
+		await expect(page.getByText(player.name)).toBeVisible();
+		await expect(page.getByText("Hin-Liga")).toHaveCount(0);
+
+		// The Hinrunde keeps its own league and its own membership.
+		await page.getByRole("link", { name: "Zur Hinrunde" }).click();
+		await expect(page).toHaveURL(`/teams/${team.id}`);
+		await expect(page.getByText("Hin-Liga").first()).toBeVisible();
+		await expect(page.getByText("Rück-Liga")).toHaveCount(0);
+		await expect(page.getByText(player.name)).toBeVisible();
+
+		// Removing the player from the Hinrunde leaves the Rückrunde roster alone.
+		await page.getByRole("button", { name: "Team aktualisieren" }).click();
+		await page
+			.getByRole("dialog")
+			.getByRole("button", { name: "Aus dem Kader entfernen" })
+			.click();
+		await page
+			.getByRole("dialog")
+			.getByRole("button", { name: "Aktualisieren" })
+			.click();
+		await expect(page.getByText("Kader aktualisiert")).toBeVisible();
+		await page
+			.getByRole("dialog")
+			.getByRole("button", { name: "Schließen" })
+			.click();
+		await expect(page.getByRole("dialog")).toBeHidden();
+		await expect(page.getByText("Hin-Liga").first()).toBeVisible();
+		await expect(page.getByText(player.name)).toHaveCount(0);
+
+		await page.goto(rueckrundeUrl);
+		await page.waitForLoadState("networkidle");
+		await expect(page.getByText(player.name)).toBeVisible();
+	});
+
+	test("the same player cannot be rostered twice on one team row", async ({
+		context,
+	}) => {
+		const { team } = await createSplitFixture("dupe");
+		const player = await prismaClient.player.create({
+			data: {
+				gender: "FEMALE",
+				name: `Dupe Player ${team.id}`,
+				qttr: 900,
+				year: 2012,
+			},
+		});
+
+		// Two editors open the same team's form before either saves, so both
+		// still offer the player as available.
+		const pageA = await context.newPage();
+		const pageB = await context.newPage();
+		const addToRoster = async (page: Page) => {
+			await page.getByRole("button", { name: "Team aktualisieren" }).click();
+			const dialog = page.getByRole("dialog");
+			await dialog.getByRole("combobox").click();
+			await page.getByRole("option", { name: player.name }).click();
+			return dialog;
+		};
+		await loginAs(pageA, "editor");
+		for (const page of [pageA, pageB]) {
+			await page.goto(`/teams/${team.id}`);
+			await page.waitForLoadState("networkidle");
+		}
+		const dialogA = await addToRoster(pageA);
+		const dialogB = await addToRoster(pageB);
+
+		await dialogA.getByRole("button", { name: "Aktualisieren" }).click();
+		await expect(pageA.getByText("Kader aktualisiert")).toBeVisible();
+
+		await dialogB.getByRole("button", { name: "Aktualisieren" }).click();
+		await expect(
+			pageB.getByText(
+				"Spieler:in ist dieser Saison bereits einem Team zugeordnet",
+			),
+		).toBeVisible();
+
+		const memberships = await prismaClient.teamPlayer.count({
+			where: { playerId: player.id, teamId: team.id },
+		});
+		expect(memberships).toBe(1);
+	});
+
+	test("a player cannot be rostered on two unrelated teams in one season", async ({
+		page,
+	}) => {
+		const { season, team } = await createSplitFixture("other");
+		const otherTeam = await prismaClient.team.create({
+			data: { seasonId: season.id, title: `Other ${team.id}` },
+		});
+		const player = await prismaClient.player.create({
+			data: {
+				gender: "FEMALE",
+				name: `Single Team Player ${team.id}`,
+				qttr: 900,
+				year: 2012,
+			},
+		});
+
+		// The form is opened while the player is still free; another editor
+		// then rosters them on an unrelated team before this one saves.
+		await loginAs(page, "editor");
+		await page.goto(`/teams/${team.id}`);
+		await page.waitForLoadState("networkidle");
+		await page.getByRole("button", { name: "Team aktualisieren" }).click();
+		const dialog = page.getByRole("dialog");
+		await dialog.getByRole("combobox").click();
+		await page.getByRole("option", { name: player.name }).click();
+		await prismaClient.teamPlayer.create({
+			data: { playerId: player.id, seasonId: season.id, teamId: otherTeam.id },
+		});
+
+		await dialog.getByRole("button", { name: "Aktualisieren" }).click();
+		await expect(
+			page.getByText(
+				"Spieler:in ist dieser Saison bereits einem Team zugeordnet",
+			),
+		).toBeVisible();
+
+		const memberships = await prismaClient.teamPlayer.count({
+			where: { playerId: player.id, seasonId: season.id },
+		});
+		expect(memberships).toBe(1);
+	});
+});
+
+test.describe("Teams Route - Compact Half Resolution", () => {
+	async function createSquad(label: string, { split }: { split: boolean }) {
+		const season = await prismaClient.season.findFirstOrThrow({
+			where: { isActive: true },
+		});
+		const title = `Resolve ${label} ${Date.now()}`;
+		const hinrunde = await prismaClient.team.create({
+			data: {
+				half: split ? "HINRUNDE" : null,
+				league: "Hin-Liga",
+				seasonId: season.id,
+				title,
+			},
+		});
+		const rueckrunde = split
+			? await prismaClient.team.create({
+					data: {
+						half: "RUECKRUNDE",
+						hinrundeTeamId: hinrunde.id,
+						league: "Rueck-Liga",
+						seasonId: season.id,
+						title,
+					},
+				})
+			: null;
+		return { hinrunde, rueckrunde, title };
+	}
+
+	test("teams index shows one row per split squad, with the Rückrunde badge", async ({
+		page,
+	}) => {
+		const { hinrunde, rueckrunde, title } = await createSquad("index", {
+			split: true,
+		});
+		await loginAs(page, "editor");
+		await page.goto("/teams");
+		await page.waitForLoadState("networkidle");
+
+		const links = page.locator(`a:visible`, { hasText: title });
+		await expect(links).toHaveCount(1);
+		await expect(links.first()).toHaveAttribute(
+			"href",
+			`/teams/${rueckrunde?.id}`,
+		);
+		await expect(
+			page.getByText("Rueck-Liga").filter({ visible: true }).first(),
+		).toBeVisible();
+		await expect(page.locator(`a[href="/teams/${hinrunde.id}"]`)).toHaveCount(
+			0,
+		);
+		await expect(
+			page
+				.locator("tr", { hasText: title })
+				.getByText("Rückrunde")
+				.filter({ visible: true }),
+		).toHaveCount(1);
+	});
+
+	test("an unpaired team shows no half badge", async ({ page }) => {
+		const { hinrunde, title } = await createSquad("plain", { split: false });
+		await loginAs(page, "editor");
+		await page.goto("/teams");
+		await page.waitForLoadState("networkidle");
+
+		const links = page.locator(`a[href="/teams/${hinrunde.id}"]:visible`);
+		await expect(links).toHaveCount(1);
+		const row = page.locator("tr", { hasText: title });
+		await expect(row.getByText("Hinrunde")).toHaveCount(0);
+		await expect(row.getByText("Rückrunde")).toHaveCount(0);
 	});
 });

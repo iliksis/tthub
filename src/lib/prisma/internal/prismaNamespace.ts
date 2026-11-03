@@ -1992,7 +1992,8 @@ export const PlayerScalarFieldEnum = {
   updatedAt: 'updatedAt',
   name: 'name',
   year: 'year',
-  qttr: 'qttr'
+  qttr: 'qttr',
+  gender: 'gender'
 } as const
 
 export type PlayerScalarFieldEnum = (typeof PlayerScalarFieldEnum)[keyof typeof PlayerScalarFieldEnum]
@@ -2005,7 +2006,9 @@ export const TeamScalarFieldEnum = {
   league: 'league',
   placement: 'placement',
   clickTTGroupId: 'clickTTGroupId',
-  seasonId: 'seasonId'
+  seasonId: 'seasonId',
+  half: 'half',
+  hinrundeTeamId: 'hinrundeTeamId'
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
@@ -2195,6 +2198,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'ResponseType'
  */
 export type EnumResponseTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResponseType'>
+    
+
+
+/**
+ * Reference to a field of type 'Gender'
+ */
+export type EnumGenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Gender'>
+    
+
+
+/**
+ * Reference to a field of type 'TeamHalf'
+ */
+export type EnumTeamHalfFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeamHalf'>
     
 
 

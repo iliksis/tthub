@@ -6,6 +6,7 @@ import { CreateTeam } from "@/components/teams/CreateTeam";
 import { List } from "@/components/teams/List";
 import { TeamsSplitView } from "@/components/teams/TeamsSplitView";
 import { EntitySelect } from "@/components/ui/entity-select";
+import { collapseHalves } from "@/lib/teamHalf";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
@@ -26,7 +27,12 @@ export const Route = createFileRoute("/_authed/teams/")({
 		const activeSeason = activeSeasonRes.data ?? null;
 		const seasonId = deps.seasonId ?? activeSeason?.id;
 		const res = await getTeams({ data: { seasonId } });
-		return { activeSeason, seasonId, seasons, teams: res.data ?? [] };
+		return {
+			activeSeason,
+			seasonId,
+			seasons,
+			teams: collapseHalves(res.data ?? [], (t) => t),
+		};
 	},
 	head: () => ({
 		meta: [{ title: m.common_teams() }],

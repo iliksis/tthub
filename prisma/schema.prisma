@@ -118,9 +118,9 @@ model Label {
   // iCal COLOR) — see resolveTopPriorityLabel in src/lib/labelColor.ts.
   // Not enforced unique at the DB level: reorderLabels/createLabel always
   // write a contiguous 0..n-1 sequence, so duplicates can't arise in practice.
-  priority     Int                @default(0)
-  appointments AppointmentLabel[]
-  mutedBy      UserMutedLabel[]
+  priority       Int                @default(0)
+  appointments   AppointmentLabel[]
+  mutedBy        UserMutedLabel[]
 }
 
 model AppointmentLabel {
@@ -170,8 +170,19 @@ model Player {
   name       String
   year       Int
   qttr       Int
+  gender     Gender?
   teams      TeamPlayer[]
   placements Placement[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum TeamHalf {
+  HINRUNDE
+  RUECKRUNDE
 }
 
 model Team {
@@ -186,6 +197,11 @@ model Team {
   players        TeamPlayer[]
   appointments   Appointment[]
   standings      Standing[]
+  half           TeamHalf?
+  // Set only on a Rückrunde row, pointing back at its Hinrunde pair.
+  hinrundeTeamId String?       @unique
+  hinrundeTeam   Team?         @relation("TeamHalf", fields: [hinrundeTeamId], references: [id])
+  rueckrundeTeam Team?         @relation("TeamHalf")
 
   @@unique([clickTTGroupId, seasonId])
 }
@@ -200,7 +216,7 @@ model TeamPlayer {
   seasonId  String
   season    Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
 
-  @@unique([playerId, seasonId])
+  @@unique([playerId, teamId])
 }
 
 model Standing {

@@ -14,6 +14,7 @@ import { Route as LogoutRouteImport } from './routes/logout'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as AuthedCreateRouteImport } from './routes/_authed/create'
 import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
+import { Route as AuthedStatsRouteImport } from './routes/_authed/stats'
 import { Route as FeedFeedIdRouteImport } from './routes/feed/$feedId'
 import { Route as InviteInviteIdRouteImport } from './routes/invite/$inviteId'
 import { Route as PasswordResetResetIdRouteImport } from './routes/password-reset/$resetId'
@@ -57,6 +58,11 @@ const AuthedCreateRoute = AuthedCreateRouteImport.update({
 const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedStatsRoute = AuthedStatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
   getParentRoute: () => AuthedRoute,
 } as any)
 const FeedFeedIdRoute = FeedFeedIdRouteImport.update({
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/logout': typeof LogoutRoute
   '/create': typeof AuthedCreateRoute
   '/settings': typeof AuthedSettingsRouteWithChildren
+  '/stats': typeof AuthedStatsRoute
   '/feed/$feedId': typeof FeedFeedIdRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/password-reset/$resetId': typeof PasswordResetResetIdRoute
@@ -189,6 +196,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/logout': typeof LogoutRoute
   '/create': typeof AuthedCreateRoute
+  '/stats': typeof AuthedStatsRoute
   '/feed/$feedId': typeof FeedFeedIdRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/password-reset/$resetId': typeof PasswordResetResetIdRoute
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/logout': typeof LogoutRoute
   '/_authed/create': typeof AuthedCreateRoute
   '/_authed/settings': typeof AuthedSettingsRouteWithChildren
+  '/_authed/stats': typeof AuthedStatsRoute
   '/feed/$feedId': typeof FeedFeedIdRoute
   '/invite/$inviteId': typeof InviteInviteIdRoute
   '/password-reset/$resetId': typeof PasswordResetResetIdRoute
@@ -246,6 +255,7 @@ export interface FileRouteTypes {
     | '/logout'
     | '/create'
     | '/settings'
+    | '/stats'
     | '/feed/$feedId'
     | '/invite/$inviteId'
     | '/password-reset/$resetId'
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
   to:
     | '/logout'
     | '/create'
+    | '/stats'
     | '/feed/$feedId'
     | '/invite/$inviteId'
     | '/password-reset/$resetId'
@@ -297,6 +308,7 @@ export interface FileRouteTypes {
     | '/logout'
     | '/_authed/create'
     | '/_authed/settings'
+    | '/_authed/stats'
     | '/feed/$feedId'
     | '/invite/$inviteId'
     | '/password-reset/$resetId'
@@ -363,6 +375,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthedSettingsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/stats': {
+      id: '/_authed/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof AuthedStatsRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/feed/$feedId': {
@@ -535,6 +554,7 @@ const AuthedSettingsRouteWithChildren = AuthedSettingsRoute._addFileChildren(
 interface AuthedRouteChildren {
   AuthedCreateRoute: typeof AuthedCreateRoute
   AuthedSettingsRoute: typeof AuthedSettingsRouteWithChildren
+  AuthedStatsRoute: typeof AuthedStatsRoute
   AuthedIndexRoute: typeof AuthedIndexRoute
   AuthedApptsApptIdRoute: typeof AuthedApptsApptIdRoute
   AuthedApptsBulkRoute: typeof AuthedApptsBulkRoute
@@ -551,6 +571,7 @@ interface AuthedRouteChildren {
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedCreateRoute: AuthedCreateRoute,
   AuthedSettingsRoute: AuthedSettingsRouteWithChildren,
+  AuthedStatsRoute: AuthedStatsRoute,
   AuthedIndexRoute: AuthedIndexRoute,
   AuthedApptsApptIdRoute: AuthedApptsApptIdRoute,
   AuthedApptsBulkRoute: AuthedApptsBulkRoute,

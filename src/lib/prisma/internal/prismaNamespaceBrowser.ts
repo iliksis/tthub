@@ -200,7 +200,8 @@ export const PlayerScalarFieldEnum = {
   updatedAt: 'updatedAt',
   name: 'name',
   year: 'year',
-  qttr: 'qttr'
+  qttr: 'qttr',
+  gender: 'gender'
 } as const
 
 export type PlayerScalarFieldEnum = (typeof PlayerScalarFieldEnum)[keyof typeof PlayerScalarFieldEnum]
@@ -213,7 +214,9 @@ export const TeamScalarFieldEnum = {
   league: 'league',
   placement: 'placement',
   clickTTGroupId: 'clickTTGroupId',
-  seasonId: 'seasonId'
+  seasonId: 'seasonId',
+  half: 'half',
+  hinrundeTeamId: 'hinrundeTeamId'
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]

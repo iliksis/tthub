@@ -71,7 +71,10 @@ export function LabelMultiSelect({
 	const onCreate = async () => {
 		if (!trimmedQuery) return;
 		const res = await createMutation.mutate({
-			data: { color: QUICK_CREATE_COLOR, name: trimmedQuery },
+			data: {
+				color: QUICK_CREATE_COLOR,
+				name: trimmedQuery,
+			},
 		});
 		if (!res) return;
 		const created = res.data;

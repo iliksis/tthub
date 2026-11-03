@@ -14,7 +14,10 @@ import { Label as FieldLabel } from "@/components/ui/label";
 import { catppuccinColorNames, cn, getCatppuccinColorStyle } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
-type LabelFormValues = { name: string; color: LabelColor };
+type LabelFormValues = {
+	name: string;
+	color: LabelColor;
+};
 
 type LabelFormProps = {
 	open: boolean;

@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
+import type { Team } from "@/lib/prisma/client";
+import type { Gender } from "@/lib/prisma/enums";
 import { activeSeasonFilter } from "@/lib/season";
 import { useIsRole } from "@/lib/session";
+import { collapseHalves } from "@/lib/teamHalf";
 import { m } from "@/paraglide/messages";
 
 // Only the active-season membership (at most one, per the roster's unique
@@ -13,6 +16,16 @@ const currentTeamInclude = {
 		where: { team: { season: activeSeasonFilter } },
 	},
 } as const;
+
+// A Player on both halves of a split squad holds two memberships; compact
+// views want the current half's only.
+const withCurrentHalf = <P extends { teams: { team: Team }[] }>(
+	players: P[],
+): P[] =>
+	players.map((p) => ({
+		...p,
+		teams: collapseHalves(p.teams, (tp) => tp.team),
+	}));
 
 export const searchPlayers = createServerFn()
 	.validator((d: { query?: string }) => d)
@@ -26,7 +39,10 @@ export const searchPlayers = createServerFn()
 					name: { contains: data.query ?? "" },
 				},
 			});
-			return { data: players, message: m.players_players_found() };
+			return {
+				data: withCurrentHalf(players),
+				message: m.players_players_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -52,7 +68,10 @@ export const getPlayers = createServerFn({ method: "GET" })
 				},
 				orderBy: { name: "asc" },
 			});
-			return { data: players, message: m.players_players_found() };
+			return {
+				data: withCurrentHalf(players),
+				message: m.players_players_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -60,7 +79,10 @@ export const getPlayers = createServerFn({ method: "GET" })
 	});
 
 export const createPlayer = createServerFn({ method: "POST" })
-	.validator((d: { name: string; year: number; qttr: number }) => d)
+	.validator(
+		(d: { name: string; year: number; qttr: number; gender: Gender | null }) =>
+			d,
+	)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
@@ -70,6 +92,7 @@ export const createPlayer = createServerFn({ method: "POST" })
 		try {
 			const player = await prismaClient.player.create({
 				data: {
+					gender: data.gender,
 					name: data.name,
 					qttr: data.qttr ?? 0,
 					year: data.year,
@@ -113,7 +136,15 @@ export const getPlayer = createServerFn()
 	});
 
 export const updatePlayer = createServerFn()
-	.validator((d: { id: string; name: string; year: number; qttr: number }) => d)
+	.validator(
+		(d: {
+			id: string;
+			name: string;
+			year: number;
+			qttr: number;
+			gender: Gender | null;
+		}) => d,
+	)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
 		if (!isAuthorized) {
@@ -123,6 +154,7 @@ export const updatePlayer = createServerFn()
 		try {
 			const player = await prismaClient.player.update({
 				data: {
+					gender: data.gender,
 					name: data.name,
 					qttr: data.qttr,
 					year: data.year,

@@ -23,7 +23,8 @@
       "./messages/{locale}/invitations.json",
       "./messages/{locale}/auth.json",
       "./messages/{locale}/dashboard.json",
-      "./messages/{locale}/labels.json"
+      "./messages/{locale}/labels.json",
+      "./messages/{locale}/stats.json"
     ]
   }
 }
