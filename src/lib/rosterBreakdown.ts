@@ -31,12 +31,14 @@ export function buildRosterBreakdown(players: RosterPlayer[]): RosterBreakdown {
 			{ ageGroup, female: 0, male: 0, unknown: 0 },
 		]),
 	);
+	let total = 0;
 	for (const player of unique.values()) {
 		const row = rows.get(calculateAgeGroup(player.year));
 		if (!row) continue;
+		total++;
 		if (player.gender === "MALE") row.male++;
 		else if (player.gender === "FEMALE") row.female++;
 		else row.unknown++;
 	}
-	return { rows: [...rows.values()], total: unique.size };
+	return { rows: [...rows.values()], total };
 }

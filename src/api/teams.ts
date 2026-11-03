@@ -224,6 +224,7 @@ export const applyRosterChanges = createServerFn()
 		try {
 			await prismaClient.$transaction(async (tx) => {
 				const team = await tx.team.findUniqueOrThrow({
+					include: { rueckrundeTeam: { select: { id: true } } },
 					where: { id: data.teamId },
 				});
 
@@ -233,6 +234,26 @@ export const applyRosterChanges = createServerFn()
 					});
 				}
 				if (data.adds.length > 0) {
+					// Uniqueness is per team (a Player sits on both Team Halves), so
+					// "one team per season" is enforced here: the only other team an
+					// added Player may already be on is this team's paired half.
+					const allowedTeamIds = [
+						data.teamId,
+						team.hinrundeTeamId,
+						team.rueckrundeTeam?.id,
+					].filter((id): id is string => !!id);
+					const conflict = await tx.teamPlayer.findFirst({
+						where: {
+							playerId: { in: data.adds },
+							seasonId: team.seasonId,
+							teamId: { notIn: allowedTeamIds },
+						},
+					});
+					if (conflict) {
+						throw new Error(
+							m.teams_player_is_already_assigned_to_a_team_this_season(),
+						);
+					}
 					await tx.teamPlayer.createMany({
 						data: data.adds.map((playerId) => ({
 							playerId,

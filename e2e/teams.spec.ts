@@ -377,6 +377,48 @@ test.describe("Teams Route - Team Halves", () => {
 		});
 		expect(memberships).toBe(1);
 	});
+
+	test("a player cannot be rostered on two unrelated teams in one season", async ({
+		page,
+	}) => {
+		const { season, team } = await createSplitFixture("other");
+		const otherTeam = await prismaClient.team.create({
+			data: { seasonId: season.id, title: `Other ${team.id}` },
+		});
+		const player = await prismaClient.player.create({
+			data: {
+				gender: "FEMALE",
+				name: `Single Team Player ${team.id}`,
+				qttr: 900,
+				year: 2012,
+			},
+		});
+
+		// The form is opened while the player is still free; another editor
+		// then rosters them on an unrelated team before this one saves.
+		await loginAs(page, "editor");
+		await page.goto(`/teams/${team.id}`);
+		await page.waitForLoadState("networkidle");
+		await page.getByRole("button", { name: "Team aktualisieren" }).click();
+		const dialog = page.getByRole("dialog");
+		await dialog.getByRole("combobox").click();
+		await page.getByRole("option", { name: player.name }).click();
+		await prismaClient.teamPlayer.create({
+			data: { playerId: player.id, seasonId: season.id, teamId: otherTeam.id },
+		});
+
+		await dialog.getByRole("button", { name: "Aktualisieren" }).click();
+		await expect(
+			page.getByText(
+				"Spieler:in ist dieser Saison bereits einem Team zugeordnet",
+			),
+		).toBeVisible();
+
+		const memberships = await prismaClient.teamPlayer.count({
+			where: { playerId: player.id, seasonId: season.id },
+		});
+		expect(memberships).toBe(1);
+	});
 });
 
 test.describe("Teams Route - Compact Half Resolution", () => {

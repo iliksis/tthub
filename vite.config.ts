@@ -9,6 +9,8 @@ import { nitroV2Plugin } from '@tanstack/nitro-v2-vite-plugin'
 import mkcert from 'vite-plugin-mkcert'
 import { paraglideVitePlugin } from '@inlang/paraglide-js'
 
+let uncaughtHandlerInstalled = false
+
 const config = defineConfig({
   build: {
     sourcemap: true,
@@ -26,6 +28,9 @@ const config = defineConfig({
       name: 'ignore-destroyed-http2-stream',
       apply: 'serve',
       configureServer() {
+        // configureServer reruns on dev-server restarts; register only once.
+        if (uncaughtHandlerInstalled) return
+        uncaughtHandlerInstalled = true
         process.on('uncaughtException', (error) => {
           if ((error as NodeJS.ErrnoException).code === 'ERR_HTTP2_INVALID_STREAM') return
           console.error(error)
