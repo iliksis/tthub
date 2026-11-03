@@ -12,10 +12,12 @@ import { getActiveSeason } from "@/api/seasons";
 import { getTeams } from "@/api/teams";
 import { AppointmentRow } from "@/components/AppointmentRow";
 import { Section } from "@/components/Section";
+import { TeamHalfBadge } from "@/components/teams/TeamSummary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
+import { collapseHalves } from "@/lib/teamHalf";
 import { transactionActionBadge } from "@/lib/transactionLabels";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
@@ -75,7 +77,7 @@ export const Route = createFileRoute("/_authed/")({
 			nextAppointments: nextRes.data,
 			openAppointments: openRes.data,
 			recentActivity: transactionsRes.data ?? [],
-			teams: teamsRes.data ?? [],
+			teams: collapseHalves(teamsRes.data ?? [], (t) => t),
 		};
 	},
 });
@@ -242,13 +244,16 @@ function App() {
 							)}
 						>
 							<div className="mb-2 flex items-baseline justify-between gap-2">
-								<Link
-									to="/teams/$teamId"
-									params={{ teamId: team.id }}
-									className="font-medium text-sm"
-								>
-									{team.title}
-								</Link>
+								<span className="flex items-center gap-1.5">
+									<Link
+										to="/teams/$teamId"
+										params={{ teamId: team.id }}
+										className="font-medium text-sm"
+									>
+										{team.title}
+									</Link>
+									<TeamHalfBadge half={team.half} />
+								</span>
 								<span className="text-muted-foreground text-xs">
 									{team.league}
 								</span>

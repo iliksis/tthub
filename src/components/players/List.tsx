@@ -1,5 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { DetailsList } from "@/components/DetailsList";
+import { TeamHalfBadge } from "@/components/teams/TeamSummary";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Link } from "@/components/ui/link";
 import type { Player, Team, TeamPlayer } from "@/lib/prisma/client";
@@ -107,6 +108,7 @@ export const List = ({ players }: ListProps) => {
 										>
 											{team.title}
 										</Link>
+										<TeamHalfBadge half={team.half} />
 										{team.league && <span>· {team.league}</span>}
 									</div>
 								)

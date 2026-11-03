@@ -1,6 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { m } from "@/paraglide/messages";
-import { TeamMeta, TeamPlacementBadge, type TeamRow } from "./TeamSummary";
+import {
+	TeamHalfBadge,
+	TeamMeta,
+	TeamPlacementBadge,
+	type TeamRow,
+} from "./TeamSummary";
 
 type ListProps = {
 	teams: TeamRow[];
@@ -30,8 +35,11 @@ export const List = ({ teams }: ListProps) => {
 					className="flex w-full items-center justify-between gap-3 border-b border-b-border py-3.5 text-left last:border-b-0"
 				>
 					<div className="min-w-0 flex-1">
-						<div className="min-w-[6ch] truncate font-medium text-sm">
-							{team.title}
+						<div className="flex items-center gap-1.5">
+							<span className="min-w-[6ch] truncate font-medium text-sm">
+								{team.title}
+							</span>
+							<TeamHalfBadge half={team.half} />
 						</div>
 						<div className="truncate text-muted-foreground text-xs">
 							<TeamMeta team={team} />

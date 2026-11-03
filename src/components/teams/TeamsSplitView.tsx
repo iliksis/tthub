@@ -8,7 +8,7 @@ import { useTeamDetail } from "@/hooks/useTeamDetail";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { TeamPreview } from "./TeamPreview";
-import type { TeamRow } from "./TeamSummary";
+import { TeamHalfBadge, type TeamRow } from "./TeamSummary";
 
 export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 	const [selectedId, setSelectedId] = React.useState<string | undefined>(
@@ -33,13 +33,16 @@ export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 							key: "name",
 							label: m.common_name(),
 							render: (item) => (
-								<Link
-									to="/teams/$teamId"
-									params={{ teamId: item.id }}
-									onClick={(e) => e.stopPropagation()}
-								>
-									{item.title}
-								</Link>
+								<span className="flex items-center gap-1.5">
+									<Link
+										to="/teams/$teamId"
+										params={{ teamId: item.id }}
+										onClick={(e) => e.stopPropagation()}
+									>
+										{item.title}
+									</Link>
+									<TeamHalfBadge half={item.half} />
+								</span>
 							),
 						},
 						{

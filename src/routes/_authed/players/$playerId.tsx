@@ -12,9 +12,11 @@ import { AppointmentRow } from "@/components/AppointmentRow";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { PlayerForm } from "@/components/players/PlayerForm";
 import { Section } from "@/components/Section";
+import { TeamHalfBadge } from "@/components/teams/TeamSummary";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
+import { collapseHalves } from "@/lib/teamHalf";
 import { calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -78,8 +80,10 @@ function RouteComponent() {
 	if (!player) return <div>{m.common_an_error_occurred()}</div>;
 
 	const yearGroups = groupByYear(player.placements);
-	const currentMembership = player.teams.find((tp) => tp.team.season.isActive);
-	const pastMemberships = player.teams.filter(
+	// A split squad leaves two memberships per season; show the current half's.
+	const memberships = collapseHalves(player.teams, (tp) => tp.team);
+	const currentMembership = memberships.find((tp) => tp.team.season.isActive);
+	const pastMemberships = memberships.filter(
 		(tp) => tp.id !== currentMembership?.id,
 	);
 
@@ -164,12 +168,15 @@ function RouteComponent() {
 								<dt className="text-muted-foreground">{m.common_team()}</dt>
 								<dd className="font-medium">
 									{currentMembership ? (
-										<Link
-											to="/teams/$teamId"
-											params={{ teamId: currentMembership.team.id }}
-										>
-											{currentMembership.team.title}
-										</Link>
+										<span className="flex items-center justify-end gap-1.5">
+											<Link
+												to="/teams/$teamId"
+												params={{ teamId: currentMembership.team.id }}
+											>
+												{currentMembership.team.title}
+											</Link>
+											<TeamHalfBadge half={currentMembership.team.half} />
+										</span>
 									) : (
 										m.players_no_team_set()
 									)}
@@ -198,13 +205,14 @@ function RouteComponent() {
 											<dt className="text-muted-foreground">
 												{tp.team.season.name}
 											</dt>
-											<dd className="font-medium">
+											<dd className="flex items-center gap-1.5 font-medium">
 												<Link
 													to="/teams/$teamId"
 													params={{ teamId: tp.team.id }}
 												>
 													{tp.team.title}
 												</Link>
+												<TeamHalfBadge half={tp.team.half} />
 											</dd>
 										</div>
 									))}

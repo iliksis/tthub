@@ -1,8 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
+import type { Team } from "@/lib/prisma/client";
 import type { Gender } from "@/lib/prisma/enums";
 import { activeSeasonFilter } from "@/lib/season";
 import { useIsRole } from "@/lib/session";
+import { collapseHalves } from "@/lib/teamHalf";
 import { m } from "@/paraglide/messages";
 
 // Only the active-season membership (at most one, per the roster's unique
@@ -14,6 +16,16 @@ const currentTeamInclude = {
 		where: { team: { season: activeSeasonFilter } },
 	},
 } as const;
+
+// A Player on both halves of a split squad holds two memberships; compact
+// views want the current half's only.
+const withCurrentHalf = <P extends { teams: { team: Team }[] }>(
+	players: P[],
+): P[] =>
+	players.map((p) => ({
+		...p,
+		teams: collapseHalves(p.teams, (tp) => tp.team),
+	}));
 
 export const searchPlayers = createServerFn()
 	.validator((d: { query?: string }) => d)
@@ -27,7 +39,10 @@ export const searchPlayers = createServerFn()
 					name: { contains: data.query ?? "" },
 				},
 			});
-			return { data: players, message: m.players_players_found() };
+			return {
+				data: withCurrentHalf(players),
+				message: m.players_players_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -53,7 +68,10 @@ export const getPlayers = createServerFn({ method: "GET" })
 				},
 				orderBy: { name: "asc" },
 			});
-			return { data: players, message: m.players_players_found() };
+			return {
+				data: withCurrentHalf(players),
+				message: m.players_players_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);

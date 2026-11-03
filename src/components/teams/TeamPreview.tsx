@@ -1,6 +1,7 @@
 import { useRouter } from "@tanstack/react-router";
 import { UsersIcon } from "lucide-react";
 import { PlayerRosterRow } from "@/components/teams/PlayerRosterRow";
+import { TeamHalfBadge } from "@/components/teams/TeamSummary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { TeamDetail } from "@/hooks/useTeamDetail";
@@ -16,8 +17,11 @@ export function TeamPreview({ team }: { team: TeamDetail }) {
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center gap-3">
 				<div className="min-w-0 flex-1">
-					<div className="min-w-[6ch] truncate font-semibold text-sm">
-						{team.title}
+					<div className="flex items-center gap-1.5">
+						<span className="min-w-[6ch] truncate font-semibold text-sm">
+							{team.title}
+						</span>
+						<TeamHalfBadge half={team.half} />
 					</div>
 					<div className="truncate text-muted-foreground text-xs">
 						{team.league || "–"}

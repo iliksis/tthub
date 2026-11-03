@@ -378,3 +378,75 @@ test.describe("Teams Route - Team Halves", () => {
 		expect(memberships).toBe(1);
 	});
 });
+
+test.describe("Teams Route - Compact Half Resolution", () => {
+	async function createSquad(label: string, { split }: { split: boolean }) {
+		const season = await prismaClient.season.findFirstOrThrow({
+			where: { isActive: true },
+		});
+		const title = `Resolve ${label} ${Date.now()}`;
+		const hinrunde = await prismaClient.team.create({
+			data: {
+				half: split ? "HINRUNDE" : null,
+				league: "Hin-Liga",
+				seasonId: season.id,
+				title,
+			},
+		});
+		const rueckrunde = split
+			? await prismaClient.team.create({
+					data: {
+						half: "RUECKRUNDE",
+						hinrundeTeamId: hinrunde.id,
+						league: "Rueck-Liga",
+						seasonId: season.id,
+						title,
+					},
+				})
+			: null;
+		return { hinrunde, rueckrunde, title };
+	}
+
+	test("teams index shows one row per split squad, with the Rückrunde badge", async ({
+		page,
+	}) => {
+		const { hinrunde, rueckrunde, title } = await createSquad("index", {
+			split: true,
+		});
+		await loginAs(page, "editor");
+		await page.goto("/teams");
+		await page.waitForLoadState("networkidle");
+
+		const links = page.locator(`a:visible`, { hasText: title });
+		await expect(links).toHaveCount(1);
+		await expect(links.first()).toHaveAttribute(
+			"href",
+			`/teams/${rueckrunde?.id}`,
+		);
+		await expect(
+			page.getByText("Rueck-Liga").filter({ visible: true }).first(),
+		).toBeVisible();
+		await expect(page.locator(`a[href="/teams/${hinrunde.id}"]`)).toHaveCount(
+			0,
+		);
+		await expect(
+			page
+				.locator("tr", { hasText: title })
+				.getByText("Rückrunde")
+				.filter({ visible: true }),
+		).toHaveCount(1);
+	});
+
+	test("an unpaired team shows no half badge", async ({ page }) => {
+		const { hinrunde, title } = await createSquad("plain", { split: false });
+		await loginAs(page, "editor");
+		await page.goto("/teams");
+		await page.waitForLoadState("networkidle");
+
+		const links = page.locator(`a[href="/teams/${hinrunde.id}"]:visible`);
+		await expect(links).toHaveCount(1);
+		const row = page.locator("tr", { hasText: title });
+		await expect(row.getByText("Hinrunde")).toHaveCount(0);
+		await expect(row.getByText("Rückrunde")).toHaveCount(0);
+	});
+});

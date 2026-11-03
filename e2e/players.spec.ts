@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { prismaClient } from "../src/lib/db";
 import { loginAs } from "./helpers";
 
 test.describe("Players Route - Access Control", () => {
@@ -203,5 +204,95 @@ test.describe("Players Route - Edit Functionality", () => {
 		} else {
 			test.skip();
 		}
+	});
+});
+
+test.describe("Players Route - Team Half Resolution", () => {
+	async function createSplitPlayer(
+		label: string,
+		{ onBoth }: { onBoth: boolean },
+	) {
+		const season = await prismaClient.season.findFirstOrThrow({
+			where: { isActive: true },
+		});
+		const title = `PHalf ${label} ${Date.now()}`;
+		const hinrunde = await prismaClient.team.create({
+			data: {
+				half: "HINRUNDE",
+				league: "Hin-Liga",
+				seasonId: season.id,
+				title,
+			},
+		});
+		const rueckrunde = await prismaClient.team.create({
+			data: {
+				half: "RUECKRUNDE",
+				hinrundeTeamId: hinrunde.id,
+				league: "Rueck-Liga",
+				seasonId: season.id,
+				title,
+			},
+		});
+		const player = await prismaClient.player.create({
+			data: { name: `PHalf Player ${title}`, qttr: 1000, year: 2012 },
+		});
+		await prismaClient.teamPlayer.create({
+			data: { playerId: player.id, seasonId: season.id, teamId: hinrunde.id },
+		});
+		if (onBoth) {
+			await prismaClient.teamPlayer.create({
+				data: {
+					playerId: player.id,
+					seasonId: season.id,
+					teamId: rueckrunde.id,
+				},
+			});
+		}
+		return { hinrunde, player, rueckrunde };
+	}
+
+	test("rostered on both halves: list and detail show the Rückrunde only", async ({
+		page,
+	}) => {
+		const { hinrunde, player, rueckrunde } = await createSplitPlayer("both", {
+			onBoth: true,
+		});
+		await loginAs(page, "editor");
+		await page.goto("/players");
+		await page.waitForLoadState("networkidle");
+		const row = page.locator("tr", { hasText: player.name });
+		await expect(
+			row.locator(`a[href="/teams/${rueckrunde.id}"]:visible`),
+		).toHaveCount(1);
+		await expect(row.locator(`a[href="/teams/${hinrunde.id}"]`)).toHaveCount(0);
+		await expect(
+			row.getByText("Rückrunde").filter({ visible: true }),
+		).toHaveCount(1);
+
+		await page.goto(`/players/${player.id}`);
+		await page.waitForLoadState("networkidle");
+		await expect(
+			page.locator(`a[href="/teams/${rueckrunde.id}"]:visible`),
+		).toHaveCount(1);
+		await expect(page.locator(`a[href="/teams/${hinrunde.id}"]`)).toHaveCount(
+			0,
+		);
+	});
+
+	test("rostered only on the Hinrunde: shows the Hinrunde half", async ({
+		page,
+	}) => {
+		const { hinrunde, player } = await createSplitPlayer("hin", {
+			onBoth: false,
+		});
+		await loginAs(page, "editor");
+		await page.goto(`/players/${player.id}`);
+		await page.waitForLoadState("networkidle");
+		await expect(
+			page.locator(`a[href="/teams/${hinrunde.id}"]:visible`),
+		).toHaveCount(1);
+		await expect(
+			page.getByText("Hinrunde").filter({ visible: true }),
+		).toHaveCount(1);
 	});
 });
