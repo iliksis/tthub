@@ -220,40 +220,59 @@ test.describe("Teams Route - Team Halves", () => {
 	test("halves keep independent rosters and link to each other", async ({
 		page,
 	}) => {
-		const { team, season, player } = await createSplitFixture("roster");
+		const { team, player } = await createSplitFixture("roster");
 		await loginAs(page, "editor");
 		await page.goto(`/teams/${team.id}`);
 		await page.waitForLoadState("networkidle");
 		await page.getByRole("button", { name: "Rückrunde erstellen" }).click();
 		await page.waitForURL((url) => !url.pathname.endsWith(team.id));
-
-		const rueckrunde = await prismaClient.team.findFirstOrThrow({
-			where: { hinrundeTeamId: team.id },
-		});
-		expect(rueckrunde.half).toBe("RUECKRUNDE");
-
-		// The same player may hold a membership on each half in one season.
-		await prismaClient.teamPlayer.create({
-			data: {
-				playerId: player.id,
-				seasonId: season.id,
-				teamId: rueckrunde.id,
-			},
-		});
-		await prismaClient.team.update({
-			data: { league: "Rück-Liga" },
-			where: { id: rueckrunde.id },
-		});
-
-		await page.goto(`/teams/${rueckrunde.id}`);
 		await page.waitForLoadState("networkidle");
-		await expect(page.getByText("Rück-Liga").first()).toBeVisible();
-		await expect(page.getByText("Hin-Liga")).toHaveCount(0);
-		await page.getByRole("link", { name: "Zur Hinrunde" }).click();
+		const rueckrundeUrl = page.url();
 
+		// Edit the Rückrunde through the form: league plus the same player
+		// the Hinrunde already has rostered.
+		await page.getByRole("button", { name: "Team aktualisieren" }).click();
+		const dialog = page.getByRole("dialog");
+		await dialog.locator("#league").fill("Rück-Liga");
+		await dialog.getByRole("combobox").click();
+		await page.getByRole("option", { name: player.name }).click();
+		await dialog.getByRole("button", { name: "Aktualisieren" }).click();
+		await expect(page.getByText("Kader aktualisiert")).toBeVisible();
+		await dialog.getByRole("button", { name: "Schließen" }).click();
+		await expect(dialog).toBeHidden();
+
+		await expect(page.getByText("Rück-Liga").first()).toBeVisible();
+		await expect(page.getByText(player.name)).toBeVisible();
+		await expect(page.getByText("Hin-Liga")).toHaveCount(0);
+
+		// The Hinrunde keeps its own league and its own membership.
+		await page.getByRole("link", { name: "Zur Hinrunde" }).click();
 		await expect(page).toHaveURL(`/teams/${team.id}`);
 		await expect(page.getByText("Hin-Liga").first()).toBeVisible();
 		await expect(page.getByText("Rück-Liga")).toHaveCount(0);
+		await expect(page.getByText(player.name)).toBeVisible();
+
+		// Removing the player from the Hinrunde leaves the Rückrunde roster alone.
+		await page.getByRole("button", { name: "Team aktualisieren" }).click();
+		await page
+			.getByRole("dialog")
+			.getByRole("button", { name: "Aus dem Kader entfernen" })
+			.click();
+		await page
+			.getByRole("dialog")
+			.getByRole("button", { name: "Aktualisieren" })
+			.click();
+		await expect(page.getByText("Kader aktualisiert")).toBeVisible();
+		await page
+			.getByRole("dialog")
+			.getByRole("button", { name: "Schließen" })
+			.click();
+		await expect(page.getByRole("dialog")).toBeHidden();
+		await expect(page.getByText(player.name)).toHaveCount(0);
+
+		await page.goto(rueckrundeUrl);
+		await page.waitForLoadState("networkidle");
+		await expect(page.getByText(player.name)).toBeVisible();
 	});
 
 	test("the same player cannot be rostered twice on one team row", async () => {
