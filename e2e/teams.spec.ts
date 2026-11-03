@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { prismaClient } from "../src/lib/db";
 import { loginAs } from "./helpers";
 
@@ -275,12 +275,51 @@ test.describe("Teams Route - Team Halves", () => {
 		await expect(page.getByText(player.name)).toBeVisible();
 	});
 
-	test("the same player cannot be rostered twice on one team row", async () => {
-		const { team, season, player } = await createSplitFixture("dupe");
+	test("the same player cannot be rostered twice on one team row", async ({
+		context,
+	}) => {
+		const { team } = await createSplitFixture("dupe");
+		const player = await prismaClient.player.create({
+			data: {
+				gender: "FEMALE",
+				name: `Dupe Player ${team.id}`,
+				qttr: 900,
+				year: 2012,
+			},
+		});
+
+		// Two editors open the same team's form before either saves, so both
+		// still offer the player as available.
+		const pageA = await context.newPage();
+		const pageB = await context.newPage();
+		const addToRoster = async (page: Page) => {
+			await page.getByRole("button", { name: "Team aktualisieren" }).click();
+			const dialog = page.getByRole("dialog");
+			await dialog.getByRole("combobox").click();
+			await page.getByRole("option", { name: player.name }).click();
+			return dialog;
+		};
+		await loginAs(pageA, "editor");
+		for (const page of [pageA, pageB]) {
+			await page.goto(`/teams/${team.id}`);
+			await page.waitForLoadState("networkidle");
+		}
+		const dialogA = await addToRoster(pageA);
+		const dialogB = await addToRoster(pageB);
+
+		await dialogA.getByRole("button", { name: "Aktualisieren" }).click();
+		await expect(pageA.getByText("Kader aktualisiert")).toBeVisible();
+
+		await dialogB.getByRole("button", { name: "Aktualisieren" }).click();
 		await expect(
-			prismaClient.teamPlayer.create({
-				data: { playerId: player.id, seasonId: season.id, teamId: team.id },
-			}),
-		).rejects.toMatchObject({ code: "P2002" });
+			pageB.getByText(
+				"Spieler:in ist dieser Saison bereits einem Team zugeordnet",
+			),
+		).toBeVisible();
+
+		const memberships = await prismaClient.teamPlayer.count({
+			where: { playerId: player.id, teamId: team.id },
+		});
+		expect(memberships).toBe(1);
 	});
 });
