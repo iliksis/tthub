@@ -37,6 +37,7 @@
     "@prisma/adapter-better-sqlite3": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/charts": "^1.2.1",
     "@tanstack/match-sorter-utils": "8.19.4",
     "@tanstack/nitro-v2-vite-plugin": "^1.155.0",
     "@tanstack/react-devtools": "0.8.4",
