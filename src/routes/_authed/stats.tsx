@@ -1,6 +1,7 @@
-import { barY, colorLegend, defineChart, lineY, stack } from "@tanstack/charts";
+import { colorLegend, defineChart, lineY } from "@tanstack/charts";
+import { sunburst } from "@tanstack/charts/hierarchy/sunburst";
+import { polar } from "@tanstack/charts/polar";
 import { Chart } from "@tanstack/charts/react";
-import { scaleBand } from "@tanstack/charts/scales/band";
 import { scaleLinear } from "@tanstack/charts/scales/linear";
 import { scaleOrdinal } from "@tanstack/charts/scales/ordinal";
 import { scalePoint } from "@tanstack/charts/scales/point";
@@ -279,50 +280,79 @@ const ROSTER_SERIES = [
 	},
 ] as const;
 
+// Inner ring: players per age group. Outer ring: that group's gender split.
+// Both rings share one hierarchy (all/<age group>/<gender>), so a sector's
+// angle is its player count and the outer sectors always add up to the inner.
+const AGE_GROUP_COLORS = [
+	"hsl(var(--chart-1))",
+	"hsl(var(--chart-2))",
+	"hsl(var(--chart-3))",
+	"hsl(var(--chart-4))",
+	"hsl(var(--chart-5))",
+];
+
 function RosterBreakdownChart({ rows }: { rows: RosterBreakdownRow[] }) {
 	const definition = useMemo(() => {
-		const points = rows.flatMap((row) =>
+		const leaves = rows.flatMap((row) =>
 			ROSTER_SERIES.map((series) => ({
-				ageGroup: row.ageGroup,
-				count: row[series.key],
-				gender: series.label(),
+				path: `all/${row.ageGroup}/${series.label()}`,
+				value: row[series.key],
 			})),
 		);
-		const labels = ROSTER_SERIES.map((series) => series.label());
+		const ageGroups = rows.map((row) => row.ageGroup);
+		const genderColors = new Map<string, string>(
+			ROSTER_SERIES.map((series) => [series.label(), series.color]),
+		);
 
 		return defineChart({
-			color: {
-				legend: colorLegend(),
-				scale: () =>
-					scaleOrdinal<string, string>()
-						.domain(labels)
-						.range(ROSTER_SERIES.map((series) => series.color)),
-			},
 			focus: "group-x",
 			marks: [
-				barY(points, {
-					color: "gender",
-					layout: stack({ order: labels }),
-					x: "ageGroup",
-					y: "count",
+				polar({
+					endAngle: Math.PI / 2 - Math.PI * 2,
+					marks: [
+						sunburst(leaves, {
+							fill: (node) =>
+								node.depth === 1
+									? AGE_GROUP_COLORS[
+											ageGroups.indexOf(node.name) % AGE_GROUP_COLORS.length
+										]
+									: (genderColors.get(node.name) ?? "currentColor"),
+							innerRadius: ({ radius }) => radius * 0.2,
+							path: "path",
+							ringPadding: 2,
+							stroke: "var(--color-background)",
+							value: "value",
+						}),
+					],
+					scales: { angle: null, radius: null },
+					startAngle: Math.PI / 2,
 				}),
 			],
-			maxFocusDistance: Number.POSITIVE_INFINITY,
-			scales: {
-				x: { scale: () => scaleBand<string>().padding(0.3) },
-				y: { grid: true, nice: true, scale: scaleLinear },
-			},
+			scales: { x: null, y: null },
 			tooltip,
 		});
 	}, [rows]);
 
 	return (
-		<Chart
-			definition={definition}
-			className="[--ts-chart-tooltip-background:var(--color-popover)] [--ts-chart-tooltip-border:1px_solid_var(--color-border)] [--ts-chart-tooltip-color:var(--color-popover-foreground)]"
-			height={240}
-			ariaLabel={m.stats_roster_breakdown()}
-		/>
+		<div className="flex flex-col items-center gap-2">
+			<Chart
+				definition={definition}
+				className="w-full [--ts-chart-tooltip-background:var(--color-popover)] [--ts-chart-tooltip-border:1px_solid_var(--color-border)] [--ts-chart-tooltip-color:var(--color-popover-foreground)]"
+				height={280}
+				ariaLabel={m.stats_roster_breakdown()}
+			/>
+			<ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-muted-foreground text-xs">
+				{ROSTER_SERIES.map((series) => (
+					<li key={series.key} className="flex items-center gap-1.5">
+						<span
+							className="size-2.5 rounded-full"
+							style={{ background: series.color }}
+						/>
+						{series.label()}
+					</li>
+				))}
+			</ul>
+		</div>
 	);
 }
 
