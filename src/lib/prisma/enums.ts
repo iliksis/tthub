@@ -52,6 +52,14 @@ export const Gender = {
 export type Gender = (typeof Gender)[keyof typeof Gender]
 
 
+export const TeamHalf = {
+  HINRUNDE: 'HINRUNDE',
+  RUECKRUNDE: 'RUECKRUNDE'
+} as const
+
+export type TeamHalf = (typeof TeamHalf)[keyof typeof TeamHalf]
+
+
 export const TransactionType = {
   CREATE: 'CREATE',
   UPDATE: 'UPDATE',

@@ -256,6 +256,23 @@ export type EnumGenderNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumGenderNullableFilter<$PrismaModel>
 }
 
+export type EnumTeamHalfNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.TeamHalf | Prisma.EnumTeamHalfFieldRefInput<$PrismaModel> | null
+  in?: $Enums.TeamHalf[] | null
+  notIn?: $Enums.TeamHalf[] | null
+  not?: Prisma.NestedEnumTeamHalfNullableFilter<$PrismaModel> | $Enums.TeamHalf | null
+}
+
+export type EnumTeamHalfNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TeamHalf | Prisma.EnumTeamHalfFieldRefInput<$PrismaModel> | null
+  in?: $Enums.TeamHalf[] | null
+  notIn?: $Enums.TeamHalf[] | null
+  not?: Prisma.NestedEnumTeamHalfNullableWithAggregatesFilter<$PrismaModel> | $Enums.TeamHalf | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTeamHalfNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTeamHalfNullableFilter<$PrismaModel>
+}
+
 export type EnumTransactionTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.TransactionType | Prisma.EnumTransactionTypeFieldRefInput<$PrismaModel>
   in?: $Enums.TransactionType[]
@@ -571,6 +588,23 @@ export type NestedEnumGenderNullableWithAggregatesFilter<$PrismaModel = never> =
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumGenderNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumGenderNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumTeamHalfNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.TeamHalf | Prisma.EnumTeamHalfFieldRefInput<$PrismaModel> | null
+  in?: $Enums.TeamHalf[] | null
+  notIn?: $Enums.TeamHalf[] | null
+  not?: Prisma.NestedEnumTeamHalfNullableFilter<$PrismaModel> | $Enums.TeamHalf | null
+}
+
+export type NestedEnumTeamHalfNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TeamHalf | Prisma.EnumTeamHalfFieldRefInput<$PrismaModel> | null
+  in?: $Enums.TeamHalf[] | null
+  notIn?: $Enums.TeamHalf[] | null
+  not?: Prisma.NestedEnumTeamHalfNullableWithAggregatesFilter<$PrismaModel> | $Enums.TeamHalf | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTeamHalfNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTeamHalfNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumTransactionTypeFilter<$PrismaModel = never> = {

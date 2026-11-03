@@ -4,12 +4,13 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { EditIcon, Trash2Icon } from "lucide-react";
+import { EditIcon, SplitIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { getPlayers } from "@/api/players";
 import {
 	applyRosterChanges,
+	createRueckrundeTeam,
 	deleteTeam,
 	getTeam,
 	updateTeam,
@@ -117,6 +118,20 @@ function RouteComponent() {
 	const deleteTeamServerFn = useServerFn(deleteTeam);
 	const applyRosterChangesServerFn = useServerFn(applyRosterChanges);
 
+	const createRueckrundeMutation = useMutation({
+		fn: createRueckrundeTeam,
+		onError: (err) => {
+			toast.error(err.message);
+		},
+		onSuccess: async (ctx) => {
+			toast.success(ctx.data.message);
+			await router.navigate({
+				params: { teamId: ctx.data.data.id },
+				to: "/teams/$teamId",
+			});
+		},
+	});
+
 	const updateTeamMutation = useMutation({
 		fn: updateTeam,
 		onError: (err) => {
@@ -164,7 +179,14 @@ function RouteComponent() {
 	const upcomingMatches = team.appointments.filter(
 		(a) => new Date(a.startDate).getTime() >= Date.now(),
 	);
-	const availablePlayers = players.filter((p) => p.teams.length === 0);
+	const pairedTeam = team.rueckrundeTeam ?? team.hinrundeTeam;
+	// A player on the paired half is still free for this one; being on any
+	// other team of the season is not.
+	const availablePlayers = players.filter((p) =>
+		p.teams.every((t) => t.teamId === pairedTeam?.id),
+	);
+	const canCreateRueckrunde =
+		team.half !== "RUECKRUNDE" && !team.rueckrundeTeam;
 
 	return (
 		<div>
@@ -175,8 +197,36 @@ function RouteComponent() {
 				<span className="text-muted-foreground text-sm">{team.league}</span>
 				{team.placement && <Badge variant="default">{team.placement}</Badge>}
 				<Badge variant="secondary">{team.season.name}</Badge>
+				{team.half && (
+					<Badge variant="outline">
+						{team.half === "HINRUNDE"
+							? m.teams_hinrunde()
+							: m.teams_rueckrunde()}
+					</Badge>
+				)}
+				{pairedTeam && (
+					<Link to="/teams/$teamId" params={{ teamId: pairedTeam.id }}>
+						{team.rueckrundeTeam
+							? m.teams_go_to_rueckrunde()
+							: m.teams_go_to_hinrunde()}
+					</Link>
+				)}
 				{canEdit && (
 					<div className="ml-auto flex gap-2">
+						{canCreateRueckrunde && (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() =>
+									createRueckrundeMutation.mutate({
+										data: { hinrundeTeamId: team.id },
+									})
+								}
+							>
+								<SplitIcon className="size-4" />
+								{m.teams_create_rueckrunde()}
+							</Button>
+						)}
 						<Button variant="outline" size="sm" onClick={onEdit}>
 							<EditIcon className="size-4" />
 							{m.teams_update_team()}

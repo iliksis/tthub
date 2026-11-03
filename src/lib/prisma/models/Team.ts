@@ -32,6 +32,8 @@ export type TeamMinAggregateOutputType = {
   placement: string | null
   clickTTGroupId: string | null
   seasonId: string | null
+  half: $Enums.TeamHalf | null
+  hinrundeTeamId: string | null
 }
 
 export type TeamMaxAggregateOutputType = {
@@ -42,6 +44,8 @@ export type TeamMaxAggregateOutputType = {
   placement: string | null
   clickTTGroupId: string | null
   seasonId: string | null
+  half: $Enums.TeamHalf | null
+  hinrundeTeamId: string | null
 }
 
 export type TeamCountAggregateOutputType = {
@@ -52,6 +56,8 @@ export type TeamCountAggregateOutputType = {
   placement: number
   clickTTGroupId: number
   seasonId: number
+  half: number
+  hinrundeTeamId: number
   _all: number
 }
 
@@ -64,6 +70,8 @@ export type TeamMinAggregateInputType = {
   placement?: true
   clickTTGroupId?: true
   seasonId?: true
+  half?: true
+  hinrundeTeamId?: true
 }
 
 export type TeamMaxAggregateInputType = {
@@ -74,6 +82,8 @@ export type TeamMaxAggregateInputType = {
   placement?: true
   clickTTGroupId?: true
   seasonId?: true
+  half?: true
+  hinrundeTeamId?: true
 }
 
 export type TeamCountAggregateInputType = {
@@ -84,6 +94,8 @@ export type TeamCountAggregateInputType = {
   placement?: true
   clickTTGroupId?: true
   seasonId?: true
+  half?: true
+  hinrundeTeamId?: true
   _all?: true
 }
 
@@ -167,6 +179,8 @@ export type TeamGroupByOutputType = {
   placement: string | null
   clickTTGroupId: string | null
   seasonId: string
+  half: $Enums.TeamHalf | null
+  hinrundeTeamId: string | null
   _count: TeamCountAggregateOutputType | null
   _min: TeamMinAggregateOutputType | null
   _max: TeamMaxAggregateOutputType | null
@@ -198,10 +212,14 @@ export type TeamWhereInput = {
   placement?: Prisma.StringNullableFilter<"Team"> | string | null
   clickTTGroupId?: Prisma.StringNullableFilter<"Team"> | string | null
   seasonId?: Prisma.StringFilter<"Team"> | string
+  half?: Prisma.EnumTeamHalfNullableFilter<"Team"> | $Enums.TeamHalf | null
+  hinrundeTeamId?: Prisma.StringNullableFilter<"Team"> | string | null
   season?: Prisma.XOR<Prisma.SeasonScalarRelationFilter, Prisma.SeasonWhereInput>
   players?: Prisma.TeamPlayerListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
   standings?: Prisma.StandingListRelationFilter
+  hinrundeTeam?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
+  rueckrundeTeam?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
 }
 
 export type TeamOrderByWithRelationInput = {
@@ -212,14 +230,19 @@ export type TeamOrderByWithRelationInput = {
   placement?: Prisma.SortOrderInput | Prisma.SortOrder
   clickTTGroupId?: Prisma.SortOrderInput | Prisma.SortOrder
   seasonId?: Prisma.SortOrder
+  half?: Prisma.SortOrderInput | Prisma.SortOrder
+  hinrundeTeamId?: Prisma.SortOrderInput | Prisma.SortOrder
   season?: Prisma.SeasonOrderByWithRelationInput
   players?: Prisma.TeamPlayerOrderByRelationAggregateInput
   appointments?: Prisma.AppointmentOrderByRelationAggregateInput
   standings?: Prisma.StandingOrderByRelationAggregateInput
+  hinrundeTeam?: Prisma.TeamOrderByWithRelationInput
+  rueckrundeTeam?: Prisma.TeamOrderByWithRelationInput
 }
 
 export type TeamWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  hinrundeTeamId?: string
   clickTTGroupId_seasonId?: Prisma.TeamClickTTGroupIdSeasonIdCompoundUniqueInput
   AND?: Prisma.TeamWhereInput | Prisma.TeamWhereInput[]
   OR?: Prisma.TeamWhereInput[]
@@ -230,11 +253,14 @@ export type TeamWhereUniqueInput = Prisma.AtLeast<{
   placement?: Prisma.StringNullableFilter<"Team"> | string | null
   clickTTGroupId?: Prisma.StringNullableFilter<"Team"> | string | null
   seasonId?: Prisma.StringFilter<"Team"> | string
+  half?: Prisma.EnumTeamHalfNullableFilter<"Team"> | $Enums.TeamHalf | null
   season?: Prisma.XOR<Prisma.SeasonScalarRelationFilter, Prisma.SeasonWhereInput>
   players?: Prisma.TeamPlayerListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
   standings?: Prisma.StandingListRelationFilter
-}, "id" | "clickTTGroupId_seasonId">
+  hinrundeTeam?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
+  rueckrundeTeam?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
+}, "id" | "hinrundeTeamId" | "clickTTGroupId_seasonId">
 
 export type TeamOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -244,6 +270,8 @@ export type TeamOrderByWithAggregationInput = {
   placement?: Prisma.SortOrderInput | Prisma.SortOrder
   clickTTGroupId?: Prisma.SortOrderInput | Prisma.SortOrder
   seasonId?: Prisma.SortOrder
+  half?: Prisma.SortOrderInput | Prisma.SortOrder
+  hinrundeTeamId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.TeamCountOrderByAggregateInput
   _max?: Prisma.TeamMaxOrderByAggregateInput
   _min?: Prisma.TeamMinOrderByAggregateInput
@@ -260,6 +288,8 @@ export type TeamScalarWhereWithAggregatesInput = {
   placement?: Prisma.StringNullableWithAggregatesFilter<"Team"> | string | null
   clickTTGroupId?: Prisma.StringNullableWithAggregatesFilter<"Team"> | string | null
   seasonId?: Prisma.StringWithAggregatesFilter<"Team"> | string
+  half?: Prisma.EnumTeamHalfNullableWithAggregatesFilter<"Team"> | $Enums.TeamHalf | null
+  hinrundeTeamId?: Prisma.StringNullableWithAggregatesFilter<"Team"> | string | null
 }
 
 export type TeamCreateInput = {
@@ -269,10 +299,13 @@ export type TeamCreateInput = {
   league?: string | null
   placement?: string | null
   clickTTGroupId?: string | null
+  half?: $Enums.TeamHalf | null
   season: Prisma.SeasonCreateNestedOneWithoutTeamsInput
   players?: Prisma.TeamPlayerCreateNestedManyWithoutTeamInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutOwnTeamInput
   standings?: Prisma.StandingCreateNestedManyWithoutTeamInput
+  hinrundeTeam?: Prisma.TeamCreateNestedOneWithoutRueckrundeTeamInput
+  rueckrundeTeam?: Prisma.TeamCreateNestedOneWithoutHinrundeTeamInput
 }
 
 export type TeamUncheckedCreateInput = {
@@ -283,9 +316,12 @@ export type TeamUncheckedCreateInput = {
   placement?: string | null
   clickTTGroupId?: string | null
   seasonId: string
+  half?: $Enums.TeamHalf | null
+  hinrundeTeamId?: string | null
   players?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutTeamInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOwnTeamInput
   standings?: Prisma.StandingUncheckedCreateNestedManyWithoutTeamInput
+  rueckrundeTeam?: Prisma.TeamUncheckedCreateNestedOneWithoutHinrundeTeamInput
 }
 
 export type TeamUpdateInput = {
@@ -295,10 +331,13 @@ export type TeamUpdateInput = {
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
   season?: Prisma.SeasonUpdateOneRequiredWithoutTeamsNestedInput
   players?: Prisma.TeamPlayerUpdateManyWithoutTeamNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutOwnTeamNestedInput
   standings?: Prisma.StandingUpdateManyWithoutTeamNestedInput
+  hinrundeTeam?: Prisma.TeamUpdateOneWithoutRueckrundeTeamNestedInput
+  rueckrundeTeam?: Prisma.TeamUpdateOneWithoutHinrundeTeamNestedInput
 }
 
 export type TeamUncheckedUpdateInput = {
@@ -309,9 +348,12 @@ export type TeamUncheckedUpdateInput = {
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seasonId?: Prisma.StringFieldUpdateOperationsInput | string
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
+  hinrundeTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   players?: Prisma.TeamPlayerUncheckedUpdateManyWithoutTeamNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOwnTeamNestedInput
   standings?: Prisma.StandingUncheckedUpdateManyWithoutTeamNestedInput
+  rueckrundeTeam?: Prisma.TeamUncheckedUpdateOneWithoutHinrundeTeamNestedInput
 }
 
 export type TeamCreateManyInput = {
@@ -322,6 +364,8 @@ export type TeamCreateManyInput = {
   placement?: string | null
   clickTTGroupId?: string | null
   seasonId: string
+  half?: $Enums.TeamHalf | null
+  hinrundeTeamId?: string | null
 }
 
 export type TeamUpdateManyMutationInput = {
@@ -331,6 +375,7 @@ export type TeamUpdateManyMutationInput = {
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
 }
 
 export type TeamUncheckedUpdateManyInput = {
@@ -341,6 +386,8 @@ export type TeamUncheckedUpdateManyInput = {
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seasonId?: Prisma.StringFieldUpdateOperationsInput | string
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
+  hinrundeTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type TeamNullableScalarRelationFilter = {
@@ -371,6 +418,8 @@ export type TeamCountOrderByAggregateInput = {
   placement?: Prisma.SortOrder
   clickTTGroupId?: Prisma.SortOrder
   seasonId?: Prisma.SortOrder
+  half?: Prisma.SortOrder
+  hinrundeTeamId?: Prisma.SortOrder
 }
 
 export type TeamMaxOrderByAggregateInput = {
@@ -381,6 +430,8 @@ export type TeamMaxOrderByAggregateInput = {
   placement?: Prisma.SortOrder
   clickTTGroupId?: Prisma.SortOrder
   seasonId?: Prisma.SortOrder
+  half?: Prisma.SortOrder
+  hinrundeTeamId?: Prisma.SortOrder
 }
 
 export type TeamMinOrderByAggregateInput = {
@@ -391,6 +442,8 @@ export type TeamMinOrderByAggregateInput = {
   placement?: Prisma.SortOrder
   clickTTGroupId?: Prisma.SortOrder
   seasonId?: Prisma.SortOrder
+  half?: Prisma.SortOrder
+  hinrundeTeamId?: Prisma.SortOrder
 }
 
 export type TeamScalarRelationFilter = {
@@ -456,6 +509,58 @@ export type TeamUncheckedUpdateManyWithoutSeasonNestedInput = {
   deleteMany?: Prisma.TeamScalarWhereInput | Prisma.TeamScalarWhereInput[]
 }
 
+export type TeamCreateNestedOneWithoutRueckrundeTeamInput = {
+  create?: Prisma.XOR<Prisma.TeamCreateWithoutRueckrundeTeamInput, Prisma.TeamUncheckedCreateWithoutRueckrundeTeamInput>
+  connectOrCreate?: Prisma.TeamCreateOrConnectWithoutRueckrundeTeamInput
+  connect?: Prisma.TeamWhereUniqueInput
+}
+
+export type TeamCreateNestedOneWithoutHinrundeTeamInput = {
+  create?: Prisma.XOR<Prisma.TeamCreateWithoutHinrundeTeamInput, Prisma.TeamUncheckedCreateWithoutHinrundeTeamInput>
+  connectOrCreate?: Prisma.TeamCreateOrConnectWithoutHinrundeTeamInput
+  connect?: Prisma.TeamWhereUniqueInput
+}
+
+export type TeamUncheckedCreateNestedOneWithoutHinrundeTeamInput = {
+  create?: Prisma.XOR<Prisma.TeamCreateWithoutHinrundeTeamInput, Prisma.TeamUncheckedCreateWithoutHinrundeTeamInput>
+  connectOrCreate?: Prisma.TeamCreateOrConnectWithoutHinrundeTeamInput
+  connect?: Prisma.TeamWhereUniqueInput
+}
+
+export type NullableEnumTeamHalfFieldUpdateOperationsInput = {
+  set?: $Enums.TeamHalf | null
+}
+
+export type TeamUpdateOneWithoutRueckrundeTeamNestedInput = {
+  create?: Prisma.XOR<Prisma.TeamCreateWithoutRueckrundeTeamInput, Prisma.TeamUncheckedCreateWithoutRueckrundeTeamInput>
+  connectOrCreate?: Prisma.TeamCreateOrConnectWithoutRueckrundeTeamInput
+  upsert?: Prisma.TeamUpsertWithoutRueckrundeTeamInput
+  disconnect?: Prisma.TeamWhereInput | boolean
+  delete?: Prisma.TeamWhereInput | boolean
+  connect?: Prisma.TeamWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TeamUpdateToOneWithWhereWithoutRueckrundeTeamInput, Prisma.TeamUpdateWithoutRueckrundeTeamInput>, Prisma.TeamUncheckedUpdateWithoutRueckrundeTeamInput>
+}
+
+export type TeamUpdateOneWithoutHinrundeTeamNestedInput = {
+  create?: Prisma.XOR<Prisma.TeamCreateWithoutHinrundeTeamInput, Prisma.TeamUncheckedCreateWithoutHinrundeTeamInput>
+  connectOrCreate?: Prisma.TeamCreateOrConnectWithoutHinrundeTeamInput
+  upsert?: Prisma.TeamUpsertWithoutHinrundeTeamInput
+  disconnect?: Prisma.TeamWhereInput | boolean
+  delete?: Prisma.TeamWhereInput | boolean
+  connect?: Prisma.TeamWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TeamUpdateToOneWithWhereWithoutHinrundeTeamInput, Prisma.TeamUpdateWithoutHinrundeTeamInput>, Prisma.TeamUncheckedUpdateWithoutHinrundeTeamInput>
+}
+
+export type TeamUncheckedUpdateOneWithoutHinrundeTeamNestedInput = {
+  create?: Prisma.XOR<Prisma.TeamCreateWithoutHinrundeTeamInput, Prisma.TeamUncheckedCreateWithoutHinrundeTeamInput>
+  connectOrCreate?: Prisma.TeamCreateOrConnectWithoutHinrundeTeamInput
+  upsert?: Prisma.TeamUpsertWithoutHinrundeTeamInput
+  disconnect?: Prisma.TeamWhereInput | boolean
+  delete?: Prisma.TeamWhereInput | boolean
+  connect?: Prisma.TeamWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TeamUpdateToOneWithWhereWithoutHinrundeTeamInput, Prisma.TeamUpdateWithoutHinrundeTeamInput>, Prisma.TeamUncheckedUpdateWithoutHinrundeTeamInput>
+}
+
 export type TeamCreateNestedOneWithoutPlayersInput = {
   create?: Prisma.XOR<Prisma.TeamCreateWithoutPlayersInput, Prisma.TeamUncheckedCreateWithoutPlayersInput>
   connectOrCreate?: Prisma.TeamCreateOrConnectWithoutPlayersInput
@@ -491,9 +596,12 @@ export type TeamCreateWithoutAppointmentsInput = {
   league?: string | null
   placement?: string | null
   clickTTGroupId?: string | null
+  half?: $Enums.TeamHalf | null
   season: Prisma.SeasonCreateNestedOneWithoutTeamsInput
   players?: Prisma.TeamPlayerCreateNestedManyWithoutTeamInput
   standings?: Prisma.StandingCreateNestedManyWithoutTeamInput
+  hinrundeTeam?: Prisma.TeamCreateNestedOneWithoutRueckrundeTeamInput
+  rueckrundeTeam?: Prisma.TeamCreateNestedOneWithoutHinrundeTeamInput
 }
 
 export type TeamUncheckedCreateWithoutAppointmentsInput = {
@@ -504,8 +612,11 @@ export type TeamUncheckedCreateWithoutAppointmentsInput = {
   placement?: string | null
   clickTTGroupId?: string | null
   seasonId: string
+  half?: $Enums.TeamHalf | null
+  hinrundeTeamId?: string | null
   players?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutTeamInput
   standings?: Prisma.StandingUncheckedCreateNestedManyWithoutTeamInput
+  rueckrundeTeam?: Prisma.TeamUncheckedCreateNestedOneWithoutHinrundeTeamInput
 }
 
 export type TeamCreateOrConnectWithoutAppointmentsInput = {
@@ -531,9 +642,12 @@ export type TeamUpdateWithoutAppointmentsInput = {
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
   season?: Prisma.SeasonUpdateOneRequiredWithoutTeamsNestedInput
   players?: Prisma.TeamPlayerUpdateManyWithoutTeamNestedInput
   standings?: Prisma.StandingUpdateManyWithoutTeamNestedInput
+  hinrundeTeam?: Prisma.TeamUpdateOneWithoutRueckrundeTeamNestedInput
+  rueckrundeTeam?: Prisma.TeamUpdateOneWithoutHinrundeTeamNestedInput
 }
 
 export type TeamUncheckedUpdateWithoutAppointmentsInput = {
@@ -544,8 +658,11 @@ export type TeamUncheckedUpdateWithoutAppointmentsInput = {
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seasonId?: Prisma.StringFieldUpdateOperationsInput | string
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
+  hinrundeTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   players?: Prisma.TeamPlayerUncheckedUpdateManyWithoutTeamNestedInput
   standings?: Prisma.StandingUncheckedUpdateManyWithoutTeamNestedInput
+  rueckrundeTeam?: Prisma.TeamUncheckedUpdateOneWithoutHinrundeTeamNestedInput
 }
 
 export type TeamCreateWithoutSeasonInput = {
@@ -555,9 +672,12 @@ export type TeamCreateWithoutSeasonInput = {
   league?: string | null
   placement?: string | null
   clickTTGroupId?: string | null
+  half?: $Enums.TeamHalf | null
   players?: Prisma.TeamPlayerCreateNestedManyWithoutTeamInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutOwnTeamInput
   standings?: Prisma.StandingCreateNestedManyWithoutTeamInput
+  hinrundeTeam?: Prisma.TeamCreateNestedOneWithoutRueckrundeTeamInput
+  rueckrundeTeam?: Prisma.TeamCreateNestedOneWithoutHinrundeTeamInput
 }
 
 export type TeamUncheckedCreateWithoutSeasonInput = {
@@ -567,9 +687,12 @@ export type TeamUncheckedCreateWithoutSeasonInput = {
   league?: string | null
   placement?: string | null
   clickTTGroupId?: string | null
+  half?: $Enums.TeamHalf | null
+  hinrundeTeamId?: string | null
   players?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutTeamInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOwnTeamInput
   standings?: Prisma.StandingUncheckedCreateNestedManyWithoutTeamInput
+  rueckrundeTeam?: Prisma.TeamUncheckedCreateNestedOneWithoutHinrundeTeamInput
 }
 
 export type TeamCreateOrConnectWithoutSeasonInput = {
@@ -608,6 +731,160 @@ export type TeamScalarWhereInput = {
   placement?: Prisma.StringNullableFilter<"Team"> | string | null
   clickTTGroupId?: Prisma.StringNullableFilter<"Team"> | string | null
   seasonId?: Prisma.StringFilter<"Team"> | string
+  half?: Prisma.EnumTeamHalfNullableFilter<"Team"> | $Enums.TeamHalf | null
+  hinrundeTeamId?: Prisma.StringNullableFilter<"Team"> | string | null
+}
+
+export type TeamCreateWithoutRueckrundeTeamInput = {
+  id?: string
+  createdAt?: Date | string
+  title: string
+  league?: string | null
+  placement?: string | null
+  clickTTGroupId?: string | null
+  half?: $Enums.TeamHalf | null
+  season: Prisma.SeasonCreateNestedOneWithoutTeamsInput
+  players?: Prisma.TeamPlayerCreateNestedManyWithoutTeamInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutOwnTeamInput
+  standings?: Prisma.StandingCreateNestedManyWithoutTeamInput
+  hinrundeTeam?: Prisma.TeamCreateNestedOneWithoutRueckrundeTeamInput
+}
+
+export type TeamUncheckedCreateWithoutRueckrundeTeamInput = {
+  id?: string
+  createdAt?: Date | string
+  title: string
+  league?: string | null
+  placement?: string | null
+  clickTTGroupId?: string | null
+  seasonId: string
+  half?: $Enums.TeamHalf | null
+  hinrundeTeamId?: string | null
+  players?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutTeamInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOwnTeamInput
+  standings?: Prisma.StandingUncheckedCreateNestedManyWithoutTeamInput
+}
+
+export type TeamCreateOrConnectWithoutRueckrundeTeamInput = {
+  where: Prisma.TeamWhereUniqueInput
+  create: Prisma.XOR<Prisma.TeamCreateWithoutRueckrundeTeamInput, Prisma.TeamUncheckedCreateWithoutRueckrundeTeamInput>
+}
+
+export type TeamCreateWithoutHinrundeTeamInput = {
+  id?: string
+  createdAt?: Date | string
+  title: string
+  league?: string | null
+  placement?: string | null
+  clickTTGroupId?: string | null
+  half?: $Enums.TeamHalf | null
+  season: Prisma.SeasonCreateNestedOneWithoutTeamsInput
+  players?: Prisma.TeamPlayerCreateNestedManyWithoutTeamInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutOwnTeamInput
+  standings?: Prisma.StandingCreateNestedManyWithoutTeamInput
+  rueckrundeTeam?: Prisma.TeamCreateNestedOneWithoutHinrundeTeamInput
+}
+
+export type TeamUncheckedCreateWithoutHinrundeTeamInput = {
+  id?: string
+  createdAt?: Date | string
+  title: string
+  league?: string | null
+  placement?: string | null
+  clickTTGroupId?: string | null
+  seasonId: string
+  half?: $Enums.TeamHalf | null
+  players?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutTeamInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOwnTeamInput
+  standings?: Prisma.StandingUncheckedCreateNestedManyWithoutTeamInput
+  rueckrundeTeam?: Prisma.TeamUncheckedCreateNestedOneWithoutHinrundeTeamInput
+}
+
+export type TeamCreateOrConnectWithoutHinrundeTeamInput = {
+  where: Prisma.TeamWhereUniqueInput
+  create: Prisma.XOR<Prisma.TeamCreateWithoutHinrundeTeamInput, Prisma.TeamUncheckedCreateWithoutHinrundeTeamInput>
+}
+
+export type TeamUpsertWithoutRueckrundeTeamInput = {
+  update: Prisma.XOR<Prisma.TeamUpdateWithoutRueckrundeTeamInput, Prisma.TeamUncheckedUpdateWithoutRueckrundeTeamInput>
+  create: Prisma.XOR<Prisma.TeamCreateWithoutRueckrundeTeamInput, Prisma.TeamUncheckedCreateWithoutRueckrundeTeamInput>
+  where?: Prisma.TeamWhereInput
+}
+
+export type TeamUpdateToOneWithWhereWithoutRueckrundeTeamInput = {
+  where?: Prisma.TeamWhereInput
+  data: Prisma.XOR<Prisma.TeamUpdateWithoutRueckrundeTeamInput, Prisma.TeamUncheckedUpdateWithoutRueckrundeTeamInput>
+}
+
+export type TeamUpdateWithoutRueckrundeTeamInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
+  season?: Prisma.SeasonUpdateOneRequiredWithoutTeamsNestedInput
+  players?: Prisma.TeamPlayerUpdateManyWithoutTeamNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutOwnTeamNestedInput
+  standings?: Prisma.StandingUpdateManyWithoutTeamNestedInput
+  hinrundeTeam?: Prisma.TeamUpdateOneWithoutRueckrundeTeamNestedInput
+}
+
+export type TeamUncheckedUpdateWithoutRueckrundeTeamInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seasonId?: Prisma.StringFieldUpdateOperationsInput | string
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
+  hinrundeTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  players?: Prisma.TeamPlayerUncheckedUpdateManyWithoutTeamNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOwnTeamNestedInput
+  standings?: Prisma.StandingUncheckedUpdateManyWithoutTeamNestedInput
+}
+
+export type TeamUpsertWithoutHinrundeTeamInput = {
+  update: Prisma.XOR<Prisma.TeamUpdateWithoutHinrundeTeamInput, Prisma.TeamUncheckedUpdateWithoutHinrundeTeamInput>
+  create: Prisma.XOR<Prisma.TeamCreateWithoutHinrundeTeamInput, Prisma.TeamUncheckedCreateWithoutHinrundeTeamInput>
+  where?: Prisma.TeamWhereInput
+}
+
+export type TeamUpdateToOneWithWhereWithoutHinrundeTeamInput = {
+  where?: Prisma.TeamWhereInput
+  data: Prisma.XOR<Prisma.TeamUpdateWithoutHinrundeTeamInput, Prisma.TeamUncheckedUpdateWithoutHinrundeTeamInput>
+}
+
+export type TeamUpdateWithoutHinrundeTeamInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
+  season?: Prisma.SeasonUpdateOneRequiredWithoutTeamsNestedInput
+  players?: Prisma.TeamPlayerUpdateManyWithoutTeamNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutOwnTeamNestedInput
+  standings?: Prisma.StandingUpdateManyWithoutTeamNestedInput
+  rueckrundeTeam?: Prisma.TeamUpdateOneWithoutHinrundeTeamNestedInput
+}
+
+export type TeamUncheckedUpdateWithoutHinrundeTeamInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seasonId?: Prisma.StringFieldUpdateOperationsInput | string
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
+  players?: Prisma.TeamPlayerUncheckedUpdateManyWithoutTeamNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOwnTeamNestedInput
+  standings?: Prisma.StandingUncheckedUpdateManyWithoutTeamNestedInput
+  rueckrundeTeam?: Prisma.TeamUncheckedUpdateOneWithoutHinrundeTeamNestedInput
 }
 
 export type TeamCreateWithoutPlayersInput = {
@@ -617,9 +894,12 @@ export type TeamCreateWithoutPlayersInput = {
   league?: string | null
   placement?: string | null
   clickTTGroupId?: string | null
+  half?: $Enums.TeamHalf | null
   season: Prisma.SeasonCreateNestedOneWithoutTeamsInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutOwnTeamInput
   standings?: Prisma.StandingCreateNestedManyWithoutTeamInput
+  hinrundeTeam?: Prisma.TeamCreateNestedOneWithoutRueckrundeTeamInput
+  rueckrundeTeam?: Prisma.TeamCreateNestedOneWithoutHinrundeTeamInput
 }
 
 export type TeamUncheckedCreateWithoutPlayersInput = {
@@ -630,8 +910,11 @@ export type TeamUncheckedCreateWithoutPlayersInput = {
   placement?: string | null
   clickTTGroupId?: string | null
   seasonId: string
+  half?: $Enums.TeamHalf | null
+  hinrundeTeamId?: string | null
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOwnTeamInput
   standings?: Prisma.StandingUncheckedCreateNestedManyWithoutTeamInput
+  rueckrundeTeam?: Prisma.TeamUncheckedCreateNestedOneWithoutHinrundeTeamInput
 }
 
 export type TeamCreateOrConnectWithoutPlayersInput = {
@@ -657,9 +940,12 @@ export type TeamUpdateWithoutPlayersInput = {
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
   season?: Prisma.SeasonUpdateOneRequiredWithoutTeamsNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutOwnTeamNestedInput
   standings?: Prisma.StandingUpdateManyWithoutTeamNestedInput
+  hinrundeTeam?: Prisma.TeamUpdateOneWithoutRueckrundeTeamNestedInput
+  rueckrundeTeam?: Prisma.TeamUpdateOneWithoutHinrundeTeamNestedInput
 }
 
 export type TeamUncheckedUpdateWithoutPlayersInput = {
@@ -670,8 +956,11 @@ export type TeamUncheckedUpdateWithoutPlayersInput = {
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seasonId?: Prisma.StringFieldUpdateOperationsInput | string
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
+  hinrundeTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOwnTeamNestedInput
   standings?: Prisma.StandingUncheckedUpdateManyWithoutTeamNestedInput
+  rueckrundeTeam?: Prisma.TeamUncheckedUpdateOneWithoutHinrundeTeamNestedInput
 }
 
 export type TeamCreateWithoutStandingsInput = {
@@ -681,9 +970,12 @@ export type TeamCreateWithoutStandingsInput = {
   league?: string | null
   placement?: string | null
   clickTTGroupId?: string | null
+  half?: $Enums.TeamHalf | null
   season: Prisma.SeasonCreateNestedOneWithoutTeamsInput
   players?: Prisma.TeamPlayerCreateNestedManyWithoutTeamInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutOwnTeamInput
+  hinrundeTeam?: Prisma.TeamCreateNestedOneWithoutRueckrundeTeamInput
+  rueckrundeTeam?: Prisma.TeamCreateNestedOneWithoutHinrundeTeamInput
 }
 
 export type TeamUncheckedCreateWithoutStandingsInput = {
@@ -694,8 +986,11 @@ export type TeamUncheckedCreateWithoutStandingsInput = {
   placement?: string | null
   clickTTGroupId?: string | null
   seasonId: string
+  half?: $Enums.TeamHalf | null
+  hinrundeTeamId?: string | null
   players?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutTeamInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOwnTeamInput
+  rueckrundeTeam?: Prisma.TeamUncheckedCreateNestedOneWithoutHinrundeTeamInput
 }
 
 export type TeamCreateOrConnectWithoutStandingsInput = {
@@ -721,9 +1016,12 @@ export type TeamUpdateWithoutStandingsInput = {
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
   season?: Prisma.SeasonUpdateOneRequiredWithoutTeamsNestedInput
   players?: Prisma.TeamPlayerUpdateManyWithoutTeamNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutOwnTeamNestedInput
+  hinrundeTeam?: Prisma.TeamUpdateOneWithoutRueckrundeTeamNestedInput
+  rueckrundeTeam?: Prisma.TeamUpdateOneWithoutHinrundeTeamNestedInput
 }
 
 export type TeamUncheckedUpdateWithoutStandingsInput = {
@@ -734,8 +1032,11 @@ export type TeamUncheckedUpdateWithoutStandingsInput = {
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   seasonId?: Prisma.StringFieldUpdateOperationsInput | string
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
+  hinrundeTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   players?: Prisma.TeamPlayerUncheckedUpdateManyWithoutTeamNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOwnTeamNestedInput
+  rueckrundeTeam?: Prisma.TeamUncheckedUpdateOneWithoutHinrundeTeamNestedInput
 }
 
 export type TeamCreateManySeasonInput = {
@@ -745,6 +1046,8 @@ export type TeamCreateManySeasonInput = {
   league?: string | null
   placement?: string | null
   clickTTGroupId?: string | null
+  half?: $Enums.TeamHalf | null
+  hinrundeTeamId?: string | null
 }
 
 export type TeamUpdateWithoutSeasonInput = {
@@ -754,9 +1057,12 @@ export type TeamUpdateWithoutSeasonInput = {
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
   players?: Prisma.TeamPlayerUpdateManyWithoutTeamNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutOwnTeamNestedInput
   standings?: Prisma.StandingUpdateManyWithoutTeamNestedInput
+  hinrundeTeam?: Prisma.TeamUpdateOneWithoutRueckrundeTeamNestedInput
+  rueckrundeTeam?: Prisma.TeamUpdateOneWithoutHinrundeTeamNestedInput
 }
 
 export type TeamUncheckedUpdateWithoutSeasonInput = {
@@ -766,9 +1072,12 @@ export type TeamUncheckedUpdateWithoutSeasonInput = {
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
+  hinrundeTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   players?: Prisma.TeamPlayerUncheckedUpdateManyWithoutTeamNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOwnTeamNestedInput
   standings?: Prisma.StandingUncheckedUpdateManyWithoutTeamNestedInput
+  rueckrundeTeam?: Prisma.TeamUncheckedUpdateOneWithoutHinrundeTeamNestedInput
 }
 
 export type TeamUncheckedUpdateManyWithoutSeasonInput = {
@@ -778,6 +1087,8 @@ export type TeamUncheckedUpdateManyWithoutSeasonInput = {
   league?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clickTTGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  half?: Prisma.NullableEnumTeamHalfFieldUpdateOperationsInput | $Enums.TeamHalf | null
+  hinrundeTeamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -837,10 +1148,14 @@ export type TeamSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   placement?: boolean
   clickTTGroupId?: boolean
   seasonId?: boolean
+  half?: boolean
+  hinrundeTeamId?: boolean
   season?: boolean | Prisma.SeasonDefaultArgs<ExtArgs>
   players?: boolean | Prisma.Team$playersArgs<ExtArgs>
   appointments?: boolean | Prisma.Team$appointmentsArgs<ExtArgs>
   standings?: boolean | Prisma.Team$standingsArgs<ExtArgs>
+  hinrundeTeam?: boolean | Prisma.Team$hinrundeTeamArgs<ExtArgs>
+  rueckrundeTeam?: boolean | Prisma.Team$rueckrundeTeamArgs<ExtArgs>
   _count?: boolean | Prisma.TeamCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["team"]>
 
@@ -852,7 +1167,10 @@ export type TeamSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   placement?: boolean
   clickTTGroupId?: boolean
   seasonId?: boolean
+  half?: boolean
+  hinrundeTeamId?: boolean
   season?: boolean | Prisma.SeasonDefaultArgs<ExtArgs>
+  hinrundeTeam?: boolean | Prisma.Team$hinrundeTeamArgs<ExtArgs>
 }, ExtArgs["result"]["team"]>
 
 export type TeamSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -863,7 +1181,10 @@ export type TeamSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   placement?: boolean
   clickTTGroupId?: boolean
   seasonId?: boolean
+  half?: boolean
+  hinrundeTeamId?: boolean
   season?: boolean | Prisma.SeasonDefaultArgs<ExtArgs>
+  hinrundeTeam?: boolean | Prisma.Team$hinrundeTeamArgs<ExtArgs>
 }, ExtArgs["result"]["team"]>
 
 export type TeamSelectScalar = {
@@ -874,21 +1195,27 @@ export type TeamSelectScalar = {
   placement?: boolean
   clickTTGroupId?: boolean
   seasonId?: boolean
+  half?: boolean
+  hinrundeTeamId?: boolean
 }
 
-export type TeamOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "title" | "league" | "placement" | "clickTTGroupId" | "seasonId", ExtArgs["result"]["team"]>
+export type TeamOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdAt" | "title" | "league" | "placement" | "clickTTGroupId" | "seasonId" | "half" | "hinrundeTeamId", ExtArgs["result"]["team"]>
 export type TeamInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   season?: boolean | Prisma.SeasonDefaultArgs<ExtArgs>
   players?: boolean | Prisma.Team$playersArgs<ExtArgs>
   appointments?: boolean | Prisma.Team$appointmentsArgs<ExtArgs>
   standings?: boolean | Prisma.Team$standingsArgs<ExtArgs>
+  hinrundeTeam?: boolean | Prisma.Team$hinrundeTeamArgs<ExtArgs>
+  rueckrundeTeam?: boolean | Prisma.Team$rueckrundeTeamArgs<ExtArgs>
   _count?: boolean | Prisma.TeamCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TeamIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   season?: boolean | Prisma.SeasonDefaultArgs<ExtArgs>
+  hinrundeTeam?: boolean | Prisma.Team$hinrundeTeamArgs<ExtArgs>
 }
 export type TeamIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   season?: boolean | Prisma.SeasonDefaultArgs<ExtArgs>
+  hinrundeTeam?: boolean | Prisma.Team$hinrundeTeamArgs<ExtArgs>
 }
 
 export type $TeamPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -898,6 +1225,8 @@ export type $TeamPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     players: Prisma.$TeamPlayerPayload<ExtArgs>[]
     appointments: Prisma.$AppointmentPayload<ExtArgs>[]
     standings: Prisma.$StandingPayload<ExtArgs>[]
+    hinrundeTeam: Prisma.$TeamPayload<ExtArgs> | null
+    rueckrundeTeam: Prisma.$TeamPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -907,6 +1236,8 @@ export type $TeamPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     placement: string | null
     clickTTGroupId: string | null
     seasonId: string
+    half: $Enums.TeamHalf | null
+    hinrundeTeamId: string | null
   }, ExtArgs["result"]["team"]>
   composites: {}
 }
@@ -1305,6 +1636,8 @@ export interface Prisma__TeamClient<T, Null = never, ExtArgs extends runtime.Typ
   players<T extends Prisma.Team$playersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$playersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeamPlayerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   appointments<T extends Prisma.Team$appointmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$appointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   standings<T extends Prisma.Team$standingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$standingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StandingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  hinrundeTeam<T extends Prisma.Team$hinrundeTeamArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$hinrundeTeamArgs<ExtArgs>>): Prisma.Prisma__TeamClient<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  rueckrundeTeam<T extends Prisma.Team$rueckrundeTeamArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$rueckrundeTeamArgs<ExtArgs>>): Prisma.Prisma__TeamClient<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1341,6 +1674,8 @@ export interface TeamFieldRefs {
   readonly placement: Prisma.FieldRef<"Team", 'String'>
   readonly clickTTGroupId: Prisma.FieldRef<"Team", 'String'>
   readonly seasonId: Prisma.FieldRef<"Team", 'String'>
+  readonly half: Prisma.FieldRef<"Team", 'TeamHalf'>
+  readonly hinrundeTeamId: Prisma.FieldRef<"Team", 'String'>
 }
     
 
@@ -1809,6 +2144,44 @@ export type Team$standingsArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.StandingScalarFieldEnum | Prisma.StandingScalarFieldEnum[]
+}
+
+/**
+ * Team.hinrundeTeam
+ */
+export type Team$hinrundeTeamArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Team
+   */
+  select?: Prisma.TeamSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Team
+   */
+  omit?: Prisma.TeamOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TeamInclude<ExtArgs> | null
+  where?: Prisma.TeamWhereInput
+}
+
+/**
+ * Team.rueckrundeTeam
+ */
+export type Team$rueckrundeTeamArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Team
+   */
+  select?: Prisma.TeamSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Team
+   */
+  omit?: Prisma.TeamOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TeamInclude<ExtArgs> | null
+  where?: Prisma.TeamWhereInput
 }
 
 /**

@@ -200,7 +200,7 @@ export type TeamPlayerOrderByWithRelationInput = {
 
 export type TeamPlayerWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  playerId_seasonId?: Prisma.TeamPlayerPlayerIdSeasonIdCompoundUniqueInput
+  playerId_teamId?: Prisma.TeamPlayerPlayerIdTeamIdCompoundUniqueInput
   AND?: Prisma.TeamPlayerWhereInput | Prisma.TeamPlayerWhereInput[]
   OR?: Prisma.TeamPlayerWhereInput[]
   NOT?: Prisma.TeamPlayerWhereInput | Prisma.TeamPlayerWhereInput[]
@@ -211,7 +211,7 @@ export type TeamPlayerWhereUniqueInput = Prisma.AtLeast<{
   team?: Prisma.XOR<Prisma.TeamScalarRelationFilter, Prisma.TeamWhereInput>
   player?: Prisma.XOR<Prisma.PlayerScalarRelationFilter, Prisma.PlayerWhereInput>
   season?: Prisma.XOR<Prisma.SeasonScalarRelationFilter, Prisma.SeasonWhereInput>
-}, "id" | "playerId_seasonId">
+}, "id" | "playerId_teamId">
 
 export type TeamPlayerOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -298,9 +298,9 @@ export type TeamPlayerOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type TeamPlayerPlayerIdSeasonIdCompoundUniqueInput = {
+export type TeamPlayerPlayerIdTeamIdCompoundUniqueInput = {
   playerId: string
-  seasonId: string
+  teamId: string
 }
 
 export type TeamPlayerCountOrderByAggregateInput = {

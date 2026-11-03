@@ -180,6 +180,11 @@ enum Gender {
   FEMALE
 }
 
+enum TeamHalf {
+  HINRUNDE
+  RUECKRUNDE
+}
+
 model Team {
   id             String        @id @default(nanoid(6))
   createdAt      DateTime      @default(now())
@@ -192,6 +197,11 @@ model Team {
   players        TeamPlayer[]
   appointments   Appointment[]
   standings      Standing[]
+  half           TeamHalf?
+  // Set only on a Rückrunde row, pointing back at its Hinrunde pair.
+  hinrundeTeamId String?       @unique
+  hinrundeTeam   Team?         @relation("TeamHalf", fields: [hinrundeTeamId], references: [id])
+  rueckrundeTeam Team?         @relation("TeamHalf")
 
   @@unique([clickTTGroupId, seasonId])
 }
@@ -206,7 +216,7 @@ model TeamPlayer {
   seasonId  String
   season    Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
 
-  @@unique([playerId, seasonId])
+  @@unique([playerId, teamId])
 }
 
 model Standing {

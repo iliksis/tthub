@@ -87,10 +87,12 @@ export const getTeam = createServerFn()
 						orderBy: { startDate: "asc" },
 						where: { deletedAt: null },
 					},
+					hinrundeTeam: { select: { id: true, title: true } },
 					players: {
 						include: { player: true },
 						orderBy: { player: { name: "asc" } },
 					},
+					rueckrundeTeam: { select: { id: true, title: true } },
 					season: true,
 					standings: { orderBy: { rank: "asc" } },
 				},
@@ -100,6 +102,45 @@ export const getTeam = createServerFn()
 				throw new Error(m.teams_team_not_found());
 			}
 			return { data: team, message: m.teams_team_found() };
+		} catch (e) {
+			console.error(e);
+			throw new Error((e as Error).message);
+		}
+	});
+
+export const createRueckrundeTeam = createServerFn({ method: "POST" })
+	.validator((d: { hinrundeTeamId: string }) => d)
+	.handler(async ({ data }) => {
+		const isAuthorized = await useIsRole("EDITOR");
+		if (!isAuthorized) {
+			throw new Error(m.common_unauthorized());
+		}
+
+		try {
+			const team = await prismaClient.$transaction(async (tx) => {
+				const hinrunde = await tx.team.findUniqueOrThrow({
+					include: { rueckrundeTeam: true },
+					where: { id: data.hinrundeTeamId },
+				});
+				if (hinrunde.half === "RUECKRUNDE" || hinrunde.rueckrundeTeam) {
+					throw new Error(m.teams_team_already_has_a_rueckrunde());
+				}
+
+				// An unpaired team becomes the Hinrunde once it gets a pair.
+				await tx.team.update({
+					data: { half: "HINRUNDE" },
+					where: { id: hinrunde.id },
+				});
+				return tx.team.create({
+					data: {
+						half: "RUECKRUNDE",
+						hinrundeTeamId: hinrunde.id,
+						seasonId: hinrunde.seasonId,
+						title: hinrunde.title,
+					},
+				});
+			});
+			return { data: team, message: m.teams_rueckrunde_created() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
