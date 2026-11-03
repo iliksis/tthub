@@ -14,7 +14,9 @@ const config = defineConfig({
     sourcemap: true,
   },
   plugins: [
-	mkcert(),
+	// Unit tests don't serve HTTPS; skipping it avoids mkcert's GitHub API
+	// download (rate-limited on shared CI runners) failing vitest startup.
+	...(process.env.VITEST ? [] : [mkcert()]),
     // `injectSource` adds a `data-tsd-source` attribute to every JSX element
     // for the devtools "click to open in editor" inspector. It was leaking
     // into the URL as a stray search param on this route, so it's disabled.

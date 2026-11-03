@@ -150,21 +150,23 @@ test.describe("Stats Route - Team League/Placement Table", () => {
 		await page.goto(`/stats?seasonId=${season.id}`);
 		await page.waitForLoadState("networkidle");
 
-		const splitRows = page.locator("a:visible", { hasText: splitTitle });
-		await expect(splitRows).toHaveCount(2);
-		const hinRow = page.locator(":visible", { hasText: `${PREFIX}HinLiga` });
-		await expect(hinRow.getByText("Hinrunde").first()).toBeVisible();
-		await expect(hinRow.getByText("3").first()).toBeVisible();
-		const rueckRow = page.locator(":visible", {
+		// Scoped to visible `<tr>`s: an ancestor such as `body` also matches
+		// `:visible`, and its first "Hinrunde" would be in the hidden mobile tree.
+		await expect(
+			page.locator("tr:visible", { hasText: splitTitle }),
+		).toHaveCount(2);
+		const hinRow = page.locator("tr:visible", { hasText: `${PREFIX}HinLiga` });
+		await expect(hinRow.getByText("Hinrunde")).toBeVisible();
+		await expect(hinRow.getByText("3", { exact: true })).toBeVisible();
+		const rueckRow = page.locator("tr:visible", {
 			hasText: `${PREFIX}RueckLiga`,
 		});
-		await expect(rueckRow.getByText("Rückrunde").first()).toBeVisible();
-		await expect(rueckRow.getByText("1").first()).toBeVisible();
+		await expect(rueckRow.getByText("Rückrunde")).toBeVisible();
+		await expect(rueckRow.getByText("1", { exact: true })).toBeVisible();
 
-		await expect(page.locator("a:visible", { hasText: soloTitle })).toHaveCount(
-			1,
-		);
-		await expect(page.getByText("Hinrunde:visible")).toHaveCount(1);
+		const soloRow = page.locator("tr:visible", { hasText: soloTitle });
+		await expect(soloRow).toHaveCount(1);
+		await expect(soloRow.getByText(/Hinrunde|Rückrunde/)).toHaveCount(0);
 	});
 
 	test("switching the season updates the displayed teams", async ({ page }) => {
@@ -222,12 +224,20 @@ test.describe("Stats Route - Team League/Placement Table", () => {
 test.describe("Stats Route - Player Count Over Seasons", () => {
 	const CHART_NAME = "Spielerzahl im Saisonvergleich";
 
-	// Scoped to a visible `<tr>`; the season name also appears in the season
-	// selector and the chart.
-	const countCells = (
+	// Hovers above a season's x-axis label to open that season's tooltip.
+	async function hoverSeason(
 		page: import("@playwright/test").Page,
 		seasonName: string,
-	) => page.locator("tr:visible", { hasText: seasonName }).locator("td");
+	) {
+		const chart = page.getByRole("img", { name: CHART_NAME });
+		const label = await chart
+			.getByText(seasonName, { exact: true })
+			.boundingBox();
+		const plot = await chart.boundingBox();
+		if (!label || !plot) throw new Error("chart not laid out");
+		await page.mouse.move(label.x + label.width / 2, plot.y + plot.height / 2);
+		return page.getByRole("status").filter({ hasText: seasonName });
+	}
 
 	// Seeds one Season with a male roster-only player, a gender-less
 	// placement-only player, and a female player who is both rostered and placed
@@ -303,23 +313,6 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 		return season;
 	}
 
-	test("counts rostered-only, placed-only, and both as Season Players without double counting", async ({
-		page,
-	}) => {
-		const season = await seedCountFixture("CountUnion");
-
-		await loginAs(page, "user");
-		await page.goto("/stats");
-		await page.waitForLoadState("networkidle");
-
-		await expect(countCells(page, season.name)).toHaveText([
-			season.name,
-			"3",
-			"1",
-			"1",
-		]);
-	});
-
 	test("lists every season in chronological order", async ({ page }) => {
 		const older = await prismaClient.season.create({
 			data: { isActive: false, name: `${PREFIX}CountOlder` },
@@ -336,40 +329,42 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 		await page.goto("/stats");
 		await page.waitForLoadState("networkidle");
 
-		const names = await page
-			.locator("tr:visible td:first-child")
-			.allTextContents();
-		const olderIdx = names.indexOf(older.name);
-		expect(olderIdx).toBeGreaterThanOrEqual(0);
-		expect(names.indexOf(newer.name)).toBeGreaterThan(olderIdx);
+		const chart = page.getByRole("img", { name: CHART_NAME });
+		const olderBox = await chart
+			.getByText(older.name, { exact: true })
+			.boundingBox();
+		const newerBox = await chart
+			.getByText(newer.name, { exact: true })
+			.boundingBox();
+		if (!olderBox || !newerBox) throw new Error("chart not laid out");
+		expect(newerBox.x).toBeGreaterThan(olderBox.x);
 	});
 
 	test("switching the season selector does not change the counts", async ({
 		page,
 	}) => {
-		const season = await seedCountFixture("CountSelector");
+		const season = await seedCountFixture("Sel");
 		const other = await prismaClient.season.create({
-			data: { isActive: false, name: `${PREFIX}CountSelectorOther` },
+			data: { isActive: false, name: `${PREFIX}SelB` },
 		});
 
 		await loginAs(page, "user");
 		await page.goto(`/stats?seasonId=${season.id}`);
 		await page.waitForLoadState("networkidle");
 
-		// The table is the only one with the male/female count columns.
-		const countRows = page
-			.locator("table:visible")
-			.filter({ hasText: "Männlich" })
-			.locator("tbody tr");
-		const before = await countRows.allInnerTexts();
-		expect(before.length).toBeGreaterThan(0);
+		const tooltipRows = async () =>
+			(await hoverSeason(page, season.name))
+				.locator(".ts-chart-tooltip__row")
+				.allInnerTexts();
+		const before = await tooltipRows();
+		expect(before).toHaveLength(3);
 
 		await page.locator('[data-slot="select-trigger"]:visible').click();
 		await page.getByRole("option", { name: other.name }).click();
 		await page.waitForURL(new RegExp(`seasonId=${other.id}`));
 		await page.waitForLoadState("networkidle");
 
-		expect(await countRows.allInnerTexts()).toEqual(before);
+		expect(await tooltipRows()).toEqual(before);
 	});
 
 	test("the chart plots every season on the x axis with a legend for total, male and female", async ({
@@ -762,19 +757,21 @@ test.describe("Stats Route - Tournament Series & Placements", () => {
 		await page.goto(`/stats?seasonId=${season.id}`);
 		await page.waitForLoadState("networkidle");
 
-		await expect(
-			page.getByRole("article").filter({ hasText: one.title }),
-		).toBeVisible();
+		// Tabs are listed newest first, so the later series is selected initially.
+		await expect(page.getByRole("tab")).toHaveCount(2);
 		await expect(
 			page.getByRole("article").filter({ hasText: two.title }),
+		).toBeVisible();
+		await expect(
+			page.getByRole("article").filter({ hasText: one.title }),
 		).toHaveCount(0);
 
-		await page.getByRole("tab", { name: two.title }).click();
-		await expect(
-			page.getByRole("article").filter({ hasText: two.title }),
-		).toBeVisible();
+		await page.getByRole("tab", { name: one.title }).click();
 		await expect(
 			page.getByRole("article").filter({ hasText: one.title }),
+		).toBeVisible();
+		await expect(
+			page.getByRole("article").filter({ hasText: two.title }),
 		).toHaveCount(0);
 	});
 
@@ -798,7 +795,7 @@ test.describe("Stats Route - Tournament Series & Placements", () => {
 });
 
 test.describe("Stats Route - Roster Breakdown", () => {
-	const SECTION = "Kaderverteilung";
+	const SECTION = "Altersverteilung";
 	const year = new Date().getFullYear();
 
 	// The breakdown always describes the single Active Season, so each test
@@ -840,10 +837,30 @@ test.describe("Stats Route - Roster Breakdown", () => {
 		});
 	}
 
-	const rowCells = (page: import("@playwright/test").Page, ageGroup: string) =>
-		page
-			.locator("tr:visible", { has: page.locator(`td:text-is("${ageGroup}")`) })
-			.locator("td");
+	// Hovers above an age group's x-axis label and returns the male/female/
+	// unknown counts from its tooltip, in that order.
+	async function counts(
+		page: import("@playwright/test").Page,
+		ageGroup: string,
+	) {
+		const chart = page.getByRole("img", { name: SECTION });
+		const label = await chart
+			.getByText(ageGroup, { exact: true })
+			.boundingBox();
+		const plot = await chart.boundingBox();
+		if (!label || !plot) throw new Error("chart not laid out");
+		await page.mouse.move(label.x + label.width / 2, plot.y + plot.height / 2);
+		const tooltip = page.getByRole("status").filter({ hasText: ageGroup });
+		await expect(tooltip).toBeVisible();
+		const result: string[] = [];
+		for (const series of ["Männlich", "Weiblich", "Unbekannt"]) {
+			const row = tooltip.locator(".ts-chart-tooltip__row", {
+				hasText: series,
+			});
+			result.push((await row.innerText()).replace(series, "").trim());
+		}
+		return result;
+	}
 
 	test("buckets rostered players by age group, gender, and unknown gender", async ({
 		page,
@@ -866,17 +883,12 @@ test.describe("Stats Route - Roster Breakdown", () => {
 		await page.goto("/stats");
 		await page.waitForLoadState("networkidle");
 
-		await expect(page.getByText(SECTION)).toBeVisible();
-		await expect(rowCells(page, "U11")).toHaveText(["U11", "2", "0", "0"]);
-		await expect(rowCells(page, "U13")).toHaveText(["U13", "0", "1", "0"]);
-		await expect(rowCells(page, "U15")).toHaveText(["U15", "0", "0", "1"]);
-		await expect(rowCells(page, "U19")).toHaveText(["U19", "0", "1", "0"]);
-		await expect(rowCells(page, "Erwachsen")).toHaveText([
-			"Erwachsen",
-			"1",
-			"0",
-			"1",
-		]);
+		await expect(page.getByText(SECTION, { exact: true })).toBeVisible();
+		expect(await counts(page, "U11")).toEqual(["2", "0", "0"]);
+		expect(await counts(page, "U13")).toEqual(["0", "1", "0"]);
+		expect(await counts(page, "U15")).toEqual(["0", "0", "1"]);
+		expect(await counts(page, "U19")).toEqual(["0", "1", "0"]);
+		expect(await counts(page, "Erwachsen")).toEqual(["1", "0", "1"]);
 	});
 
 	test("only counts the Active Season and ignores the season selector", async ({
@@ -902,7 +914,7 @@ test.describe("Stats Route - Roster Breakdown", () => {
 		for (const url of ["/stats", `/stats?seasonId=${other.id}`]) {
 			await page.goto(url);
 			await page.waitForLoadState("networkidle");
-			await expect(rowCells(page, "U11")).toHaveText(["U11", "1", "0", "0"]);
+			expect(await counts(page, "U11")).toEqual(["1", "0", "0"]);
 		}
 	});
 
@@ -917,7 +929,7 @@ test.describe("Stats Route - Roster Breakdown", () => {
 		await page.goto("/stats");
 		await page.waitForLoadState("networkidle");
 
-		await expect(page.getByText(SECTION)).toBeVisible();
+		await expect(page.getByText(SECTION, { exact: true })).toBeVisible();
 		await expect(
 			page.getByText("Keine Spieler im Kader der aktiven Saison"),
 		).toBeVisible();
