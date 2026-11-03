@@ -5,7 +5,7 @@ import { scaleOrdinal } from "@tanstack/charts/scales/ordinal";
 import { scalePoint } from "@tanstack/charts/scales/point";
 import { tooltip } from "@tanstack/charts/tooltip";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { z } from "zod";
 import { getActiveSeason, getSeasons } from "@/api/seasons";
 import {
@@ -128,84 +128,96 @@ type PlayerCountRow = ReturnType<
 	typeof Route.useLoaderData
 >["playerCounts"][number];
 
+// One entry per line in the chart and per count column in the table, so adding
+// a series is a single edit here.
+const PLAYER_COUNT_SERIES = [
+	{
+		color: "hsl(var(--primary))",
+		key: "playerCount",
+		label: () => m.stats_player_count_total(),
+	},
+	{
+		color: "hsl(var(--info))",
+		key: "maleCount",
+		label: () => m.stats_player_count_male(),
+	},
+	{
+		color: "hsl(var(--chart-1))",
+		key: "femaleCount",
+		label: () => m.stats_player_count_female(),
+	},
+] as const;
+
 const playerCountColumns: DetailsListColumn<PlayerCountRow>[] = [
 	{
 		key: "seasonName",
 		label: m.common_name(),
 		render: (item) => item.seasonName,
 	},
-	{
-		align: "right",
-		key: "playerCount",
-		label: m.stats_player_count(),
-		render: (item) => item.playerCount,
-	},
-	{
-		align: "right",
-		key: "maleCount",
-		label: m.stats_player_count_male(),
-		render: (item) => item.maleCount,
-	},
-	{
-		align: "right",
-		key: "femaleCount",
-		label: m.stats_player_count_female(),
-		render: (item) => item.femaleCount,
-	},
+	...PLAYER_COUNT_SERIES.map(
+		(series): DetailsListColumn<PlayerCountRow> => ({
+			align: "right",
+			key: series.key,
+			label: series.label(),
+			render: (item) => item[series.key],
+		}),
+	),
 ];
 
 function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
+	// Rebuilt only when the data changes: `defineChart` compiles the scales and
+	// marks, so doing it on every render (e.g. each hover-driven parent update)
+	// would be wasted work.
+	const definition = useMemo(() => {
+		const points = rows.flatMap((row) =>
+			PLAYER_COUNT_SERIES.map((series) => ({
+				count: row[series.key],
+				id: `${row.seasonId}-${series.key}`,
+				season: row.seasonName,
+				series: series.label(),
+			})),
+		);
+
+		return defineChart({
+			color: {
+				legend: colorLegend(),
+				scale: () =>
+					scaleOrdinal<string, string>()
+						.domain(PLAYER_COUNT_SERIES.map((series) => series.label()))
+						.range(PLAYER_COUNT_SERIES.map((series) => series.color)),
+			},
+			// One tooltip per season listing every series, instead of one per line.
+			focus: "group-x",
+			marks: [
+				lineY(points, {
+					key: "id",
+					points: true,
+					strokeWidth: 2,
+					x: "season",
+					y: "count",
+					z: "series",
+				}),
+			],
+			// The x axis has one point per season, so the pointer is usually far
+			// from any point horizontally; without this the group would clear
+			// (default: 48px) and the tooltip would only show right on a dot.
+			maxFocusDistance: Number.POSITIVE_INFINITY,
+			scales: {
+				x: { scale: () => scalePoint<string>().padding(0.4) },
+				y: { grid: true, nice: true, scale: scaleLinear },
+			},
+			tooltip,
+		});
+	}, [rows]);
+
 	if (rows.length === 0) return null;
-
-	const series = [
-		{ color: "hsl(var(--primary))", count: "playerCount" },
-		{ color: "hsl(var(--info))", count: "maleCount" },
-		{ color: "hsl(var(--chart-1))", count: "femaleCount" },
-	] as const;
-	const labels: Record<(typeof series)[number]["count"], string> = {
-		femaleCount: m.stats_player_count_female(),
-		maleCount: m.stats_player_count_male(),
-		playerCount: m.stats_player_count_total(),
-	};
-	const points = rows.flatMap((row) =>
-		series.map(({ count }) => ({
-			count: row[count],
-			id: `${row.seasonId}-${count}`,
-			season: row.seasonName,
-			series: labels[count],
-		})),
-	);
-
-	const definition = defineChart({
-		color: {
-			legend: colorLegend(),
-			scale: () =>
-				scaleOrdinal<string, string>()
-					.domain(series.map(({ count }) => labels[count]))
-					.range(series.map(({ color }) => color)),
-		},
-		focus: "group-x",
-		marks: [
-			lineY(points, {
-				key: "id",
-				points: true,
-				strokeWidth: 2,
-				x: "season",
-				y: "count",
-				z: "series",
-			}),
-		],
-		maxFocusDistance: Number.POSITIVE_INFINITY,
-		scales: {
-			x: { scale: () => scalePoint<string>().padding(0.4) },
-			y: { grid: true, nice: true, scale: scaleLinear },
-		},
-		tooltip,
-	});
 
 	return (
 		<Chart
 			definition={definition}
+			// The tooltip's default chrome is a light card; these CSS variables
+			// (read from the chart container) restyle it with the app's popover
+			// tokens so it follows the light/dark theme.
 			className="[--ts-chart-tooltip-background:var(--color-popover)] [--ts-chart-tooltip-border:1px_solid_var(--color-border)] [--ts-chart-tooltip-color:var(--color-popover-foreground)]"
 			height={240}
 			ariaLabel={m.stats_player_count_over_seasons()}
@@ -233,7 +245,11 @@ function PlayerCountMobileList({ rows }: { rows: PlayerCountRow[] }) {
 						{row.seasonName}
 					</div>
 					<div className="shrink-0 text-muted-foreground text-sm">
-						{row.playerCount} ({row.maleCount} ♂ / {row.femaleCount} ♀)
+						{m.stats_player_count_summary({
+							param1: row.playerCount,
+							param2: row.maleCount,
+							param3: row.femaleCount,
+						})}
 					</div>
 				</div>
 			))}

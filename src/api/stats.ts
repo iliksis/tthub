@@ -4,6 +4,7 @@ import {
 	groupPlacementsByCategory,
 	sortPlacementsByRank,
 } from "@/lib/placements";
+import type { Gender } from "@/lib/prisma/enums";
 import { m } from "@/paraglide/messages";
 
 export type SeasonPlayerCount = {
@@ -40,9 +41,9 @@ export const getPlayerCountOverSeasons = createServerFn({
 			}),
 		]);
 
-		type PlayerRef = { id: string; gender: "MALE" | "FEMALE" | null };
+		type PlayerRef = { id: string; gender: Gender | null };
 		const playersBySeason = new Map<string, Map<string, PlayerRef>>();
-		const add = (seasonId: string, player: PlayerRef) => {
+		const addToSeason = (seasonId: string, player: PlayerRef) => {
 			let players = playersBySeason.get(seasonId);
 			if (!players) {
 				players = new Map();
@@ -50,9 +51,9 @@ export const getPlayerCountOverSeasons = createServerFn({
 			}
 			players.set(player.id, player);
 		};
-		for (const tp of rostered) add(tp.seasonId, tp.player);
+		for (const tp of rostered) addToSeason(tp.seasonId, tp.player);
 		for (const p of placed) {
-			if (p.appointment.seasonId) add(p.appointment.seasonId, p.player);
+			if (p.appointment.seasonId) addToSeason(p.appointment.seasonId, p.player);
 		}
 
 		const counts: SeasonPlayerCount[] = seasons.map((season) => {
