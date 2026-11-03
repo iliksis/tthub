@@ -1,5 +1,6 @@
-import { colorLegend, defineChart, lineY } from "@tanstack/charts";
+import { barY, colorLegend, defineChart, lineY, stack } from "@tanstack/charts";
 import { Chart } from "@tanstack/charts/react";
+import { scaleBand } from "@tanstack/charts/scales/band";
 import { scaleLinear } from "@tanstack/charts/scales/linear";
 import { scaleOrdinal } from "@tanstack/charts/scales/ordinal";
 import { scalePoint } from "@tanstack/charts/scales/point";
@@ -259,6 +260,72 @@ const rosterBreakdownColumns: DetailsListColumn<RosterBreakdownRow>[] = [
 	},
 ];
 
+// Same order as the table columns; bars stack in this order too.
+const ROSTER_SERIES = [
+	{
+		color: "hsl(var(--info))",
+		key: "male",
+		label: () => m.stats_player_count_male(),
+	},
+	{
+		color: "hsl(var(--chart-1))",
+		key: "female",
+		label: () => m.stats_player_count_female(),
+	},
+	{
+		color: "hsl(var(--muted-foreground))",
+		key: "unknown",
+		label: () => m.stats_roster_unknown(),
+	},
+] as const;
+
+function RosterBreakdownChart({ rows }: { rows: RosterBreakdownRow[] }) {
+	const definition = useMemo(() => {
+		const points = rows.flatMap((row) =>
+			ROSTER_SERIES.map((series) => ({
+				ageGroup: row.ageGroup,
+				count: row[series.key],
+				gender: series.label(),
+			})),
+		);
+		const labels = ROSTER_SERIES.map((series) => series.label());
+
+		return defineChart({
+			color: {
+				legend: colorLegend(),
+				scale: () =>
+					scaleOrdinal<string, string>()
+						.domain(labels)
+						.range(ROSTER_SERIES.map((series) => series.color)),
+			},
+			focus: "group-x",
+			marks: [
+				barY(points, {
+					color: "gender",
+					layout: stack({ order: labels }),
+					x: "ageGroup",
+					y: "count",
+				}),
+			],
+			maxFocusDistance: Number.POSITIVE_INFINITY,
+			scales: {
+				x: { scale: () => scaleBand<string>().padding(0.3) },
+				y: { grid: true, nice: true, scale: scaleLinear },
+			},
+			tooltip,
+		});
+	}, [rows]);
+
+	return (
+		<Chart
+			definition={definition}
+			className="[--ts-chart-tooltip-background:var(--color-popover)] [--ts-chart-tooltip-border:1px_solid_var(--color-border)] [--ts-chart-tooltip-color:var(--color-popover-foreground)]"
+			height={240}
+			ariaLabel={m.stats_roster_breakdown()}
+		/>
+	);
+}
+
 function RosterBreakdownSection({
 	rosterBreakdown,
 }: {
@@ -274,14 +341,17 @@ function RosterBreakdownSection({
 					{m.stats_no_rostered_players()}
 				</div>
 			) : (
-				<div className="overflow-x-auto">
-					<DetailsList
-						items={rosterBreakdown.rows}
-						getItemId={(item) => item.ageGroup}
-						columns={rosterBreakdownColumns}
-						selectMode="none"
-					/>
-				</div>
+				<>
+					<RosterBreakdownChart rows={rosterBreakdown.rows} />
+					<div className="overflow-x-auto">
+						<DetailsList
+							items={rosterBreakdown.rows}
+							getItemId={(item) => item.ageGroup}
+							columns={rosterBreakdownColumns}
+							selectMode="none"
+						/>
+					</div>
+				</>
 			)}
 		</Section>
 	);
