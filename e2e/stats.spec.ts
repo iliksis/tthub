@@ -305,16 +305,14 @@ test.describe("Stats Route - Tournament Series & Placements", () => {
 		await page.goto(`/stats?seasonId=${season.id}`);
 		await page.waitForLoadState("networkidle");
 
-		const titleLink = page
-			.locator(":visible a", { hasText: appointment.title })
-			.first();
-		await expect(titleLink).toBeVisible();
-
-		// Scope to the tournament card (the title link's parent) rather than the
-		// whole page, so the assertion stays correct even once other page
-		// sections also render player links.
-		const card = titleLink.locator("xpath=..");
-		const playerLinks = card.locator('a[href*="/players/"]');
+		// Scope to the tournament's own article rather than the whole page, so
+		// the assertion stays correct even once other page sections also render
+		// player links.
+		const node = page
+			.getByRole("article")
+			.filter({ hasText: appointment.title });
+		await expect(node).toBeVisible();
+		const playerLinks = node.locator('a[href*="/players/"]');
 		await expect(playerLinks).toHaveText([
 			first.name,
 			second.name,
@@ -368,16 +366,15 @@ test.describe("Stats Route - Tournament Series & Placements", () => {
 		).toBeVisible();
 		await expect(
 			page
-				.locator(":visible button", { hasText: earlierAppointment.title })
-				.first()
-				.locator(":visible", { hasText: "Diese Saison" })
-				.first(),
+				.getByRole("article")
+				.filter({ hasText: earlierAppointment.title })
+				.getByText("Diese Saison"),
 		).toBeVisible();
 		await expect(
 			page
-				.locator(":visible button", { hasText: laterAppointment.title })
-				.first()
-				.locator(":visible", { hasText: "Diese Saison" }),
+				.getByRole("article")
+				.filter({ hasText: laterAppointment.title })
+				.getByText("Diese Saison"),
 		).toHaveCount(0);
 
 		await page.goto(`/stats?seasonId=${laterSeason.id}`);
@@ -390,16 +387,15 @@ test.describe("Stats Route - Tournament Series & Placements", () => {
 		).toBeVisible();
 		await expect(
 			page
-				.locator(":visible button", { hasText: laterAppointment.title })
-				.first()
-				.locator(":visible", { hasText: "Diese Saison" })
-				.first(),
+				.getByRole("article")
+				.filter({ hasText: laterAppointment.title })
+				.getByText("Diese Saison"),
 		).toBeVisible();
 		await expect(
 			page
-				.locator(":visible button", { hasText: earlierAppointment.title })
-				.first()
-				.locator(":visible", { hasText: "Diese Saison" }),
+				.getByRole("article")
+				.filter({ hasText: earlierAppointment.title })
+				.getByText("Diese Saison"),
 		).toHaveCount(0);
 	});
 
@@ -466,15 +462,12 @@ test.describe("Stats Route - Tournament Series & Placements", () => {
 			).toBeVisible();
 		}
 
-		// Neither qualifier is selected by default (the final isn't in the
-		// viewed season), so clicking one reveals its own full placement
-		// detail — same rendering contract as the season-matching node.
-		await page
-			.locator(":visible button", { hasText: qualifierA.title })
-			.first()
-			.click();
+		// Every node's own placements are visible without selecting anything.
 		await expect(
-			page.locator(":visible", { hasText: qualifierAWinner.name }).first(),
+			page
+				.getByRole("article")
+				.filter({ hasText: qualifierA.title })
+				.getByText(qualifierAWinner.name),
 		).toBeVisible();
 
 		await page.goto(`/stats?seasonId=${finalSeason.id}`);
@@ -489,7 +482,7 @@ test.describe("Stats Route - Tournament Series & Placements", () => {
 	// Nothing in the app prevents an editor from linking two appointments into
 	// a loop (EditableNextAppointmentCard only disables picking an appointment
 	// as its own next, not an indirect cycle created across two separate
-	// edits). The Flow diagram's client-side layout must not infinitely
+	// edits). The diagram's client-side layout must not infinitely
 	// recurse or crash the page when that happens.
 	test("does not crash on a cyclic nextAppointmentId link between two appointments", async ({
 		page,
@@ -569,6 +562,51 @@ test.describe("Stats Route - Tournament Series & Placements", () => {
 		await expect(
 			page.locator(":visible", { hasText: second.title }).first(),
 		).toBeVisible();
+	});
+
+	test("shows a tab per series and switches the shown tournaments when another tab is picked", async ({
+		page,
+	}) => {
+		const season = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}TwoSeries` },
+		});
+		const one = await prismaClient.appointment.create({
+			data: {
+				seasonId: season.id,
+				startDate: new Date(),
+				status: "PUBLISHED",
+				title: `${PREFIX}TabSeriesOne`,
+				type: "TOURNAMENT",
+			},
+		});
+		const two = await prismaClient.appointment.create({
+			data: {
+				seasonId: season.id,
+				startDate: new Date(Date.now() + 1000 * 60 * 60 * 24),
+				status: "PUBLISHED",
+				title: `${PREFIX}TabSeriesTwo`,
+				type: "TOURNAMENT",
+			},
+		});
+
+		await loginAs(page, "user");
+		await page.goto(`/stats?seasonId=${season.id}`);
+		await page.waitForLoadState("networkidle");
+
+		await expect(
+			page.getByRole("article").filter({ hasText: one.title }),
+		).toBeVisible();
+		await expect(
+			page.getByRole("article").filter({ hasText: two.title }),
+		).toHaveCount(0);
+
+		await page.getByRole("tab", { name: two.title }).click();
+		await expect(
+			page.getByRole("article").filter({ hasText: two.title }),
+		).toBeVisible();
+		await expect(
+			page.getByRole("article").filter({ hasText: one.title }),
+		).toHaveCount(0);
 	});
 
 	test("a season with no qualifying tournaments shows an empty state instead of an error", async ({

@@ -7,5 +7,20 @@
 	"stats_statistics": "Statistik",
 	"stats_teams_league_and_placement": "Ligen & Platzierungen",
 	"stats_this_season": "Diese Saison",
+	"stats_tournament_count": [
+		{
+			"declarations": [
+				"input count",
+				"local countPlural = count: plural"
+			],
+			"selectors": [
+				"countPlural"
+			],
+			"match": {
+				"countPlural=one": "{count} Turnier",
+				"countPlural=other": "{count} Turniere"
+			}
+		}
+	],
 	"stats_tournament_series_and_placements": "Turnierserien & Platzierungen"
 }

@@ -1,6 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { TrophyIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { getActiveSeason, getSeasons } from "@/api/seasons";
 import {
@@ -15,7 +14,7 @@ import { Section } from "@/components/Section";
 import { Badge } from "@/components/ui/badge";
 import { EntitySelect } from "@/components/ui/entity-select";
 import { Link } from "@/components/ui/link";
-import { formatShortDate } from "@/lib/utils";
+import { cn, formatShortDate } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
@@ -176,15 +175,18 @@ function ParticipatingPlayersMobileList({
 	);
 }
 
-// A series' nodes are positioned by generation (how many links removed from
-// a root) so branches (multiple previousIds converging into one node) render
-// as an actual node-link diagram rather than a straight line. A converging
-// node's y-position is the average of its predecessors', matching a
-// classic flowchart/git-graph layout.
-const FLOW_CARD_W = 168;
-const FLOW_CARD_H = 68;
-const FLOW_COL_GAP = 56;
-const FLOW_ROW_GAP = 16;
+// A series is laid out by generation (how many links removed from a root) so
+// branches (multiple previousIds converging into one node) read as a small
+// bracket. The list beside it is newest-first, so the tree is too: the latest
+// generation is on top and earlier ones hang below it. It is nearly always
+// only one or two nodes wide, so the diagram stays narrow. A converging node
+// sits at the average x of its predecessors, like a classic flowchart.
+const TREE_LEVEL_GAP = 84;
+const TREE_SIBLING_GAP = 128;
+const TREE_DOT_PAD = 12;
+const TREE_LABEL_WIDTH = 104;
+const TREE_LABEL_MAX_CHARS = 32;
+const TREE_DOT_RADIUS = 5;
 
 function computeGenerations(nodes: TournamentSeriesNode[]) {
 	const byId = new Map(nodes.map((n) => [n.appointmentId, n]));
@@ -213,7 +215,7 @@ function computeGenerations(nodes: TournamentSeriesNode[]) {
 	return cache;
 }
 
-function computeFlowPositions(nodes: TournamentSeriesNode[]) {
+function computeTreePositions(nodes: TournamentSeriesNode[]) {
 	const generations = computeGenerations(nodes);
 	const byId = new Map(nodes.map((n) => [n.appointmentId, n]));
 	const positions = new Map<string, { x: number; y: number }>();
@@ -225,177 +227,180 @@ function computeFlowPositions(nodes: TournamentSeriesNode[]) {
 	}
 	levels.forEach((ids, level) => {
 		ids.forEach((id, index) => {
-			const node = byId.get(id);
-			const predecessorYs = (node?.previousIds ?? [])
-				.map((pid) => positions.get(pid)?.y)
-				.filter((y): y is number => y !== undefined);
-			const y =
-				predecessorYs.length > 0
-					? predecessorYs.reduce((a, b) => a + b, 0) / predecessorYs.length
-					: index * (FLOW_CARD_H + FLOW_ROW_GAP);
-			positions.set(id, { x: level * (FLOW_CARD_W + FLOW_COL_GAP), y });
+			const predecessorXs = (byId.get(id)?.previousIds ?? [])
+				.map((pid) => positions.get(pid)?.x)
+				.filter((x): x is number => x !== undefined);
+			const x =
+				predecessorXs.length > 0
+					? predecessorXs.reduce((a, b) => a + b, 0) / predecessorXs.length
+					: index * TREE_SIBLING_GAP;
+			positions.set(id, { x, y: (levels.length - 1 - level) * TREE_LEVEL_GAP });
 		});
 	});
 	return positions;
 }
 
-function SeriesNodePlacements({ node }: { node: TournamentSeriesNode }) {
-	if (node.categories.length === 0) {
-		return (
-			<p className="text-muted-foreground text-xs">
-				{m.placements_no_participants_yet()}
-			</p>
-		);
-	}
+function SeriesTree({ series }: { series: TournamentSeries }) {
+	const positions = computeTreePositions(series.nodes);
+	const xs = [...positions.values()].map((p) => p.x);
+	const ys = [...positions.values()].map((p) => p.y);
+	const width =
+		(xs.length > 0 ? Math.max(...xs) : 0) + TREE_DOT_PAD + TREE_LABEL_WIDTH;
+	const height = (ys.length > 0 ? Math.max(...ys) : 0) + 2 * TREE_DOT_PAD;
+
 	return (
-		<div className="flex flex-col gap-3">
-			{node.categories.map((group) => (
-				<div key={group.category}>
-					<div className="mb-1.5 text-muted-foreground text-[11px] uppercase tracking-wide">
-						{group.category}
-					</div>
-					<div className="flex flex-col gap-0.5">
-						{group.placements.map((p) => (
-							<div
-								key={p.playerId}
-								className="flex items-center justify-between rounded-md px-1.5 py-1 text-xs hover:bg-accent/50"
-							>
-								<Link to="/players/$playerId" params={{ playerId: p.playerId }}>
-									{p.playerName}
-								</Link>
-								{p.placement ? (
-									<span className="font-medium text-primary">
-										{p.placement}
-									</span>
-								) : (
-									<span className="text-muted-foreground italic">
-										{m.placements_pending()}
-									</span>
-								)}
-							</div>
-						))}
-					</div>
-				</div>
-			))}
+		<svg
+			width={width}
+			height={height}
+			viewBox={`${-TREE_DOT_PAD} ${-TREE_DOT_PAD} ${width} ${height}`}
+			className="max-w-full overflow-visible"
+			role="img"
+		>
+			<title>{`${m.stats_tournament_series_and_placements()} – ${series.nodes[0]?.title ?? ""}`}</title>
+			{series.nodes
+				.filter((n) => n.nextId)
+				.map((n) => {
+					const from = positions.get(n.appointmentId);
+					const to = n.nextId ? positions.get(n.nextId) : undefined;
+					if (!from || !to) return null;
+					const c = TREE_LEVEL_GAP / 2;
+					return (
+						<path
+							key={n.appointmentId}
+							d={`M ${from.x} ${from.y - TREE_DOT_RADIUS} C ${from.x} ${from.y - c}, ${to.x} ${to.y + c}, ${to.x} ${to.y + TREE_DOT_RADIUS}`}
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="1.5"
+							className="text-border"
+						/>
+					);
+				})}
+			{series.nodes.map((node) => {
+				const pos = positions.get(node.appointmentId);
+				if (!pos) return null;
+				return (
+					<g
+						key={node.appointmentId}
+						transform={`translate(${pos.x}, ${pos.y})`}
+					>
+						<title>{node.title}</title>
+						<circle
+							cx={0}
+							cy={0}
+							r={TREE_DOT_RADIUS}
+							strokeWidth={node.isCurrent ? 0 : 1.5}
+							className={
+								node.isCurrent
+									? "fill-primary"
+									: "fill-background stroke-border"
+							}
+						/>
+						<text
+							x={TREE_DOT_RADIUS + 7}
+							y={4}
+							className={`text-[11px] ${node.isCurrent ? "fill-foreground font-semibold" : "fill-muted-foreground"}`}
+						>
+							{node.title.length > TREE_LABEL_MAX_CHARS
+								? `${node.title.slice(0, TREE_LABEL_MAX_CHARS - 1)}…`
+								: node.title}
+						</text>
+					</g>
+				);
+			})}
+		</svg>
+	);
+}
+
+// A fixed-width rank column leads each row so rank and name stay paired on
+// wide screens — a full-width justify-between row stretched them apart.
+function SeriesPlacementRow({
+	placement,
+	playerId,
+	playerName,
+}: {
+	placement: string | null;
+	playerId: string;
+	playerName: string;
+}) {
+	return (
+		<div className="grid grid-cols-[2.5rem_1fr] items-baseline gap-x-2 py-1">
+			{placement ? (
+				<span className="text-right font-medium text-primary text-sm tabular-nums">
+					{placement}
+				</span>
+			) : (
+				<span className="text-right text-muted-foreground text-xs">
+					<span aria-hidden="true">–</span>
+					<span className="sr-only">{m.placements_pending()}</span>
+				</span>
+			)}
+			<Link
+				to="/players/$playerId"
+				params={{ playerId }}
+				className="truncate text-sm"
+			>
+				{playerName}
+			</Link>
 		</div>
 	);
 }
 
-function SeriesFlowCard({ series }: { series: TournamentSeries }) {
-	const { positions, maxX, maxY } = useMemo(() => {
-		const computed = computeFlowPositions(series.nodes);
-		const xs = [...computed.values()].map((p) => p.x);
-		const ys = [...computed.values()].map((p) => p.y);
-		return {
-			maxX: (xs.length > 0 ? Math.max(...xs) : 0) + FLOW_CARD_W,
-			maxY: (ys.length > 0 ? Math.max(...ys) : 0) + FLOW_CARD_H,
-			positions: computed,
-		};
-	}, [series.nodes]);
-	const defaultSelectedId =
-		series.nodes.find((n) => n.isCurrent)?.appointmentId ??
-		series.nodes[0]?.appointmentId ??
-		"";
-	const [selectedId, setSelectedId] = useState(defaultSelectedId);
-	const selectedNode = series.nodes.find((n) => n.appointmentId === selectedId);
-
+function SeriesNodeResults({ node }: { node: TournamentSeriesNode }) {
 	return (
-		<div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-			<div
-				className="relative overflow-x-auto pb-1"
-				style={{ minHeight: maxY }}
-			>
-				<svg
-					className="pointer-events-none absolute top-0 left-0"
-					width={maxX}
-					height={maxY}
-					aria-hidden="true"
+		<article>
+			<div className="flex flex-wrap items-baseline gap-2">
+				<Link
+					to="/appts/$apptId"
+					params={{ apptId: node.appointmentId }}
+					className="font-medium text-sm"
 				>
-					<title>{`${m.stats_tournament_series_and_placements()} – ${series.nodes[0]?.title ?? ""}`}</title>
-					{series.nodes
-						.filter((n) => n.nextId)
-						.map((n) => {
-							const from = positions.get(n.appointmentId);
-							const to = n.nextId ? positions.get(n.nextId) : undefined;
-							if (!from || !to) return null;
-							const x1 = from.x + FLOW_CARD_W;
-							const y1 = from.y + FLOW_CARD_H / 2;
-							const x2 = to.x;
-							const y2 = to.y + FLOW_CARD_H / 2;
-							const c = FLOW_COL_GAP / 2;
-							return (
-								<path
-									key={n.appointmentId}
-									d={`M ${x1} ${y1} C ${x1 + c} ${y1}, ${x2 - c} ${y2}, ${x2} ${y2}`}
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="2"
-									className="text-border"
-								/>
-							);
-						})}
-				</svg>
-				<div className="relative" style={{ height: maxY, width: maxX }}>
-					{series.nodes.map((node) => {
-						const pos = positions.get(node.appointmentId);
-						if (!pos) return null;
-						return (
-							<button
-								key={node.appointmentId}
-								type="button"
-								onClick={() => setSelectedId(node.appointmentId)}
-								data-current={node.isCurrent || undefined}
-								data-selected={selectedId === node.appointmentId || undefined}
-								className="absolute rounded-xl border border-border bg-background p-2.5 text-left shadow-sm transition-[box-shadow,border-color] hover:border-primary/40 data-[current]:border-primary/60 data-[selected]:ring-2 data-[selected]:ring-primary/40"
-								style={{
-									height: FLOW_CARD_H,
-									left: pos.x,
-									top: pos.y,
-									width: FLOW_CARD_W,
-								}}
-							>
-								<div className="flex items-center justify-between gap-1">
-									<TrophyIcon
-										className={`size-3.5 shrink-0 ${node.isCurrent ? "text-primary" : "text-muted-foreground"}`}
-									/>
-									{node.isCurrent && (
-										<span className="rounded-full bg-primary/15 px-1.5 py-0.5 font-medium text-[9px] text-primary uppercase">
-											{m.stats_this_season()}
-										</span>
-									)}
-								</div>
-								<div className="mt-1 truncate font-semibold text-xs">
-									{node.title}
-								</div>
-								<div className="truncate text-muted-foreground text-[11px]">
-									{node.seasonLabel}
-								</div>
-							</button>
-						);
-					})}
-				</div>
+					{node.title}
+				</Link>
+				{node.isCurrent && (
+					<span className="rounded-full bg-primary/15 px-1.5 py-0.5 font-medium text-[10px] text-primary uppercase">
+						{m.stats_this_season()}
+					</span>
+				)}
 			</div>
-			{selectedNode && (
-				<div className="mt-4 rounded-lg bg-background p-3">
-					<Link
-						to="/appts/$apptId"
-						params={{ apptId: selectedNode.appointmentId }}
-						className="font-medium text-sm"
-					>
-						{selectedNode.title}
-					</Link>
-					<div className="mb-2 text-muted-foreground text-xs">
-						{m.common_season()} {selectedNode.seasonLabel} ·{" "}
-						{formatShortDate(selectedNode.date)}
-					</div>
-					<SeriesNodePlacements node={selectedNode} />
+			<div className="mb-1.5 text-muted-foreground text-xs">
+				{m.common_season()} {node.seasonLabel} · {formatShortDate(node.date)}
+			</div>
+			{node.categories.length === 0 ? (
+				<p className="text-muted-foreground text-xs">
+					{m.placements_no_participants_yet()}
+				</p>
+			) : (
+				<div className="flex flex-col gap-2">
+					{node.categories.map((group) => (
+						<div key={group.category}>
+							<div className="mb-1 text-[11px] text-muted-foreground uppercase tracking-wide">
+								{group.category}
+							</div>
+							{group.placements.map((p) => (
+								<SeriesPlacementRow
+									key={p.playerId}
+									placement={p.placement}
+									playerId={p.playerId}
+									playerName={p.playerName}
+								/>
+							))}
+						</div>
+					))}
 				</div>
 			)}
-		</div>
+		</article>
+	);
+}
+
+function seriesTabLabel(series: TournamentSeries) {
+	return (
+		series.nodes.find((n) => n.isCurrent)?.title ?? series.nodes[0]?.title ?? ""
 	);
 }
 
 function TournamentSeriesList({ series }: { series: TournamentSeries[] }) {
+	const [activeId, setActiveId] = useState(series[0]?.seriesId ?? "");
+
 	if (series.length === 0) {
 		return (
 			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
@@ -404,11 +409,54 @@ function TournamentSeriesList({ series }: { series: TournamentSeries[] }) {
 		);
 	}
 
+	const active = series.find((s) => s.seriesId === activeId) ?? series[0];
+
 	return (
-		<div className="flex flex-col gap-4">
-			{series.map((s) => (
-				<SeriesFlowCard key={s.seriesId} series={s} />
-			))}
+		<div
+			className={cn(
+				"grid grid-cols-1 gap-6",
+				series.length > 1 && "lg:grid-cols-[13rem_minmax(0,1fr)]",
+			)}
+		>
+			{series.length > 1 && (
+				<div
+					role="tablist"
+					aria-label={m.stats_tournament_series_and_placements()}
+					aria-orientation="vertical"
+					className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible lg:border-r lg:border-r-border lg:pr-4"
+				>
+					{series.map((s) => (
+						<button
+							key={s.seriesId}
+							type="button"
+							role="tab"
+							aria-selected={s.seriesId === active.seriesId}
+							onClick={() => setActiveId(s.seriesId)}
+							className={cn(
+								"shrink-0 rounded-md px-3 py-2 text-left font-medium text-sm transition-colors",
+								s.seriesId === active.seriesId
+									? "bg-primary/10 text-primary"
+									: "text-muted-foreground hover:text-foreground lg:border-l-transparent",
+							)}
+						>
+							{seriesTabLabel(s)}
+							<span className="block font-normal text-[11px] text-muted-foreground">
+								{m.stats_tournament_count({ count: s.nodes.length })}
+							</span>
+						</button>
+					))}
+				</div>
+			)}
+			<div role="tabpanel" className="flex gap-8 lg:flex-row lg:items-start">
+				<div className="flex min-w-0 flex-1 flex-col gap-5">
+					{active.nodes.map((node) => (
+						<SeriesNodeResults key={node.appointmentId} node={node} />
+					))}
+				</div>
+				<div className="hidden lg:flex shrink-0 justify-center lg:w-64">
+					<SeriesTree series={active} />
+				</div>
+			</div>
 		</div>
 	);
 }

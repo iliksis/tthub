@@ -108,7 +108,7 @@ export const getTournamentSeriesPlacements = createServerFn({ method: "GET" })
 			}
 
 			const appointments = await prismaClient.appointment.findMany({
-				orderBy: { startDate: "asc" },
+				orderBy: { startDate: "desc" },
 				select: {
 					id: true,
 					nextAppointmentId: true,
@@ -169,7 +169,7 @@ export const getTournamentSeriesPlacements = createServerFn({ method: "GET" })
 				const nodes: TournamentSeriesNode[] = [...componentIds]
 					.map((id) => byId.get(id))
 					.filter((a) => a !== undefined)
-					.sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
+					.sort((a, b) => b.startDate.getTime() - a.startDate.getTime())
 					.map((a) => ({
 						appointmentId: a.id,
 						categories: groupPlacementsByCategory(a.placements).map(
