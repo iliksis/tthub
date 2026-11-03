@@ -740,3 +740,130 @@ test.describe("Stats Route - Tournament Series & Placements", () => {
 		).toBeVisible();
 	});
 });
+
+test.describe("Stats Route - Roster Breakdown", () => {
+	const SECTION = "Kaderverteilung";
+	const year = new Date().getFullYear();
+
+	// The breakdown always describes the single Active Season, so each test
+	// swaps in its own Active Season and restores the previous one afterwards.
+	let previouslyActive: string[] = [];
+
+	test.beforeEach(async () => {
+		const active = await prismaClient.season.findMany({
+			select: { id: true },
+			where: { isActive: true },
+		});
+		previouslyActive = active.map((s) => s.id);
+		await prismaClient.season.updateMany({
+			data: { isActive: false },
+			where: { id: { in: previouslyActive } },
+		});
+	});
+
+	test.afterEach(async () => {
+		await cleanupFixtures();
+		await prismaClient.season.updateMany({
+			data: { isActive: true },
+			where: { id: { in: previouslyActive } },
+		});
+	});
+
+	async function seedPlayer(
+		season: { id: string },
+		team: { id: string },
+		name: string,
+		age: number,
+		gender: "MALE" | "FEMALE" | null,
+	) {
+		const player = await prismaClient.player.create({
+			data: { gender, name: `${PREFIX}${name}`, qttr: 1000, year: year - age },
+		});
+		await prismaClient.teamPlayer.create({
+			data: { playerId: player.id, seasonId: season.id, teamId: team.id },
+		});
+	}
+
+	const rowCells = (page: import("@playwright/test").Page, ageGroup: string) =>
+		page
+			.locator("tr:visible", { has: page.locator(`td:text-is("${ageGroup}")`) })
+			.locator("td");
+
+	test("buckets rostered players by age group, gender, and unknown gender", async ({
+		page,
+	}) => {
+		const season = await prismaClient.season.create({
+			data: { isActive: true, name: `${PREFIX}RosterActive` },
+		});
+		const team = await prismaClient.team.create({
+			data: { seasonId: season.id, title: `${PREFIX}RosterTeam` },
+		});
+		await seedPlayer(season, team, "U11M", 10, "MALE");
+		await seedPlayer(season, team, "U11M2", 9, "MALE");
+		await seedPlayer(season, team, "U13F", 12, "FEMALE");
+		await seedPlayer(season, team, "U15X", 14, null);
+		await seedPlayer(season, team, "U19F", 18, "FEMALE");
+		await seedPlayer(season, team, "AdultM", 40, "MALE");
+		await seedPlayer(season, team, "AdultX", 50, null);
+
+		await loginAs(page, "user");
+		await page.goto("/stats");
+		await page.waitForLoadState("networkidle");
+
+		await expect(page.getByText(SECTION)).toBeVisible();
+		await expect(rowCells(page, "U11")).toHaveText(["U11", "2", "0", "0"]);
+		await expect(rowCells(page, "U13")).toHaveText(["U13", "0", "1", "0"]);
+		await expect(rowCells(page, "U15")).toHaveText(["U15", "0", "0", "1"]);
+		await expect(rowCells(page, "U19")).toHaveText(["U19", "0", "1", "0"]);
+		await expect(rowCells(page, "Erwachsen")).toHaveText([
+			"Erwachsen",
+			"1",
+			"0",
+			"1",
+		]);
+	});
+
+	test("only counts the Active Season and ignores the season selector", async ({
+		page,
+	}) => {
+		const active = await prismaClient.season.create({
+			data: { isActive: true, name: `${PREFIX}RosterScopeActive` },
+		});
+		const other = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}RosterScopeOther` },
+		});
+		const activeTeam = await prismaClient.team.create({
+			data: { seasonId: active.id, title: `${PREFIX}ScopeActiveTeam` },
+		});
+		const otherTeam = await prismaClient.team.create({
+			data: { seasonId: other.id, title: `${PREFIX}ScopeOtherTeam` },
+		});
+		await seedPlayer(active, activeTeam, "ScopeActiveU11", 10, "MALE");
+		await seedPlayer(other, otherTeam, "ScopeOtherU11a", 10, "MALE");
+		await seedPlayer(other, otherTeam, "ScopeOtherU11b", 10, "FEMALE");
+
+		await loginAs(page, "user");
+		for (const url of ["/stats", `/stats?seasonId=${other.id}`]) {
+			await page.goto(url);
+			await page.waitForLoadState("networkidle");
+			await expect(rowCells(page, "U11")).toHaveText(["U11", "1", "0", "0"]);
+		}
+	});
+
+	test("shows an empty state when the Active Season has no rostered players", async ({
+		page,
+	}) => {
+		await prismaClient.season.create({
+			data: { isActive: true, name: `${PREFIX}RosterEmpty` },
+		});
+
+		await loginAs(page, "user");
+		await page.goto("/stats");
+		await page.waitForLoadState("networkidle");
+
+		await expect(page.getByText(SECTION)).toBeVisible();
+		await expect(
+			page.getByText("Keine Spieler im Kader der aktiven Saison"),
+		).toBeVisible();
+	});
+});

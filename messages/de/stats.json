@@ -1,6 +1,7 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
 	"stats_no_seasons": "Keine Saisons vorhanden",
+	"stats_no_rostered_players": "Keine Spieler im Kader der aktiven Saison",
 	"stats_no_teams_in_this_season": "Keine Teams in dieser Saison",
 	"stats_no_tournaments_in_this_season": "Keine Turniere in dieser Saison",
 	"stats_player_count_female": "Weiblich",
@@ -8,6 +9,10 @@
 	"stats_player_count_over_seasons": "Spielerzahl im Saisonvergleich",
 	"stats_player_count_summary": "{param1} gesamt · {param2} männlich · {param3} weiblich",
 	"stats_player_count_total": "Gesamt",
+	"stats_roster_age_group": "Altersklasse",
+	"stats_roster_breakdown": "Kaderverteilung",
+	"stats_roster_breakdown_description": "Aktive Saison, aktueller Stand",
+	"stats_roster_unknown": "Unbekannt",
 	"stats_stats_found": "Statistik gefunden",
 	"stats_statistics": "Statistik",
 	"stats_teams_league_and_placement": "Ligen & Platzierungen",

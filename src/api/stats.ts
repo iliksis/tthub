@@ -5,6 +5,7 @@ import {
 	sortPlacementsByRank,
 } from "@/lib/placements";
 import type { Gender } from "@/lib/prisma/enums";
+import { buildRosterBreakdown } from "@/lib/rosterBreakdown";
 import { m } from "@/paraglide/messages";
 
 export type SeasonPlayerCount = {
@@ -72,6 +73,29 @@ export const getPlayerCountOverSeasons = createServerFn({
 		throw new Error((e as Error).message);
 	}
 });
+
+// Live snapshot of the Active Season's currently-rostered Players by age
+// group x gender. Deliberately independent of the stats page's season
+// selector: it always describes the Active Season as of today.
+export const getRosterBreakdown = createServerFn({ method: "GET" }).handler(
+	async () => {
+		try {
+			const rostered = await prismaClient.teamPlayer.findMany({
+				select: {
+					player: { select: { gender: true, id: true, year: true } },
+				},
+				where: { season: { isActive: true } },
+			});
+			return {
+				data: buildRosterBreakdown(rostered.map((tp) => tp.player)),
+				message: m.stats_stats_found(),
+			};
+		} catch (e) {
+			console.error(e);
+			throw new Error((e as Error).message);
+		}
+	},
+);
 
 export type TournamentSeriesPlacement = {
 	playerId: string;

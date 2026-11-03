@@ -10,6 +10,7 @@ import { z } from "zod";
 import { getActiveSeason, getSeasons } from "@/api/seasons";
 import {
 	getPlayerCountOverSeasons,
+	getRosterBreakdown,
 	getTournamentSeriesPlacements,
 	type TournamentSeries,
 	type TournamentSeriesNode,
@@ -40,13 +41,16 @@ export const Route = createFileRoute("/_authed/stats")({
 		const seasons = seasonsRes.data ?? [];
 		const activeSeason = activeSeasonRes.data ?? null;
 		const seasonId = deps.seasonId ?? activeSeason?.id;
-		const [teamsRes, playerCountRes, tournamentSeriesRes] = await Promise.all([
-			getTeams({ data: { seasonId } }),
-			getPlayerCountOverSeasons(),
-			getTournamentSeriesPlacements({ data: { seasonId } }),
-		]);
+		const [teamsRes, playerCountRes, rosterBreakdownRes, tournamentSeriesRes] =
+			await Promise.all([
+				getTeams({ data: { seasonId } }),
+				getPlayerCountOverSeasons(),
+				getRosterBreakdown(),
+				getTournamentSeriesPlacements({ data: { seasonId } }),
+			]);
 		return {
 			playerCounts: playerCountRes.data ?? [],
+			rosterBreakdown: rosterBreakdownRes.data ?? { rows: [], total: 0 },
 			seasonId,
 			seasons,
 			teams: teamsRes.data ?? [],
@@ -222,6 +226,64 @@ function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 			height={240}
 			ariaLabel={m.stats_player_count_over_seasons()}
 		/>
+	);
+}
+
+type RosterBreakdownRow = ReturnType<
+	typeof Route.useLoaderData
+>["rosterBreakdown"]["rows"][number];
+
+const rosterBreakdownColumns: DetailsListColumn<RosterBreakdownRow>[] = [
+	{
+		key: "ageGroup",
+		label: m.stats_roster_age_group(),
+		render: (item) => item.ageGroup,
+	},
+	{
+		align: "right",
+		key: "male",
+		label: m.stats_player_count_male(),
+		render: (item) => item.male,
+	},
+	{
+		align: "right",
+		key: "female",
+		label: m.stats_player_count_female(),
+		render: (item) => item.female,
+	},
+	{
+		align: "right",
+		key: "unknown",
+		label: m.stats_roster_unknown(),
+		render: (item) => item.unknown,
+	},
+];
+
+function RosterBreakdownSection({
+	rosterBreakdown,
+}: {
+	rosterBreakdown: ReturnType<typeof Route.useLoaderData>["rosterBreakdown"];
+}) {
+	return (
+		<Section
+			title={m.stats_roster_breakdown()}
+			description={m.stats_roster_breakdown_description()}
+		>
+			{rosterBreakdown.total === 0 ? (
+				<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
+					{m.stats_no_rostered_players()}
+				</div>
+			) : (
+				<div className="overflow-x-auto">
+					<DetailsList
+						items={rosterBreakdown.rows}
+						getItemId={(item) => item.ageGroup}
+						columns={rosterBreakdownColumns}
+						selectMode="none"
+					/>
+				</div>
+			)}
+		</Section>
 	);
 }
 
@@ -565,7 +627,8 @@ function SeasonSwitcher() {
 }
 
 function RouteComponent() {
-	const { teams, playerCounts, tournamentSeries } = Route.useLoaderData();
+	const { teams, playerCounts, rosterBreakdown, tournamentSeries } =
+		Route.useLoaderData();
 
 	return (
 		<div className="flex flex-col gap-8">
@@ -597,6 +660,8 @@ function RouteComponent() {
 					/>
 				</div>
 			</Section>
+
+			<RosterBreakdownSection rosterBreakdown={rosterBreakdown} />
 
 			<Section title={m.stats_teams_league_and_placement()}>
 				{/* Mobile */}
