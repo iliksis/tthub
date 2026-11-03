@@ -111,6 +111,62 @@ test.describe("Stats Route - Team League/Placement Table", () => {
 		}
 	});
 
+	test("shows a split team as two labelled rows and a non-split team as one", async ({
+		page,
+	}) => {
+		const season = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}Split` },
+		});
+		const splitTitle = `${PREFIX}SplitTeam`;
+		const soloTitle = `${PREFIX}SoloTeam`;
+		const hinrunde = await prismaClient.team.create({
+			data: {
+				half: "HINRUNDE",
+				league: `${PREFIX}HinLiga`,
+				placement: "3",
+				seasonId: season.id,
+				title: splitTitle,
+			},
+		});
+		await prismaClient.team.create({
+			data: {
+				half: "RUECKRUNDE",
+				hinrundeTeamId: hinrunde.id,
+				league: `${PREFIX}RueckLiga`,
+				placement: "1",
+				seasonId: season.id,
+				title: splitTitle,
+			},
+		});
+		await prismaClient.team.create({
+			data: {
+				league: `${PREFIX}SoloLiga`,
+				seasonId: season.id,
+				title: soloTitle,
+			},
+		});
+
+		await loginAs(page, "user");
+		await page.goto(`/stats?seasonId=${season.id}`);
+		await page.waitForLoadState("networkidle");
+
+		const splitRows = page.locator("a:visible", { hasText: splitTitle });
+		await expect(splitRows).toHaveCount(2);
+		const hinRow = page.locator(":visible", { hasText: `${PREFIX}HinLiga` });
+		await expect(hinRow.getByText("Hinrunde").first()).toBeVisible();
+		await expect(hinRow.getByText("3").first()).toBeVisible();
+		const rueckRow = page.locator(":visible", {
+			hasText: `${PREFIX}RueckLiga`,
+		});
+		await expect(rueckRow.getByText("Rückrunde").first()).toBeVisible();
+		await expect(rueckRow.getByText("1").first()).toBeVisible();
+
+		await expect(page.locator("a:visible", { hasText: soloTitle })).toHaveCount(
+			1,
+		);
+		await expect(page.getByText("Hinrunde:visible")).toHaveCount(1);
+	});
+
 	test("switching the season updates the displayed teams", async ({ page }) => {
 		const otherSeason = await prismaClient.season.create({
 			data: { isActive: false, name: `${PREFIX}Other` },
