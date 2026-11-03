@@ -137,37 +137,21 @@ type PlayerCountRow = ReturnType<
 // a series is a single edit here.
 const PLAYER_COUNT_SERIES = [
 	{
-		color: "hsl(var(--primary))",
+		color: "var(--color-chart-undefined)",
 		key: "playerCount",
 		label: () => m.stats_player_count_total(),
 	},
 	{
-		color: "hsl(var(--info))",
+		color: "var(--color-chart-male)",
 		key: "maleCount",
 		label: () => m.stats_player_count_male(),
 	},
 	{
-		color: "hsl(var(--chart-1))",
+		color: "var(--color-chart-female)",
 		key: "femaleCount",
 		label: () => m.stats_player_count_female(),
 	},
 ] as const;
-
-const playerCountColumns: DetailsListColumn<PlayerCountRow>[] = [
-	{
-		key: "seasonName",
-		label: m.common_name(),
-		render: (item) => item.seasonName,
-	},
-	...PLAYER_COUNT_SERIES.map(
-		(series): DetailsListColumn<PlayerCountRow> => ({
-			align: "right",
-			key: series.key,
-			label: series.label(),
-			render: (item) => item[series.key],
-		}),
-	),
-];
 
 function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 	// Rebuilt only when the data changes: `defineChart` compiles the scales and
@@ -234,46 +218,20 @@ type RosterBreakdownRow = ReturnType<
 	typeof Route.useLoaderData
 >["rosterBreakdown"]["rows"][number];
 
-const rosterBreakdownColumns: DetailsListColumn<RosterBreakdownRow>[] = [
-	{
-		key: "ageGroup",
-		label: m.stats_roster_age_group(),
-		render: (item) => item.ageGroup,
-	},
-	{
-		align: "right",
-		key: "male",
-		label: m.stats_player_count_male(),
-		render: (item) => item.male,
-	},
-	{
-		align: "right",
-		key: "female",
-		label: m.stats_player_count_female(),
-		render: (item) => item.female,
-	},
-	{
-		align: "right",
-		key: "unknown",
-		label: m.stats_roster_unknown(),
-		render: (item) => item.unknown,
-	},
-];
-
 // Same order as the table columns; bars stack in this order too.
 const ROSTER_SERIES = [
 	{
-		color: "hsl(var(--info))",
+		color: "var(--color-chart-male)",
 		key: "male",
 		label: () => m.stats_player_count_male(),
 	},
 	{
-		color: "hsl(var(--chart-1))",
+		color: "var(--color-chart-female)",
 		key: "female",
 		label: () => m.stats_player_count_female(),
 	},
 	{
-		color: "hsl(var(--muted-foreground))",
+		color: "var(--color-chart-undefined)",
 		key: "unknown",
 		label: () => m.stats_roster_unknown(),
 	},
@@ -332,60 +290,15 @@ function RosterBreakdownSection({
 	rosterBreakdown: ReturnType<typeof Route.useLoaderData>["rosterBreakdown"];
 }) {
 	return (
-		<Section
-			title={m.stats_roster_breakdown()}
-			description={m.stats_roster_breakdown_description()}
-		>
+		<Section title={m.stats_roster_breakdown()}>
 			{rosterBreakdown.total === 0 ? (
 				<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
 					{m.stats_no_rostered_players()}
 				</div>
 			) : (
-				<>
-					<RosterBreakdownChart rows={rosterBreakdown.rows} />
-					<div className="overflow-x-auto">
-						<DetailsList
-							items={rosterBreakdown.rows}
-							getItemId={(item) => item.ageGroup}
-							columns={rosterBreakdownColumns}
-							selectMode="none"
-						/>
-					</div>
-				</>
+				<RosterBreakdownChart rows={rosterBreakdown.rows} />
 			)}
 		</Section>
-	);
-}
-
-function PlayerCountMobileList({ rows }: { rows: PlayerCountRow[] }) {
-	if (rows.length === 0) {
-		return (
-			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
-				{m.stats_no_seasons()}
-			</div>
-		);
-	}
-
-	return (
-		<div className="flex flex-col">
-			{rows.map((row) => (
-				<div
-					key={row.seasonId}
-					className="flex w-full items-center justify-between gap-3 border-b border-b-border py-3.5 last:border-b-0"
-				>
-					<div className="min-w-[6ch] truncate font-medium text-sm">
-						{row.seasonName}
-					</div>
-					<div className="shrink-0 text-muted-foreground text-sm">
-						{m.stats_player_count_summary({
-							param1: row.playerCount,
-							param2: row.maleCount,
-							param3: row.femaleCount,
-						})}
-					</div>
-				</div>
-			))}
-		</div>
 	);
 }
 
@@ -715,20 +628,6 @@ function RouteComponent() {
 
 			<Section title={m.stats_player_count_over_seasons()}>
 				<PlayerCountChart rows={playerCounts} />
-				{/* Mobile */}
-				<div className="lg:hidden">
-					<PlayerCountMobileList rows={playerCounts} />
-				</div>
-				{/* Desktop */}
-				<div className="hidden overflow-x-auto lg:block">
-					<DetailsList
-						items={playerCounts}
-						getItemId={(item) => item.seasonId}
-						columns={playerCountColumns}
-						selectMode="none"
-						emptyMessage={m.stats_no_seasons()}
-					/>
-				</div>
 			</Section>
 
 			<RosterBreakdownSection rosterBreakdown={rosterBreakdown} />
