@@ -181,7 +181,8 @@ function RouteComponent() {
 	);
 	const pairedTeam = team.rueckrundeTeam ?? team.hinrundeTeam;
 	// A player on the paired half is still free for this one; being on any
-	// other team of the season is not.
+	// other team is not. `players` is already scoped to this team's season
+	// by the loader.
 	const availablePlayers = players.filter((p) =>
 		p.teams.every((t) => t.teamId === pairedTeam?.id),
 	);
@@ -274,6 +275,9 @@ function RouteComponent() {
 			{canEdit && (
 				<>
 					<TeamForm
+						// Following the pair link keeps this route mounted, and the form only
+						// reads its defaults once, so remount it per team.
+						key={team.id}
 						open={isEditing}
 						onClose={onStopEditing}
 						onSubmit={async (values, rosterChanges) => {

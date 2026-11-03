@@ -189,11 +189,22 @@ export const deleteTeam = createServerFn()
 		}
 
 		try {
-			// TeamPlayer rows cascade-delete automatically (onDelete: Cascade).
-			await prismaClient.team.delete({
-				where: {
-					id: data.id,
-				},
+			await prismaClient.$transaction(async (tx) => {
+				const team = await tx.team.findUniqueOrThrow({
+					include: { rueckrundeTeam: true },
+					where: { id: data.id },
+				});
+				// TeamPlayer rows cascade-delete automatically (onDelete: Cascade);
+				// the pair's link is nulled by the foreign key.
+				await tx.team.delete({ where: { id: data.id } });
+				// The surviving half is no longer paired, so it is a plain team again.
+				const survivorId = team.hinrundeTeamId ?? team.rueckrundeTeam?.id;
+				if (survivorId) {
+					await tx.team.update({
+						data: { half: null },
+						where: { id: survivorId },
+					});
+				}
 			});
 			return { message: m.teams_team_deleted() };
 		} catch (e) {

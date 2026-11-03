@@ -191,7 +191,7 @@ test.describe("Teams Route - Team Halves", () => {
 	test("EDITOR can create a Rückrunde half, which is then hidden", async ({
 		page,
 	}) => {
-		const { team, title, player } = await createSplitFixture("create");
+		const { team, title, player, season } = await createSplitFixture("create");
 		await loginAs(page, "editor");
 		await page.goto(`/teams/${team.id}`);
 		await page.waitForLoadState("networkidle");
@@ -201,20 +201,74 @@ test.describe("Teams Route - Team Halves", () => {
 		});
 		await createButton.click();
 
-		// Lands on the new half: pre-filled title, empty roster, no create action.
+		// Lands on the new half: pre-filled title and season, empty roster, no
+		// create action. The link back to the Hinrunde proves the page rendered
+		// before anything is asserted absent.
+		await expect(
+			page.getByRole("link", { name: "Zur Hinrunde" }),
+		).toBeVisible();
 		await expect(page).not.toHaveURL(`/teams/${team.id}`);
-		await expect(page.getByText(title).first()).toBeVisible();
-		await expect(page.getByText("Rückrunde").first()).toBeVisible();
+		await expect(
+			page.getByText(title).filter({ visible: true }).first(),
+		).toBeVisible();
+		await expect(
+			page.getByText(season.name).filter({ visible: true }).first(),
+		).toBeVisible();
+		await expect(
+			page.getByText("Rückrunde").filter({ visible: true }).first(),
+		).toBeVisible();
 		await expect(page.getByText(player.name)).toHaveCount(0);
 		await expect(createButton).toHaveCount(0);
+
+		const rueckrunde = await prismaClient.team.findFirstOrThrow({
+			include: { players: true },
+			where: { hinrundeTeamId: team.id },
+		});
+		expect(rueckrunde.title).toBe(title);
+		expect(rueckrunde.seasonId).toBe(season.id);
+		expect(rueckrunde.half).toBe("RUECKRUNDE");
+		expect(rueckrunde.players).toHaveLength(0);
 
 		// The Hinrunde page links over to the half and hides the action too.
 		await page.goto(`/teams/${team.id}`);
 		await page.waitForLoadState("networkidle");
-		await expect(createButton).toHaveCount(0);
 		await expect(
 			page.getByRole("link", { name: "Zur Rückrunde" }),
 		).toBeVisible();
+		await expect(createButton).toHaveCount(0);
+	});
+
+	test("deleting one half turns the other back into a plain team", async ({
+		page,
+	}) => {
+		const { team } = await createSplitFixture("delete");
+		await loginAs(page, "editor");
+		await page.goto(`/teams/${team.id}`);
+		await page.waitForLoadState("networkidle");
+		await page.getByRole("button", { name: "Rückrunde erstellen" }).click();
+		await expect(
+			page.getByRole("link", { name: "Zur Hinrunde" }),
+		).toBeVisible();
+
+		await page.getByRole("button", { name: "Team löschen" }).click();
+		await page
+			.getByRole("button", { name: /löschen/i })
+			.last()
+			.click();
+		await expect(page).toHaveURL(/\/teams\/?$/);
+
+		const hinrunde = await prismaClient.team.findUniqueOrThrow({
+			where: { id: team.id },
+		});
+		expect(hinrunde.half).toBeNull();
+
+		await page.goto(`/teams/${team.id}`);
+		await expect(
+			page.getByRole("button", { name: "Rückrunde erstellen" }),
+		).toBeVisible();
+		await expect(page.getByRole("link", { name: "Zur Rückrunde" })).toHaveCount(
+			0,
+		);
 	});
 
 	test("halves keep independent rosters and link to each other", async ({
@@ -268,6 +322,7 @@ test.describe("Teams Route - Team Halves", () => {
 			.getByRole("button", { name: "Schließen" })
 			.click();
 		await expect(page.getByRole("dialog")).toBeHidden();
+		await expect(page.getByText("Hin-Liga").first()).toBeVisible();
 		await expect(page.getByText(player.name)).toHaveCount(0);
 
 		await page.goto(rueckrundeUrl);
