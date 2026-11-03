@@ -17,6 +17,22 @@ const config = defineConfig({
 	// Unit tests don't serve HTTPS; skipping it avoids mkcert's GitHub API
 	// download (rate-limited on shared CI runners) failing vitest startup.
 	...(process.env.VITEST ? [] : [mkcert()]),
+    {
+      // The dev server (HTTP/2 via mkcert) throws an uncaught
+      // ERR_HTTP2_INVALID_STREAM when a client disconnects before the SSR
+      // response is written, killing the whole process (and every later e2e
+      // test with ERR_CONNECTION_REFUSED). A dropped connection is harmless,
+      // so ignore only that error and keep the default crash for the rest.
+      name: 'ignore-destroyed-http2-stream',
+      apply: 'serve',
+      configureServer() {
+        process.on('uncaughtException', (error) => {
+          if ((error as NodeJS.ErrnoException).code === 'ERR_HTTP2_INVALID_STREAM') return
+          console.error(error)
+          process.exit(1)
+        })
+      },
+    },
     // `injectSource` adds a `data-tsd-source` attribute to every JSX element
     // for the devtools "click to open in editor" inspector. It was leaking
     // into the URL as a stray search param on this route, so it's disabled.
