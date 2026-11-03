@@ -1,4 +1,12 @@
-import { barY, colorLegend, defineChart, group, lineY } from "@tanstack/charts";
+import {
+	areaY,
+	barY,
+	colorLegend,
+	defineChart,
+	group,
+	lineY,
+} from "@tanstack/charts";
+import { d3Curve } from "@tanstack/charts/d3/shape";
 import { Chart } from "@tanstack/charts/react";
 import { scaleBand } from "@tanstack/charts/scales/band";
 import { scaleLinear } from "@tanstack/charts/scales/linear";
@@ -6,6 +14,7 @@ import { scaleOrdinal } from "@tanstack/charts/scales/ordinal";
 import { scalePoint } from "@tanstack/charts/scales/point";
 import { tooltip } from "@tanstack/charts/tooltip";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { curveMonotoneX } from "d3-shape";
 import { useMemo, useState } from "react";
 import { z } from "zod";
 import { getActiveSeason, getSeasons } from "@/api/seasons";
@@ -153,6 +162,10 @@ const PLAYER_COUNT_SERIES = [
 	},
 ] as const;
 
+// Monotone interpolation rounds the corners between seasons without ever
+// overshooting below the data (counts can't go negative).
+const smoothCurve = d3Curve(curveMonotoneX);
+
 function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 	// Rebuilt only when the data changes: `defineChart` compiles the scales and
 	// marks, so doing it on every render (e.g. each hover-driven parent update)
@@ -178,7 +191,21 @@ function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 			// One tooltip per season listing every series, instead of one per line.
 			focus: "group-x",
 			marks: [
+				// Explicit `y1: 0` opts out of the default stacking: the series
+				// overlap (total = male + female), so each area starts at zero.
+				areaY(points, {
+					color: "series",
+					curve: smoothCurve,
+					fillOpacity: 0.25,
+					key: "id",
+					strokeWidth: 2,
+					x: "season",
+					y: "count",
+					y1: 0,
+					z: "series",
+				}),
 				lineY(points, {
+					curve: smoothCurve,
 					key: "id",
 					points: true,
 					strokeWidth: 2,
