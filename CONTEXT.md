@@ -40,9 +40,21 @@ _Avoid_: Tag, category, type (Label is the canonical term; "type" now refers onl
 The full connected graph of `TOURNAMENT` Appointments reachable via `nextAppointmentId`/`previousAppointments` — the same mechanism used for "next appointment" links. `nextAppointmentId` is a single scalar FK (an Appointment has at most one forward link), but several different Appointments can point at the same next Appointment, so a series can branch (e.g. two regional qualifiers both feeding into one final). A standalone tournament with no linked occurrences is a Tournament Series of length one. The season statistics page shows every Tournament Series with at least one Appointment in the selected Season — once any single Appointment in the series qualifies, the *whole* series is shown, including Appointments in other Seasons, each with its own Placements grouped by category. The Season only decides which series qualify and which Appointment(s) are marked as belonging to the viewed Season; it never trims the series down.
 _Avoid_: Recurring tournament (doesn't capture the length-one case), tournament chain.
 
-**Season Player**:
-A Player who has any footprint in a Season — a Roster Membership, a Placement on any Appointment that Season, or both. Used for the season-over-season player count trend on the statistics page; broader than actually having played (a rostered-but-never-placed Player still counts).
-_Avoid_: Participating Player (a stricter, now-unused concept — rostered *and* placed), Active player (collides with **Active Season**'s existing, unrelated meaning — "active" always refers to the single `isActive` Season).
+**Eligible Player**:
+A Player with **Playing Eligibility**, regardless of any Roster Membership or Placement. The season-over-season player count trend on the statistics page counts Eligible Players (total, male, female); the UI may label this "active players" as copy. Seasons before Playing Eligibility existed were counted by the old rule — a Roster Membership or a Placement in that Season — so the earliest points of the trend are not strictly comparable.
+_Avoid_: Season Player and Participating Player (the retired roster/placement-based concepts), Active player (collides with **Active Season** — "active" always refers to the single `isActive` Season).
+
+**Season Statistics**:
+The one stored record per Season holding the figures the statistics page shows: the count of all Players, the Eligible Player count (total, male, female) and a breakdown of all Players by age group, gender and eligibility. It is refreshed once a day while its Season is the Active Season and a snapshot once it is not: a change to a Player (creation, gender, birth year, Playing Eligibility, deletion) shows up at the next refresh, and Roster Memberships do not feed it. Age groups are worked out from the year of the refresh. Records for Seasons that predate it hold only the old-rule Eligible Player counts; the all-Player count and the breakdown are untracked there.
+_Avoid_: Season summary, stats cache.
+
+**Club Member** (Vereinsmitglied):
+A Player flagged as a member of the club. A current-state attribute of the Player, not of any Season, and independent of **Playing Eligibility** — neither implies the other. Not shown in the season statistics.
+_Avoid_: Active player, registered player.
+
+**Playing Eligibility** (Spielberechtigt):
+A Player flagged as currently entitled to play. A current-state attribute of the Player, not of any Season, and independent of **Club Member**. New and imported Players start without it; editors set it.
+_Avoid_: Active (collides with **Active Season**), licensed.
 
 **Muted Label** (in a user's notification/feed preferences):
 A Label a user has chosen to suppress — appointments carrying it are excluded from that user's push notifications or calendar feed, but remain unaffected for every other user. Muting is a personal preference, not a property of the Label or the Appointment.
