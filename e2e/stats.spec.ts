@@ -163,93 +163,111 @@ test.describe("Stats Route - Team League/Placement Table", () => {
 	});
 });
 
-test.describe("Stats Route - Participating Players per Team", () => {
-	// The same Team title also appears in the League/Placement table's row on
-	// this page, so matching on the title alone is ambiguous. Scoping to a
-	// visible `<tr>` containing both the title and the expected ratio
-	// disambiguates it from that other table's row (which never contains a
-	// ratio) without needing the mobile tree's `<a>` row at all.
-	const ratioRow = (
+test.describe("Stats Route - Player Count Over Seasons", () => {
+	// Scoped to a visible `<tr>` containing the season name and the expected
+	// count; the season name also appears in the season selector.
+	const countRow = (
 		page: import("@playwright/test").Page,
-		teamTitle: string,
-		ratio: string,
+		seasonName: string,
+		count: number,
 	) =>
-		page
-			.locator("tr:visible", { hasText: teamTitle })
-			.filter({ hasText: ratio });
+		page.locator("tr:visible", { hasText: seasonName }).filter({
+			has: page.getByRole("cell", { exact: true, name: `${count}` }),
+		});
 
-	test("counts a rostered player with a Placement on any tournament, but not a rostered player with no Placement", async ({
+	test("counts rostered-only, placed-only, and both as Season Players without double counting", async ({
 		page,
 	}) => {
 		const season = await prismaClient.season.create({
-			data: { isActive: false, name: `${PREFIX}Roster` },
+			data: { isActive: false, name: `${PREFIX}CountUnion` },
 		});
 		const team = await prismaClient.team.create({
-			data: { seasonId: season.id, title: `${PREFIX}RosterTeam` },
+			data: { seasonId: season.id, title: `${PREFIX}CountTeam` },
 		});
-		const label = await prismaClient.label.create({
-			data: {
-				color: "peach",
-				name: `${PREFIX}RosterLabel`,
-			},
-		});
-
-		const placedPlayer = await prismaClient.player.create({
-			data: { name: `${PREFIX}Placed`, qttr: 1000, year: 2010 },
-		});
-		const unplacedPlayer = await prismaClient.player.create({
-			data: { name: `${PREFIX}Unplaced`, qttr: 1000, year: 2010 },
-		});
-		await prismaClient.teamPlayer.create({
-			data: { playerId: placedPlayer.id, seasonId: season.id, teamId: team.id },
-		});
-		await prismaClient.teamPlayer.create({
-			data: {
-				playerId: unplacedPlayer.id,
-				seasonId: season.id,
-				teamId: team.id,
-			},
-		});
-
+		const [rosterOnly, placedOnly, both] = await Promise.all(
+			["RosterOnly", "PlacedOnly", "Both"].map((n) =>
+				prismaClient.player.create({
+					data: { name: `${PREFIX}${n}`, qttr: 1000, year: 2010 },
+				}),
+			),
+		);
+		for (const p of [rosterOnly, both]) {
+			await prismaClient.teamPlayer.create({
+				data: { playerId: p.id, seasonId: season.id, teamId: team.id },
+			});
+		}
 		const appointment = await prismaClient.appointment.create({
 			data: {
-				labels: { create: { labelId: label.id } },
 				seasonId: season.id,
 				startDate: new Date(),
 				status: "PUBLISHED",
-				title: `${PREFIX}RosterAppt`,
+				title: `${PREFIX}CountAppt`,
 				type: "TOURNAMENT",
 			},
 		});
-		await prismaClient.placement.create({
+		// "both" is placed twice (two categories) on top of being rostered.
+		await prismaClient.placement.createMany({
+			data: [
+				{
+					appointmentId: appointment.id,
+					category: "Einzel",
+					placement: "1",
+					playerId: placedOnly.id,
+				},
+				{
+					appointmentId: appointment.id,
+					category: "Einzel",
+					placement: "2",
+					playerId: both.id,
+				},
+				{
+					appointmentId: appointment.id,
+					category: "Doppel",
+					placement: "2",
+					playerId: both.id,
+				},
+			],
+		});
+
+		await loginAs(page, "user");
+		await page.goto("/stats");
+		await page.waitForLoadState("networkidle");
+
+		await expect(countRow(page, season.name, 3)).toBeVisible();
+	});
+
+	test("lists every season in chronological order and ignores the season selector", async ({
+		page,
+	}) => {
+		const older = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}CountOlder` },
+		});
+		const newer = await prismaClient.season.create({
 			data: {
-				appointmentId: appointment.id,
-				category: "Einzel",
-				placement: "1",
-				playerId: placedPlayer.id,
+				createdAt: new Date(Date.now() + 1000),
+				isActive: false,
+				name: `${PREFIX}CountNewer`,
 			},
 		});
 
 		await loginAs(page, "user");
-		await page.goto(`/stats?seasonId=${season.id}`);
+		await page.goto("/stats");
 		await page.waitForLoadState("networkidle");
 
-		await expect(ratioRow(page, team.title, "1/2")).toBeVisible();
-	});
+		const names = await page
+			.locator("tr:visible td:first-child")
+			.allTextContents();
+		const olderIdx = names.indexOf(older.name);
+		expect(olderIdx).toBeGreaterThanOrEqual(0);
+		expect(names.indexOf(newer.name)).toBeGreaterThan(olderIdx);
 
-	test("shows 0/0 for a team with no roster", async ({ page }) => {
-		const season = await prismaClient.season.create({
-			data: { isActive: false, name: `${PREFIX}EmptyRoster` },
-		});
-		const team = await prismaClient.team.create({
-			data: { seasonId: season.id, title: `${PREFIX}EmptyRosterTeam` },
-		});
-
-		await loginAs(page, "user");
-		await page.goto(`/stats?seasonId=${season.id}`);
+		await page.goto(`/stats?seasonId=${older.id}`);
 		await page.waitForLoadState("networkidle");
-
-		await expect(ratioRow(page, team.title, "0/0")).toBeVisible();
+		const namesAfter = await page
+			.locator("tr:visible td:first-child")
+			.allTextContents();
+		expect(namesAfter).toContain(older.name);
+		expect(namesAfter).toContain(newer.name);
 	});
 });
 

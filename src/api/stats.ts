@@ -6,58 +6,61 @@ import {
 } from "@/lib/placements";
 import { m } from "@/paraglide/messages";
 
-export type ParticipatingPlayersByTeam = {
-	teamId: string;
-	teamTitle: string;
-	rosterSize: number;
-	participatingCount: number;
+export type SeasonPlayerCount = {
+	seasonId: string;
+	seasonName: string;
+	playerCount: number;
 };
 
-// Per-Team breakdown of roster size vs. Participating Player count for the
-// given Season — see CONTEXT.md's "Participating Player" entry. A
-// Participating Player is a Player who both holds a Roster Membership
-// (TeamPlayer) for the Team and has at least one Placement on any
-// Appointment in the Season.
-export const getParticipatingPlayersByTeam = createServerFn({ method: "GET" })
-	.validator((d: { seasonId?: string }) => d)
-	.handler(async ({ data }) => {
-		try {
-			if (!data.seasonId) {
-				return { data: [], message: m.stats_stats_found() };
+// Season Player count for every Season, oldest first — see CONTEXT.md's
+// "Season Player" entry. A Season Player is a Player with a Roster
+// Membership (TeamPlayer) or a Placement on a non-deleted Appointment in that
+// Season; the two are unioned and deduplicated per Season. Deliberately
+// independent of the stats page's season selector.
+export const getPlayerCountOverSeasons = createServerFn({
+	method: "GET",
+}).handler(async () => {
+	try {
+		const [seasons, rostered, placed] = await Promise.all([
+			prismaClient.season.findMany({ orderBy: { createdAt: "asc" } }),
+			prismaClient.teamPlayer.findMany({
+				distinct: ["seasonId", "playerId"],
+				select: { playerId: true, seasonId: true },
+			}),
+			prismaClient.placement.findMany({
+				select: {
+					appointment: { select: { seasonId: true } },
+					playerId: true,
+				},
+				where: { appointment: { deletedAt: null } },
+			}),
+		]);
+
+		const playersBySeason = new Map<string, Set<string>>();
+		const add = (seasonId: string, playerId: string) => {
+			let players = playersBySeason.get(seasonId);
+			if (!players) {
+				players = new Set();
+				playersBySeason.set(seasonId, players);
 			}
-
-			const [teams, placedPlayers] = await Promise.all([
-				prismaClient.team.findMany({
-					include: { players: { select: { playerId: true } } },
-					orderBy: { title: "asc" },
-					where: { seasonId: data.seasonId },
-				}),
-				prismaClient.placement.findMany({
-					distinct: ["playerId"],
-					select: { playerId: true },
-					where: {
-						appointment: { deletedAt: null, seasonId: data.seasonId },
-					},
-				}),
-			]);
-			const participatingPlayerIds = new Set(
-				placedPlayers.map((p) => p.playerId),
-			);
-
-			const breakdown: ParticipatingPlayersByTeam[] = teams.map((team) => ({
-				participatingCount: team.players.filter((tp) =>
-					participatingPlayerIds.has(tp.playerId),
-				).length,
-				rosterSize: team.players.length,
-				teamId: team.id,
-				teamTitle: team.title,
-			}));
-			return { data: breakdown, message: m.stats_stats_found() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
+			players.add(playerId);
+		};
+		for (const tp of rostered) add(tp.seasonId, tp.playerId);
+		for (const p of placed) {
+			if (p.appointment.seasonId) add(p.appointment.seasonId, p.playerId);
 		}
-	});
+
+		const counts: SeasonPlayerCount[] = seasons.map((season) => ({
+			playerCount: playersBySeason.get(season.id)?.size ?? 0,
+			seasonId: season.id,
+			seasonName: season.name,
+		}));
+		return { data: counts, message: m.stats_stats_found() };
+	} catch (e) {
+		console.error(e);
+		throw new Error((e as Error).message);
+	}
+});
 
 export type TournamentSeriesPlacement = {
 	playerId: string;

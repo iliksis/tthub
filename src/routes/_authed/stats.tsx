@@ -3,7 +3,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { getActiveSeason, getSeasons } from "@/api/seasons";
 import {
-	getParticipatingPlayersByTeam,
+	getPlayerCountOverSeasons,
 	getTournamentSeriesPlacements,
 	type TournamentSeries,
 	type TournamentSeriesNode,
@@ -34,14 +34,13 @@ export const Route = createFileRoute("/_authed/stats")({
 		const seasons = seasonsRes.data ?? [];
 		const activeSeason = activeSeasonRes.data ?? null;
 		const seasonId = deps.seasonId ?? activeSeason?.id;
-		const [teamsRes, participatingByTeamRes, tournamentSeriesRes] =
-			await Promise.all([
-				getTeams({ data: { seasonId } }),
-				getParticipatingPlayersByTeam({ data: { seasonId } }),
-				getTournamentSeriesPlacements({ data: { seasonId } }),
-			]);
+		const [teamsRes, playerCountRes, tournamentSeriesRes] = await Promise.all([
+			getTeams({ data: { seasonId } }),
+			getPlayerCountOverSeasons(),
+			getTournamentSeriesPlacements({ data: { seasonId } }),
+		]);
 		return {
-			participatingByTeam: participatingByTeamRes.data ?? [],
+			playerCounts: playerCountRes.data ?? [],
 			seasonId,
 			seasons,
 			teams: teamsRes.data ?? [],
@@ -119,37 +118,29 @@ function TeamStandingsMobileList({ teams }: { teams: TeamRow[] }) {
 	);
 }
 
-type ParticipatingRow = ReturnType<
+type PlayerCountRow = ReturnType<
 	typeof Route.useLoaderData
->["participatingByTeam"][number];
+>["playerCounts"][number];
 
-const participatingColumns: DetailsListColumn<ParticipatingRow>[] = [
+const playerCountColumns: DetailsListColumn<PlayerCountRow>[] = [
 	{
-		key: "teamTitle",
+		key: "seasonName",
 		label: m.common_name(),
-		render: (item) => (
-			<Link to="/teams/$teamId" params={{ teamId: item.teamId }}>
-				{item.teamTitle}
-			</Link>
-		),
+		render: (item) => item.seasonName,
 	},
 	{
 		align: "right",
-		key: "participating",
-		label: m.stats_participating_players(),
-		render: (item) => `${item.participatingCount}/${item.rosterSize}`,
+		key: "playerCount",
+		label: m.stats_player_count(),
+		render: (item) => item.playerCount,
 	},
 ];
 
-function ParticipatingPlayersMobileList({
-	rows,
-}: {
-	rows: ParticipatingRow[];
-}) {
+function PlayerCountMobileList({ rows }: { rows: PlayerCountRow[] }) {
 	if (rows.length === 0) {
 		return (
 			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
-				{m.stats_no_teams_in_this_season()}
+				{m.stats_no_seasons()}
 			</div>
 		);
 	}
@@ -157,19 +148,17 @@ function ParticipatingPlayersMobileList({
 	return (
 		<div className="flex flex-col">
 			{rows.map((row) => (
-				<Link
-					key={row.teamId}
-					to="/teams/$teamId"
-					params={{ teamId: row.teamId }}
-					className="flex w-full items-center justify-between gap-3 border-b border-b-border py-3.5 text-left last:border-b-0"
+				<div
+					key={row.seasonId}
+					className="flex w-full items-center justify-between gap-3 border-b border-b-border py-3.5 last:border-b-0"
 				>
 					<div className="min-w-[6ch] truncate font-medium text-sm">
-						{row.teamTitle}
+						{row.seasonName}
 					</div>
 					<div className="shrink-0 text-muted-foreground text-sm">
-						{row.participatingCount}/{row.rosterSize}
+						{row.playerCount}
 					</div>
-				</Link>
+				</div>
 			))}
 		</div>
 	);
@@ -483,8 +472,7 @@ function SeasonSwitcher() {
 }
 
 function RouteComponent() {
-	const { teams, participatingByTeam, tournamentSeries } =
-		Route.useLoaderData();
+	const { teams, playerCounts, tournamentSeries } = Route.useLoaderData();
 
 	return (
 		<div className="flex flex-col gap-8">
@@ -499,19 +487,19 @@ function RouteComponent() {
 				<SeasonSwitcher />
 			</div>
 
-			<Section title={m.stats_participating_players()}>
+			<Section title={m.stats_player_count_over_seasons()}>
 				{/* Mobile */}
 				<div className="lg:hidden">
-					<ParticipatingPlayersMobileList rows={participatingByTeam} />
+					<PlayerCountMobileList rows={playerCounts} />
 				</div>
 				{/* Desktop */}
 				<div className="hidden overflow-x-auto lg:block">
 					<DetailsList
-						items={participatingByTeam}
-						getItemId={(item) => item.teamId}
-						columns={participatingColumns}
+						items={playerCounts}
+						getItemId={(item) => item.seasonId}
+						columns={playerCountColumns}
 						selectMode="none"
-						emptyMessage={m.stats_no_teams_in_this_season()}
+						emptyMessage={m.stats_no_seasons()}
 					/>
 				</div>
 			</Section>
