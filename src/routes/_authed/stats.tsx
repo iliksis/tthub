@@ -1,7 +1,7 @@
-import { defineChart, lineY } from "@tanstack/charts";
-import { dot } from "@tanstack/charts/dot";
+import { colorLegend, defineChart, lineY } from "@tanstack/charts";
 import { Chart } from "@tanstack/charts/react";
 import { scaleLinear } from "@tanstack/charts/scales/linear";
+import { scaleOrdinal } from "@tanstack/charts/scales/ordinal";
 import { scalePoint } from "@tanstack/charts/scales/point";
 import { tooltip } from "@tanstack/charts/tooltip";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
@@ -140,25 +140,62 @@ const playerCountColumns: DetailsListColumn<PlayerCountRow>[] = [
 		label: m.stats_player_count(),
 		render: (item) => item.playerCount,
 	},
+	{
+		align: "right",
+		key: "maleCount",
+		label: m.stats_player_count_male(),
+		render: (item) => item.maleCount,
+	},
+	{
+		align: "right",
+		key: "femaleCount",
+		label: m.stats_player_count_female(),
+		render: (item) => item.femaleCount,
+	},
 ];
 
 function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 	if (rows.length === 0) return null;
 
+	const series = [
+		{ color: "hsl(var(--primary))", count: "playerCount" },
+		{ color: "hsl(var(--info))", count: "maleCount" },
+		{ color: "hsl(var(--chart-1))", count: "femaleCount" },
+	] as const;
+	const labels: Record<(typeof series)[number]["count"], string> = {
+		femaleCount: m.stats_player_count_female(),
+		maleCount: m.stats_player_count_male(),
+		playerCount: m.stats_player_count_total(),
+	};
+	const points = rows.flatMap((row) =>
+		series.map(({ count }) => ({
+			count: row[count],
+			id: `${row.seasonId}-${count}`,
+			season: row.seasonName,
+			series: labels[count],
+		})),
+	);
+
 	const definition = defineChart({
+		color: {
+			legend: colorLegend(),
+			scale: () =>
+				scaleOrdinal<string, string>()
+					.domain(series.map(({ count }) => labels[count]))
+					.range(series.map(({ color }) => color)),
+		},
+		focus: "group-x",
 		marks: [
-			lineY(rows, {
-				stroke: "hsl(var(--primary))",
+			lineY(points, {
+				key: "id",
+				points: true,
 				strokeWidth: 2,
-				x: "seasonName",
-				y: "playerCount",
-			}),
-			dot(rows, {
-				fill: "hsl(var(--primary))",
-				x: "seasonName",
-				y: "playerCount",
+				x: "season",
+				y: "count",
+				z: "series",
 			}),
 		],
+		maxFocusDistance: Number.POSITIVE_INFINITY,
 		scales: {
 			x: { scale: () => scalePoint<string>().padding(0.4) },
 			y: { grid: true, nice: true, scale: scaleLinear },
@@ -169,7 +206,8 @@ function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 	return (
 		<Chart
 			definition={definition}
-			height={220}
+			className="[--ts-chart-tooltip-background:var(--color-popover)] [--ts-chart-tooltip-border:1px_solid_var(--color-border)] [--ts-chart-tooltip-color:var(--color-popover-foreground)]"
+			height={240}
 			ariaLabel={m.stats_player_count_over_seasons()}
 		/>
 	);
@@ -195,7 +233,7 @@ function PlayerCountMobileList({ rows }: { rows: PlayerCountRow[] }) {
 						{row.seasonName}
 					</div>
 					<div className="shrink-0 text-muted-foreground text-sm">
-						{row.playerCount}
+						{row.playerCount} ({row.maleCount} ♂ / {row.femaleCount} ♀)
 					</div>
 				</div>
 			))}

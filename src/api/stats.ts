@@ -10,51 +10,61 @@ export type SeasonPlayerCount = {
 	seasonId: string;
 	seasonName: string;
 	playerCount: number;
+	maleCount: number;
+	femaleCount: number;
 };
 
 // Season Player count for every Season, oldest first — see CONTEXT.md's
 // "Season Player" entry. A Season Player is a Player with a Roster
 // Membership (TeamPlayer) or a Placement on a non-deleted Appointment in that
-// Season; the two are unioned and deduplicated per Season. Deliberately
-// independent of the stats page's season selector.
+// Season; the two are unioned and deduplicated per Season. Players without a
+// recorded gender only count towards the total. Deliberately independent of
+// the stats page's season selector.
 export const getPlayerCountOverSeasons = createServerFn({
 	method: "GET",
 }).handler(async () => {
 	try {
+		const playerSelect = { select: { gender: true, id: true } };
 		const [seasons, rostered, placed] = await Promise.all([
 			prismaClient.season.findMany({ orderBy: { createdAt: "asc" } }),
 			prismaClient.teamPlayer.findMany({
 				distinct: ["seasonId", "playerId"],
-				select: { playerId: true, seasonId: true },
+				select: { player: playerSelect, seasonId: true },
 			}),
 			prismaClient.placement.findMany({
 				select: {
 					appointment: { select: { seasonId: true } },
-					playerId: true,
+					player: playerSelect,
 				},
 				where: { appointment: { deletedAt: null } },
 			}),
 		]);
 
-		const playersBySeason = new Map<string, Set<string>>();
-		const add = (seasonId: string, playerId: string) => {
+		type PlayerRef = { id: string; gender: "MALE" | "FEMALE" | null };
+		const playersBySeason = new Map<string, Map<string, PlayerRef>>();
+		const add = (seasonId: string, player: PlayerRef) => {
 			let players = playersBySeason.get(seasonId);
 			if (!players) {
-				players = new Set();
+				players = new Map();
 				playersBySeason.set(seasonId, players);
 			}
-			players.add(playerId);
+			players.set(player.id, player);
 		};
-		for (const tp of rostered) add(tp.seasonId, tp.playerId);
+		for (const tp of rostered) add(tp.seasonId, tp.player);
 		for (const p of placed) {
-			if (p.appointment.seasonId) add(p.appointment.seasonId, p.playerId);
+			if (p.appointment.seasonId) add(p.appointment.seasonId, p.player);
 		}
 
-		const counts: SeasonPlayerCount[] = seasons.map((season) => ({
-			playerCount: playersBySeason.get(season.id)?.size ?? 0,
-			seasonId: season.id,
-			seasonName: season.name,
-		}));
+		const counts: SeasonPlayerCount[] = seasons.map((season) => {
+			const players = [...(playersBySeason.get(season.id)?.values() ?? [])];
+			return {
+				femaleCount: players.filter((p) => p.gender === "FEMALE").length,
+				maleCount: players.filter((p) => p.gender === "MALE").length,
+				playerCount: players.length,
+				seasonId: season.id,
+				seasonName: season.name,
+			};
+		});
 		return { data: counts, message: m.stats_stats_found() };
 	} catch (e) {
 		console.error(e);

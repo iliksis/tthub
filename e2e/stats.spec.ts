@@ -164,16 +164,12 @@ test.describe("Stats Route - Team League/Placement Table", () => {
 });
 
 test.describe("Stats Route - Player Count Over Seasons", () => {
-	// Scoped to a visible `<tr>` containing the season name and the expected
-	// count; the season name also appears in the season selector.
-	const countRow = (
+	// Scoped to a visible `<tr>`; the season name also appears in the season
+	// selector and the chart.
+	const countCells = (
 		page: import("@playwright/test").Page,
 		seasonName: string,
-		count: number,
-	) =>
-		page.locator("tr:visible", { hasText: seasonName }).filter({
-			has: page.getByRole("cell", { exact: true, name: `${count}` }),
-		});
+	) => page.locator("tr:visible", { hasText: seasonName }).locator("td");
 
 	test("counts rostered-only, placed-only, and both as Season Players without double counting", async ({
 		page,
@@ -185,9 +181,15 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 			data: { seasonId: season.id, title: `${PREFIX}CountTeam` },
 		});
 		const [rosterOnly, placedOnly, both] = await Promise.all(
-			["RosterOnly", "PlacedOnly", "Both"].map((n) =>
+			(
+				[
+					["RosterOnly", "MALE"],
+					["PlacedOnly", null],
+					["Both", "FEMALE"],
+				] as const
+			).map(([n, gender]) =>
 				prismaClient.player.create({
-					data: { name: `${PREFIX}${n}`, qttr: 1000, year: 2010 },
+					data: { gender, name: `${PREFIX}${n}`, qttr: 1000, year: 2010 },
 				}),
 			),
 		);
@@ -233,7 +235,12 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 		await page.goto("/stats");
 		await page.waitForLoadState("networkidle");
 
-		await expect(countRow(page, season.name, 3)).toBeVisible();
+		await expect(countCells(page, season.name)).toHaveText([
+			season.name,
+			"3",
+			"1",
+			"1",
+		]);
 	});
 
 	test("lists every season in chronological order and ignores the season selector", async ({
