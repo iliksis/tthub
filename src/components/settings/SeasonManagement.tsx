@@ -2,8 +2,10 @@ import { useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
 	CopyIcon,
+	Loader2Icon,
 	PencilIcon,
 	PlusIcon,
+	RefreshCwIcon,
 	StarIcon,
 	Trash2Icon,
 } from "lucide-react";
@@ -12,12 +14,14 @@ import { toast } from "sonner";
 import {
 	createSeason,
 	deleteSeason,
+	refreshSeasonStatistics,
 	setActiveSeason,
 	updateSeason,
 } from "@/api/seasons";
 import { DetailsList } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useMutation } from "@/hooks/useMutation";
 import type { Season } from "@/lib/prisma/client";
 import { m } from "@/paraglide/messages";
@@ -78,6 +82,18 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 		},
 	});
 
+	const refreshMutation = useMutation({
+		fn: (_: undefined) => refreshSeasonStatistics(),
+		onError: (err) => {
+			toast.error(err.message);
+		},
+		onSuccess: async (ctx) => {
+			// The stats page reads the stored record through the router loader.
+			await router.invalidate();
+			toast.success(ctx.data.message);
+		},
+	});
+
 	const deleteSeasonServerFn = useServerFn(deleteSeason);
 	const onDelete = async () => {
 		if (!deletingSeason) return;
@@ -112,7 +128,27 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 						label: m.seasons_active(),
 						render: (item) =>
 							item.isActive ? (
-								<Badge variant="default">{m.seasons_active()}</Badge>
+								<div className="flex items-center gap-2">
+									<Badge variant="default">{m.seasons_active()}</Badge>
+									<Button
+										type="button"
+										size="xs"
+										variant="outline"
+										disabled={refreshMutation.status === "pending"}
+										onClick={(e) => {
+											// Don't toggle the row's selection.
+											e.stopPropagation();
+											refreshMutation.mutate(undefined);
+										}}
+									>
+										{refreshMutation.status === "pending" ? (
+											<Loader2Icon className="animate-spin" />
+										) : (
+											<RefreshCwIcon />
+										)}
+										{m.seasons_refresh_statistics()}
+									</Button>
+								</div>
 							) : null,
 					},
 					{
