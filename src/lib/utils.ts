@@ -252,16 +252,27 @@ export const formatTanstackRouterPath = (
 		});
 };
 
-export const calculateAgeGroup = (year: number) => {
-	const currentYear = new Date().getFullYear();
-	const age = currentYear - year;
+export const AGE_GROUPS = ["U11", "U13", "U15", "U19", "ADULT"] as const;
+export type AgeGroup = (typeof AGE_GROUPS)[number];
+
+// Returns a stable key (not a translated label). Use `ageGroupLabel` to
+// display it. `referenceYear` is explicit so callers decide the year: UI code
+// passes today's year, statistics code can pass a fixed one.
+export const calculateAgeGroup = (
+	year: number,
+	referenceYear: number,
+): AgeGroup => {
+	const age = referenceYear - year;
 
 	if (age < 11) return "U11";
 	if (age < 13) return "U13";
 	if (age < 15) return "U15";
 	if (age < 19) return "U19";
-	return m.players_adult();
+	return "ADULT";
 };
+
+export const ageGroupLabel = (group: AgeGroup) =>
+	group === "ADULT" ? m.players_adult() : group;
 
 export const shortenUserName = (name: string) => {
 	const parts = name.split(" ");

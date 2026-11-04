@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { UserInvitation } from "./prisma/client";
 import { Role } from "./prisma/enums";
 import {
+	ageGroupLabel,
 	calculateAgeGroup,
 	compareRoles,
 	createColorForUserId,
@@ -157,32 +158,58 @@ describe("createColorForUserId", () => {
 });
 
 describe("calculateAgeGroup", () => {
-	beforeEach(() => {
-		vi.useFakeTimers();
-		vi.setSystemTime(new Date("2026-01-17T12:00:00Z"));
+	const ref = 2026;
+
+	it("should return U11 up to age 10", () => {
+		expect(calculateAgeGroup(2016, ref)).toBe("U11");
+		expect(calculateAgeGroup(2026, ref)).toBe("U11");
 	});
 
-	it("should return U11 for 10 year olds", () => {
-		expect(calculateAgeGroup(2016)).toBe("U11");
+	it("should switch from U11 to U13 at age 11", () => {
+		expect(calculateAgeGroup(2015, ref)).toBe("U13");
 	});
 
-	it("should return U13 for 12 year olds", () => {
-		expect(calculateAgeGroup(2014)).toBe("U13");
+	it("should return U13 up to age 12", () => {
+		expect(calculateAgeGroup(2014, ref)).toBe("U13");
 	});
 
-	it("should return U15 for 13-14 year olds", () => {
-		expect(calculateAgeGroup(2013)).toBe("U15");
-		expect(calculateAgeGroup(2012)).toBe("U15");
+	it("should switch from U13 to U15 at age 13", () => {
+		expect(calculateAgeGroup(2013, ref)).toBe("U15");
 	});
 
-	it("should return U19 for 15-18 year olds", () => {
-		expect(calculateAgeGroup(2010)).toBe("U19");
-		expect(calculateAgeGroup(2008)).toBe("U19");
+	it("should return U15 up to age 14", () => {
+		expect(calculateAgeGroup(2012, ref)).toBe("U15");
 	});
 
-	it("should return Adult for 19+ year olds", () => {
-		expect(calculateAgeGroup(2007)).toBe("Erwachsen");
-		expect(calculateAgeGroup(2000)).toBe("Erwachsen");
-		expect(calculateAgeGroup(1990)).toBe("Erwachsen");
+	it("should switch from U15 to U19 at age 15", () => {
+		expect(calculateAgeGroup(2011, ref)).toBe("U19");
+	});
+
+	it("should return U19 up to age 18", () => {
+		expect(calculateAgeGroup(2008, ref)).toBe("U19");
+	});
+
+	it("should switch from U19 to ADULT at age 19", () => {
+		expect(calculateAgeGroup(2007, ref)).toBe("ADULT");
+	});
+
+	it("should return ADULT for older players", () => {
+		expect(calculateAgeGroup(2000, ref)).toBe("ADULT");
+		expect(calculateAgeGroup(1990, ref)).toBe("ADULT");
+	});
+
+	it("should use the given reference year", () => {
+		expect(calculateAgeGroup(2016, 2030)).toBe("U15");
+	});
+});
+
+describe("ageGroupLabel", () => {
+	it("should return the key for youth groups", () => {
+		expect(ageGroupLabel("U11")).toBe("U11");
+		expect(ageGroupLabel("U19")).toBe("U19");
+	});
+
+	it("should return the translated adult label for ADULT", () => {
+		expect(ageGroupLabel("ADULT")).toBe("Erwachsen");
 	});
 });

@@ -25,7 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
-import { calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
+import { ageGroupLabel, calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 // biome-ignore assist/source/useSortedKeys: head uses loaderData
@@ -96,7 +96,10 @@ const rosterColumns: DetailsListColumn<TeamRosterEntry>[] = [
 	{
 		key: "ageGroup",
 		label: m.common_age_group(),
-		render: (item) => calculateAgeGroup(item.player.year),
+		render: (item) =>
+			ageGroupLabel(
+				calculateAgeGroup(item.player.year, new Date().getFullYear()),
+			),
 	},
 	{
 		key: "qttr",

@@ -3,6 +3,7 @@ import { ChevronRightIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link as EntityLink } from "@/components/ui/link";
 import {
+	ageGroupLabel,
 	calculateAgeGroup,
 	createColorForUserId,
 	shortenUserName,
@@ -38,7 +39,9 @@ export function PlayerRosterRow({
 					{player.name}
 				</span>
 				<span className="shrink-0 text-xs">
-					{calculateAgeGroup(player.year)}
+					{ageGroupLabel(
+						calculateAgeGroup(player.year, new Date().getFullYear()),
+					)}
 				</span>
 				<span className="shrink-0 font-medium text-xs">{player.qttr}</span>
 			</EntityLink>
@@ -66,7 +69,10 @@ export function PlayerRosterRow({
 					{player.name}
 				</div>
 				<div className="text-muted-foreground text-xs">
-					{calculateAgeGroup(player.year)} · {player.year}
+					{ageGroupLabel(
+						calculateAgeGroup(player.year, new Date().getFullYear()),
+					)}{" "}
+					· {player.year}
 				</div>
 			</div>
 			<Badge variant="success">{player.qttr}</Badge>

@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "@/components/ui/link";
 import type { Player, Team, TeamPlayer } from "@/lib/prisma/client";
 import {
+	AGE_GROUPS,
+	ageGroupLabel,
 	calculateAgeGroup,
 	createColorForUserId,
 	shortenUserName,
@@ -19,6 +21,7 @@ type ListProps = {
 type ListPlayer = ListProps["players"][number];
 export const List = ({ players, showFlags = false }: ListProps) => {
 	const router = useRouter();
+	const currentYear = new Date().getFullYear();
 	if (players.length === 0) {
 		return (
 			<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
@@ -78,15 +81,14 @@ export const List = ({ players, showFlags = false }: ListProps) => {
 						label: m.common_age_group(),
 						render: (item) => (
 							<span className="text-muted-foreground">
-								{calculateAgeGroup(item.year)}{" "}
+								{ageGroupLabel(calculateAgeGroup(item.year, currentYear))}{" "}
 								<span className="text-xs">· {item.year}</span>
 							</span>
 						),
 						sortable: true,
 						sortFn: (a, b) =>
-							calculateAgeGroup(a.year).localeCompare(
-								calculateAgeGroup(b.year),
-							),
+							AGE_GROUPS.indexOf(calculateAgeGroup(a.year, currentYear)) -
+							AGE_GROUPS.indexOf(calculateAgeGroup(b.year, currentYear)),
 					},
 					{
 						align: "right",
