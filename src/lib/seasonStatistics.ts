@@ -52,6 +52,25 @@ export function buildAgeGroupBreakdown(
 	return { rows: [...rows.values()], total };
 }
 
+// Age group x gender counts of rostered Players for the roster snapshot on the
+// stats page (eligibility is merged away). A Player on several Teams (or both
+// Team Halves) is counted once. This is the rostered population, unlike the
+// stored Season Statistics breakdown, which covers every Player.
+export function buildRosterAgeGroupCounts(
+	players: (BreakdownPlayer & { id: string })[],
+	referenceYear: number,
+) {
+	const unique = [...new Map(players.map((p) => [p.id, p])).values()];
+	const breakdown = buildAgeGroupBreakdown(unique, referenceYear);
+	return {
+		rows: breakdown.rows.map((row) => ({
+			ageGroup: row.ageGroup,
+			...sumCounts(row.eligible, row.notEligible),
+		})),
+		total: breakdown.total,
+	};
+}
+
 // Any Prisma client, including an interactive-transaction client.
 type StatisticsDb = Pick<
 	PrismaClient,

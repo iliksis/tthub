@@ -10,8 +10,9 @@ import {
 const year = 2026;
 let db: ReturnType<typeof createTestDb>;
 afterEach(async () => {
-	await db.prisma.$disconnect();
-	db.close();
+	// Guarded so a failing createTestDb doesn't mask its own error.
+	await db?.prisma.$disconnect();
+	db?.close();
 });
 
 async function seed() {

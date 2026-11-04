@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildAgeGroupBreakdown } from "./seasonStatistics";
+import {
+	buildAgeGroupBreakdown,
+	buildRosterAgeGroupCounts,
+} from "./seasonStatistics";
 
 const year = 2026;
 
@@ -69,5 +72,30 @@ describe("buildAgeGroupBreakdown", () => {
 		);
 		expect(sum).toBe(4);
 		expect(result.total).toBe(4);
+	});
+});
+
+describe("buildRosterAgeGroupCounts", () => {
+	it("counts a player rostered on several teams once and merges eligibility", () => {
+		const a = {
+			gender: "MALE" as const,
+			id: "a",
+			isEligibleToPlay: true,
+			year: year - 10,
+		};
+		const b = {
+			gender: "MALE" as const,
+			id: "b",
+			isEligibleToPlay: false,
+			year: year - 10,
+		};
+		const result = buildRosterAgeGroupCounts([a, a, b], year);
+		expect(result.total).toBe(2);
+		expect(result.rows[0]).toEqual({
+			ageGroup: "U11",
+			female: 0,
+			male: 2,
+			unknown: 0,
+		});
 	});
 });

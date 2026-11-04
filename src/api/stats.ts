@@ -5,7 +5,7 @@ import {
 	sortPlacementsByRank,
 } from "@/lib/placements";
 import type { Gender } from "@/lib/prisma/enums";
-import { buildAgeGroupBreakdown, sumCounts } from "@/lib/seasonStatistics";
+import { buildRosterAgeGroupCounts } from "@/lib/seasonStatistics";
 import { m } from "@/paraglide/messages";
 
 export type SeasonPlayerCount = {
@@ -75,7 +75,8 @@ export const getPlayerCountOverSeasons = createServerFn({
 });
 
 // Live snapshot of the Active Season's currently-rostered Players by age
-// group x gender. Deliberately independent of the stats page's season
+// group x gender. A different population than the stored Season Statistics
+// breakdown, which covers every Player, not just rostered ones. Deliberately independent of the stats page's season
 // selector: it always describes the Active Season as of today.
 export const getRosterBreakdown = createServerFn({ method: "GET" }).handler(
 	async () => {
@@ -93,22 +94,11 @@ export const getRosterBreakdown = createServerFn({ method: "GET" }).handler(
 				},
 				where: { season: { isActive: true } },
 			});
-			// A Player on several Teams (or both halves) counts once.
-			const unique = [
-				...new Map(rostered.map((tp) => [tp.player.id, tp.player])).values(),
-			];
-			const breakdown = buildAgeGroupBreakdown(
-				unique,
-				new Date().getFullYear(),
-			);
 			return {
-				data: {
-					rows: breakdown.rows.map((row) => ({
-						ageGroup: row.ageGroup,
-						...sumCounts(row.eligible, row.notEligible),
-					})),
-					total: breakdown.total,
-				},
+				data: buildRosterAgeGroupCounts(
+					rostered.map((tp) => tp.player),
+					new Date().getFullYear(),
+				),
 				message: m.stats_stats_found(),
 			};
 		} catch (e) {

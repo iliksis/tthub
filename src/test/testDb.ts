@@ -35,7 +35,10 @@ export function createTestDb(upTo?: string) {
 	// Migrations insert a legacy Season; start every test from no Seasons.
 	raw.exec("DELETE FROM TeamPlayer; DELETE FROM Team; DELETE FROM Season;");
 	return {
-		applyRemaining: () => apply(names.slice(names.indexOf(upTo ?? "") + 1)),
+		applyRemaining: () => {
+			if (!upTo) throw new Error("applyRemaining needs createTestDb(upTo)");
+			apply(names.slice(names.indexOf(upTo) + 1));
+		},
 		close: () => {
 			raw.close();
 			fs.rmSync(dir, { force: true, recursive: true });
