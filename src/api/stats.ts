@@ -4,70 +4,27 @@ import {
 	groupPlacementsByCategory,
 	sortPlacementsByRank,
 } from "@/lib/placements";
-import type { Gender } from "@/lib/prisma/enums";
-import { buildRosterAgeGroupCounts } from "@/lib/seasonStatistics";
+import {
+	buildRosterAgeGroupCounts,
+	buildSeasonCountOverview,
+} from "@/lib/seasonStatistics";
 import { m } from "@/paraglide/messages";
 
-export type SeasonPlayerCount = {
-	seasonId: string;
-	seasonName: string;
-	playerCount: number;
-	maleCount: number;
-	femaleCount: number;
-};
-
-// Season Player count for every Season, oldest first — see CONTEXT.md's
-// "Season Player" entry. A Season Player is a Player with a Roster
-// Membership (TeamPlayer) or a Placement on a non-deleted Appointment in that
-// Season; the two are unioned and deduplicated per Season. Players without a
-// recorded gender only count towards the total. Deliberately independent of
+// Stored Season Statistics counts for every Season, oldest first. Seasons
+// without a record come back with null counts. Deliberately independent of
 // the stats page's season selector.
-export const getPlayerCountOverSeasons = createServerFn({
+export const getSeasonCountOverview = createServerFn({
 	method: "GET",
 }).handler(async () => {
 	try {
-		const playerSelect = { select: { gender: true, id: true } };
-		const [seasons, rostered, placed] = await Promise.all([
-			prismaClient.season.findMany({ orderBy: { createdAt: "asc" } }),
-			prismaClient.teamPlayer.findMany({
-				distinct: ["seasonId", "playerId"],
-				select: { player: playerSelect, seasonId: true },
-			}),
-			prismaClient.placement.findMany({
-				select: {
-					appointment: { select: { seasonId: true } },
-					player: playerSelect,
-				},
-				where: { appointment: { deletedAt: null } },
-			}),
-		]);
-
-		type PlayerRef = { id: string; gender: Gender | null };
-		const playersBySeason = new Map<string, Map<string, PlayerRef>>();
-		const addToSeason = (seasonId: string, player: PlayerRef) => {
-			let players = playersBySeason.get(seasonId);
-			if (!players) {
-				players = new Map();
-				playersBySeason.set(seasonId, players);
-			}
-			players.set(player.id, player);
-		};
-		for (const tp of rostered) addToSeason(tp.seasonId, tp.player);
-		for (const p of placed) {
-			if (p.appointment.seasonId) addToSeason(p.appointment.seasonId, p.player);
-		}
-
-		const counts: SeasonPlayerCount[] = seasons.map((season) => {
-			const players = [...(playersBySeason.get(season.id)?.values() ?? [])];
-			return {
-				femaleCount: players.filter((p) => p.gender === "FEMALE").length,
-				maleCount: players.filter((p) => p.gender === "MALE").length,
-				playerCount: players.length,
-				seasonId: season.id,
-				seasonName: season.name,
-			};
+		const seasons = await prismaClient.season.findMany({
+			include: { statistics: true },
+			orderBy: { createdAt: "asc" },
 		});
-		return { data: counts, message: m.stats_stats_found() };
+		return {
+			data: buildSeasonCountOverview(seasons),
+			message: m.stats_stats_found(),
+		};
 	} catch (e) {
 		console.error(e);
 		throw new Error((e as Error).message);

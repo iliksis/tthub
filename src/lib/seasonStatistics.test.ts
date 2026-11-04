@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	buildAgeGroupBreakdown,
 	buildRosterAgeGroupCounts,
+	buildSeasonCountOverview,
 } from "./seasonStatistics";
 
 const year = 2026;
@@ -97,5 +98,59 @@ describe("buildRosterAgeGroupCounts", () => {
 			male: 2,
 			unknown: 0,
 		});
+	});
+});
+
+describe("buildSeasonCountOverview", () => {
+	it("maps stored records and treats a missing record as untracked", () => {
+		const rows = buildSeasonCountOverview([
+			{
+				id: "a",
+				name: "2023/24",
+				statistics: {
+					eligibleCount: 5,
+					eligibleFemaleCount: 2,
+					eligibleMaleCount: 3,
+					playerCount: null,
+				},
+			},
+			{ id: "b", name: "2024/25", statistics: null },
+			{
+				id: "c",
+				name: "2025/26",
+				statistics: {
+					eligibleCount: 6,
+					eligibleFemaleCount: 2,
+					eligibleMaleCount: 4,
+					playerCount: 9,
+				},
+			},
+		]);
+		expect(rows).toEqual([
+			{
+				eligibleCount: 5,
+				femaleCount: 2,
+				maleCount: 3,
+				playerCount: null,
+				seasonId: "a",
+				seasonName: "2023/24",
+			},
+			{
+				eligibleCount: null,
+				femaleCount: null,
+				maleCount: null,
+				playerCount: null,
+				seasonId: "b",
+				seasonName: "2024/25",
+			},
+			{
+				eligibleCount: 6,
+				femaleCount: 2,
+				maleCount: 4,
+				playerCount: 9,
+				seasonId: "c",
+				seasonName: "2025/26",
+			},
+		]);
 	});
 });

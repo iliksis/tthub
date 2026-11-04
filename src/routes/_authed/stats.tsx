@@ -19,8 +19,8 @@ import { useMemo, useState } from "react";
 import { z } from "zod";
 import { getActiveSeason, getSeasons } from "@/api/seasons";
 import {
-	getPlayerCountOverSeasons,
 	getRosterBreakdown,
+	getSeasonCountOverview,
 	getTournamentSeriesPlacements,
 	type TournamentSeries,
 	type TournamentSeriesNode,
@@ -55,7 +55,7 @@ export const Route = createFileRoute("/_authed/stats")({
 		const [teamsRes, playerCountRes, rosterBreakdownRes, tournamentSeriesRes] =
 			await Promise.all([
 				getTeams({ data: { seasonId } }),
-				getPlayerCountOverSeasons(),
+				getSeasonCountOverview(),
 				getRosterBreakdown(),
 				getTournamentSeriesPlacements({ data: { seasonId } }),
 			]);
@@ -153,19 +153,28 @@ type PlayerCountRow = ReturnType<
 // a series is a single edit here.
 const PLAYER_COUNT_SERIES = [
 	{
+		area: true,
 		color: "var(--color-chart-undefined)",
-		key: "playerCount",
-		label: () => m.stats_player_count_total(),
+		key: "eligibleCount",
+		label: () => m.stats_player_count_eligible_total(),
 	},
 	{
+		area: true,
 		color: "var(--color-chart-male)",
 		key: "maleCount",
 		label: () => m.stats_player_count_male(),
 	},
 	{
+		area: true,
 		color: "var(--color-chart-female)",
 		key: "femaleCount",
 		label: () => m.stats_player_count_female(),
+	},
+	{
+		area: false,
+		color: "var(--color-foreground)",
+		key: "playerCount",
+		label: () => m.stats_player_count_all(),
 	},
 ] as const;
 
@@ -178,13 +187,24 @@ function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 	// marks, so doing it on every render (e.g. each hover-driven parent update)
 	// would be wasted work.
 	const definition = useMemo(() => {
-		const points = rows.flatMap((row) =>
-			PLAYER_COUNT_SERIES.map((series) => ({
-				count: row[series.key],
-				id: `${row.seasonId}-${series.key}`,
-				season: row.seasonName,
-				series: series.label(),
-			})),
+		// Untracked (null) counts are omitted, not drawn as zero.
+		const toPoints = (series: (typeof PLAYER_COUNT_SERIES)[number]) =>
+			rows.flatMap((row) => {
+				const count = row[series.key];
+				return count === null
+					? []
+					: [
+							{
+								count,
+								id: `${row.seasonId}-${series.key}`,
+								season: row.seasonName,
+								series: series.label(),
+							},
+						];
+			});
+		const points = PLAYER_COUNT_SERIES.flatMap(toPoints);
+		const areaPoints = PLAYER_COUNT_SERIES.filter((s) => s.area).flatMap(
+			toPoints,
 		);
 
 		return defineChart({
@@ -200,7 +220,7 @@ function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 			marks: [
 				// Explicit `y1: 0` opts out of the default stacking: the series
 				// overlap (total = male + female), so each area starts at zero.
-				areaY(points, {
+				areaY(areaPoints, {
 					color: "series",
 					curve: smoothCurve,
 					fillOpacity: 0.25,
@@ -236,15 +256,43 @@ function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 	if (rows.length === 0) return null;
 
 	return (
-		<Chart
-			definition={definition}
-			// The tooltip's default chrome is a light card; these CSS variables
-			// (read from the chart container) restyle it with the app's popover
-			// tokens so it follows the light/dark theme.
-			className="[--ts-chart-tooltip-background:var(--color-popover)] [--ts-chart-tooltip-border:1px_solid_var(--color-border)] [--ts-chart-tooltip-color:var(--color-popover-foreground)]"
-			height={240}
-			ariaLabel={m.stats_player_count_over_seasons()}
-		/>
+		<div className="flex flex-col gap-4">
+			<Chart
+				definition={definition}
+				// The tooltip's default chrome is a light card; these CSS variables
+				// (read from the chart container) restyle it with the app's popover
+				// tokens so it follows the light/dark theme.
+				className="[--ts-chart-tooltip-background:var(--color-popover)] [--ts-chart-tooltip-border:1px_solid_var(--color-border)] [--ts-chart-tooltip-color:var(--color-popover-foreground)]"
+				height={240}
+				ariaLabel={m.stats_player_count_over_seasons()}
+			/>
+			<div className="overflow-x-auto">
+				<table className="w-full text-sm" data-testid="player-count-summary">
+					<thead>
+						<tr className="text-left text-muted-foreground">
+							<th className="py-1 pr-4 font-medium">{m.common_season()}</th>
+							{PLAYER_COUNT_SERIES.map((series) => (
+								<th key={series.key} className="py-1 pr-4 font-medium">
+									{series.label()}
+								</th>
+							))}
+						</tr>
+					</thead>
+					<tbody>
+						{rows.map((row) => (
+							<tr key={row.seasonId} data-season={row.seasonName}>
+								<td className="py-1 pr-4">{row.seasonName}</td>
+								{PLAYER_COUNT_SERIES.map((series) => (
+									<td key={series.key} className="py-1 pr-4 tabular-nums">
+										{row[series.key] ?? "–"}
+									</td>
+								))}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		</div>
 	);
 }
 
