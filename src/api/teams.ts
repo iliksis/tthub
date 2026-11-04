@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
 import { useIsRole } from "@/lib/session";
 import { m } from "@/paraglide/messages";
+import { redactPlayerFlags } from "./players";
 
 export const searchTeams = createServerFn()
 	.validator((d: { query?: string; seasonId?: string }) => d)
@@ -79,6 +80,7 @@ export const createTeam = createServerFn({ method: "POST" })
 export const getTeam = createServerFn()
 	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
+		const canSeeFlags = await useIsRole("EDITOR");
 		try {
 			const team = await prismaClient.team.findUnique({
 				include: {
@@ -101,7 +103,11 @@ export const getTeam = createServerFn()
 			if (!team) {
 				throw new Error(m.teams_team_not_found());
 			}
-			return { data: team, message: m.teams_team_found() };
+			const players = team.players.map((tp) => ({
+				...tp,
+				player: redactPlayerFlags(tp.player, canSeeFlags),
+			}));
+			return { data: { ...team, players }, message: m.teams_team_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);

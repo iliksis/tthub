@@ -25,8 +25,12 @@ import type { Team } from "@/lib/prisma/client";
 import { calculateAgeGroup } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
+const yesNo = z.enum(["yes", "no"]);
+
 export const filterSchema = z.object({
 	ageGroup: z.string().optional(),
+	eligible: yesNo.optional(),
+	member: yesNo.optional(),
 	qttrMax: z.number().optional(),
 	qttrMin: z.number().optional(),
 	query: z.string().optional(),
@@ -43,6 +47,12 @@ const ageGroupOptions = [
 	{ label: "U15", value: "U15" },
 	{ label: "U19", value: "U19" },
 	{ label: m.players_adult(), value: calculateAgeGroup(0) },
+];
+
+const flagOptions = () => [
+	{ label: m.players_all(), value: "ALL" },
+	{ label: m.players_yes(), value: "yes" },
+	{ label: m.players_no(), value: "no" },
 ];
 
 const teamOptions = (teams: Team[]) => [
@@ -83,7 +93,10 @@ const usePlayerLiveFilters = (props: FiltersProps) => {
 	return { navigate, onClear, queryInput, setQueryInput };
 };
 
-type CommandBarFiltersProps = FiltersProps & { teams: Team[] };
+type CommandBarFiltersProps = FiltersProps & {
+	teams: Team[];
+	showFlags?: boolean;
+};
 
 // Desktop filter bar — a segmented toolbar built on the shared FilterBar:
 // search, then one segment per filter dimension (team, age group, QTTR
@@ -94,6 +107,7 @@ type CommandBarFiltersProps = FiltersProps & { teams: Team[] };
 // prototype ("Toolbar" variant).
 export const CommandBarFilters = ({
 	teams,
+	showFlags = false,
 	...search
 }: CommandBarFiltersProps) => {
 	const { navigate, onClear, queryInput, setQueryInput } =
@@ -115,6 +129,31 @@ export const CommandBarFilters = ({
 		});
 	}
 	const hasQttrFilter = qttrTokens.length > 0;
+
+	const flagSegments: FilterBarSegment[] = showFlags
+		? [
+				{
+					key: "eligible",
+					label: m.players_eligible_to_play(),
+					onChange: (v) =>
+						navigate({
+							eligible: v === "ALL" ? undefined : (v as "yes" | "no"),
+						}),
+					options: flagOptions(),
+					type: "radio",
+					value: search.eligible ?? "ALL",
+				},
+				{
+					key: "member",
+					label: m.players_club_member(),
+					onChange: (v) =>
+						navigate({ member: v === "ALL" ? undefined : (v as "yes" | "no") }),
+					options: flagOptions(),
+					type: "radio",
+					value: search.member ?? "ALL",
+				},
+			]
+		: [];
 
 	const segments: FilterBarSegment[] = [
 		{
@@ -174,6 +213,7 @@ export const CommandBarFilters = ({
 				? `${search.qttrMin ?? "0"}–${search.qttrMax ?? "∞"}`
 				: undefined,
 		},
+		...flagSegments,
 	];
 
 	return (
@@ -189,7 +229,10 @@ export const CommandBarFilters = ({
 	);
 };
 
-type MobilePlayerFiltersProps = FiltersProps & { teams: Team[] };
+type MobilePlayerFiltersProps = FiltersProps & {
+	teams: Team[];
+	showFlags?: boolean;
+};
 
 // Mobile: a search bar that's always visible and filters as you type, plus a
 // secondary sheet for the fields people reach for less often (team, age
@@ -198,6 +241,7 @@ type MobilePlayerFiltersProps = FiltersProps & { teams: Team[] };
 // including the drag-to-dismiss handle.
 export const MobilePlayerFilters = ({
 	teams,
+	showFlags = false,
 	...props
 }: MobilePlayerFiltersProps) => {
 	const { navigate, queryInput, setQueryInput } = usePlayerLiveFilters(props);
@@ -205,12 +249,15 @@ export const MobilePlayerFilters = ({
 	const secondaryActive =
 		!!props.teamId ||
 		!!props.ageGroup ||
+		(showFlags && (!!props.eligible || !!props.member)) ||
 		props.qttrMin !== undefined ||
 		props.qttrMax !== undefined;
 
 	const clearSecondary = () =>
 		navigate({
 			ageGroup: undefined,
+			eligible: undefined,
+			member: undefined,
 			qttrMax: undefined,
 			qttrMin: undefined,
 			teamId: undefined,
@@ -328,6 +375,66 @@ export const MobilePlayerFilters = ({
 								</Select>
 							</fieldset>
 						</div>
+						{showFlags && (
+							<div className="grid grid-cols-2 gap-3">
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor="mobile-player-filters-eligible">
+										{m.players_eligible_to_play()}
+									</Label>
+									<Select
+										value={props.eligible ?? "ALL"}
+										onValueChange={(v) =>
+											navigate({
+												eligible:
+													!v || v === "ALL" ? undefined : (v as "yes" | "no"),
+											})
+										}
+									>
+										<SelectTrigger
+											id="mobile-player-filters-eligible"
+											className="w-full"
+										>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											{flagOptions().map((option) => (
+												<SelectItem key={option.value} value={option.value}>
+													{option.label}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</fieldset>
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor="mobile-player-filters-member">
+										{m.players_club_member()}
+									</Label>
+									<Select
+										value={props.member ?? "ALL"}
+										onValueChange={(v) =>
+											navigate({
+												member:
+													!v || v === "ALL" ? undefined : (v as "yes" | "no"),
+											})
+										}
+									>
+										<SelectTrigger
+											id="mobile-player-filters-member"
+											className="w-full"
+										>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											{flagOptions().map((option) => (
+												<SelectItem key={option.value} value={option.value}>
+													{option.label}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</fieldset>
+							</div>
+						)}
 						<div className="grid grid-cols-2 gap-3">
 							<fieldset className="flex flex-col gap-1.5">
 								<Label htmlFor="mobile-player-filters-qttr-min">
@@ -379,6 +486,8 @@ export const applyPlayerFilters = <
 		year: number;
 		qttr: number;
 		teams: { teamId: string }[];
+		isClubMember: boolean;
+		isEligibleToPlay: boolean;
 	},
 >(
 	players: T[],
@@ -400,6 +509,10 @@ export const applyPlayerFilters = <
 				return false;
 		}
 		if (filters.ageGroup && calculateAgeGroup(p.year) !== filters.ageGroup)
+			return false;
+		if (filters.eligible && p.isEligibleToPlay !== (filters.eligible === "yes"))
+			return false;
+		if (filters.member && p.isClubMember !== (filters.member === "yes"))
 			return false;
 		if (filters.qttrMin !== undefined && p.qttr < filters.qttrMin) return false;
 		if (filters.qttrMax !== undefined && p.qttr > filters.qttrMax) return false;

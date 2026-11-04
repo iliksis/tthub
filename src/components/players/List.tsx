@@ -2,6 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import { DetailsList } from "@/components/DetailsList";
 import { TeamHalfBadge } from "@/components/teams/TeamSummary";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "@/components/ui/link";
 import type { Player, Team, TeamPlayer } from "@/lib/prisma/client";
 import {
@@ -13,8 +14,10 @@ import { m } from "@/paraglide/messages";
 
 type ListProps = {
 	players: (Player & { teams: (TeamPlayer & { team: Team })[] })[];
+	showFlags?: boolean;
 };
-export const List = ({ players }: ListProps) => {
+type ListPlayer = ListProps["players"][number];
+export const List = ({ players, showFlags = false }: ListProps) => {
 	const router = useRouter();
 	if (players.length === 0) {
 		return (
@@ -61,6 +64,9 @@ export const List = ({ players }: ListProps) => {
 									>
 										{item.name}
 									</Link>
+									{showFlags && item.isClubMember && (
+										<Badge variant="outline">{m.players_member_badge()}</Badge>
+									)}
 								</div>
 							);
 						},
@@ -121,6 +127,22 @@ export const List = ({ players }: ListProps) => {
 							return teamA.localeCompare(teamB);
 						},
 					},
+					...(showFlags
+						? [
+								{
+									key: "eligible",
+									label: m.players_eligible_to_play(),
+									render: (item: ListPlayer) => (
+										<span className="text-muted-foreground">
+											{item.isEligibleToPlay ? m.players_yes() : m.players_no()}
+										</span>
+									),
+									sortable: true,
+									sortFn: (a: ListPlayer, b: ListPlayer) =>
+										Number(a.isEligibleToPlay) - Number(b.isEligibleToPlay),
+								},
+							]
+						: []),
 				]}
 				getItemId={(item) => item.id}
 				selectMode="none"

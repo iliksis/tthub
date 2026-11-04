@@ -76,6 +76,8 @@ async function main() {
 	// Create sample players
 	const player1 = await prismaClient.player.create({
 		data: {
+			isClubMember: true,
+			isEligibleToPlay: true,
 			name: "Max Mustermann",
 			year: 2010,
 			qttr: 1500,
@@ -87,6 +89,7 @@ async function main() {
 
 	const player2 = await prismaClient.player.create({
 		data: {
+			isClubMember: true,
 			name: "Lisa Schmidt",
 			year: 2011,
 			qttr: 1450,

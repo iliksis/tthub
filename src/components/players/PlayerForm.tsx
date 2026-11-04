@@ -16,6 +16,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Gender } from "@/lib/prisma/enums";
 import { m } from "@/paraglide/messages";
 
@@ -34,12 +35,16 @@ type PlayerFormProps = {
 		year: number;
 		qttr: number;
 		gender: Gender | null;
+		isClubMember: boolean;
+		isEligibleToPlay: boolean;
 	};
 	onSubmit: (updates: {
 		name: string;
 		year: number;
 		qttr: number;
 		gender: Gender | null;
+		isClubMember: boolean;
+		isEligibleToPlay: boolean;
 	}) => Promise<void>;
 };
 export const PlayerForm = ({
@@ -48,6 +53,8 @@ export const PlayerForm = ({
 	submitLabel,
 	defaultValues = {
 		gender: null,
+		isClubMember: false,
+		isEligibleToPlay: false,
 		name: "",
 		qttr: 0,
 		year: new Date().getFullYear(),
@@ -210,6 +217,38 @@ export const PlayerForm = ({
 											{field.state.meta.errors.join(", ")}
 										</p>
 									)}
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+					<div>
+						<form.Field name="isClubMember">
+							{(field) => (
+								<fieldset className="flex items-center justify-between gap-3">
+									<Label htmlFor={field.name}>{m.players_club_member()}</Label>
+									<Switch
+										id={field.name}
+										checked={field.state.value}
+										onCheckedChange={(checked) => field.handleChange(checked)}
+										onBlur={field.handleBlur}
+									/>
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+					<div>
+						<form.Field name="isEligibleToPlay">
+							{(field) => (
+								<fieldset className="flex items-center justify-between gap-3">
+									<Label htmlFor={field.name}>
+										{m.players_eligible_to_play()}
+									</Label>
+									<Switch
+										id={field.name}
+										checked={field.state.value}
+										onCheckedChange={(checked) => field.handleChange(checked)}
+										onBlur={field.handleBlur}
+									/>
 								</fieldset>
 							)}
 						</form.Field>

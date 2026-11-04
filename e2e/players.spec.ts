@@ -296,3 +296,128 @@ test.describe("Players Route - Team Half Resolution", () => {
 		).toHaveCount(1);
 	});
 });
+
+test.describe("Players Route - Club Member and Playing Eligibility flags", () => {
+	async function createFlagPlayer(label: string, flags = {}) {
+		return prismaClient.player.create({
+			data: {
+				name: `PFlag ${label} ${Date.now()}`,
+				qttr: 1000,
+				year: 2012,
+				...flags,
+			},
+		});
+	}
+
+	test("EDITOR can set and clear both flags independently and they persist", async ({
+		page,
+	}) => {
+		const player = await createFlagPlayer("editor");
+		await loginAs(page, "editor");
+		await page.goto(`/players/${player.id}`);
+		await page.waitForLoadState("networkidle");
+
+		const editButton = page.locator(
+			'button[aria-label*="aktualisieren"]:visible, button svg.lucide-square-pen:visible',
+		);
+		await editButton.first().waitFor({ state: "visible" });
+		await editButton.first().click();
+
+		const member = page.getByRole("switch", { name: "Vereinsmitglied" });
+		const eligible = page.getByRole("switch", { name: "Spielberechtigt" });
+		await expect(member).not.toBeChecked();
+		await expect(eligible).not.toBeChecked();
+
+		await eligible.click();
+		await page.locator('button[type="submit"]').click();
+		await expect(page.getByText("Spieler:in aktualisiert")).toBeVisible();
+
+		let stored = await prismaClient.player.findUniqueOrThrow({
+			where: { id: player.id },
+		});
+		expect(stored.isEligibleToPlay).toBe(true);
+		expect(stored.isClubMember).toBe(false);
+
+		await page.reload();
+		await page.waitForLoadState("networkidle");
+		await editButton.first().waitFor({ state: "visible" });
+		await editButton.first().click();
+		await expect(eligible).toBeChecked();
+		await expect(member).not.toBeChecked();
+
+		await member.click();
+		await eligible.click();
+		await page.locator('button[type="submit"]').click();
+		await expect(page.getByText("Spieler:in aktualisiert")).toBeVisible();
+
+		stored = await prismaClient.player.findUniqueOrThrow({
+			where: { id: player.id },
+		});
+		expect(stored.isClubMember).toBe(true);
+		expect(stored.isEligibleToPlay).toBe(false);
+	});
+
+	test("EDITOR sees flags on the list and can filter by them", async ({
+		page,
+	}) => {
+		const flagged = await createFlagPlayer("filter-yes", {
+			isClubMember: true,
+			isEligibleToPlay: true,
+		});
+		const plain = await createFlagPlayer("filter-no");
+		await loginAs(page, "editor");
+
+		await page.goto("/players?eligible=yes&member=yes");
+		await page.waitForLoadState("networkidle");
+		await expect(
+			page.locator("tr:visible", { hasText: flagged.name }),
+		).toHaveCount(1);
+		await expect(
+			page.locator("tr:visible", { hasText: plain.name }),
+		).toHaveCount(0);
+
+		await page.goto("/players?eligible=no&member=no");
+		await page.waitForLoadState("networkidle");
+		await expect(
+			page.locator("tr:visible", { hasText: plain.name }),
+		).toHaveCount(1);
+		await expect(
+			page.locator("tr:visible", { hasText: flagged.name }),
+		).toHaveCount(0);
+
+		await page.goto(`/players/${flagged.id}`);
+		await page.waitForLoadState("networkidle");
+		await expect(
+			page.getByText("Vereinsmitglied").filter({ visible: true }),
+		).toHaveCount(1);
+		await expect(
+			page.getByText("Spielberechtigt").filter({ visible: true }),
+		).toHaveCount(1);
+	});
+
+	test("USER sees no flags and cannot filter by them", async ({ page }) => {
+		const flagged = await createFlagPlayer("user", {
+			isClubMember: true,
+			isEligibleToPlay: true,
+		});
+		const plain = await createFlagPlayer("user-plain");
+		await loginAs(page, "user");
+
+		// A hand-edited URL filter must be ignored for USER.
+		await page.goto("/players?eligible=no");
+		await page.waitForLoadState("networkidle");
+		await expect(
+			page.locator("tr:visible", { hasText: flagged.name }),
+		).toHaveCount(1);
+		await expect(
+			page.locator("tr:visible", { hasText: plain.name }),
+		).toHaveCount(1);
+		await expect(page.getByText("Spielberechtigt")).toHaveCount(0);
+		await expect(page.getByText("Mitglied", { exact: true })).toHaveCount(0);
+
+		await page.goto(`/players/${flagged.id}`);
+		await page.waitForLoadState("networkidle");
+		await expect(page.getByText("Vereinsmitglied")).toHaveCount(0);
+		await expect(page.getByText("Spielberechtigt")).toHaveCount(0);
+	});
+});

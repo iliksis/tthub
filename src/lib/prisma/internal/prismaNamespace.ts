@@ -1993,7 +1993,9 @@ export const PlayerScalarFieldEnum = {
   name: 'name',
   year: 'year',
   qttr: 'qttr',
-  gender: 'gender'
+  gender: 'gender',
+  isClubMember: 'isClubMember',
+  isEligibleToPlay: 'isEligibleToPlay'
 } as const
 
 export type PlayerScalarFieldEnum = (typeof PlayerScalarFieldEnum)[keyof typeof PlayerScalarFieldEnum]

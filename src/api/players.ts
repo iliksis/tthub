@@ -27,9 +27,26 @@ const withCurrentHalf = <P extends { teams: { team: Team }[] }>(
 		teams: collapseHalves(p.teams, (tp) => tp.team),
 	}));
 
+// Club Member / Playing Eligibility are editor/admin-only. Rather than change
+// the row shape per role, non-editors get both flags forced to false so the
+// real values never reach their browser.
+export const redactPlayerFlags = <P extends object>(
+	player: P,
+	canSeeFlags: boolean,
+): P =>
+	canSeeFlags
+		? player
+		: { ...player, isClubMember: false, isEligibleToPlay: false };
+
+export const redactFlags = <P extends object>(
+	players: P[],
+	canSeeFlags: boolean,
+): P[] => players.map((p) => redactPlayerFlags(p, canSeeFlags));
+
 export const searchPlayers = createServerFn()
 	.validator((d: { query?: string }) => d)
 	.handler(async ({ data }) => {
+		const canSeeFlags = await useIsRole("EDITOR");
 		try {
 			const players = await prismaClient.player.findMany({
 				include: currentTeamInclude,
@@ -40,7 +57,7 @@ export const searchPlayers = createServerFn()
 				},
 			});
 			return {
-				data: withCurrentHalf(players),
+				data: redactFlags(withCurrentHalf(players), canSeeFlags),
 				message: m.players_players_found(),
 			};
 		} catch (e) {
@@ -52,6 +69,7 @@ export const searchPlayers = createServerFn()
 export const getPlayers = createServerFn({ method: "GET" })
 	.validator((d: { seasonId?: string }) => d)
 	.handler(async ({ data }) => {
+		const canSeeFlags = await useIsRole("EDITOR");
 		try {
 			const players = await prismaClient.player.findMany({
 				include: {
@@ -69,7 +87,7 @@ export const getPlayers = createServerFn({ method: "GET" })
 				orderBy: { name: "asc" },
 			});
 			return {
-				data: withCurrentHalf(players),
+				data: redactFlags(withCurrentHalf(players), canSeeFlags),
 				message: m.players_players_found(),
 			};
 		} catch (e) {
@@ -80,8 +98,14 @@ export const getPlayers = createServerFn({ method: "GET" })
 
 export const createPlayer = createServerFn({ method: "POST" })
 	.validator(
-		(d: { name: string; year: number; qttr: number; gender: Gender | null }) =>
-			d,
+		(d: {
+			name: string;
+			year: number;
+			qttr: number;
+			gender: Gender | null;
+			isClubMember?: boolean;
+			isEligibleToPlay?: boolean;
+		}) => d,
 	)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
@@ -93,6 +117,8 @@ export const createPlayer = createServerFn({ method: "POST" })
 			const player = await prismaClient.player.create({
 				data: {
 					gender: data.gender,
+					isClubMember: data.isClubMember === true,
+					isEligibleToPlay: data.isEligibleToPlay === true,
 					name: data.name,
 					qttr: data.qttr ?? 0,
 					year: data.year,
@@ -108,6 +134,7 @@ export const createPlayer = createServerFn({ method: "POST" })
 export const getPlayer = createServerFn()
 	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
+		const canSeeFlags = await useIsRole("EDITOR");
 		try {
 			const player = await prismaClient.player.findUnique({
 				include: {
@@ -128,7 +155,10 @@ export const getPlayer = createServerFn()
 			if (!player) {
 				throw new Error(m.players_player_not_found());
 			}
-			return { data: player, message: m.players_player_found() };
+			return {
+				data: redactPlayerFlags(player, canSeeFlags),
+				message: m.players_player_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -143,6 +173,8 @@ export const updatePlayer = createServerFn()
 			year: number;
 			qttr: number;
 			gender: Gender | null;
+			isClubMember: boolean;
+			isEligibleToPlay: boolean;
 		}) => d,
 	)
 	.handler(async ({ data }) => {
@@ -155,6 +187,8 @@ export const updatePlayer = createServerFn()
 			const player = await prismaClient.player.update({
 				data: {
 					gender: data.gender,
+					isClubMember: data.isClubMember === true,
+					isEligibleToPlay: data.isEligibleToPlay === true,
 					name: data.name,
 					qttr: data.qttr,
 					year: data.year,
