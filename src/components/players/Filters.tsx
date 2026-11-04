@@ -22,13 +22,17 @@ import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import type { Team } from "@/lib/prisma/client";
-import { calculateAgeGroup } from "@/lib/utils";
+import { AGE_GROUPS, calculateAgeGroup } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 const yesNo = z.enum(["yes", "no"]);
 
 export const filterSchema = z.object({
-	ageGroup: z.string().optional(),
+	// Bookmarks from before stable keys used the translated adult label.
+	ageGroup: z.preprocess(
+		(v) => (v === "Erwachsen" ? "ADULT" : v),
+		z.enum(AGE_GROUPS).optional().catch(undefined),
+	),
 	eligible: yesNo.optional(),
 	member: yesNo.optional(),
 	qttrMax: z.number().optional(),
@@ -39,6 +43,10 @@ export const filterSchema = z.object({
 type FiltersProps = z.infer<typeof filterSchema>;
 
 const NO_TEAM = "NONE";
+
+// "ALL" (or anything unknown) clears the filter.
+const parseAgeGroup = (v: string | null | undefined) =>
+	AGE_GROUPS.find((g) => g === v);
 
 const ageGroupOptions = [
 	{ label: m.players_all_age_groups(), value: "ALL" },
@@ -167,7 +175,7 @@ export const CommandBarFilters = ({
 		{
 			key: "ageGroup",
 			label: m.common_age_group(),
-			onChange: (v) => navigate({ ageGroup: v === "ALL" ? undefined : v }),
+			onChange: (v) => navigate({ ageGroup: parseAgeGroup(v) }),
 			options: ageGroupOptions,
 			type: "radio",
 			value: search.ageGroup ?? "ALL",
@@ -356,7 +364,7 @@ export const MobilePlayerFilters = ({
 								<Select
 									value={props.ageGroup ?? "ALL"}
 									onValueChange={(v) =>
-										navigate({ ageGroup: !v || v === "ALL" ? undefined : v })
+										navigate({ ageGroup: parseAgeGroup(v) })
 									}
 								>
 									<SelectTrigger

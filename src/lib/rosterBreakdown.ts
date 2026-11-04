@@ -18,7 +18,10 @@ type RosterPlayer = { id: string; year: number; gender: Gender | null };
 // Cross-tab of rostered Players by age group x gender. A Player on several
 // Teams (or both Team Halves) is counted once. Every age group is always
 // present, even with zero players, so the table shape is stable.
-export function buildRosterBreakdown(players: RosterPlayer[]): RosterBreakdown {
+export function buildRosterBreakdown(
+	players: RosterPlayer[],
+	referenceYear: number,
+): RosterBreakdown {
 	const unique = new Map(players.map((p) => [p.id, p]));
 	const rows = new Map<AgeGroup, RosterBreakdownRow>(
 		AGE_GROUPS.map((ageGroup) => [
@@ -28,9 +31,7 @@ export function buildRosterBreakdown(players: RosterPlayer[]): RosterBreakdown {
 	);
 	let total = 0;
 	for (const player of unique.values()) {
-		const row = rows.get(
-			calculateAgeGroup(player.year, new Date().getFullYear()),
-		);
+		const row = rows.get(calculateAgeGroup(player.year, referenceYear));
 		if (!row) continue;
 		total++;
 		if (player.gender === "MALE") row.male++;

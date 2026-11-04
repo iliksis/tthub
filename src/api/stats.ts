@@ -87,7 +87,10 @@ export const getRosterBreakdown = createServerFn({ method: "GET" }).handler(
 				where: { season: { isActive: true } },
 			});
 			return {
-				data: buildRosterBreakdown(rostered.map((tp) => tp.player)),
+				data: buildRosterBreakdown(
+					rostered.map((tp) => tp.player),
+					new Date().getFullYear(),
+				),
 				message: m.stats_stats_found(),
 			};
 		} catch (e) {

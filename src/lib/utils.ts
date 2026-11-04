@@ -256,7 +256,8 @@ export const AGE_GROUPS = ["U11", "U13", "U15", "U19", "ADULT"] as const;
 export type AgeGroup = (typeof AGE_GROUPS)[number];
 
 // Returns a stable key (not a translated label). Use `ageGroupLabel` to
-// display it. Callers outside the statistics pass today's year as `referenceYear`.
+// display it. `referenceYear` is explicit so callers decide the year: UI code
+// passes today's year, statistics code can pass a fixed one.
 export const calculateAgeGroup = (
 	year: number,
 	referenceYear: number,
