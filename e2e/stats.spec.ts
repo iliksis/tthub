@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { calculateAgeGroup } from "../src/lib/ageGroup";
 import { prismaClient } from "../src/lib/db";
+import { buildAgeGroupBreakdown } from "../src/lib/seasonStatistics";
 import { loginAs } from "./helpers";
 
 // Fixture seasons/teams/labels/players/appointments created by this spec are
@@ -756,52 +758,24 @@ test.describe("Stats Route - Tournament Series & Placements", () => {
 	});
 });
 
-test.describe("Stats Route - Roster Breakdown", () => {
+test.describe("Stats Route - Player Breakdown", () => {
 	const SECTION = "Altersverteilung";
+	const NO_DATA = "Keine Daten für diese Saison";
 	const year = new Date().getFullYear();
 
-	// The breakdown always describes the single Active Season, so each test
-	// swaps in its own Active Season and restores the previous one afterwards.
-	let previouslyActive: string[] = [];
+	// "dd.mm.yyyy" in the club's time zone, as the Stand note renders it.
+	const standNote = (computedAt: Date) =>
+		`Stand: ${computedAt.toLocaleDateString("de-DE", {
+			day: "2-digit",
+			month: "2-digit",
+			timeZone: "Europe/Berlin",
+			year: "numeric",
+		})}`;
 
-	test.beforeEach(async () => {
-		const active = await prismaClient.season.findMany({
-			select: { id: true },
-			where: { isActive: true },
-		});
-		previouslyActive = active.map((s) => s.id);
-		await prismaClient.season.updateMany({
-			data: { isActive: false },
-			where: { id: { in: previouslyActive } },
-		});
-	});
+	test.afterEach(cleanupFixtures);
 
-	test.afterEach(async () => {
-		await cleanupFixtures();
-		await prismaClient.season.updateMany({
-			data: { isActive: true },
-			where: { id: { in: previouslyActive } },
-		});
-	});
-
-	async function seedPlayer(
-		season: { id: string },
-		team: { id: string },
-		name: string,
-		age: number,
-		gender: "MALE" | "FEMALE" | null,
-	) {
-		const player = await prismaClient.player.create({
-			data: { gender, name: `${PREFIX}${name}`, qttr: 1000, year: year - age },
-		});
-		await prismaClient.teamPlayer.create({
-			data: { playerId: player.id, seasonId: season.id, teamId: team.id },
-		});
-	}
-
-	// Hovers above an age group's x-axis label and returns the male/female/
-	// unknown counts from its tooltip, in that order.
-	async function counts(
+	// Hovers above an age group's x-axis label and returns the tooltip.
+	async function hoverAgeGroup(
 		page: import("@playwright/test").Page,
 		ageGroup: string,
 	) {
@@ -816,87 +790,193 @@ test.describe("Stats Route - Roster Breakdown", () => {
 		await page.mouse.move(label.x + label.width / 2, plot.y + plot.height / 2);
 		const tooltip = page.getByRole("status").filter({ hasText: ageGroup });
 		await expect(tooltip).toBeVisible();
-		const result: string[] = [];
-		for (const series of ["Männlich", "Weiblich", "Unbekannt"]) {
-			const row = tooltip.locator(".ts-chart-tooltip__row", {
-				hasText: series,
-			});
-			result.push((await row.innerText()).replace(series, "").trim());
-		}
-		return result;
+		return tooltip;
 	}
 
-	test("buckets rostered players by age group, gender, and unknown gender", async ({
+	// The tooltip row whose label is exactly `label`, e.g. "Männlich" but not
+	// "Männlich (nicht spielberechtigt)".
+	const tooltipRow = (
+		tooltip: import("@playwright/test").Locator,
+		label: string,
+	) =>
+		tooltip.locator(".ts-chart-tooltip__row").filter({
+			hasText: new RegExp(`^${label.replace(/[()]/g, "\\$&")}\\d+$`),
+		});
+
+	test("shows the seeded Active Season's stored breakdown with its Stand note", async ({
+		page,
+	}) => {
+		// prisma/seed.ts: two Players without a gender, born 2010 and 2011, one of
+		// them eligible, so each Player's age group has one of each.
+		const active = await prismaClient.season.findFirstOrThrow({
+			include: { statistics: true },
+			where: { isActive: true },
+		});
+		const computedAt = active.statistics?.computedAt;
+		if (!computedAt) throw new Error("seed has no Active Season record");
+		// Max (2010) is eligible, Lisa (2011) is not; they may share an age group.
+		const maxGroup = calculateAgeGroup(2010, year);
+		const lisaGroup = calculateAgeGroup(2011, year);
+
+		await loginAs(page, "user");
+		await page.goto("/stats");
+		await page.waitForLoadState("networkidle");
+
+		await expect(page.getByText(SECTION, { exact: true })).toBeVisible();
+		await expect(page.getByText(standNote(computedAt))).toBeVisible();
+		await expect(page.getByText(NO_DATA)).toHaveCount(0);
+		const tooltip = await hoverAgeGroup(
+			page,
+			maxGroup === "ADULT" ? "Erwachsen" : maxGroup,
+		);
+		await expect(tooltipRow(tooltip, "Unbekannt")).toHaveText("Unbekannt1");
+		await expect(
+			tooltipRow(tooltip, "Unbekannt (nicht spielberechtigt)"),
+		).toHaveText(
+			`Unbekannt (nicht spielberechtigt)${lisaGroup === maxGroup ? 1 : 0}`,
+		);
+	});
+
+	test("follows the season selector and shows real, not cumulative, counts", async ({
 		page,
 	}) => {
 		const season = await prismaClient.season.create({
-			data: { isActive: true, name: `${PREFIX}RosterActive` },
+			data: { isActive: false, name: `${PREFIX}BreakdownTracked` },
 		});
-		const team = await prismaClient.team.create({
-			data: { seasonId: season.id, title: `${PREFIX}RosterTeam` },
+		// 3 eligible + 2 not-eligible adult men, 1 eligible adult woman, 4 not
+		// eligible U13 players without a gender.
+		const players = [
+			...Array.from({ length: 3 }, () => ({
+				e: true,
+				g: "MALE" as const,
+				y: 40,
+			})),
+			...Array.from({ length: 2 }, () => ({
+				e: false,
+				g: "MALE" as const,
+				y: 40,
+			})),
+			{ e: true, g: "FEMALE" as const, y: 40 },
+			...Array.from({ length: 4 }, () => ({ e: false, g: null, y: 12 })),
+		].map((p) => ({
+			gender: p.g,
+			isEligibleToPlay: p.e,
+			year: year - p.y,
+		}));
+		const computedAt = new Date("2025-03-07T12:00:00Z");
+		await prismaClient.seasonStatistics.create({
+			data: {
+				breakdown: buildAgeGroupBreakdown(players, year),
+				computedAt,
+				eligibleCount: 4,
+				eligibleFemaleCount: 1,
+				eligibleMaleCount: 3,
+				playerCount: players.length,
+				seasonId: season.id,
+			},
 		});
-		await seedPlayer(season, team, "U11M", 10, "MALE");
-		await seedPlayer(season, team, "U11M2", 9, "MALE");
-		await seedPlayer(season, team, "U13F", 12, "FEMALE");
-		await seedPlayer(season, team, "U15X", 14, null);
-		await seedPlayer(season, team, "U19F", 18, "FEMALE");
-		await seedPlayer(season, team, "AdultM", 40, "MALE");
-		await seedPlayer(season, team, "AdultX", 50, null);
 
 		await loginAs(page, "user");
 		await page.goto("/stats");
 		await page.waitForLoadState("networkidle");
+		await page.locator('[data-slot="select-trigger"]:visible').click();
+		await page.getByRole("option", { name: season.name }).click();
+		await page.waitForURL(new RegExp(`seasonId=${season.id}`));
+		await page.waitForLoadState("networkidle");
 
-		await expect(page.getByText(SECTION, { exact: true })).toBeVisible();
-		expect(await counts(page, "U11")).toEqual(["2", "0", "0"]);
-		expect(await counts(page, "U13")).toEqual(["0", "1", "0"]);
-		expect(await counts(page, "U15")).toEqual(["0", "0", "1"]);
-		expect(await counts(page, "U19")).toEqual(["0", "1", "0"]);
-		expect(await counts(page, "Erwachsen")).toEqual(["1", "0", "1"]);
+		await expect(page.getByText("Stand: 07.03.2025")).toBeVisible();
+		const adults = await hoverAgeGroup(page, "Erwachsen");
+		await expect(tooltipRow(adults, "Männlich")).toHaveText("Männlich3");
+		await expect(
+			tooltipRow(adults, "Männlich (nicht spielberechtigt)"),
+		).toHaveText("Männlich (nicht spielberechtigt)2");
+		await expect(tooltipRow(adults, "Weiblich")).toHaveText("Weiblich1");
+		const youth = await hoverAgeGroup(page, "U13");
+		await expect(
+			tooltipRow(youth, "Unbekannt (nicht spielberechtigt)"),
+		).toHaveText("Unbekannt (nicht spielberechtigt)4");
 	});
 
-	test("only counts the Active Season and ignores the season selector", async ({
-		page,
-	}) => {
-		const active = await prismaClient.season.create({
-			data: { isActive: true, name: `${PREFIX}RosterScopeActive` },
-		});
-		const other = await prismaClient.season.create({
-			data: { isActive: false, name: `${PREFIX}RosterScopeOther` },
-		});
-		const activeTeam = await prismaClient.team.create({
-			data: { seasonId: active.id, title: `${PREFIX}ScopeActiveTeam` },
-		});
-		const otherTeam = await prismaClient.team.create({
-			data: { seasonId: other.id, title: `${PREFIX}ScopeOtherTeam` },
-		});
-		await seedPlayer(active, activeTeam, "ScopeActiveU11", 10, "MALE");
-		await seedPlayer(other, otherTeam, "ScopeOtherU11a", 10, "MALE");
-		await seedPlayer(other, otherTeam, "ScopeOtherU11b", 10, "FEMALE");
-
+	test("shows the six series in the legend", async ({ page }) => {
 		await loginAs(page, "user");
-		for (const url of ["/stats", `/stats?seasonId=${other.id}`]) {
-			await page.goto(url);
-			await page.waitForLoadState("networkidle");
-			expect(await counts(page, "U11")).toEqual(["1", "0", "0"]);
+		await page.goto("/stats");
+		await page.waitForLoadState("networkidle");
+
+		const chart = page.getByRole("img", { name: SECTION });
+		for (const label of [
+			"Männlich",
+			"Männlich (nicht spielberechtigt)",
+			"Weiblich",
+			"Weiblich (nicht spielberechtigt)",
+			"Unbekannt",
+			"Unbekannt (nicht spielberechtigt)",
+		]) {
+			await expect(chart.getByText(label, { exact: true })).toBeVisible();
 		}
 	});
 
-	test("shows an empty state when the Active Season has no rostered players", async ({
+	test("a past Season whose breakdown is not tracked shows the empty state", async ({
 		page,
 	}) => {
-		await prismaClient.season.create({
-			data: { isActive: true, name: `${PREFIX}RosterEmpty` },
+		const season = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}BreakdownUntracked` },
+		});
+		await prismaClient.seasonStatistics.create({
+			data: {
+				eligibleCount: 5,
+				eligibleFemaleCount: 2,
+				eligibleMaleCount: 3,
+				seasonId: season.id,
+			},
 		});
 
 		await loginAs(page, "user");
-		await page.goto("/stats");
+		await page.goto(`/stats?seasonId=${season.id}`);
 		await page.waitForLoadState("networkidle");
 
 		await expect(page.getByText(SECTION, { exact: true })).toBeVisible();
-		await expect(
-			page.getByText("Keine Spieler im Kader der aktiven Saison"),
-		).toBeVisible();
+		await expect(page.getByText(NO_DATA)).toBeVisible();
+		await expect(page.getByRole("img", { name: SECTION })).toHaveCount(0);
+		await expect(page.getByText(/^Stand:/)).toHaveCount(0);
+	});
+
+	test("a tracked Season with no Players shows a no-players message instead of a blank chart", async ({
+		page,
+	}) => {
+		const season = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}BreakdownZero` },
+		});
+		await prismaClient.seasonStatistics.create({
+			data: {
+				breakdown: buildAgeGroupBreakdown([], year),
+				eligibleCount: 0,
+				eligibleFemaleCount: 0,
+				eligibleMaleCount: 0,
+				playerCount: 0,
+				seasonId: season.id,
+			},
+		});
+
+		await loginAs(page, "user");
+		await page.goto(`/stats?seasonId=${season.id}`);
+		await page.waitForLoadState("networkidle");
+
+		await expect(page.getByText("Keine Spieler erfasst")).toBeVisible();
+		await expect(page.getByRole("img", { name: SECTION })).toHaveCount(0);
+	});
+
+	test("a Season without any stored record shows the empty state instead of an error", async ({
+		page,
+	}) => {
+		const season = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}BreakdownNoRecord` },
+		});
+
+		await loginAs(page, "user");
+		await page.goto(`/stats?seasonId=${season.id}`);
+		await page.waitForLoadState("networkidle");
+
+		await expect(page.getByText(NO_DATA)).toBeVisible();
 	});
 });
 

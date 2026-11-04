@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createTestDb } from "@/test/testDb";
 import {
 	type AgeGroupBreakdown,
+	buildSeasonBreakdown,
 	recomputeActiveSeasonStatistics,
 	recomputeSeasonStatistics,
 } from "./seasonStatistics";
@@ -76,6 +77,24 @@ describe("season statistics recompute", () => {
 		expect(breakdown.rows[0]).toMatchObject({ ageGroup: "U11" });
 		expect(breakdown.rows[0].eligible.male).toBe(1);
 		expect(breakdown.rows[4].notEligible.male).toBe(1);
+	});
+
+	it("stores a breakdown that reads back as tracked", async () => {
+		db = createTestDb();
+		const { active, past } = await seed();
+		await recomputeSeasonStatistics(db.prisma, active.id, year);
+		const read = (seasonId: string) =>
+			db.prisma.seasonStatistics
+				.findUnique({
+					select: { breakdown: true, computedAt: true },
+					where: { seasonId },
+				})
+				.then(buildSeasonBreakdown);
+		const tracked = await read(active.id);
+		expect(tracked.tracked).toBe(true);
+		expect(tracked.total).toBe(4);
+		expect(tracked.computedAt).toBeInstanceOf(Date);
+		expect((await read(past.id)).tracked).toBe(false);
 	});
 
 	it("is idempotent apart from computedAt", async () => {

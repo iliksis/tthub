@@ -5,7 +5,7 @@ import {
 	sortPlacementsByRank,
 } from "@/lib/placements";
 import {
-	buildRosterAgeGroupCounts,
+	buildSeasonBreakdown,
 	buildSeasonCountOverview,
 } from "@/lib/seasonStatistics";
 import { m } from "@/paraglide/messages";
@@ -31,39 +31,33 @@ export const getSeasonCountOverview = createServerFn({
 	}
 });
 
-// Live snapshot of the Active Season's currently-rostered Players by age
-// group x gender. A different population than the stored Season Statistics
-// breakdown, which covers every Player, not just rostered ones. Deliberately independent of the stats page's season
-// selector: it always describes the Active Season as of today.
-export const getRosterBreakdown = createServerFn({ method: "GET" }).handler(
-	async () => {
+// One Season's stored age group x gender x eligibility breakdown and when it
+// was computed. A Season without a record, or with an untracked (null)
+// breakdown, comes back all-zero with `tracked: false` rather than throwing.
+export const getSeasonBreakdown = createServerFn({ method: "GET" })
+	.validator((d: { seasonId?: string }) => d)
+	.handler(async ({ data }) => {
 		try {
-			const rostered = await prismaClient.teamPlayer.findMany({
-				select: {
-					player: {
-						select: {
-							gender: true,
-							id: true,
-							isEligibleToPlay: true,
-							year: true,
-						},
-					},
-				},
-				where: { season: { isActive: true } },
-			});
-			return {
-				data: buildRosterAgeGroupCounts(
-					rostered.map((tp) => tp.player),
-					new Date().getFullYear(),
-				),
-				message: m.stats_stats_found(),
-			};
+			const record = data.seasonId
+				? await prismaClient.seasonStatistics.findUnique({
+						select: { breakdown: true, computedAt: true },
+						where: { seasonId: data.seasonId },
+					})
+				: null;
+			const breakdown = buildSeasonBreakdown(record);
+			// A null breakdown is "not tracked"; a non-null one that fails
+			// validation is corrupt data and must not pass silently.
+			if (record?.breakdown != null && !breakdown.tracked) {
+				console.warn(
+					`Season ${data.seasonId}: stored breakdown failed validation, treating it as untracked`,
+				);
+			}
+			return { data: breakdown, message: m.stats_stats_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
 		}
-	},
-);
+	});
 
 export type TournamentSeriesPlacement = {
 	playerId: string;

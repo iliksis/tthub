@@ -8,6 +8,7 @@ import {
 	createColorForUserId,
 	createGoogleMapsLink,
 	dateToInputValue,
+	formatDateWithYear,
 	isDayInPast,
 	isInvitationExpired,
 } from "./utils";
@@ -211,5 +212,20 @@ describe("ageGroupLabel", () => {
 
 	it("should return the translated adult label for ADULT", () => {
 		expect(ageGroupLabel("ADULT")).toBe("Erwachsen");
+	});
+});
+
+describe("formatDateWithYear", () => {
+	it("formats as dd.mm.yyyy", () => {
+		expect(formatDateWithYear(new Date("2026-03-07T12:00:00Z"))).toBe(
+			"07.03.2026",
+		);
+	});
+
+	it("uses the club's time zone, not the runtime's", () => {
+		// 23:30 UTC on 4 Nov is already 5 Nov in Berlin.
+		expect(formatDateWithYear(new Date("2026-11-04T23:30:00Z"))).toBe(
+			"05.11.2026",
+		);
 	});
 });

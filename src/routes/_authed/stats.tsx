@@ -19,7 +19,7 @@ import { useMemo, useState } from "react";
 import { z } from "zod";
 import { getActiveSeason, getSeasons } from "@/api/seasons";
 import {
-	getRosterBreakdown,
+	getSeasonBreakdown,
 	getSeasonCountOverview,
 	getTournamentSeriesPlacements,
 	type TournamentSeries,
@@ -32,7 +32,13 @@ import { TeamHalfBadge } from "@/components/teams/TeamSummary";
 import { Badge } from "@/components/ui/badge";
 import { EntitySelect } from "@/components/ui/entity-select";
 import { Link } from "@/components/ui/link";
-import { ageGroupLabel, cn, formatShortDate } from "@/lib/utils";
+import type { SeasonBreakdown } from "@/lib/seasonStatistics";
+import {
+	ageGroupLabel,
+	cn,
+	formatDateWithYear,
+	formatShortDate,
+} from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
@@ -52,16 +58,16 @@ export const Route = createFileRoute("/_authed/stats")({
 		const seasons = seasonsRes.data ?? [];
 		const activeSeason = activeSeasonRes.data ?? null;
 		const seasonId = deps.seasonId ?? activeSeason?.id;
-		const [teamsRes, playerCountRes, rosterBreakdownRes, tournamentSeriesRes] =
+		const [teamsRes, playerCountRes, breakdownRes, tournamentSeriesRes] =
 			await Promise.all([
 				getTeams({ data: { seasonId } }),
 				getSeasonCountOverview(),
-				getRosterBreakdown(),
+				getSeasonBreakdown({ data: { seasonId } }),
 				getTournamentSeriesPlacements({ data: { seasonId } }),
 			]);
 		return {
+			playerBreakdown: breakdownRes.data,
 			playerCounts: playerCountRes.data ?? [],
-			rosterBreakdown: rosterBreakdownRes.data ?? { rows: [], total: 0 },
 			seasonId,
 			seasons,
 			teams: teamsRes.data ?? [],
@@ -269,12 +275,8 @@ function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 	);
 }
 
-type RosterBreakdownRow = ReturnType<
-	typeof Route.useLoaderData
->["rosterBreakdown"]["rows"][number];
-
-// Same order as the table columns; bars stack in this order too.
-const ROSTER_SERIES = [
+// Bars within an age group sit side by side in this order.
+const BREAKDOWN_GENDERS = [
 	{
 		color: "var(--color-chart-male)",
 		key: "male",
@@ -288,36 +290,100 @@ const ROSTER_SERIES = [
 	{
 		color: "var(--color-chart-undefined)",
 		key: "unknown",
-		label: () => m.stats_roster_unknown(),
+		label: () => m.stats_player_breakdown_unknown(),
 	},
 ] as const;
 
-function RosterBreakdownChart({ rows }: { rows: RosterBreakdownRow[] }) {
+// The not-eligible segment is the same hue as its bar, faded.
+const mutedColor = (color: string) =>
+	`color-mix(in srgb, ${color} 40%, transparent)`;
+
+type BreakdownSegment = {
+	ageGroup: string;
+	count: number;
+	// Real counts of both segments of this bar, for the tooltip: the chart's
+	// own y value of the upper segment is the cumulative stack height.
+	eligible: number;
+	genderKey: (typeof BREAKDOWN_GENDERS)[number]["key"];
+	hi: number;
+	id: string;
+	lo: number;
+	notEligible: number;
+	series: string;
+	status: "eligible" | "notEligible";
+};
+
+function PlayerBreakdownChart({ rows }: { rows: SeasonBreakdown["rows"] }) {
 	const definition = useMemo(() => {
+		const seriesLabel = (
+			gender: (typeof BREAKDOWN_GENDERS)[number],
+			status: BreakdownSegment["status"],
+		) =>
+			status === "eligible"
+				? gender.label()
+				: m.stats_player_breakdown_not_eligible_series({
+						param1: gender.label(),
+					});
+
+		// `group()` cannot be combined with the implicit stack, so each bar's two
+		// segments carry hand-computed intervals: eligible [0, e], not eligible
+		// [e, e + n]. Ids are unique across age groups (the chart derives its
+		// per-bar keys from them, not from x).
 		const points = rows.flatMap((row) =>
-			ROSTER_SERIES.map((series) => ({
-				ageGroup: ageGroupLabel(row.ageGroup),
-				count: row[series.key],
-				gender: series.label(),
-			})),
+			BREAKDOWN_GENDERS.flatMap((gender): BreakdownSegment[] => {
+				const eligible = row.eligible[gender.key];
+				const notEligible = row.notEligible[gender.key];
+				const ageGroup = ageGroupLabel(row.ageGroup);
+				const base = { ageGroup, eligible, genderKey: gender.key, notEligible };
+				return [
+					{
+						...base,
+						count: eligible,
+						hi: eligible,
+						id: `${row.ageGroup}|${gender.key}|eligible`,
+						lo: 0,
+						series: seriesLabel(gender, "eligible"),
+						status: "eligible",
+					},
+					{
+						...base,
+						count: notEligible,
+						hi: eligible + notEligible,
+						id: `${row.ageGroup}|${gender.key}|notEligible`,
+						lo: eligible,
+						series: seriesLabel(gender, "notEligible"),
+						status: "notEligible",
+					},
+				];
+			}),
 		);
-		const labels = ROSTER_SERIES.map((series) => series.label());
+		const entries = BREAKDOWN_GENDERS.flatMap((gender) => [
+			{ color: gender.color, label: seriesLabel(gender, "eligible") },
+			{
+				color: mutedColor(gender.color),
+				label: seriesLabel(gender, "notEligible"),
+			},
+		]);
+		const colorByLabel = new Map(entries.map((e) => [e.label, e.color]));
 
 		return defineChart({
 			color: {
 				legend: colorLegend(),
 				scale: () =>
 					scaleOrdinal<string, string>()
-						.domain(labels)
-						.range(ROSTER_SERIES.map((series) => series.color)),
+						.domain(entries.map((e) => e.label))
+						.range(entries.map((e) => e.color)),
 			},
 			focus: "group-x",
 			marks: [
 				barY(points, {
-					color: "gender",
+					color: "series",
+					key: "id",
 					layout: group({ padding: 0.1 }),
 					x: "ageGroup",
-					y: "count",
+					y1: "lo",
+					y2: "hi",
+					z: "genderKey",
 				}),
 			],
 			maxFocusDistance: Number.POSITIVE_INFINITY,
@@ -325,7 +391,28 @@ function RosterBreakdownChart({ rows }: { rows: RosterBreakdownRow[] }) {
 				x: { scale: () => scaleBand<string>().padding(0.3) },
 				y: { grid: true, nice: true, scale: scaleLinear },
 			},
-			tooltip,
+			// Group focus yields one point per gender; each point's datum knows
+			// both of its segments, so list the real (not cumulative) counts.
+			tooltip: {
+				content: (points) => ({
+					rows: BREAKDOWN_GENDERS.flatMap((gender) => {
+						const datum = points.find(
+							(p) => p.datum.genderKey === gender.key,
+						)?.datum;
+						if (!datum) return [];
+						return (["eligible", "notEligible"] as const).map((status) => {
+							const label = seriesLabel(gender, status);
+							return {
+								color: colorByLabel.get(label),
+								label,
+								value: String(datum[status]),
+							};
+						});
+					}),
+					title: points[0]?.datum.ageGroup,
+				}),
+				use: tooltip,
+			},
 		});
 	}, [rows]);
 
@@ -334,24 +421,33 @@ function RosterBreakdownChart({ rows }: { rows: RosterBreakdownRow[] }) {
 			definition={definition}
 			className="[--ts-chart-tooltip-background:var(--color-popover)] [--ts-chart-tooltip-border:1px_solid_var(--color-border)] [--ts-chart-tooltip-color:var(--color-popover-foreground)]"
 			height={240}
-			ariaLabel={m.stats_roster_breakdown()}
+			ariaLabel={m.stats_player_breakdown()}
 		/>
 	);
 }
 
-function RosterBreakdownSection({
-	rosterBreakdown,
+function PlayerBreakdownSection({
+	playerBreakdown,
 }: {
-	rosterBreakdown: ReturnType<typeof Route.useLoaderData>["rosterBreakdown"];
+	playerBreakdown: SeasonBreakdown;
 }) {
 	return (
-		<Section title={m.stats_roster_breakdown()}>
-			{rosterBreakdown.total === 0 ? (
-				<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
-					{m.stats_no_rostered_players()}
+		<Section title={m.stats_player_breakdown()}>
+			{playerBreakdown.tracked && playerBreakdown.total > 0 ? (
+				<div className="flex flex-col gap-2">
+					<PlayerBreakdownChart rows={playerBreakdown.rows} />
+					<p className="text-muted-foreground text-xs">
+						{m.stats_player_breakdown_as_of({
+							param1: formatDateWithYear(playerBreakdown.computedAt),
+						})}
+					</p>
 				</div>
 			) : (
-				<RosterBreakdownChart rows={rosterBreakdown.rows} />
+				<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
+					{playerBreakdown.tracked
+						? m.stats_player_breakdown_no_players()
+						: m.stats_player_breakdown_no_data()}
+				</div>
 			)}
 		</Section>
 	);
@@ -665,7 +761,7 @@ function SeasonSwitcher() {
 }
 
 function RouteComponent() {
-	const { teams, playerCounts, rosterBreakdown, tournamentSeries } =
+	const { teams, playerCounts, playerBreakdown, tournamentSeries } =
 		Route.useLoaderData();
 
 	return (
@@ -685,7 +781,7 @@ function RouteComponent() {
 				<PlayerCountChart rows={playerCounts} />
 			</Section>
 
-			<RosterBreakdownSection rosterBreakdown={rosterBreakdown} />
+			<PlayerBreakdownSection playerBreakdown={playerBreakdown} />
 
 			<Section title={m.stats_teams_league_and_placement()}>
 				{/* Mobile */}
