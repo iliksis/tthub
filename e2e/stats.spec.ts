@@ -901,34 +901,43 @@ test.describe("Stats Route - Roster Breakdown", () => {
 });
 
 test.describe("Stats Route - Player Count Chart", () => {
-	test("shows the active season's stored Eligible Player counts", async ({
+	// prisma/seed.ts: two Players, only one of them eligible, neither with a
+	// gender, so the Active Season's stored record is 1 / 0 / 0 / 2.
+	test("shows the seeded Active Season's stored Eligible Player counts", async ({
 		page,
 	}) => {
 		const activeSeason = await prismaClient.season.findFirstOrThrow({
-			include: { statistics: true },
 			where: { isActive: true },
 		});
-		const stats = activeSeason.statistics;
-		expect(stats).not.toBeNull();
 
 		await loginAs(page, "user");
 		await page.goto("/stats");
 		await page.waitForLoadState("networkidle");
 
-		const row = page
-			.getByTestId("player-count-summary")
-			.locator(`tr[data-season="${activeSeason.name}"]`);
-		await expect(row.locator("td").nth(1)).toHaveText(
-			String(stats?.eligibleCount),
-		);
-		await expect(row.locator("td").nth(2)).toHaveText(
-			String(stats?.eligibleMaleCount),
-		);
-		await expect(row.locator("td").nth(3)).toHaveText(
-			String(stats?.eligibleFemaleCount),
-		);
-		await expect(row.locator("td").nth(4)).toHaveText(
-			String(stats?.playerCount),
-		);
+		const chart = page.getByRole("img", {
+			name: "Spielerzahl im Saisonvergleich",
+		});
+		await chart.scrollIntoViewIfNeeded();
+		const label = await chart
+			.getByText(activeSeason.name, { exact: true })
+			.boundingBox();
+		const plot = await chart.boundingBox();
+		if (!label || !plot) throw new Error("chart not laid out");
+		await page.mouse.move(label.x + label.width / 2, plot.y + plot.height / 2);
+
+		const tooltip = page
+			.getByRole("status")
+			.filter({ hasText: activeSeason.name });
+		await expect(tooltip).toBeVisible();
+		for (const [series, count] of [
+			["Spielberechtigt gesamt", "1"],
+			["Männlich", "0"],
+			["Weiblich", "0"],
+			["Alle Spieler", "2"],
+		]) {
+			await expect(
+				tooltip.locator(".ts-chart-tooltip__row", { hasText: series }),
+			).toHaveText(`${series}${count}`);
+		}
 	});
 });
