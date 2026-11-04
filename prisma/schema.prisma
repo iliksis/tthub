@@ -92,6 +92,20 @@ model Season {
   teams        Team[]
   appointments Appointment[]
   teamPlayers  TeamPlayer[]
+  statistics   SeasonStatistics?
+}
+
+// One stored record per Season (see CONTEXT.md "Season Statistics").
+// `playerCount` and `breakdown` are null on Seasons that predate the record.
+model SeasonStatistics {
+  seasonId            String   @id
+  season              Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  playerCount         Int?
+  eligibleCount       Int
+  eligibleMaleCount   Int
+  eligibleFemaleCount Int
+  breakdown           Json?
+  computedAt          DateTime @default(now()) @updatedAt
 }
 
 enum AppointmentStatus {
