@@ -144,8 +144,15 @@ export const refreshSeasonStatistics = createServerFn({
 	}
 
 	try {
-		const data = await refreshActiveSeasonStatistics(prismaClient);
-		return { data, message: m.seasons_statistics_refreshed() };
+		// One transaction, so activating another Season between reading the
+		// Active Season and writing its record can't overwrite the old record.
+		const { computedAt, seasonId } = await prismaClient.$transaction((tx) =>
+			refreshActiveSeasonStatistics(tx),
+		);
+		return {
+			data: { computedAt, seasonId },
+			message: m.seasons_statistics_refreshed(),
+		};
 	} catch (e) {
 		console.error(e);
 		throw new Error((e as Error).message);

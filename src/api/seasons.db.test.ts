@@ -49,6 +49,18 @@ describe("refreshActiveSeasonStatistics", () => {
 		).toBeNull();
 	});
 
+	it("works inside an interactive transaction", async () => {
+		db = createTestDb();
+		const active = await db.prisma.season.create({
+			data: { isActive: true, name: "active" },
+		});
+		const record = await db.prisma.$transaction((tx) =>
+			refreshActiveSeasonStatistics(tx, year),
+		);
+		expect(record.seasonId).toBe(active.id);
+		expect(await db.prisma.seasonStatistics.count()).toBe(1);
+	});
+
 	it("throws 'Keine aktive Saison' without an Active Season", async () => {
 		db = createTestDb();
 		await db.prisma.season.create({ data: { name: "past" } });
