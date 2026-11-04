@@ -275,8 +275,6 @@ function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 	);
 }
 
-type PlayerBreakdown = SeasonBreakdown;
-
 // Bars within an age group sit side by side in this order.
 const BREAKDOWN_GENDERS = [
 	{
@@ -315,7 +313,7 @@ type BreakdownSegment = {
 	status: "eligible" | "notEligible";
 };
 
-function PlayerBreakdownChart({ rows }: { rows: PlayerBreakdown["rows"] }) {
+function PlayerBreakdownChart({ rows }: { rows: SeasonBreakdown["rows"] }) {
 	const definition = useMemo(() => {
 		const seriesLabel = (
 			gender: (typeof BREAKDOWN_GENDERS)[number],
@@ -431,20 +429,18 @@ function PlayerBreakdownChart({ rows }: { rows: PlayerBreakdown["rows"] }) {
 function PlayerBreakdownSection({
 	playerBreakdown,
 }: {
-	playerBreakdown: PlayerBreakdown;
+	playerBreakdown: SeasonBreakdown;
 }) {
 	return (
 		<Section title={m.stats_player_breakdown()}>
 			{playerBreakdown.tracked ? (
 				<div className="flex flex-col gap-2">
 					<PlayerBreakdownChart rows={playerBreakdown.rows} />
-					{playerBreakdown.computedAt && (
-						<p className="text-muted-foreground text-xs">
-							{m.stats_player_breakdown_as_of({
-								param1: formatDateWithYear(playerBreakdown.computedAt),
-							})}
-						</p>
-					)}
+					<p className="text-muted-foreground text-xs">
+						{m.stats_player_breakdown_as_of({
+							param1: formatDateWithYear(playerBreakdown.computedAt),
+						})}
+					</p>
 				</div>
 			) : (
 				<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">

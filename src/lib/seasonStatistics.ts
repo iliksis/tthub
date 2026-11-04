@@ -85,12 +85,14 @@ export function isAgeGroupBreakdown(
 	);
 }
 
-export type SeasonBreakdown = AgeGroupBreakdown & {
-	// False when the Season has no stored record or its breakdown is not
-	// tracked (null); the rows are then all zero and must not be drawn.
-	tracked: boolean;
-	computedAt: Date | null;
-};
+// `tracked: false` means the Season has no stored record or its breakdown is
+// not tracked (null): the rows are then all zero and must not be drawn. A
+// tracked breakdown always has a computedAt.
+export type SeasonBreakdown = AgeGroupBreakdown &
+	(
+		| { tracked: true; computedAt: Date }
+		| { tracked: false; computedAt: Date | null }
+	);
 
 // What the stats page shows for one Season. A missing record, a null
 // breakdown and a malformed one all read as untracked and all-zero instead

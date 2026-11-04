@@ -814,7 +814,9 @@ test.describe("Stats Route - Player Breakdown", () => {
 		});
 		const computedAt = active.statistics?.computedAt;
 		if (!computedAt) throw new Error("seed has no Active Season record");
-		const ageGroup = calculateAgeGroup(2010, year);
+		// Max (2010) is eligible, Lisa (2011) is not; they may share an age group.
+		const maxGroup = calculateAgeGroup(2010, year);
+		const lisaGroup = calculateAgeGroup(2011, year);
 
 		await loginAs(page, "user");
 		await page.goto("/stats");
@@ -825,14 +827,14 @@ test.describe("Stats Route - Player Breakdown", () => {
 		await expect(page.getByText(NO_DATA)).toHaveCount(0);
 		const tooltip = await hoverAgeGroup(
 			page,
-			ageGroup === "ADULT" ? "Erwachsen" : ageGroup,
+			maxGroup === "ADULT" ? "Erwachsen" : maxGroup,
 		);
-		await expect(tooltipRow(tooltip, "Unbekannt")).toHaveText(
-			/^Unbekannt[01]$/,
-		);
+		await expect(tooltipRow(tooltip, "Unbekannt")).toHaveText("Unbekannt1");
 		await expect(
 			tooltipRow(tooltip, "Unbekannt (nicht spielberechtigt)"),
-		).toHaveText(/^Unbekannt \(nicht spielberechtigt\)[01]$/);
+		).toHaveText(
+			`Unbekannt (nicht spielberechtigt)${lisaGroup === maxGroup ? 1 : 0}`,
+		);
 	});
 
 	test("follows the season selector and shows real, not cumulative, counts", async ({
