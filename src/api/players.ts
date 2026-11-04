@@ -27,9 +27,25 @@ const withCurrentHalf = <P extends { teams: { team: Team }[] }>(
 		teams: collapseHalves(p.teams, (tp) => tp.team),
 	}));
 
+// Club Member / Playing Eligibility are editor/admin-only. Rather than change
+// the row shape per role, non-editors get both flags forced to false so the
+// real values never reach their browser.
+export const redactFlags = <P extends object>(
+	players: P[],
+	canSeeFlags: boolean,
+): P[] => {
+	if (canSeeFlags) return players;
+	return players.map((p) => ({
+		...p,
+		isClubMember: false,
+		isEligibleToPlay: false,
+	}));
+};
+
 export const searchPlayers = createServerFn()
 	.validator((d: { query?: string }) => d)
 	.handler(async ({ data }) => {
+		const canSeeFlags = await useIsRole("EDITOR");
 		try {
 			const players = await prismaClient.player.findMany({
 				include: currentTeamInclude,
@@ -40,7 +56,7 @@ export const searchPlayers = createServerFn()
 				},
 			});
 			return {
-				data: withCurrentHalf(players),
+				data: redactFlags(withCurrentHalf(players), canSeeFlags),
 				message: m.players_players_found(),
 			};
 		} catch (e) {
@@ -52,6 +68,7 @@ export const searchPlayers = createServerFn()
 export const getPlayers = createServerFn({ method: "GET" })
 	.validator((d: { seasonId?: string }) => d)
 	.handler(async ({ data }) => {
+		const canSeeFlags = await useIsRole("EDITOR");
 		try {
 			const players = await prismaClient.player.findMany({
 				include: {
@@ -69,7 +86,7 @@ export const getPlayers = createServerFn({ method: "GET" })
 				orderBy: { name: "asc" },
 			});
 			return {
-				data: withCurrentHalf(players),
+				data: redactFlags(withCurrentHalf(players), canSeeFlags),
 				message: m.players_players_found(),
 			};
 		} catch (e) {
@@ -116,6 +133,7 @@ export const createPlayer = createServerFn({ method: "POST" })
 export const getPlayer = createServerFn()
 	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
+		const canSeeFlags = await useIsRole("EDITOR");
 		try {
 			const player = await prismaClient.player.findUnique({
 				include: {
@@ -136,7 +154,8 @@ export const getPlayer = createServerFn()
 			if (!player) {
 				throw new Error(m.players_player_not_found());
 			}
-			return { data: player, message: m.players_player_found() };
+			const [redacted] = redactFlags([player], canSeeFlags);
+			return { data: redacted, message: m.players_player_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);

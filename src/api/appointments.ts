@@ -16,10 +16,11 @@ import {
 	type ResponseType,
 	TransactionType,
 } from "@/lib/prisma/enums";
-import { requireEditor, useAppSession } from "@/lib/session";
+import { requireEditor, useAppSession, useIsRole } from "@/lib/session";
 import { formatTanstackRouterPath } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { sendNotification } from "./notifications";
+import { redactFlags } from "./players";
 
 type ICreateAppointment =
 	| {
@@ -137,6 +138,7 @@ export const getAppointment = createServerFn()
 		if (session.data.id === null) {
 			throw new Error(m.common_unauthorized());
 		}
+		const canSeeFlags = await useIsRole("EDITOR");
 		try {
 			const appointment = await prismaClient.appointment.findUnique({
 				include: appointmentDetailInclude,
@@ -145,7 +147,14 @@ export const getAppointment = createServerFn()
 			if (!appointment) {
 				throw new Error(m.appointments_appointment_not_found());
 			}
-			return { data: appointment, message: m.appointments_appointment_found() };
+			const placements = appointment.placements.map((pl) => ({
+				...pl,
+				player: redactFlags([pl.player], canSeeFlags)[0],
+			}));
+			return {
+				data: { ...appointment, placements },
+				message: m.appointments_appointment_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
