@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouteContext } from "@tanstack/react-router";
 import { UsersIcon } from "lucide-react";
 import { getPlayers } from "@/api/players";
 import { getActiveSeason } from "@/api/seasons";
@@ -17,6 +17,7 @@ import {
 	type TeamRow,
 } from "@/components/teams/TeamSummary";
 import { Link } from "@/components/ui/link";
+import { isEditorOrAdmin } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_authed/players/")({
@@ -37,7 +38,14 @@ export const Route = createFileRoute("/_authed/players/")({
 
 function RouteComponent() {
 	const { players, teams } = Route.useLoaderData();
-	const search = Route.useSearch();
+	const rawSearch = Route.useSearch();
+	const { user } = useRouteContext({ from: "__root__" });
+	const showFlags = isEditorOrAdmin(user?.role);
+	// Flags are editor/admin-only: a USER must not be able to filter on them
+	// by hand-editing the URL either.
+	const search = showFlags
+		? rawSearch
+		: { ...rawSearch, eligible: undefined, member: undefined };
 
 	if (!players) return <div>{m.common_an_error_occurred()}</div>;
 
@@ -47,8 +55,12 @@ function RouteComponent() {
 		<>
 			{/* Mobile / tablet layout */}
 			<div className="lg:hidden">
-				<MobilePlayerFilters {...search} teams={teams ?? []} />
-				<List players={filteredPlayers} />
+				<MobilePlayerFilters
+					{...search}
+					teams={teams ?? []}
+					showFlags={showFlags}
+				/>
+				<List players={filteredPlayers} showFlags={showFlags} />
 				<CreatePlayer />
 			</div>
 
@@ -68,9 +80,13 @@ function RouteComponent() {
 						<CreatePlayer />
 					</div>
 					<div className="mb-3">
-						<CommandBarFilters {...search} teams={teams ?? []} />
+						<CommandBarFilters
+							{...search}
+							teams={teams ?? []}
+							showFlags={showFlags}
+						/>
 					</div>
-					<List players={filteredPlayers} />
+					<List players={filteredPlayers} showFlags={showFlags} />
 				</div>
 				<TeamsRail teams={teams ?? []} />
 			</div>

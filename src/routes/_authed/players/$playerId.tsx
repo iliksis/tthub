@@ -182,6 +182,28 @@ function RouteComponent() {
 									)}
 								</dd>
 							</div>
+							{canEdit && (
+								<>
+									<div className="flex items-center justify-between py-2.5 border-b border-border/60">
+										<dt className="text-muted-foreground">
+											{m.players_club_member()}
+										</dt>
+										<dd className="font-medium">
+											{player.isClubMember ? m.players_yes() : m.players_no()}
+										</dd>
+									</div>
+									<div className="flex items-center justify-between py-2.5 border-b border-border/60">
+										<dt className="text-muted-foreground">
+											{m.players_eligible_to_play()}
+										</dt>
+										<dd className="font-medium">
+											{player.isEligibleToPlay
+												? m.players_yes()
+												: m.players_no()}
+										</dd>
+									</div>
+								</>
+							)}
 							{currentMembership?.team.league && (
 								<div className="flex items-center justify-between py-2.5 border-b border-border/60">
 									<dt className="text-muted-foreground">{m.common_league()}</dt>
@@ -267,6 +289,8 @@ function RouteComponent() {
 						submitLabel={m.common_update()}
 						defaultValues={{
 							gender: player.gender,
+							isClubMember: player.isClubMember,
+							isEligibleToPlay: player.isEligibleToPlay,
 							name: player.name,
 							qttr: player.qttr,
 							year: player.year,

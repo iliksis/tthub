@@ -80,8 +80,14 @@ export const getPlayers = createServerFn({ method: "GET" })
 
 export const createPlayer = createServerFn({ method: "POST" })
 	.validator(
-		(d: { name: string; year: number; qttr: number; gender: Gender | null }) =>
-			d,
+		(d: {
+			name: string;
+			year: number;
+			qttr: number;
+			gender: Gender | null;
+			isClubMember?: boolean;
+			isEligibleToPlay?: boolean;
+		}) => d,
 	)
 	.handler(async ({ data }) => {
 		const isAuthorized = await useIsRole("EDITOR");
@@ -93,6 +99,8 @@ export const createPlayer = createServerFn({ method: "POST" })
 			const player = await prismaClient.player.create({
 				data: {
 					gender: data.gender,
+					isClubMember: data.isClubMember ?? false,
+					isEligibleToPlay: data.isEligibleToPlay ?? false,
 					name: data.name,
 					qttr: data.qttr ?? 0,
 					year: data.year,
@@ -143,6 +151,8 @@ export const updatePlayer = createServerFn()
 			year: number;
 			qttr: number;
 			gender: Gender | null;
+			isClubMember: boolean;
+			isEligibleToPlay: boolean;
 		}) => d,
 	)
 	.handler(async ({ data }) => {
@@ -155,6 +165,8 @@ export const updatePlayer = createServerFn()
 			const player = await prismaClient.player.update({
 				data: {
 					gender: data.gender,
+					isClubMember: data.isClubMember,
+					isEligibleToPlay: data.isEligibleToPlay,
 					name: data.name,
 					qttr: data.qttr,
 					year: data.year,

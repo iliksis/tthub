@@ -171,6 +171,8 @@ model Player {
   year       Int
   qttr       Int
   gender     Gender?
+  isClubMember     Boolean @default(false)
+  isEligibleToPlay Boolean @default(false)
   teams      TeamPlayer[]
   placements Placement[]
 }

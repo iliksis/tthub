@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Player" ADD COLUMN "isClubMember" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Player" ADD COLUMN "isEligibleToPlay" BOOLEAN NOT NULL DEFAULT false;
