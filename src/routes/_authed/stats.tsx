@@ -256,43 +256,15 @@ function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 	if (rows.length === 0) return null;
 
 	return (
-		<div className="flex flex-col gap-4">
-			<Chart
-				definition={definition}
-				// The tooltip's default chrome is a light card; these CSS variables
-				// (read from the chart container) restyle it with the app's popover
-				// tokens so it follows the light/dark theme.
-				className="[--ts-chart-tooltip-background:var(--color-popover)] [--ts-chart-tooltip-border:1px_solid_var(--color-border)] [--ts-chart-tooltip-color:var(--color-popover-foreground)]"
-				height={240}
-				ariaLabel={m.stats_player_count_over_seasons()}
-			/>
-			<div className="overflow-x-auto">
-				<table className="w-full text-sm" data-testid="player-count-summary">
-					<thead>
-						<tr className="text-left text-muted-foreground">
-							<th className="py-1 pr-4 font-medium">{m.common_season()}</th>
-							{PLAYER_COUNT_SERIES.map((series) => (
-								<th key={series.key} className="py-1 pr-4 font-medium">
-									{series.label()}
-								</th>
-							))}
-						</tr>
-					</thead>
-					<tbody>
-						{rows.map((row) => (
-							<tr key={row.seasonId} data-season={row.seasonName}>
-								<td className="py-1 pr-4">{row.seasonName}</td>
-								{PLAYER_COUNT_SERIES.map((series) => (
-									<td key={series.key} className="py-1 pr-4 tabular-nums">
-										{row[series.key] ?? "–"}
-									</td>
-								))}
-							</tr>
-						))}
-					</tbody>
-				</table>
-			</div>
-		</div>
+		<Chart
+			definition={definition}
+			// The tooltip's default chrome is a light card; these CSS variables
+			// (read from the chart container) restyle it with the app's popover
+			// tokens so it follows the light/dark theme.
+			className="[--ts-chart-tooltip-background:var(--color-popover)] [--ts-chart-tooltip-border:1px_solid_var(--color-border)] [--ts-chart-tooltip-color:var(--color-popover-foreground)]"
+			height={240}
+			ariaLabel={m.stats_player_count_over_seasons()}
+		/>
 	);
 }
 
