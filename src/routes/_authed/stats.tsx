@@ -218,8 +218,8 @@ function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 			// One tooltip per season listing every series, instead of one per line.
 			focus: "group-x",
 			marks: [
-				// Explicit `y1: 0` opts out of the default stacking: the series
-				// overlap (total = male + female), so each area starts at zero.
+				// Explicit `y1: 0` opts out of the default stacking: the Eligible
+				// Eligible series overlap (total = male + female), so each area starts at zero.
 				areaY(areaPoints, {
 					color: "series",
 					curve: smoothCurve,

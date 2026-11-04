@@ -241,10 +241,7 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 
 	// Seeds one Season with a stored Season Statistics record: 3 Eligible
 	// Players (1 male, 1 female, 1 without a gender) out of 4 Players overall.
-	async function seedCountFixture(
-		suffix: string,
-		playerCount: number | null = 4,
-	) {
+	async function seedCountFixture(suffix: string) {
 		const season = await prismaClient.season.create({
 			data: { isActive: false, name: `${PREFIX}${suffix}` },
 		});
@@ -253,7 +250,7 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 				eligibleCount: 3,
 				eligibleFemaleCount: 1,
 				eligibleMaleCount: 1,
-				playerCount,
+				playerCount: 4,
 				seasonId: season.id,
 			},
 		});
