@@ -1,5 +1,5 @@
+import { AGE_GROUPS, type AgeGroup, calculateAgeGroup } from "@/lib/ageGroup";
 import type { Player, PrismaClient } from "@/lib/prisma/client";
-import { AGE_GROUPS, type AgeGroup, calculateAgeGroup } from "@/lib/utils";
 
 export type GenderCounts = { male: number; female: number; unknown: number };
 
