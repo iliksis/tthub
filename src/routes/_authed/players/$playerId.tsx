@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
 import { collapseHalves } from "@/lib/teamHalf";
-import { calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
+import { ageGroupLabel, calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 // biome-ignore assist/source/useSortedKeys: head needs to be after loader to access loaderData
@@ -155,7 +155,11 @@ function RouteComponent() {
 									{m.players_year_of_birth()}
 								</dt>
 								<dd className="font-medium">
-									{player.year} ({calculateAgeGroup(player.year)})
+									{player.year} (
+									{ageGroupLabel(
+										calculateAgeGroup(player.year, new Date().getFullYear()),
+									)}
+									)
 								</dd>
 							</div>
 							<div className="flex items-center justify-between py-2.5 border-b border-border/60">

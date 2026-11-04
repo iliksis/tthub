@@ -30,7 +30,12 @@ import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import { useMutation } from "@/hooks/useMutation";
 import { groupPlacementsByCategory } from "@/lib/placements";
 import type { Placement, Player } from "@/lib/prisma/client";
-import { calculateAgeGroup, cn, createColorForUserId } from "@/lib/utils";
+import {
+	ageGroupLabel,
+	calculateAgeGroup,
+	cn,
+	createColorForUserId,
+} from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 type PlacementsSheetProps = {
@@ -261,7 +266,12 @@ export function PlacementsSheet({
 													<div className="flex-1">
 														<div className="text-sm">{p.player.name}</div>
 														<div className="text-muted-foreground text-xs">
-															{calculateAgeGroup(p.player.year)}
+															{ageGroupLabel(
+																calculateAgeGroup(
+																	p.player.year,
+																	new Date().getFullYear(),
+																),
+															)}
 														</div>
 													</div>
 													{canEdit && isEditing ? (
@@ -340,7 +350,12 @@ export function PlacementsSheet({
 																	key={p.id}
 																	value={p.id}
 																	className="before:content-[attr(data-before)] before:opacity-60"
-																	data-before={calculateAgeGroup(p.year)}
+																	data-before={ageGroupLabel(
+																		calculateAgeGroup(
+																			p.year,
+																			new Date().getFullYear(),
+																		),
+																	)}
 																>
 																	{p.name}
 																</SelectItem>

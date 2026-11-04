@@ -46,7 +46,7 @@ const ageGroupOptions = [
 	{ label: "U13", value: "U13" },
 	{ label: "U15", value: "U15" },
 	{ label: "U19", value: "U19" },
-	{ label: m.players_adult(), value: calculateAgeGroup(0) },
+	{ label: m.players_adult(), value: "ADULT" },
 ];
 
 const flagOptions = () => [
@@ -508,7 +508,10 @@ export const applyPlayerFilters = <
 			)
 				return false;
 		}
-		if (filters.ageGroup && calculateAgeGroup(p.year) !== filters.ageGroup)
+		if (
+			filters.ageGroup &&
+			calculateAgeGroup(p.year, new Date().getFullYear()) !== filters.ageGroup
+		)
 			return false;
 		if (filters.eligible && p.isEligibleToPlay !== (filters.eligible === "yes"))
 			return false;

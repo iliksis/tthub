@@ -12,7 +12,7 @@ describe("buildRosterBreakdown", () => {
 			"U13",
 			"U15",
 			"U19",
-			"Erwachsen",
+			"ADULT",
 		]);
 		expect(result.rows.every((r) => r.male + r.female + r.unknown === 0)).toBe(
 			true,
@@ -32,7 +32,7 @@ describe("buildRosterBreakdown", () => {
 		expect(byGroup.U13).toMatchObject({ female: 1, male: 0, unknown: 0 });
 		expect(byGroup.U15).toMatchObject({ female: 0, male: 0, unknown: 1 });
 		expect(byGroup.U19).toMatchObject({ female: 0, male: 1, unknown: 0 });
-		expect(byGroup.Erwachsen).toMatchObject({ female: 1, male: 0, unknown: 0 });
+		expect(byGroup.ADULT).toMatchObject({ female: 1, male: 0, unknown: 0 });
 		expect(result.total).toBe(5);
 	});
 

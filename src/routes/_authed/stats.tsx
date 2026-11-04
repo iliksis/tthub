@@ -32,7 +32,7 @@ import { TeamHalfBadge } from "@/components/teams/TeamSummary";
 import { Badge } from "@/components/ui/badge";
 import { EntitySelect } from "@/components/ui/entity-select";
 import { Link } from "@/components/ui/link";
-import { cn, formatShortDate } from "@/lib/utils";
+import { ageGroupLabel, cn, formatShortDate } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 const searchSchema = z.object({
@@ -275,7 +275,7 @@ function RosterBreakdownChart({ rows }: { rows: RosterBreakdownRow[] }) {
 	const definition = useMemo(() => {
 		const points = rows.flatMap((row) =>
 			ROSTER_SERIES.map((series) => ({
-				ageGroup: row.ageGroup,
+				ageGroup: ageGroupLabel(row.ageGroup),
 				count: row[series.key],
 				gender: series.label(),
 			})),
