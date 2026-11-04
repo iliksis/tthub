@@ -1,5 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
+import {
+	recomputeActiveSeasonStatistics,
+	type StatisticsDb,
+} from "@/lib/seasonStatistics";
 import { useIsRole } from "@/lib/session";
 import { m } from "@/paraglide/messages";
 
@@ -117,6 +121,43 @@ export const setActiveSeason = createServerFn()
 			throw new Error((e as Error).message);
 		}
 	});
+
+// Unlike recomputeActiveSeasonStatistics, a missing Active Season is an error
+// the caller must surface rather than a silent no-op. Exported for tests.
+export async function refreshActiveSeasonStatistics(
+	db: StatisticsDb,
+	referenceYear?: number,
+) {
+	const record = await recomputeActiveSeasonStatistics(db, referenceYear);
+	if (!record) throw new Error(m.seasons_no_active_season());
+	return record;
+}
+
+// Recomputes the Active Season's stored statistics on demand. Only the Active
+// Season is ever recomputed; past Seasons stay snapshots.
+export const refreshSeasonStatistics = createServerFn({
+	method: "POST",
+}).handler(async () => {
+	const isAuthorized = await useIsRole("EDITOR");
+	if (!isAuthorized) {
+		throw new Error(m.common_unauthorized());
+	}
+
+	try {
+		// One transaction, so activating another Season between reading the
+		// Active Season and writing its record can't overwrite the old record.
+		const { computedAt, seasonId } = await prismaClient.$transaction((tx) =>
+			refreshActiveSeasonStatistics(tx),
+		);
+		return {
+			data: { computedAt, seasonId },
+			message: m.seasons_statistics_refreshed(),
+		};
+	} catch (e) {
+		console.error(e);
+		throw new Error((e as Error).message);
+	}
+});
 
 export const deleteSeason = createServerFn()
 	.validator((d: { id: string }) => d)

@@ -159,7 +159,7 @@ export function buildSeasonCountOverview(
 }
 
 // Any Prisma client, including an interactive-transaction client.
-type StatisticsDb = Pick<
+export type StatisticsDb = Pick<
 	PrismaClient,
 	"player" | "season" | "seasonStatistics"
 >;
