@@ -1,6 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
-import { recomputeActiveSeasonStatistics } from "@/lib/seasonStatistics";
+import {
+	recomputeActiveSeasonStatistics,
+	type StatisticsDb,
+} from "@/lib/seasonStatistics";
 import { useIsRole } from "@/lib/session";
 import { m } from "@/paraglide/messages";
 
@@ -122,7 +125,7 @@ export const setActiveSeason = createServerFn()
 // Unlike recomputeActiveSeasonStatistics, a missing Active Season is an error
 // the caller must surface rather than a silent no-op. Exported for tests.
 export async function refreshActiveSeasonStatistics(
-	db: Parameters<typeof recomputeActiveSeasonStatistics>[0],
+	db: StatisticsDb,
 	referenceYear?: number,
 ) {
 	const record = await recomputeActiveSeasonStatistics(db, referenceYear);

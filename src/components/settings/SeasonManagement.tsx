@@ -94,6 +94,8 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 		},
 	});
 
+	const isRefreshing = refreshMutation.status === "pending";
+
 	const deleteSeasonServerFn = useServerFn(deleteSeason);
 	const onDelete = async () => {
 		if (!deletingSeason) return;
@@ -134,14 +136,14 @@ export const SeasonManagement = ({ seasons }: SeasonManagementProps) => {
 										type="button"
 										size="xs"
 										variant="outline"
-										disabled={refreshMutation.status === "pending"}
+										disabled={isRefreshing}
 										onClick={(e) => {
 											// Don't toggle the row's selection.
 											e.stopPropagation();
 											refreshMutation.mutate(undefined);
 										}}
 									>
-										{refreshMutation.status === "pending" ? (
+										{isRefreshing ? (
 											<Loader2Icon className="animate-spin" />
 										) : (
 											<RefreshCwIcon />

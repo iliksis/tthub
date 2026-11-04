@@ -67,6 +67,14 @@ test.describe("Seasons settings - manual statistics refresh", () => {
 
 		await page.goto("/stats");
 		await page.waitForLoadState("networkidle");
+		// The Stand note shows the refresh's date, in the club's time zone.
+		const stand = fresh.computedAt.toLocaleDateString("de-DE", {
+			day: "2-digit",
+			month: "2-digit",
+			timeZone: "Europe/Berlin",
+			year: "numeric",
+		});
+		await expect(page.getByText(`Stand: ${stand}`)).toBeVisible();
 		const chart = page.getByRole("img", {
 			name: "Spielerzahl im Saisonvergleich",
 		});
