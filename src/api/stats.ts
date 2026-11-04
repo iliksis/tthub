@@ -5,7 +5,7 @@ import {
 	sortPlacementsByRank,
 } from "@/lib/placements";
 import type { Gender } from "@/lib/prisma/enums";
-import { buildAgeGroupBreakdown } from "@/lib/seasonStatistics";
+import { buildAgeGroupBreakdown, sumCounts } from "@/lib/seasonStatistics";
 import { m } from "@/paraglide/messages";
 
 export type SeasonPlayerCount = {
@@ -105,9 +105,7 @@ export const getRosterBreakdown = createServerFn({ method: "GET" }).handler(
 				data: {
 					rows: breakdown.rows.map((row) => ({
 						ageGroup: row.ageGroup,
-						female: row.eligible.female + row.notEligible.female,
-						male: row.eligible.male + row.notEligible.male,
-						unknown: row.eligible.unknown + row.notEligible.unknown,
+						...sumCounts(row.eligible, row.notEligible),
 					})),
 					total: breakdown.total,
 				},

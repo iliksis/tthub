@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createTestDb } from "@/test/testDb";
 import {
+	type AgeGroupBreakdown,
 	recomputeActiveSeasonStatistics,
 	recomputeSeasonStatistics,
 } from "./seasonStatistics";
@@ -69,14 +70,7 @@ describe("season statistics recompute", () => {
 			playerCount: 4,
 			seasonId: active.id,
 		});
-		const breakdown = record?.breakdown as {
-			rows: {
-				ageGroup: string;
-				eligible: { male: number };
-				notEligible: { male: number };
-			}[];
-			total: number;
-		};
+		const breakdown = record?.breakdown as AgeGroupBreakdown;
 		expect(breakdown.total).toBe(4);
 		expect(breakdown.rows[0]).toMatchObject({ ageGroup: "U11" });
 		expect(breakdown.rows[0].eligible.male).toBe(1);
@@ -188,5 +182,24 @@ describe("migration backfill", () => {
 			eligibleMaleCount: 0,
 			playerCount: 4,
 		});
+	});
+
+	it("treats every Season as past when none is active", async () => {
+		db = createTestDb("20261104120000_add_player_flags");
+		const now = new Date().toISOString();
+		db.raw.exec(`
+			INSERT INTO Season (id, createdAt, name, isActive) VALUES ('s1', '${now}', 'a', 0), ('s2', '${now}', 'b', 0);
+			INSERT INTO Player (id, createdAt, updatedAt, name, year, qttr, gender) VALUES ('p1','${now}','${now}','1',2000,1,'MALE');
+		`);
+		db.applyRemaining();
+		const rows = await db.prisma.seasonStatistics.findMany();
+		expect(rows).toHaveLength(2);
+		for (const row of rows) {
+			expect(row).toMatchObject({
+				breakdown: null,
+				eligibleCount: 0,
+				playerCount: null,
+			});
+		}
 	});
 });
