@@ -403,6 +403,7 @@ export const ModelName = {
   PasswordReset: 'PasswordReset',
   Appointment: 'Appointment',
   Season: 'Season',
+  SeasonStatistics: 'SeasonStatistics',
   Label: 'Label',
   AppointmentLabel: 'AppointmentLabel',
   UserMutedLabel: 'UserMutedLabel',
@@ -431,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "feedConfig" | "userInvitation" | "passwordReset" | "appointment" | "season" | "label" | "appointmentLabel" | "userMutedLabel" | "response" | "player" | "team" | "teamPlayer" | "standing" | "placement" | "transaction" | "subscription" | "importerSetting" | "notificationSettings"
+    modelProps: "user" | "feedConfig" | "userInvitation" | "passwordReset" | "appointment" | "season" | "seasonStatistics" | "label" | "appointmentLabel" | "userMutedLabel" | "response" | "player" | "team" | "teamPlayer" | "standing" | "placement" | "transaction" | "subscription" | "importerSetting" | "notificationSettings"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -876,6 +877,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.SeasonCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.SeasonCountAggregateOutputType> | number
+        }
+      }
+    }
+    SeasonStatistics: {
+      payload: Prisma.$SeasonStatisticsPayload<ExtArgs>
+      fields: Prisma.SeasonStatisticsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SeasonStatisticsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonStatisticsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SeasonStatisticsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonStatisticsPayload>
+        }
+        findFirst: {
+          args: Prisma.SeasonStatisticsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonStatisticsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SeasonStatisticsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonStatisticsPayload>
+        }
+        findMany: {
+          args: Prisma.SeasonStatisticsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonStatisticsPayload>[]
+        }
+        create: {
+          args: Prisma.SeasonStatisticsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonStatisticsPayload>
+        }
+        createMany: {
+          args: Prisma.SeasonStatisticsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SeasonStatisticsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonStatisticsPayload>[]
+        }
+        delete: {
+          args: Prisma.SeasonStatisticsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonStatisticsPayload>
+        }
+        update: {
+          args: Prisma.SeasonStatisticsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonStatisticsPayload>
+        }
+        deleteMany: {
+          args: Prisma.SeasonStatisticsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SeasonStatisticsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SeasonStatisticsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonStatisticsPayload>[]
+        }
+        upsert: {
+          args: Prisma.SeasonStatisticsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SeasonStatisticsPayload>
+        }
+        aggregate: {
+          args: Prisma.SeasonStatisticsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSeasonStatistics>
+        }
+        groupBy: {
+          args: Prisma.SeasonStatisticsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeasonStatisticsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SeasonStatisticsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SeasonStatisticsCountAggregateOutputType> | number
         }
       }
     }
@@ -1950,6 +2025,19 @@ export const SeasonScalarFieldEnum = {
 export type SeasonScalarFieldEnum = (typeof SeasonScalarFieldEnum)[keyof typeof SeasonScalarFieldEnum]
 
 
+export const SeasonStatisticsScalarFieldEnum = {
+  seasonId: 'seasonId',
+  playerCount: 'playerCount',
+  eligibleCount: 'eligibleCount',
+  eligibleMaleCount: 'eligibleMaleCount',
+  eligibleFemaleCount: 'eligibleFemaleCount',
+  breakdown: 'breakdown',
+  computedAt: 'computedAt'
+} as const
+
+export type SeasonStatisticsScalarFieldEnum = (typeof SeasonStatisticsScalarFieldEnum)[keyof typeof SeasonStatisticsScalarFieldEnum]
+
+
 export const LabelScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
@@ -2197,6 +2285,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
 
 
 /**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
  * Reference to a field of type 'ResponseType'
  */
 export type EnumResponseTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResponseType'>
@@ -2221,20 +2323,6 @@ export type EnumTeamHalfFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
  * Reference to a field of type 'TransactionType'
  */
 export type EnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType'>
-    
-
-
-/**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -2401,6 +2489,7 @@ export type GlobalOmitConfig = {
   passwordReset?: Prisma.PasswordResetOmit
   appointment?: Prisma.AppointmentOmit
   season?: Prisma.SeasonOmit
+  seasonStatistics?: Prisma.SeasonStatisticsOmit
   label?: Prisma.LabelOmit
   appointmentLabel?: Prisma.AppointmentLabelOmit
   userMutedLabel?: Prisma.UserMutedLabelOmit

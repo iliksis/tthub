@@ -177,6 +177,7 @@ export type SeasonWhereInput = {
   teams?: Prisma.TeamListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
   teamPlayers?: Prisma.TeamPlayerListRelationFilter
+  statistics?: Prisma.XOR<Prisma.SeasonStatisticsNullableScalarRelationFilter, Prisma.SeasonStatisticsWhereInput> | null
 }
 
 export type SeasonOrderByWithRelationInput = {
@@ -187,6 +188,7 @@ export type SeasonOrderByWithRelationInput = {
   teams?: Prisma.TeamOrderByRelationAggregateInput
   appointments?: Prisma.AppointmentOrderByRelationAggregateInput
   teamPlayers?: Prisma.TeamPlayerOrderByRelationAggregateInput
+  statistics?: Prisma.SeasonStatisticsOrderByWithRelationInput
 }
 
 export type SeasonWhereUniqueInput = Prisma.AtLeast<{
@@ -200,6 +202,7 @@ export type SeasonWhereUniqueInput = Prisma.AtLeast<{
   teams?: Prisma.TeamListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
   teamPlayers?: Prisma.TeamPlayerListRelationFilter
+  statistics?: Prisma.XOR<Prisma.SeasonStatisticsNullableScalarRelationFilter, Prisma.SeasonStatisticsWhereInput> | null
 }, "id">
 
 export type SeasonOrderByWithAggregationInput = {
@@ -230,6 +233,7 @@ export type SeasonCreateInput = {
   teams?: Prisma.TeamCreateNestedManyWithoutSeasonInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutSeasonInput
   teamPlayers?: Prisma.TeamPlayerCreateNestedManyWithoutSeasonInput
+  statistics?: Prisma.SeasonStatisticsCreateNestedOneWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateInput = {
@@ -240,6 +244,7 @@ export type SeasonUncheckedCreateInput = {
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutSeasonInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutSeasonInput
   teamPlayers?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutSeasonInput
+  statistics?: Prisma.SeasonStatisticsUncheckedCreateNestedOneWithoutSeasonInput
 }
 
 export type SeasonUpdateInput = {
@@ -250,6 +255,7 @@ export type SeasonUpdateInput = {
   teams?: Prisma.TeamUpdateManyWithoutSeasonNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutSeasonNestedInput
   teamPlayers?: Prisma.TeamPlayerUpdateManyWithoutSeasonNestedInput
+  statistics?: Prisma.SeasonStatisticsUpdateOneWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateInput = {
@@ -260,6 +266,7 @@ export type SeasonUncheckedUpdateInput = {
   teams?: Prisma.TeamUncheckedUpdateManyWithoutSeasonNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutSeasonNestedInput
   teamPlayers?: Prisma.TeamPlayerUncheckedUpdateManyWithoutSeasonNestedInput
+  statistics?: Prisma.SeasonStatisticsUncheckedUpdateOneWithoutSeasonNestedInput
 }
 
 export type SeasonCreateManyInput = {
@@ -330,6 +337,20 @@ export type SeasonUpdateOneWithoutAppointmentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SeasonUpdateToOneWithWhereWithoutAppointmentsInput, Prisma.SeasonUpdateWithoutAppointmentsInput>, Prisma.SeasonUncheckedUpdateWithoutAppointmentsInput>
 }
 
+export type SeasonCreateNestedOneWithoutStatisticsInput = {
+  create?: Prisma.XOR<Prisma.SeasonCreateWithoutStatisticsInput, Prisma.SeasonUncheckedCreateWithoutStatisticsInput>
+  connectOrCreate?: Prisma.SeasonCreateOrConnectWithoutStatisticsInput
+  connect?: Prisma.SeasonWhereUniqueInput
+}
+
+export type SeasonUpdateOneRequiredWithoutStatisticsNestedInput = {
+  create?: Prisma.XOR<Prisma.SeasonCreateWithoutStatisticsInput, Prisma.SeasonUncheckedCreateWithoutStatisticsInput>
+  connectOrCreate?: Prisma.SeasonCreateOrConnectWithoutStatisticsInput
+  upsert?: Prisma.SeasonUpsertWithoutStatisticsInput
+  connect?: Prisma.SeasonWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SeasonUpdateToOneWithWhereWithoutStatisticsInput, Prisma.SeasonUpdateWithoutStatisticsInput>, Prisma.SeasonUncheckedUpdateWithoutStatisticsInput>
+}
+
 export type SeasonCreateNestedOneWithoutTeamsInput = {
   create?: Prisma.XOR<Prisma.SeasonCreateWithoutTeamsInput, Prisma.SeasonUncheckedCreateWithoutTeamsInput>
   connectOrCreate?: Prisma.SeasonCreateOrConnectWithoutTeamsInput
@@ -365,6 +386,7 @@ export type SeasonCreateWithoutAppointmentsInput = {
   isActive?: boolean
   teams?: Prisma.TeamCreateNestedManyWithoutSeasonInput
   teamPlayers?: Prisma.TeamPlayerCreateNestedManyWithoutSeasonInput
+  statistics?: Prisma.SeasonStatisticsCreateNestedOneWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutAppointmentsInput = {
@@ -374,6 +396,7 @@ export type SeasonUncheckedCreateWithoutAppointmentsInput = {
   isActive?: boolean
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutSeasonInput
   teamPlayers?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutSeasonInput
+  statistics?: Prisma.SeasonStatisticsUncheckedCreateNestedOneWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutAppointmentsInput = {
@@ -399,6 +422,7 @@ export type SeasonUpdateWithoutAppointmentsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teams?: Prisma.TeamUpdateManyWithoutSeasonNestedInput
   teamPlayers?: Prisma.TeamPlayerUpdateManyWithoutSeasonNestedInput
+  statistics?: Prisma.SeasonStatisticsUpdateOneWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutAppointmentsInput = {
@@ -407,6 +431,63 @@ export type SeasonUncheckedUpdateWithoutAppointmentsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teams?: Prisma.TeamUncheckedUpdateManyWithoutSeasonNestedInput
+  teamPlayers?: Prisma.TeamPlayerUncheckedUpdateManyWithoutSeasonNestedInput
+  statistics?: Prisma.SeasonStatisticsUncheckedUpdateOneWithoutSeasonNestedInput
+}
+
+export type SeasonCreateWithoutStatisticsInput = {
+  id?: string
+  createdAt?: Date | string
+  name: string
+  isActive?: boolean
+  teams?: Prisma.TeamCreateNestedManyWithoutSeasonInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutSeasonInput
+  teamPlayers?: Prisma.TeamPlayerCreateNestedManyWithoutSeasonInput
+}
+
+export type SeasonUncheckedCreateWithoutStatisticsInput = {
+  id?: string
+  createdAt?: Date | string
+  name: string
+  isActive?: boolean
+  teams?: Prisma.TeamUncheckedCreateNestedManyWithoutSeasonInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutSeasonInput
+  teamPlayers?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutSeasonInput
+}
+
+export type SeasonCreateOrConnectWithoutStatisticsInput = {
+  where: Prisma.SeasonWhereUniqueInput
+  create: Prisma.XOR<Prisma.SeasonCreateWithoutStatisticsInput, Prisma.SeasonUncheckedCreateWithoutStatisticsInput>
+}
+
+export type SeasonUpsertWithoutStatisticsInput = {
+  update: Prisma.XOR<Prisma.SeasonUpdateWithoutStatisticsInput, Prisma.SeasonUncheckedUpdateWithoutStatisticsInput>
+  create: Prisma.XOR<Prisma.SeasonCreateWithoutStatisticsInput, Prisma.SeasonUncheckedCreateWithoutStatisticsInput>
+  where?: Prisma.SeasonWhereInput
+}
+
+export type SeasonUpdateToOneWithWhereWithoutStatisticsInput = {
+  where?: Prisma.SeasonWhereInput
+  data: Prisma.XOR<Prisma.SeasonUpdateWithoutStatisticsInput, Prisma.SeasonUncheckedUpdateWithoutStatisticsInput>
+}
+
+export type SeasonUpdateWithoutStatisticsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  teams?: Prisma.TeamUpdateManyWithoutSeasonNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutSeasonNestedInput
+  teamPlayers?: Prisma.TeamPlayerUpdateManyWithoutSeasonNestedInput
+}
+
+export type SeasonUncheckedUpdateWithoutStatisticsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  teams?: Prisma.TeamUncheckedUpdateManyWithoutSeasonNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutSeasonNestedInput
   teamPlayers?: Prisma.TeamPlayerUncheckedUpdateManyWithoutSeasonNestedInput
 }
 
@@ -417,6 +498,7 @@ export type SeasonCreateWithoutTeamsInput = {
   isActive?: boolean
   appointments?: Prisma.AppointmentCreateNestedManyWithoutSeasonInput
   teamPlayers?: Prisma.TeamPlayerCreateNestedManyWithoutSeasonInput
+  statistics?: Prisma.SeasonStatisticsCreateNestedOneWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutTeamsInput = {
@@ -426,6 +508,7 @@ export type SeasonUncheckedCreateWithoutTeamsInput = {
   isActive?: boolean
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutSeasonInput
   teamPlayers?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutSeasonInput
+  statistics?: Prisma.SeasonStatisticsUncheckedCreateNestedOneWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutTeamsInput = {
@@ -451,6 +534,7 @@ export type SeasonUpdateWithoutTeamsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   appointments?: Prisma.AppointmentUpdateManyWithoutSeasonNestedInput
   teamPlayers?: Prisma.TeamPlayerUpdateManyWithoutSeasonNestedInput
+  statistics?: Prisma.SeasonStatisticsUpdateOneWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutTeamsInput = {
@@ -460,6 +544,7 @@ export type SeasonUncheckedUpdateWithoutTeamsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutSeasonNestedInput
   teamPlayers?: Prisma.TeamPlayerUncheckedUpdateManyWithoutSeasonNestedInput
+  statistics?: Prisma.SeasonStatisticsUncheckedUpdateOneWithoutSeasonNestedInput
 }
 
 export type SeasonCreateWithoutTeamPlayersInput = {
@@ -469,6 +554,7 @@ export type SeasonCreateWithoutTeamPlayersInput = {
   isActive?: boolean
   teams?: Prisma.TeamCreateNestedManyWithoutSeasonInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutSeasonInput
+  statistics?: Prisma.SeasonStatisticsCreateNestedOneWithoutSeasonInput
 }
 
 export type SeasonUncheckedCreateWithoutTeamPlayersInput = {
@@ -478,6 +564,7 @@ export type SeasonUncheckedCreateWithoutTeamPlayersInput = {
   isActive?: boolean
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutSeasonInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutSeasonInput
+  statistics?: Prisma.SeasonStatisticsUncheckedCreateNestedOneWithoutSeasonInput
 }
 
 export type SeasonCreateOrConnectWithoutTeamPlayersInput = {
@@ -503,6 +590,7 @@ export type SeasonUpdateWithoutTeamPlayersInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teams?: Prisma.TeamUpdateManyWithoutSeasonNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutSeasonNestedInput
+  statistics?: Prisma.SeasonStatisticsUpdateOneWithoutSeasonNestedInput
 }
 
 export type SeasonUncheckedUpdateWithoutTeamPlayersInput = {
@@ -512,6 +600,7 @@ export type SeasonUncheckedUpdateWithoutTeamPlayersInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   teams?: Prisma.TeamUncheckedUpdateManyWithoutSeasonNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutSeasonNestedInput
+  statistics?: Prisma.SeasonStatisticsUncheckedUpdateOneWithoutSeasonNestedInput
 }
 
 
@@ -571,6 +660,7 @@ export type SeasonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   teams?: boolean | Prisma.Season$teamsArgs<ExtArgs>
   appointments?: boolean | Prisma.Season$appointmentsArgs<ExtArgs>
   teamPlayers?: boolean | Prisma.Season$teamPlayersArgs<ExtArgs>
+  statistics?: boolean | Prisma.Season$statisticsArgs<ExtArgs>
   _count?: boolean | Prisma.SeasonCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["season"]>
 
@@ -600,6 +690,7 @@ export type SeasonInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   teams?: boolean | Prisma.Season$teamsArgs<ExtArgs>
   appointments?: boolean | Prisma.Season$appointmentsArgs<ExtArgs>
   teamPlayers?: boolean | Prisma.Season$teamPlayersArgs<ExtArgs>
+  statistics?: boolean | Prisma.Season$statisticsArgs<ExtArgs>
   _count?: boolean | Prisma.SeasonCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SeasonIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -611,6 +702,7 @@ export type $SeasonPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     teams: Prisma.$TeamPayload<ExtArgs>[]
     appointments: Prisma.$AppointmentPayload<ExtArgs>[]
     teamPlayers: Prisma.$TeamPlayerPayload<ExtArgs>[]
+    statistics: Prisma.$SeasonStatisticsPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1014,6 +1106,7 @@ export interface Prisma__SeasonClient<T, Null = never, ExtArgs extends runtime.T
   teams<T extends Prisma.Season$teamsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$teamsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   appointments<T extends Prisma.Season$appointmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$appointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   teamPlayers<T extends Prisma.Season$teamPlayersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$teamPlayersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeamPlayerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  statistics<T extends Prisma.Season$statisticsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Season$statisticsArgs<ExtArgs>>): Prisma.Prisma__SeasonStatisticsClient<runtime.Types.Result.GetResult<Prisma.$SeasonStatisticsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1507,6 +1600,25 @@ export type Season$teamPlayersArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.TeamPlayerScalarFieldEnum | Prisma.TeamPlayerScalarFieldEnum[]
+}
+
+/**
+ * Season.statistics
+ */
+export type Season$statisticsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SeasonStatistics
+   */
+  select?: Prisma.SeasonStatisticsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SeasonStatistics
+   */
+  omit?: Prisma.SeasonStatisticsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SeasonStatisticsInclude<ExtArgs> | null
+  where?: Prisma.SeasonStatisticsWhereInput
 }
 
 /**

@@ -57,6 +57,7 @@ export const ModelName = {
   PasswordReset: 'PasswordReset',
   Appointment: 'Appointment',
   Season: 'Season',
+  SeasonStatistics: 'SeasonStatistics',
   Label: 'Label',
   AppointmentLabel: 'AppointmentLabel',
   UserMutedLabel: 'UserMutedLabel',
@@ -156,6 +157,19 @@ export const SeasonScalarFieldEnum = {
 } as const
 
 export type SeasonScalarFieldEnum = (typeof SeasonScalarFieldEnum)[keyof typeof SeasonScalarFieldEnum]
+
+
+export const SeasonStatisticsScalarFieldEnum = {
+  seasonId: 'seasonId',
+  playerCount: 'playerCount',
+  eligibleCount: 'eligibleCount',
+  eligibleMaleCount: 'eligibleMaleCount',
+  eligibleFemaleCount: 'eligibleFemaleCount',
+  breakdown: 'breakdown',
+  computedAt: 'computedAt'
+} as const
+
+export type SeasonStatisticsScalarFieldEnum = (typeof SeasonStatisticsScalarFieldEnum)[keyof typeof SeasonStatisticsScalarFieldEnum]
 
 
 export const LabelScalarFieldEnum = {

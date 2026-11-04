@@ -72,6 +72,11 @@ export type Appointment = Prisma.AppointmentModel
  */
 export type Season = Prisma.SeasonModel
 /**
+ * Model SeasonStatistics
+ * 
+ */
+export type SeasonStatistics = Prisma.SeasonStatisticsModel
+/**
  * Model Label
  * 
  */

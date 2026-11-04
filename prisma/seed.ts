@@ -1,5 +1,6 @@
 import { prismaClient } from "../src/lib/db";
 import { hashPassword } from "../src/lib/db";
+import { recomputeActiveSeasonStatistics } from "../src/lib/seasonStatistics";
 
 async function main() {
 	console.log("🌱 Seeding database...");
@@ -16,6 +17,7 @@ async function main() {
 	await prismaClient.response.deleteMany();
 	await prismaClient.transaction.deleteMany();
 	await prismaClient.appointment.deleteMany();
+	await prismaClient.seasonStatistics.deleteMany();
 	await prismaClient.season.deleteMany();
 	await prismaClient.user.deleteMany();
 
@@ -145,6 +147,8 @@ async function main() {
 			seasonId: season.id,
 		},
 	});
+
+	await recomputeActiveSeasonStatistics(prismaClient);
 
 	console.log("✅ Created users:");
 	console.log("   Admin:", { userName: adminUser.userName, password, role: "ADMIN" });

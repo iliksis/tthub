@@ -5,7 +5,7 @@ import {
 	sortPlacementsByRank,
 } from "@/lib/placements";
 import type { Gender } from "@/lib/prisma/enums";
-import { buildRosterBreakdown } from "@/lib/rosterBreakdown";
+import { buildAgeGroupBreakdown } from "@/lib/seasonStatistics";
 import { m } from "@/paraglide/messages";
 
 export type SeasonPlayerCount = {
@@ -82,15 +82,35 @@ export const getRosterBreakdown = createServerFn({ method: "GET" }).handler(
 		try {
 			const rostered = await prismaClient.teamPlayer.findMany({
 				select: {
-					player: { select: { gender: true, id: true, year: true } },
+					player: {
+						select: {
+							gender: true,
+							id: true,
+							isEligibleToPlay: true,
+							year: true,
+						},
+					},
 				},
 				where: { season: { isActive: true } },
 			});
+			// A Player on several Teams (or both halves) counts once.
+			const unique = [
+				...new Map(rostered.map((tp) => [tp.player.id, tp.player])).values(),
+			];
+			const breakdown = buildAgeGroupBreakdown(
+				unique,
+				new Date().getFullYear(),
+			);
 			return {
-				data: buildRosterBreakdown(
-					rostered.map((tp) => tp.player),
-					new Date().getFullYear(),
-				),
+				data: {
+					rows: breakdown.rows.map((row) => ({
+						ageGroup: row.ageGroup,
+						female: row.eligible.female + row.notEligible.female,
+						male: row.eligible.male + row.notEligible.male,
+						unknown: row.eligible.unknown + row.notEligible.unknown,
+					})),
+					total: breakdown.total,
+				},
 				message: m.stats_stats_found(),
 			};
 		} catch (e) {
