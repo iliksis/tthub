@@ -433,7 +433,7 @@ function PlayerBreakdownSection({
 }) {
 	return (
 		<Section title={m.stats_player_breakdown()}>
-			{playerBreakdown.tracked ? (
+			{playerBreakdown.tracked && playerBreakdown.total > 0 ? (
 				<div className="flex flex-col gap-2">
 					<PlayerBreakdownChart rows={playerBreakdown.rows} />
 					<p className="text-muted-foreground text-xs">
@@ -444,7 +444,9 @@ function PlayerBreakdownSection({
 				</div>
 			) : (
 				<div className="rounded-lg bg-card p-8 text-center text-muted-foreground">
-					{m.stats_player_breakdown_no_data()}
+					{playerBreakdown.tracked
+						? m.stats_player_breakdown_no_players()
+						: m.stats_player_breakdown_no_data()}
 				</div>
 			)}
 		</Section>

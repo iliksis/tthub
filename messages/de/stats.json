@@ -5,6 +5,7 @@
 	"stats_player_breakdown": "Altersverteilung",
 	"stats_player_breakdown_as_of": "Stand: {param1}",
 	"stats_player_breakdown_no_data": "Keine Daten für diese Saison",
+	"stats_player_breakdown_no_players": "Keine Spieler erfasst",
 	"stats_player_breakdown_not_eligible_series": "{param1} (nicht spielberechtigt)",
 	"stats_player_breakdown_unknown": "Unbekannt",
 	"stats_player_count_all": "Alle Spieler",

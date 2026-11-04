@@ -44,10 +44,15 @@ export const getSeasonBreakdown = createServerFn({ method: "GET" })
 						where: { seasonId: data.seasonId },
 					})
 				: null;
-			return {
-				data: buildSeasonBreakdown(record),
-				message: m.stats_stats_found(),
-			};
+			const breakdown = buildSeasonBreakdown(record);
+			// A null breakdown is "not tracked"; a non-null one that fails
+			// validation is corrupt data and must not pass silently.
+			if (record?.breakdown != null && !breakdown.tracked) {
+				console.warn(
+					`Season ${data.seasonId}: stored breakdown failed validation, treating it as untracked`,
+				);
+			}
+			return { data: breakdown, message: m.stats_stats_found() };
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);

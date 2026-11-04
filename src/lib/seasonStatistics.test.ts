@@ -109,6 +109,8 @@ describe("isAgeGroupBreakdown", () => {
 			{ rows: valid.rows },
 			{ ...valid, rows: valid.rows.slice(1) },
 			{ ...valid, total: "0" },
+			// total must equal the sum of every count
+			{ ...valid, total: 5 },
 			badCounts,
 			unknownGroup,
 			wrongOrder,

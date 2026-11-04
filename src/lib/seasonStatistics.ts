@@ -62,27 +62,37 @@ const isGenderCounts = (value: unknown): value is GenderCounts =>
 	isCount((value as GenderCounts).female) &&
 	isCount((value as GenderCounts).unknown);
 
+const sumGenderCounts = (c: GenderCounts) => c.male + c.female + c.unknown;
+
 // Narrow guard for the stored breakdown JSON, so callers never see untyped
 // data: the five stable age-group rows in fixed order, every count a
-// non-negative integer.
+// non-negative integer, and `total` equal to the sum of all counts.
 export function isAgeGroupBreakdown(
 	value: unknown,
 ): value is AgeGroupBreakdown {
 	if (typeof value !== "object" || value === null) return false;
 	const { rows, total } = value as Partial<AgeGroupBreakdown>;
-	return (
-		isCount(total) &&
-		Array.isArray(rows) &&
-		rows.length === AGE_GROUPS.length &&
-		rows.every(
-			(row, index) =>
-				typeof row === "object" &&
-				row !== null &&
-				row.ageGroup === AGE_GROUPS[index] &&
-				isGenderCounts(row.eligible) &&
-				isGenderCounts(row.notEligible),
-		)
-	);
+	if (
+		!isCount(total) ||
+		!Array.isArray(rows) ||
+		rows.length !== AGE_GROUPS.length
+	) {
+		return false;
+	}
+	let sum = 0;
+	for (const [index, row] of rows.entries()) {
+		if (
+			typeof row !== "object" ||
+			row === null ||
+			row.ageGroup !== AGE_GROUPS[index] ||
+			!isGenderCounts(row.eligible) ||
+			!isGenderCounts(row.notEligible)
+		) {
+			return false;
+		}
+		sum += sumGenderCounts(row.eligible) + sumGenderCounts(row.notEligible);
+	}
+	return sum === total;
 }
 
 // `tracked: false` means the Season has no stored record or its breakdown is

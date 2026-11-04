@@ -940,6 +940,31 @@ test.describe("Stats Route - Player Breakdown", () => {
 		await expect(page.getByText(/^Stand:/)).toHaveCount(0);
 	});
 
+	test("a tracked Season with no Players shows a no-players message instead of a blank chart", async ({
+		page,
+	}) => {
+		const season = await prismaClient.season.create({
+			data: { isActive: false, name: `${PREFIX}BreakdownZero` },
+		});
+		await prismaClient.seasonStatistics.create({
+			data: {
+				breakdown: buildAgeGroupBreakdown([], year),
+				eligibleCount: 0,
+				eligibleFemaleCount: 0,
+				eligibleMaleCount: 0,
+				playerCount: 0,
+				seasonId: season.id,
+			},
+		});
+
+		await loginAs(page, "user");
+		await page.goto(`/stats?seasonId=${season.id}`);
+		await page.waitForLoadState("networkidle");
+
+		await expect(page.getByText("Keine Spieler erfasst")).toBeVisible();
+		await expect(page.getByRole("img", { name: SECTION })).toHaveCount(0);
+	});
+
 	test("a Season without any stored record shows the empty state instead of an error", async ({
 		page,
 	}) => {
