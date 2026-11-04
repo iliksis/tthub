@@ -20,7 +20,7 @@ import { requireEditor, useAppSession, useIsRole } from "@/lib/session";
 import { formatTanstackRouterPath } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { sendNotification } from "./notifications";
-import { redactFlags } from "./players";
+import { redactPlayerFlags } from "./players";
 
 type ICreateAppointment =
 	| {
@@ -149,7 +149,7 @@ export const getAppointment = createServerFn()
 			}
 			const placements = appointment.placements.map((pl) => ({
 				...pl,
-				player: redactFlags([pl.player], canSeeFlags)[0],
+				player: redactPlayerFlags(pl.player, canSeeFlags),
 			}));
 			return {
 				data: { ...appointment, placements },

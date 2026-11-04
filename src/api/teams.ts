@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
 import { useIsRole } from "@/lib/session";
 import { m } from "@/paraglide/messages";
-import { redactFlags } from "./players";
+import { redactPlayerFlags } from "./players";
 
 export const searchTeams = createServerFn()
 	.validator((d: { query?: string; seasonId?: string }) => d)
@@ -105,7 +105,7 @@ export const getTeam = createServerFn()
 			}
 			const players = team.players.map((tp) => ({
 				...tp,
-				player: redactFlags([tp.player], canSeeFlags)[0],
+				player: redactPlayerFlags(tp.player, canSeeFlags),
 			}));
 			return { data: { ...team, players }, message: m.teams_team_found() };
 		} catch (e) {

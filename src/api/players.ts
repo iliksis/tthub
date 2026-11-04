@@ -30,17 +30,18 @@ const withCurrentHalf = <P extends { teams: { team: Team }[] }>(
 // Club Member / Playing Eligibility are editor/admin-only. Rather than change
 // the row shape per role, non-editors get both flags forced to false so the
 // real values never reach their browser.
+export const redactPlayerFlags = <P extends object>(
+	player: P,
+	canSeeFlags: boolean,
+): P =>
+	canSeeFlags
+		? player
+		: { ...player, isClubMember: false, isEligibleToPlay: false };
+
 export const redactFlags = <P extends object>(
 	players: P[],
 	canSeeFlags: boolean,
-): P[] => {
-	if (canSeeFlags) return players;
-	return players.map((p) => ({
-		...p,
-		isClubMember: false,
-		isEligibleToPlay: false,
-	}));
-};
+): P[] => players.map((p) => redactPlayerFlags(p, canSeeFlags));
 
 export const searchPlayers = createServerFn()
 	.validator((d: { query?: string }) => d)
@@ -116,8 +117,8 @@ export const createPlayer = createServerFn({ method: "POST" })
 			const player = await prismaClient.player.create({
 				data: {
 					gender: data.gender,
-					isClubMember: data.isClubMember ?? false,
-					isEligibleToPlay: data.isEligibleToPlay ?? false,
+					isClubMember: data.isClubMember === true,
+					isEligibleToPlay: data.isEligibleToPlay === true,
 					name: data.name,
 					qttr: data.qttr ?? 0,
 					year: data.year,
@@ -154,8 +155,10 @@ export const getPlayer = createServerFn()
 			if (!player) {
 				throw new Error(m.players_player_not_found());
 			}
-			const [redacted] = redactFlags([player], canSeeFlags);
-			return { data: redacted, message: m.players_player_found() };
+			return {
+				data: redactPlayerFlags(player, canSeeFlags),
+				message: m.players_player_found(),
+			};
 		} catch (e) {
 			console.error(e);
 			throw new Error((e as Error).message);
@@ -184,8 +187,8 @@ export const updatePlayer = createServerFn()
 			const player = await prismaClient.player.update({
 				data: {
 					gender: data.gender,
-					isClubMember: data.isClubMember,
-					isEligibleToPlay: data.isEligibleToPlay,
+					isClubMember: data.isClubMember === true,
+					isEligibleToPlay: data.isEligibleToPlay === true,
 					name: data.name,
 					qttr: data.qttr,
 					year: data.year,
