@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
 	buildAgeGroupBreakdown,
-	buildRosterAgeGroupCounts,
+	buildSeasonBreakdown,
 	buildSeasonCountOverview,
+	isAgeGroupBreakdown,
 } from "./seasonStatistics";
 
 const year = 2026;
@@ -76,28 +77,85 @@ describe("buildAgeGroupBreakdown", () => {
 	});
 });
 
-describe("buildRosterAgeGroupCounts", () => {
-	it("counts a player rostered on several teams once and merges eligibility", () => {
-		const a = {
-			gender: "MALE" as const,
-			id: "a",
-			isEligibleToPlay: true,
-			year: year - 10,
+describe("isAgeGroupBreakdown", () => {
+	it("accepts what buildAgeGroupBreakdown produces, also after a JSON round trip", () => {
+		const breakdown = buildAgeGroupBreakdown(
+			[{ gender: "MALE", isEligibleToPlay: true, year: year - 10 }],
+			year,
+		);
+		expect(isAgeGroupBreakdown(breakdown)).toBe(true);
+		expect(isAgeGroupBreakdown(JSON.parse(JSON.stringify(breakdown)))).toBe(
+			true,
+		);
+	});
+
+	it("rejects anything that is not a full five-row breakdown", () => {
+		const valid = buildAgeGroupBreakdown([], year);
+		const badCounts = structuredClone(valid) as unknown as {
+			rows: { eligible: { male: unknown } }[];
 		};
-		const b = {
-			gender: "MALE" as const,
-			id: "b",
-			isEligibleToPlay: false,
-			year: year - 10,
-		};
-		const result = buildRosterAgeGroupCounts([a, a, b], year);
-		expect(result.total).toBe(2);
-		expect(result.rows[0]).toEqual({
-			ageGroup: "U11",
-			female: 0,
-			male: 2,
-			unknown: 0,
+		badCounts.rows[0].eligible.male = "1";
+		const unknownGroup = structuredClone(valid);
+		(unknownGroup.rows[0] as { ageGroup: string }).ageGroup = "U9";
+		const wrongOrder = { ...valid, rows: [...valid.rows].reverse() };
+		for (const value of [
+			null,
+			undefined,
+			"x",
+			42,
+			[],
+			{},
+			{ rows: [], total: 0 },
+			{ rows: valid.rows },
+			{ ...valid, rows: valid.rows.slice(1) },
+			{ ...valid, total: "0" },
+			badCounts,
+			unknownGroup,
+			wrongOrder,
+		]) {
+			expect(isAgeGroupBreakdown(value)).toBe(false);
+		}
+	});
+});
+
+describe("buildSeasonBreakdown", () => {
+	it("returns a tracked result with the stored breakdown and computedAt", () => {
+		const breakdown = buildAgeGroupBreakdown(
+			[{ gender: "FEMALE", isEligibleToPlay: false, year: year - 40 }],
+			year,
+		);
+		const computedAt = new Date("2026-11-04T03:00:00Z");
+		expect(buildSeasonBreakdown({ breakdown, computedAt })).toEqual({
+			...breakdown,
+			computedAt,
+			tracked: true,
 		});
+	});
+
+	it("returns an all-zero untracked result for a missing record", () => {
+		const result = buildSeasonBreakdown(null);
+		expect(result).toEqual({
+			...buildAgeGroupBreakdown([], year),
+			computedAt: null,
+			tracked: false,
+		});
+		expect(result.rows.map((r) => r.ageGroup)).toEqual([
+			"U11",
+			"U13",
+			"U15",
+			"U19",
+			"ADULT",
+		]);
+	});
+
+	it("treats a null or malformed breakdown as untracked but keeps computedAt", () => {
+		const computedAt = new Date("2026-11-04T03:00:00Z");
+		for (const breakdown of [null, { rows: "nope" }, "garbage"]) {
+			const result = buildSeasonBreakdown({ breakdown, computedAt });
+			expect(result.tracked).toBe(false);
+			expect(result.total).toBe(0);
+			expect(result.computedAt).toEqual(computedAt);
+		}
 	});
 });
 

@@ -76,6 +76,17 @@ const relativeTimeFormat = new Intl.RelativeTimeFormat("de-DE", {
 /**
  * Formats a date as a short DD.MM.YY string.
  */
+// dd.mm.yyyy in the club's time zone, so server- and client-rendered output
+// agree regardless of where either runs.
+export function formatDateWithYear(date: Date | string) {
+	return new Date(date).toLocaleDateString("de-DE", {
+		day: "2-digit",
+		month: "2-digit",
+		timeZone: "Europe/Berlin",
+		year: "numeric",
+	});
+}
+
 export function formatShortDate(date: Date | string) {
 	return new Date(date).toLocaleDateString("de-DE", {
 		day: "2-digit",

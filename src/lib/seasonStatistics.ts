@@ -52,22 +52,63 @@ export function buildAgeGroupBreakdown(
 	return { rows: [...rows.values()], total };
 }
 
-// Age group x gender counts of rostered Players for the roster snapshot on the
-// stats page (eligibility is merged away). A Player on several Teams (or both
-// Team Halves) is counted once. This is the rostered population, unlike the
-// stored Season Statistics breakdown, which covers every Player.
-export function buildRosterAgeGroupCounts(
-	players: (BreakdownPlayer & { id: string })[],
-	referenceYear: number,
-) {
-	const unique = [...new Map(players.map((p) => [p.id, p])).values()];
-	const breakdown = buildAgeGroupBreakdown(unique, referenceYear);
+const isCount = (value: unknown): value is number =>
+	typeof value === "number" && Number.isInteger(value) && value >= 0;
+
+const isGenderCounts = (value: unknown): value is GenderCounts =>
+	typeof value === "object" &&
+	value !== null &&
+	isCount((value as GenderCounts).male) &&
+	isCount((value as GenderCounts).female) &&
+	isCount((value as GenderCounts).unknown);
+
+// Narrow guard for the stored breakdown JSON, so callers never see untyped
+// data: the five stable age-group rows in fixed order, every count a
+// non-negative integer.
+export function isAgeGroupBreakdown(
+	value: unknown,
+): value is AgeGroupBreakdown {
+	if (typeof value !== "object" || value === null) return false;
+	const { rows, total } = value as Partial<AgeGroupBreakdown>;
+	return (
+		isCount(total) &&
+		Array.isArray(rows) &&
+		rows.length === AGE_GROUPS.length &&
+		rows.every(
+			(row, index) =>
+				typeof row === "object" &&
+				row !== null &&
+				row.ageGroup === AGE_GROUPS[index] &&
+				isGenderCounts(row.eligible) &&
+				isGenderCounts(row.notEligible),
+		)
+	);
+}
+
+export type SeasonBreakdown = AgeGroupBreakdown & {
+	// False when the Season has no stored record or its breakdown is not
+	// tracked (null); the rows are then all zero and must not be drawn.
+	tracked: boolean;
+	computedAt: Date | null;
+};
+
+// What the stats page shows for one Season. A missing record, a null
+// breakdown and a malformed one all read as untracked and all-zero instead
+// of throwing.
+export function buildSeasonBreakdown(
+	record: { breakdown: unknown; computedAt: Date } | null,
+): SeasonBreakdown {
+	if (record && isAgeGroupBreakdown(record.breakdown)) {
+		return {
+			...record.breakdown,
+			computedAt: record.computedAt,
+			tracked: true,
+		};
+	}
 	return {
-		rows: breakdown.rows.map((row) => ({
-			ageGroup: row.ageGroup,
-			...sumCounts(row.eligible, row.notEligible),
-		})),
-		total: breakdown.total,
+		...buildAgeGroupBreakdown([], 0),
+		computedAt: record?.computedAt ?? null,
+		tracked: false,
 	};
 }
 
