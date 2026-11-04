@@ -19,8 +19,8 @@ import { useMemo, useState } from "react";
 import { z } from "zod";
 import { getActiveSeason, getSeasons } from "@/api/seasons";
 import {
-	getPlayerCountOverSeasons,
 	getRosterBreakdown,
+	getSeasonCountOverview,
 	getTournamentSeriesPlacements,
 	type TournamentSeries,
 	type TournamentSeriesNode,
@@ -55,7 +55,7 @@ export const Route = createFileRoute("/_authed/stats")({
 		const [teamsRes, playerCountRes, rosterBreakdownRes, tournamentSeriesRes] =
 			await Promise.all([
 				getTeams({ data: { seasonId } }),
-				getPlayerCountOverSeasons(),
+				getSeasonCountOverview(),
 				getRosterBreakdown(),
 				getTournamentSeriesPlacements({ data: { seasonId } }),
 			]);
@@ -153,19 +153,28 @@ type PlayerCountRow = ReturnType<
 // a series is a single edit here.
 const PLAYER_COUNT_SERIES = [
 	{
+		area: true,
 		color: "var(--color-chart-undefined)",
-		key: "playerCount",
-		label: () => m.stats_player_count_total(),
+		key: "eligibleCount",
+		label: () => m.stats_player_count_eligible_total(),
 	},
 	{
+		area: true,
 		color: "var(--color-chart-male)",
 		key: "maleCount",
 		label: () => m.stats_player_count_male(),
 	},
 	{
+		area: true,
 		color: "var(--color-chart-female)",
 		key: "femaleCount",
 		label: () => m.stats_player_count_female(),
+	},
+	{
+		area: false,
+		color: "var(--color-foreground)",
+		key: "playerCount",
+		label: () => m.stats_player_count_all(),
 	},
 ] as const;
 
@@ -178,13 +187,24 @@ function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 	// marks, so doing it on every render (e.g. each hover-driven parent update)
 	// would be wasted work.
 	const definition = useMemo(() => {
-		const points = rows.flatMap((row) =>
-			PLAYER_COUNT_SERIES.map((series) => ({
-				count: row[series.key],
-				id: `${row.seasonId}-${series.key}`,
-				season: row.seasonName,
-				series: series.label(),
-			})),
+		// Untracked (null) counts are omitted, not drawn as zero.
+		const toPoints = (series: (typeof PLAYER_COUNT_SERIES)[number]) =>
+			rows.flatMap((row) => {
+				const count = row[series.key];
+				return count === null
+					? []
+					: [
+							{
+								count,
+								id: `${row.seasonId}-${series.key}`,
+								season: row.seasonName,
+								series: series.label(),
+							},
+						];
+			});
+		const points = PLAYER_COUNT_SERIES.flatMap(toPoints);
+		const areaPoints = PLAYER_COUNT_SERIES.filter((s) => s.area).flatMap(
+			toPoints,
 		);
 
 		return defineChart({
@@ -198,9 +218,10 @@ function PlayerCountChart({ rows }: { rows: PlayerCountRow[] }) {
 			// One tooltip per season listing every series, instead of one per line.
 			focus: "group-x",
 			marks: [
-				// Explicit `y1: 0` opts out of the default stacking: the series
-				// overlap (total = male + female), so each area starts at zero.
-				areaY(points, {
+				// Explicit `y1: 0` opts out of the default stacking: the Eligible series
+				// overlap (the total also counts players without a gender), so each area
+				// starts at zero.
+				areaY(areaPoints, {
 					color: "series",
 					curve: smoothCurve,
 					fillOpacity: 0.25,

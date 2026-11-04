@@ -239,76 +239,20 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 		return page.getByRole("status").filter({ hasText: seasonName });
 	}
 
-	// Seeds one Season with a male roster-only player, a gender-less
-	// placement-only player, and a female player who is both rostered and placed
-	// twice (two categories) — i.e. 3 Season Players: 1 male, 1 female, 1
-	// without a gender.
+	// Seeds one Season with a stored Season Statistics record: 3 Eligible
+	// Players (1 male, 1 female, 1 without a gender) out of 4 Players overall.
 	async function seedCountFixture(suffix: string) {
 		const season = await prismaClient.season.create({
 			data: { isActive: false, name: `${PREFIX}${suffix}` },
 		});
-		const team = await prismaClient.team.create({
-			data: { seasonId: season.id, title: `${PREFIX}${suffix}Team` },
-		});
-		const rosterOnly = await prismaClient.player.create({
+		await prismaClient.seasonStatistics.create({
 			data: {
-				gender: "MALE",
-				name: `${PREFIX}${suffix}RosterOnly`,
-				qttr: 1000,
-				year: 2010,
-			},
-		});
-		const placedOnly = await prismaClient.player.create({
-			data: {
-				gender: null,
-				name: `${PREFIX}${suffix}PlacedOnly`,
-				qttr: 1000,
-				year: 2010,
-			},
-		});
-		const both = await prismaClient.player.create({
-			data: {
-				gender: "FEMALE",
-				name: `${PREFIX}${suffix}Both`,
-				qttr: 1000,
-				year: 2010,
-			},
-		});
-		for (const player of [rosterOnly, both]) {
-			await prismaClient.teamPlayer.create({
-				data: { playerId: player.id, seasonId: season.id, teamId: team.id },
-			});
-		}
-		const appointment = await prismaClient.appointment.create({
-			data: {
+				eligibleCount: 3,
+				eligibleFemaleCount: 1,
+				eligibleMaleCount: 1,
+				playerCount: 4,
 				seasonId: season.id,
-				startDate: new Date(),
-				status: "PUBLISHED",
-				title: `${PREFIX}${suffix}Appt`,
-				type: "TOURNAMENT",
 			},
-		});
-		await prismaClient.placement.createMany({
-			data: [
-				{
-					appointmentId: appointment.id,
-					category: "Einzel",
-					placement: "1",
-					playerId: placedOnly.id,
-				},
-				{
-					appointmentId: appointment.id,
-					category: "Einzel",
-					placement: "2",
-					playerId: both.id,
-				},
-				{
-					appointmentId: appointment.id,
-					category: "Doppel",
-					placement: "2",
-					playerId: both.id,
-				},
-			],
 		});
 		return season;
 	}
@@ -324,6 +268,18 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 				name: `${PREFIX}CountNewer`,
 			},
 		});
+
+		for (const season of [older, newer]) {
+			await prismaClient.seasonStatistics.create({
+				data: {
+					eligibleCount: 1,
+					eligibleFemaleCount: 0,
+					eligibleMaleCount: 1,
+					playerCount: 1,
+					seasonId: season.id,
+				},
+			});
+		}
 
 		await loginAs(page, "user");
 		await page.goto("/stats");
@@ -357,7 +313,7 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 				.locator(".ts-chart-tooltip__row")
 				.allInnerTexts();
 		const before = await tooltipRows();
-		expect(before).toHaveLength(3);
+		expect(before).toHaveLength(4);
 
 		await page.locator('[data-slot="select-trigger"]:visible').click();
 		await page.getByRole("option", { name: other.name }).click();
@@ -367,7 +323,7 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 		expect(await tooltipRows()).toEqual(before);
 	});
 
-	test("the chart plots every season on the x axis with a legend for total, male and female", async ({
+	test("the chart plots every season on the x axis with a legend for the four series", async ({
 		page,
 	}) => {
 		const season = await seedCountFixture("ChartLegend");
@@ -379,12 +335,17 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 		const chart = page.getByRole("img", { name: CHART_NAME });
 		await expect(chart).toBeVisible();
 		await expect(chart.getByText(season.name, { exact: true })).toBeVisible();
-		for (const label of ["Gesamt", "Männlich", "Weiblich"]) {
+		for (const label of [
+			"Spielberechtigt gesamt",
+			"Männlich",
+			"Weiblich",
+			"Alle Spieler",
+		]) {
 			await expect(chart.getByText(label, { exact: true })).toBeVisible();
 		}
 	});
 
-	test("hovering a season shows a tooltip with the total, male and female counts", async ({
+	test("hovering a season shows a tooltip with all four counts", async ({
 		page,
 	}) => {
 		const season = await seedCountFixture("ChartTooltip");
@@ -406,9 +367,10 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 		const tooltip = page.getByRole("status").filter({ hasText: season.name });
 		await expect(tooltip).toBeVisible();
 		for (const [label, count] of [
-			["Gesamt", "3"],
+			["Spielberechtigt gesamt", "3"],
 			["Männlich", "1"],
 			["Weiblich", "1"],
+			["Alle Spieler", "4"],
 		]) {
 			await expect(
 				tooltip.locator(".ts-chart-tooltip__row", { hasText: label }),
@@ -844,6 +806,8 @@ test.describe("Stats Route - Roster Breakdown", () => {
 		ageGroup: string,
 	) {
 		const chart = page.getByRole("img", { name: SECTION });
+		// Mouse coordinates are viewport-relative, so the chart must be on screen.
+		await chart.scrollIntoViewIfNeeded();
 		const label = await chart
 			.getByText(ageGroup, { exact: true })
 			.boundingBox();
@@ -933,5 +897,47 @@ test.describe("Stats Route - Roster Breakdown", () => {
 		await expect(
 			page.getByText("Keine Spieler im Kader der aktiven Saison"),
 		).toBeVisible();
+	});
+});
+
+test.describe("Stats Route - Player Count Chart", () => {
+	// prisma/seed.ts: two Players, only one of them eligible, neither with a
+	// gender, so the Active Season's stored record is 1 / 0 / 0 / 2.
+	test("shows the seeded Active Season's stored Eligible Player counts", async ({
+		page,
+	}) => {
+		const activeSeason = await prismaClient.season.findFirstOrThrow({
+			where: { isActive: true },
+		});
+
+		await loginAs(page, "user");
+		await page.goto("/stats");
+		await page.waitForLoadState("networkidle");
+
+		const chart = page.getByRole("img", {
+			name: "Spielerzahl im Saisonvergleich",
+		});
+		await chart.scrollIntoViewIfNeeded();
+		const label = await chart
+			.getByText(activeSeason.name, { exact: true })
+			.boundingBox();
+		const plot = await chart.boundingBox();
+		if (!label || !plot) throw new Error("chart not laid out");
+		await page.mouse.move(label.x + label.width / 2, plot.y + plot.height / 2);
+
+		const tooltip = page
+			.getByRole("status")
+			.filter({ hasText: activeSeason.name });
+		await expect(tooltip).toBeVisible();
+		for (const [series, count] of [
+			["Spielberechtigt gesamt", "1"],
+			["Männlich", "0"],
+			["Weiblich", "0"],
+			["Alle Spieler", "2"],
+		]) {
+			await expect(
+				tooltip.locator(".ts-chart-tooltip__row", { hasText: series }),
+			).toHaveText(`${series}${count}`);
+		}
 	});
 });

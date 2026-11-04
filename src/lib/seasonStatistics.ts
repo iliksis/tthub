@@ -71,6 +71,40 @@ export function buildRosterAgeGroupCounts(
 	};
 }
 
+export type SeasonCountRow = {
+	seasonId: string;
+	seasonName: string;
+	playerCount: number | null;
+	eligibleCount: number | null;
+	maleCount: number | null;
+	femaleCount: number | null;
+};
+
+// One row per Season for the player-count chart. A Season without a stored
+// record is untracked (all counts null); `playerCount` is also null on
+// Seasons that predate the all-Player count.
+export function buildSeasonCountOverview(
+	seasons: {
+		id: string;
+		name: string;
+		statistics: {
+			playerCount: number | null;
+			eligibleCount: number;
+			eligibleMaleCount: number;
+			eligibleFemaleCount: number;
+		} | null;
+	}[],
+): SeasonCountRow[] {
+	return seasons.map((s) => ({
+		eligibleCount: s.statistics?.eligibleCount ?? null,
+		femaleCount: s.statistics?.eligibleFemaleCount ?? null,
+		maleCount: s.statistics?.eligibleMaleCount ?? null,
+		playerCount: s.statistics?.playerCount ?? null,
+		seasonId: s.id,
+		seasonName: s.name,
+	}));
+}
+
 // Any Prisma client, including an interactive-transaction client.
 type StatisticsDb = Pick<
 	PrismaClient,
