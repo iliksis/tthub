@@ -205,3 +205,16 @@ export async function recomputeActiveSeasonStatistics(
 	if (!active) return null;
 	return recomputeSeasonStatistics(db, active.id, referenceYear);
 }
+
+// The one way to recompute the Active Season's record outside a caller-owned
+// transaction (manual refresh and nightly job). A single transaction, so
+// activating another Season between reading the Active Season and writing its
+// record can't overwrite the old Season's record.
+export function recomputeActiveSeasonStatisticsInTransaction(
+	client: Pick<PrismaClient, "$transaction">,
+	referenceYear?: number,
+) {
+	return client.$transaction((tx) =>
+		recomputeActiveSeasonStatistics(tx, referenceYear),
+	);
+}

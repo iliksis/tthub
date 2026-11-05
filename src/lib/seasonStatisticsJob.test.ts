@@ -21,10 +21,19 @@ describe("runStatisticsRefresh", () => {
 		vi.restoreAllMocks();
 	});
 
-	it("calls the recompute once on success", async () => {
+	it("calls the recompute once on success and logs the refreshed Season", async () => {
+		const info = vi.spyOn(console, "info").mockImplementation(() => {});
 		const recompute = vi.fn().mockResolvedValue({ seasonId: "s" });
 		await runStatisticsRefresh(recompute);
 		expect(recompute).toHaveBeenCalledOnce();
+		expect(info).toHaveBeenCalledOnce();
+		expect(info.mock.calls[0][0]).toContain("refreshed Season s");
+	});
+
+	it("logs a skipped night without an Active Season", async () => {
+		const info = vi.spyOn(console, "info").mockImplementation(() => {});
+		await runStatisticsRefresh(vi.fn().mockResolvedValue(null));
+		expect(info.mock.calls[0][0]).toContain("no Active Season");
 	});
 
 	it("logs a failing recompute with console.error and does not throw", async () => {
@@ -43,9 +52,11 @@ describe("startStatisticsRefreshJob", () => {
 	const store = globalThis as Record<string, unknown>;
 	beforeEach(() => {
 		delete store[STATISTICS_REFRESH_JOB_KEY];
+		vi.spyOn(console, "info").mockImplementation(() => {});
 	});
 	afterEach(() => {
 		delete store[STATISTICS_REFRESH_JOB_KEY];
+		vi.restoreAllMocks();
 	});
 
 	it("does not schedule outside production", () => {
@@ -78,8 +89,19 @@ describe("startStatisticsRefreshJob", () => {
 		expect(schedule).toHaveBeenCalledOnce();
 	});
 
+	it("logs once that the job was scheduled", () => {
+		const info = vi.mocked(console.info);
+		startStatisticsRefreshJob({
+			env: "production",
+			recompute: vi.fn(),
+			schedule: vi.fn(),
+		});
+		expect(info).toHaveBeenCalledOnce();
+		expect(info.mock.calls[0][0]).toContain("scheduled");
+	});
+
 	it("runs the recompute when the schedule fires, without a startup run", async () => {
-		const recompute = vi.fn().mockResolvedValue(null);
+		const recompute = vi.fn().mockResolvedValue({ seasonId: "s" });
 		const schedule = vi.fn();
 		startStatisticsRefreshJob({ env: "production", recompute, schedule });
 		expect(recompute).not.toHaveBeenCalled();

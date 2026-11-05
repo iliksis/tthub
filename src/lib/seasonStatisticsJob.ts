@@ -21,10 +21,16 @@ const defaultSchedule: Schedule = (pattern, options, run) =>
 // The job body. Never throws: a failed night is logged and skipped, leaving
 // the previous record untouched (the recompute is a single upsert).
 export async function runStatisticsRefresh(
-	recompute: () => Promise<unknown>,
+	recompute: () => Promise<{ seasonId: string } | null>,
 ): Promise<void> {
 	try {
-		await recompute();
+		const record = await recompute();
+		// One line per run, so a night is visible in the logs even on success.
+		console.info(
+			record
+				? `Nightly Season Statistics refresh: refreshed Season ${record.seasonId}`
+				: "Nightly Season Statistics refresh: skipped, no Active Season",
+		);
 	} catch (e) {
 		console.error("Nightly Season Statistics refresh failed", e);
 	}
@@ -39,12 +45,15 @@ export function startStatisticsRefreshJob({
 	schedule = defaultSchedule,
 }: {
 	env?: string;
-	recompute: () => Promise<unknown>;
+	recompute: () => Promise<{ seasonId: string } | null>;
 	schedule?: Schedule;
 }) {
 	if (env !== "production") return;
 	const store = globalThis as Record<string, unknown>;
 	if (STATISTICS_REFRESH_JOB_KEY in store) return;
+	console.info(
+		`Season Statistics refresh scheduled: "${STATISTICS_REFRESH_CRON}" (${STATISTICS_REFRESH_TIMEZONE})`,
+	);
 	store[STATISTICS_REFRESH_JOB_KEY] = schedule(
 		STATISTICS_REFRESH_CRON,
 		{
