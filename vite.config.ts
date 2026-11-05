@@ -42,7 +42,9 @@ const config = defineConfig({
     // for the devtools "click to open in editor" inspector. It was leaking
     // into the URL as a stray search param on this route, so it's disabled.
     devtools({ injectSource: { enabled: false } }),
-    nitroV2Plugin(),
+    // Nitro loads the SSR entry lazily on the first request; this boot plugin
+    // loads it at startup so the nightly statistics job is scheduled right away.
+    nitroV2Plugin({ plugins: ['./server/plugins/statisticsRefresh.ts'] }),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
       projects: ['./tsconfig.json'],
