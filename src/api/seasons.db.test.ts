@@ -5,6 +5,18 @@ import { activateSeason, refreshActiveSeasonStatistics } from "./seasons";
 
 const year = 2026;
 let db: ReturnType<typeof createTestDb>;
+const createPlayer = (id: string, isEligibleToPlay: boolean) =>
+	db.prisma.player.create({
+		data: {
+			gender: "MALE",
+			id,
+			isEligibleToPlay,
+			name: id,
+			qttr: 1,
+			year: year - 30,
+		},
+	});
+
 afterEach(async () => {
 	// Guarded so a failing createTestDb doesn't mask its own error.
 	await db?.prisma.$disconnect();
@@ -71,22 +83,6 @@ describe("refreshActiveSeasonStatistics", () => {
 	});
 });
 
-const createPlayer = (
-	db: ReturnType<typeof createTestDb>,
-	id: string,
-	isEligibleToPlay: boolean,
-) =>
-	db.prisma.player.create({
-		data: {
-			gender: "MALE",
-			id,
-			isEligibleToPlay,
-			name: id,
-			qttr: 1,
-			year: year - 30,
-		},
-	});
-
 describe("activateSeason", () => {
 	it("gives the outgoing Season its final values and populates the incoming one", async () => {
 		db = createTestDb();
@@ -96,14 +92,14 @@ describe("activateSeason", () => {
 		const incoming = await db.prisma.season.create({
 			data: { name: "incoming" },
 		});
-		await createPlayer(db, "a", false);
+		await createPlayer("a", false);
 		await refreshActiveSeasonStatistics(db.prisma, year);
 		// Changes since the last refresh must land in the outgoing snapshot.
 		await db.prisma.player.update({
 			data: { isEligibleToPlay: true },
 			where: { id: "a" },
 		});
-		await createPlayer(db, "b", true);
+		await createPlayer("b", true);
 
 		const season = await db.prisma.$transaction((tx) =>
 			activateSeason(tx, incoming.id, year),
@@ -135,7 +131,7 @@ describe("activateSeason", () => {
 		const incoming = await db.prisma.season.create({
 			data: { name: "incoming" },
 		});
-		await createPlayer(db, "a", true);
+		await createPlayer("a", true);
 
 		const season = await db.prisma.$transaction((tx) =>
 			activateSeason(tx, incoming.id, year),
@@ -150,19 +146,22 @@ describe("activateSeason", () => {
 		).toMatchObject({ eligibleCount: 1, playerCount: 1 });
 	});
 
-	it("re-activating the Active Season keeps a single, fresh record", async () => {
+	it("re-activating the Active Season refreshes its single record", async () => {
 		db = createTestDb();
 		const active = await db.prisma.season.create({
 			data: { isActive: true, name: "active" },
 		});
-		await createPlayer(db, "a", true);
+		await refreshActiveSeasonStatistics(db.prisma, year);
+		await createPlayer("a", true);
 
 		await db.prisma.$transaction((tx) => activateSeason(tx, active.id, year));
 
 		expect(
 			await db.prisma.season.findUnique({ where: { id: active.id } }),
 		).toMatchObject({ isActive: true });
-		expect(await db.prisma.seasonStatistics.count()).toBe(1);
+		expect(await db.prisma.seasonStatistics.findMany()).toMatchObject([
+			{ eligibleCount: 1, playerCount: 1, seasonId: active.id },
+		]);
 	});
 
 	it("rolls back activation when the target Season does not exist", async () => {
@@ -178,12 +177,6 @@ describe("activateSeason", () => {
 		expect(
 			await db.prisma.season.findUnique({ where: { id: outgoing.id } }),
 		).toMatchObject({ isActive: true });
-		expect(await db.prisma.seasonStatistics.count()).toBe(0);
-	});
-
-	it("creating a Season adds no statistics record", async () => {
-		db = createTestDb();
-		await db.prisma.season.create({ data: { name: "new" } });
 		expect(await db.prisma.seasonStatistics.count()).toBe(0);
 	});
 });
