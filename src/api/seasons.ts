@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
 import {
 	recomputeActiveSeasonStatistics,
+	recomputeSeasonStatistics,
 	type StatisticsDb,
 } from "@/lib/seasonStatistics";
 import { useIsRole } from "@/lib/session";
@@ -96,6 +97,36 @@ export const updateSeason = createServerFn()
 		}
 	});
 
+// The body of the activation transaction, extracted so it can be tested
+// without a session. Besides flipping the flag it is the only recompute hook
+// outside the nightly job: the outgoing Season gets its final snapshot and the
+// incoming one is populated right away, so the new Active Season never shows
+// an empty state until the next night. Must run inside a transaction.
+export async function activateSeason(
+	db: StatisticsDb,
+	id: string,
+	referenceYear?: number,
+) {
+	const outgoing = await db.season.findFirst({ where: { isActive: true } });
+	// Recompute before deactivating: the outgoing Season is still tracked.
+	if (outgoing) {
+		await recomputeSeasonStatistics(db, outgoing.id, referenceYear);
+	}
+	await db.season.updateMany({
+		data: { isActive: false },
+		where: { isActive: true },
+	});
+	const season = await db.season.update({
+		data: { isActive: true },
+		where: { id },
+	});
+	// Re-activating the Active Season already refreshed it above.
+	if (outgoing?.id !== season.id) {
+		await recomputeSeasonStatistics(db, season.id, referenceYear);
+	}
+	return season;
+}
+
 export const setActiveSeason = createServerFn()
 	.validator((d: { id: string }) => d)
 	.handler(async ({ data }) => {
@@ -105,16 +136,9 @@ export const setActiveSeason = createServerFn()
 		}
 
 		try {
-			const season = await prismaClient.$transaction(async (tx) => {
-				await tx.season.updateMany({
-					data: { isActive: false },
-					where: { isActive: true },
-				});
-				return tx.season.update({
-					data: { isActive: true },
-					where: { id: data.id },
-				});
-			});
+			const season = await prismaClient.$transaction((tx) =>
+				activateSeason(tx, data.id),
+			);
 			return { data: season, message: m.seasons_season_activated() };
 		} catch (e) {
 			console.error(e);
