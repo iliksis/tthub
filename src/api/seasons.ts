@@ -97,20 +97,35 @@ export const updateSeason = createServerFn()
 		}
 	});
 
+// Activation recomputes two full-table Player scans inside one interactive
+// transaction. Prisma's default of 5 s would fail the activation outright on a
+// larger table, so the limit is explicit.
+const ACTIVATION_TRANSACTION_TIMEOUT_MS = 15_000;
+
 // The body of the activation transaction, extracted so it can be tested
 // without a session. Besides flipping the flag it is the only recompute hook
 // outside the nightly job: the outgoing Season gets its final snapshot and the
 // incoming one is populated right away, so the new Active Season never shows
 // an empty state until the next night. Must run inside a transaction.
+//
+// Stored history is never overwritten with today's figures by a (possibly
+// mistaken) activation of a past Season: the incoming Season is only populated
+// when it has no record yet, and a legacy record (old-rule counts, no
+// breakdown) is never recomputed because it cannot be rebuilt.
 export async function activateSeason(
 	db: StatisticsDb,
 	id: string,
 	referenceYear?: number,
 ) {
 	const outgoing = await db.season.findFirst({ where: { isActive: true } });
-	// Recompute before deactivating: the outgoing Season is still tracked.
 	if (outgoing) {
-		await recomputeSeasonStatistics(db, outgoing.id, referenceYear);
+		const record = await db.seasonStatistics.findUnique({
+			where: { seasonId: outgoing.id },
+		});
+		// Recompute before deactivating: the outgoing Season is still tracked.
+		if (!record || record.breakdown !== null) {
+			await recomputeSeasonStatistics(db, outgoing.id, referenceYear);
+		}
 	}
 	await db.season.updateMany({
 		data: { isActive: false },
@@ -120,9 +135,14 @@ export async function activateSeason(
 		data: { isActive: true },
 		where: { id },
 	});
-	// Re-activating the Active Season already refreshed it above.
+	// Re-activating the Active Season was already handled above.
 	if (outgoing?.id !== season.id) {
-		await recomputeSeasonStatistics(db, season.id, referenceYear);
+		const record = await db.seasonStatistics.findUnique({
+			where: { seasonId: season.id },
+		});
+		if (!record) {
+			await recomputeSeasonStatistics(db, season.id, referenceYear);
+		}
 	}
 	return season;
 }
@@ -136,8 +156,9 @@ export const setActiveSeason = createServerFn()
 		}
 
 		try {
-			const season = await prismaClient.$transaction((tx) =>
-				activateSeason(tx, data.id),
+			const season = await prismaClient.$transaction(
+				(tx) => activateSeason(tx, data.id),
+				{ timeout: ACTIVATION_TRANSACTION_TIMEOUT_MS },
 			);
 			return { data: season, message: m.seasons_season_activated() };
 		} catch (e) {

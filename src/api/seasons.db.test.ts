@@ -164,6 +164,68 @@ describe("activateSeason", () => {
 		]);
 	});
 
+	it("keeps an existing record of the incoming Season", async () => {
+		db = createTestDb();
+		await db.prisma.season.create({
+			data: { isActive: true, name: "outgoing" },
+		});
+		const past = await db.prisma.season.create({ data: { name: "past" } });
+		const snapshot = await db.prisma.seasonStatistics.create({
+			data: {
+				breakdown: {
+					rows: [],
+					total: 0,
+				},
+				eligibleCount: 7,
+				eligibleFemaleCount: 3,
+				eligibleMaleCount: 4,
+				playerCount: 9,
+				seasonId: past.id,
+			},
+		});
+		await createPlayer("a", true);
+
+		await db.prisma.$transaction((tx) => activateSeason(tx, past.id, year));
+
+		expect(
+			await db.prisma.seasonStatistics.findUnique({
+				where: { seasonId: past.id },
+			}),
+		).toEqual(snapshot);
+	});
+
+	it("never recomputes a legacy record of the outgoing Season", async () => {
+		db = createTestDb();
+		const legacy = await db.prisma.season.create({
+			data: { isActive: true, name: "legacy" },
+		});
+		const incoming = await db.prisma.season.create({
+			data: { name: "incoming" },
+		});
+		const record = await db.prisma.seasonStatistics.create({
+			data: {
+				eligibleCount: 12,
+				eligibleFemaleCount: 5,
+				eligibleMaleCount: 7,
+				seasonId: legacy.id,
+			},
+		});
+		await createPlayer("a", true);
+
+		await db.prisma.$transaction((tx) => activateSeason(tx, incoming.id, year));
+
+		expect(
+			await db.prisma.seasonStatistics.findUnique({
+				where: { seasonId: legacy.id },
+			}),
+		).toEqual(record);
+		expect(
+			await db.prisma.seasonStatistics.findUnique({
+				where: { seasonId: incoming.id },
+			}),
+		).toMatchObject({ eligibleCount: 1, playerCount: 1 });
+	});
+
 	it("rolls back activation when the target Season does not exist", async () => {
 		db = createTestDb();
 		const outgoing = await db.prisma.season.create({
