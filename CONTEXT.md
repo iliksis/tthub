@@ -59,3 +59,7 @@ _Avoid_: Active (collides with **Active Season**), licensed.
 **Muted Label** (in a user's notification/feed preferences):
 A Label a user has chosen to suppress — appointments carrying it are excluded from that user's push notifications or calendar feed, but remain unaffected for every other user. Muting is a personal preference, not a property of the Label or the Appointment.
 _Avoid_: Hidden, blocked, filtered (when precision matters — "muted" ties it to the notification/feed context specifically).
+
+**Audit Log** (journal in the UI):
+The record of who changed what and when, one entry per create, update, delete or restore of a tracked entity (an Appointment, today). Each entry names the entity it concerns, the acting user (none for system actions), the kind of action, and, for updates, the old and new value of each changed field. Entries outlive the changes they describe and are never edited. Not to be confused with a database transaction.
+_Avoid_: Transaction (the retired name, which collides with database transactions), history, changelog.
