@@ -163,8 +163,28 @@ export abstract class ApiBase {
 // ---- handler side ------------------------------------------------------------
 export const ok = <T>(message: string, data: T) => ({ data, message });
 
-export const run = async <A extends ApiBase, T>(
-	Api: new (ctx: ApiContext) => A,
+// The success text; the second form gets the method's result, for texts that
+// interpolate it (e.g. clone counts). The implementation always passes the
+// result; zero-arg `m.<key>` functions ignore it, and the first overload keeps
+// it from being typed as a parameterised message's inputs.
+// Unlike `Return<T>` (client-side, `data` optional), `data` is always set here.
+type Ok<T> = { data: T; message: string };
+type Ctor<A> = new (ctx: ApiContext) => A;
+export function run<A extends ApiBase, T>(
+	Api: Ctor<A>,
 	message: () => string,
 	call: (api: A) => Promise<T>,
-) => ok(message(), await call(new Api(await buildContext())));
+): Promise<Ok<T>>;
+export function run<A extends ApiBase, T>(
+	Api: Ctor<A>,
+	message: (data: T) => string,
+	call: (api: A) => Promise<T>,
+): Promise<Ok<T>>;
+export async function run<A extends ApiBase, T>(
+	Api: Ctor<A>,
+	message: (data: T) => string,
+	call: (api: A) => Promise<T>,
+): Promise<Ok<T>> {
+	const data = await call(new Api(await buildContext()));
+	return ok(message(data), data);
+}
