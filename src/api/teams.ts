@@ -1,345 +1,74 @@
 import { createServerFn } from "@tanstack/react-start";
-import { prismaClient } from "@/lib/db";
-import { redactPlayerFlags } from "@/lib/players";
-import { useIsRole } from "@/lib/session";
 import { m } from "@/paraglide/messages";
+import { run } from "./kernel.server";
+import { type ClonedCounts, type TeamInput, TeamsApi } from "./teams.server";
+
+export type { ClonedCounts, TeamInput } from "./teams.server";
 
 export const searchTeams = createServerFn()
 	.validator((d: { query?: string; seasonId?: string }) => d)
-	.handler(async ({ data }) => {
-		try {
-			const teams = await prismaClient.team.findMany({
-				include: { _count: { select: { players: true } } },
-				orderBy: { title: "asc" },
-				take: 10,
-				where: {
-					OR: [
-						{ title: { contains: data.query ?? "" } },
-						{ league: { contains: data.query ?? "" } },
-					],
-					seasonId: data.seasonId,
-				},
-			});
-			return { data: teams, message: m.teams_teams_found() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(TeamsApi, m.teams_teams_found, (api) =>
+			api.search(data.query, data.seasonId),
+		),
+	);
 
 export const getTeams = createServerFn({ method: "GET" })
 	.validator((d: { seasonId?: string }) => d)
-	.handler(async ({ data }) => {
-		try {
-			const teams = await prismaClient.team.findMany({
-				include: {
-					_count: { select: { players: true } },
-					standings: { orderBy: { rank: "asc" } },
-				},
-				orderBy: { title: "asc" },
-				where: { seasonId: data.seasonId },
-			});
-			return { data: teams, message: m.teams_teams_found() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(TeamsApi, m.teams_teams_found, (api) => api.list(data.seasonId)),
+	);
 
 export const createTeam = createServerFn({ method: "POST" })
-	.validator(
-		(d: {
-			title: string;
-			league: string;
-			clickTTGroupId?: string;
-			seasonId: string;
-		}) => d,
-	)
-	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
-			throw new Error(m.common_unauthorized());
-		}
-
-		try {
-			const team = await prismaClient.team.create({
-				data: {
-					clickTTGroupId: data.clickTTGroupId || null,
-					league: data.league,
-					seasonId: data.seasonId,
-					title: data.title,
-				},
-			});
-			return { data: team, message: m.teams_team_created() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.validator((d: TeamInput & { seasonId: string }) => d)
+	.handler(({ data }) =>
+		run(TeamsApi, m.teams_team_created, (api) => api.create(data)),
+	);
 
 export const getTeam = createServerFn()
 	.validator((d: { id: string }) => d)
-	.handler(async ({ data }) => {
-		const canSeeFlags = await useIsRole("EDITOR");
-		try {
-			const team = await prismaClient.team.findUnique({
-				include: {
-					appointments: {
-						include: { ownTeam: true, responses: true },
-						orderBy: { startDate: "asc" },
-						where: { deletedAt: null },
-					},
-					hinrundeTeam: { select: { id: true, title: true } },
-					players: {
-						include: { player: true },
-						orderBy: { player: { name: "asc" } },
-					},
-					rueckrundeTeam: { select: { id: true, title: true } },
-					season: true,
-					standings: { orderBy: { rank: "asc" } },
-				},
-				where: { id: data.id },
-			});
-			if (!team) {
-				throw new Error(m.teams_team_not_found());
-			}
-			const players = team.players.map((tp) => ({
-				...tp,
-				player: redactPlayerFlags(tp.player, canSeeFlags),
-			}));
-			return { data: { ...team, players }, message: m.teams_team_found() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(TeamsApi, m.teams_team_found, (api) => api.get(data.id)),
+	);
 
 export const createRueckrundeTeam = createServerFn({ method: "POST" })
 	.validator((d: { hinrundeTeamId: string }) => d)
-	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
-			throw new Error(m.common_unauthorized());
-		}
-
-		try {
-			const team = await prismaClient.$transaction(async (tx) => {
-				const hinrunde = await tx.team.findUniqueOrThrow({
-					include: { rueckrundeTeam: true },
-					where: { id: data.hinrundeTeamId },
-				});
-				if (hinrunde.half === "RUECKRUNDE" || hinrunde.rueckrundeTeam) {
-					throw new Error(m.teams_team_already_has_a_rueckrunde());
-				}
-
-				// An unpaired team becomes the Hinrunde once it gets a pair.
-				await tx.team.update({
-					data: { half: "HINRUNDE" },
-					where: { id: hinrunde.id },
-				});
-				return tx.team.create({
-					data: {
-						half: "RUECKRUNDE",
-						hinrundeTeamId: hinrunde.id,
-						seasonId: hinrunde.seasonId,
-						title: hinrunde.title,
-					},
-				});
-			});
-			return { data: team, message: m.teams_rueckrunde_created() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(TeamsApi, m.teams_rueckrunde_created, (api) =>
+			api.createRueckrunde(data.hinrundeTeamId),
+		),
+	);
 
 export const updateTeam = createServerFn()
-	.validator(
-		(d: {
-			id: string;
-			title: string;
-			league: string;
-			clickTTGroupId?: string;
-		}) => d,
-	)
-	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
-			throw new Error(m.common_unauthorized());
-		}
-
-		try {
-			const team = await prismaClient.team.update({
-				data: {
-					clickTTGroupId: data.clickTTGroupId || null,
-					league: data.league,
-					title: data.title,
-				},
-				where: {
-					id: data.id,
-				},
-			});
-			return { data: team, message: m.teams_team_updated() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.validator((d: TeamInput & { id: string }) => d)
+	.handler(({ data: { id, ...input } }) =>
+		run(TeamsApi, m.teams_team_updated, (api) => api.update(id, input)),
+	);
 
 export const deleteTeam = createServerFn()
 	.validator((d: { id: string }) => d)
-	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
-			throw new Error(m.common_unauthorized());
-		}
-
-		try {
-			await prismaClient.$transaction(async (tx) => {
-				const team = await tx.team.findUniqueOrThrow({
-					include: { rueckrundeTeam: true },
-					where: { id: data.id },
-				});
-				// TeamPlayer rows cascade-delete automatically (onDelete: Cascade);
-				// the pair's link is nulled by the foreign key.
-				await tx.team.delete({ where: { id: data.id } });
-				// The surviving half is no longer paired, so it is a plain team again.
-				const survivorId = team.hinrundeTeamId ?? team.rueckrundeTeam?.id;
-				if (survivorId) {
-					await tx.team.update({
-						data: { half: null },
-						where: { id: survivorId },
-					});
-				}
-			});
-			return { message: m.teams_team_deleted() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(TeamsApi, m.teams_team_deleted, (api) => api.delete(data.id)),
+	);
 
 export const applyRosterChanges = createServerFn()
 	.validator((d: { teamId: string; adds: string[]; removes: string[] }) => d)
-	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
-			throw new Error(m.common_unauthorized());
-		}
-
-		try {
-			await prismaClient.$transaction(async (tx) => {
-				const team = await tx.team.findUniqueOrThrow({
-					include: { rueckrundeTeam: { select: { id: true } } },
-					where: { id: data.teamId },
-				});
-
-				if (data.removes.length > 0) {
-					await tx.teamPlayer.deleteMany({
-						where: { id: { in: data.removes } },
-					});
-				}
-				if (data.adds.length > 0) {
-					// Uniqueness is per team (a Player sits on both Team Halves), so
-					// "one team per season" is enforced here: the only other team an
-					// added Player may already be on is this team's paired half.
-					const allowedTeamIds = [
-						data.teamId,
-						team.hinrundeTeamId,
-						team.rueckrundeTeam?.id,
-					].filter((id): id is string => !!id);
-					const conflict = await tx.teamPlayer.findFirst({
-						where: {
-							playerId: { in: data.adds },
-							seasonId: team.seasonId,
-							teamId: { notIn: allowedTeamIds },
-						},
-					});
-					if (conflict) {
-						throw new Error(
-							m.teams_player_is_already_assigned_to_a_team_this_season(),
-						);
-					}
-					await tx.teamPlayer.createMany({
-						data: data.adds.map((playerId) => ({
-							playerId,
-							seasonId: team.seasonId,
-							teamId: data.teamId,
-						})),
-					});
-				}
-			});
-			return { message: m.teams_roster_updated() };
-		} catch (e) {
-			console.error(e);
-			if ((e as { code?: string }).code === "P2002") {
-				throw new Error(
-					m.teams_player_is_already_assigned_to_a_team_this_season(),
-				);
-			}
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(TeamsApi, m.teams_roster_updated, (api) =>
+			api.applyRosterChanges(data.teamId, data.adds, data.removes),
+		),
+	);
 
 export const cloneTeamsFromSeason = createServerFn()
 	.validator((d: { sourceSeasonId: string; targetSeasonId: string }) => d)
-	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("EDITOR");
-		if (!isAuthorized) {
-			throw new Error(m.common_unauthorized());
-		}
-
-		try {
-			const { playersCopied, teamsCopied } = await prismaClient.$transaction(
-				async (tx) => {
-					const targetTeamCount = await tx.team.count({
-						where: { seasonId: data.targetSeasonId },
-					});
-					if (targetTeamCount > 0) {
-						throw new Error(m.teams_teams_already_exist_in_the_target_season());
-					}
-
-					const sourceTeams = await tx.team.findMany({
-						include: { players: true },
-						where: { seasonId: data.sourceSeasonId },
-					});
-
-					let playersCopied = 0;
-					for (const team of sourceTeams) {
-						// clickTTGroupId is intentionally not cloned: it's unique per
-						// season and the source team still holds it, so each cloned
-						// team needs it re-entered manually.
-						const newTeam = await tx.team.create({
-							data: {
-								league: team.league,
-								seasonId: data.targetSeasonId,
-								title: team.title,
-							},
-						});
-						if (team.players.length > 0) {
-							await tx.teamPlayer.createMany({
-								data: team.players.map((tp) => ({
-									playerId: tp.playerId,
-									seasonId: data.targetSeasonId,
-									teamId: newTeam.id,
-								})),
-							});
-							playersCopied += team.players.length;
-						}
-					}
-
-					return { playersCopied, teamsCopied: sourceTeams.length };
-				},
-			);
-			return {
-				data: { playersCopied, teamsCopied },
-				message: m.teams_n_teams_and_n_players_cloned({
+	.handler(({ data }) =>
+		run(
+			TeamsApi,
+			({ playersCopied, teamsCopied }: ClonedCounts) =>
+				m.teams_n_teams_and_n_players_cloned({
 					param1: teamsCopied.toString(),
 					param2: playersCopied.toString(),
 				}),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+			(api) => api.cloneFromSeason(data.sourceSeasonId, data.targetSeasonId),
+		),
+	);
