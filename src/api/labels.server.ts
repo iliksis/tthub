@@ -91,6 +91,5 @@ export class LabelsApi extends ApiBase {
 	private async requireLabel(tx: Tx, id: string) {
 		const label = await tx.label.findUnique({ where: { id } });
 		if (!label) throw new NotFoundError(m.labels_label_not_found());
-		return label;
 	}
 }

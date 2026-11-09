@@ -47,15 +47,20 @@ const allowedValueSources = (file: string) => [
 	`./${path.basename(file, ".ts")}.server`,
 ];
 
-const valueModuleSources = (source: string) =>
-	[
+const valueModuleSources = (source: string) => [
+	...[
 		...source.matchAll(
 			/^\s*(?:import|export)\s+(?!type\b)([^;]*?)\s+from\s+["']([^"']+)["']/gms,
 		),
 	]
 		// `import { type A, type B } from` is type-only too.
 		.filter(([, clause]) => !/^\{\s*(type\s+\w+\s*,?\s*)+\}$/.test(clause))
-		.map(([, , from]) => from);
+		.map(([, , from]) => from),
+	// Side-effect imports: `import "x";`
+	...[...source.matchAll(/^\s*import\s+["']([^"']+)["']/gm)].map(
+		([, from]) => from,
+	),
+];
 
 describe("API classes", () => {
 	it("finds at least one API class", () => {
@@ -104,8 +109,11 @@ describe("migrated handler files", () => {
 		expect(source).not.toMatch(/\btry\s*\{|\bcatch\s*[({]/);
 		expect(source).not.toMatch(/prismaClient|\$transaction|useAppSession/);
 		const handlers = source.match(/\.handler\(/g)?.length ?? 0;
-		const runs = source.match(/\brun\(/g)?.length ?? 0;
+		// Each handler is an expression-bodied arrow straight into run(...).
+		const delegating =
+			source.match(/\.handler\(\s*(?:\([^)]*\)|\w+)\s*=>\s*run\(/g)?.length ??
+			0;
 		expect(handlers).toBeGreaterThan(0);
-		expect(runs).toBe(handlers);
+		expect(delegating).toBe(handlers);
 	});
 });
