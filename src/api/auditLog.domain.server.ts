@@ -7,9 +7,12 @@ import {
 	type AuditEntityType,
 	diffFields,
 } from "@/lib/auditLog";
-import type { Prisma } from "@/lib/prisma/client";
+import type { AuditAction, Prisma } from "@/lib/prisma/client";
 import { userViewSelect } from "@/lib/users";
 import type { Tx } from "./kernel.server";
+
+// The actions that mark an entity's soft delete or restore.
+export type SoftDeleteAction = Extract<AuditAction, "DELETE" | "RESTORE">;
 
 // ---- writes ------------------------------------------------------------------
 // Writes one entity type's journal entries inside the caller's transaction.
@@ -58,7 +61,7 @@ export class AuditJournal {
 		await this.many("RESTORE", entityIds);
 	}
 
-	private async many(action: "DELETE" | "RESTORE", entityIds: string[]) {
+	private async many(action: SoftDeleteAction, entityIds: string[]) {
 		await this.tx.auditLog.createMany({
 			data: entityIds.map((id) => ({ action, ...this.target(id) })),
 		});

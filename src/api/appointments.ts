@@ -24,6 +24,7 @@ import {
 	type AuditEntry,
 	AuditJournal,
 	auditEntriesFor,
+	type SoftDeleteAction,
 } from "./auditLog.domain.server";
 import { sendNotification } from "./notifications";
 
@@ -702,7 +703,7 @@ function chunk<T>(items: T[], size: number): T[][] {
 async function setAppointmentsDeletedState(
 	ids: string[],
 	deletedAt: Date | null,
-	action: "DELETE" | "RESTORE",
+	action: SoftDeleteAction,
 	userId: string,
 	onEachUpdated?: (appointment: Appointment) => void,
 ) {
