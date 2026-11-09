@@ -41,6 +41,8 @@
 				"src/api/labels.ts",
 				"src/api/passwordReset.ts",
 				"src/api/players.ts",
+				"src/api/seasons.ts",
+				"src/api/stats.ts",
 				"src/api/teams.ts",
 				"src/api/users.ts"
 			],
