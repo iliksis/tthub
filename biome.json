@@ -40,6 +40,7 @@
 				"src/api/invitations.ts",
 				"src/api/labels.ts",
 				"src/api/passwordReset.ts",
+				"src/api/placements.ts",
 				"src/api/players.ts",
 				"src/api/seasons.ts",
 				"src/api/stats.ts",
