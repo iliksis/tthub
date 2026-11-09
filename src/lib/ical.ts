@@ -1,5 +1,5 @@
 import Mustache from "mustache";
-import type { LabelColor } from "@/api/labels";
+import type { LabelColor } from "@/lib/labels";
 import { catppuccinLatteHex, resolveTopPriorityLabel } from "./labelColor";
 import type { Appointment } from "./prisma/client";
 

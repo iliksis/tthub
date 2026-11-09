@@ -34,6 +34,32 @@
 			"recommended": true
 		}
 	},
+	"overrides": [
+		{
+			"includes": ["src/api/labels.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"@/lib/db": "Handler files delegate to their API class (src/api/<aggregate>.server.ts); Prisma access lives there. See ADR 0004.",
+									"@/lib/session": "Handler files delegate to their API class; auth is the class's static policy. See ADR 0004."
+								},
+								"patterns": [
+									{
+										"group": ["@/lib/prisma/**", "@prisma/**"],
+										"message": "Handler files delegate to their API class (src/api/<aggregate>.server.ts); Prisma access lives there. See ADR 0004."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		}
+	],
 	"vcs": {
 		"clientKind": "git",
 		"enabled": false,
