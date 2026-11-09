@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
+import { redactPlayerFlags } from "@/lib/players";
 import { useIsRole } from "@/lib/session";
 import { m } from "@/paraglide/messages";
-import { redactPlayerFlags } from "./players";
 
 export const searchTeams = createServerFn()
 	.validator((d: { query?: string; seasonId?: string }) => d)

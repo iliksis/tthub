@@ -141,6 +141,22 @@ describe("ApiBase policy enforcement", () => {
 		).resolves.toBe("ok");
 	});
 
+	it("isAtLeast reports whether the actor holds a role, false when anonymous", async () => {
+		class Visibility extends ApiBase {
+			static readonly policy = {
+				canSee: "PUBLIC",
+			} as const satisfies Policies<Visibility>;
+			async canSee() {
+				return this.isAtLeast("EDITOR");
+			}
+		}
+		const canSee = (u: SessionUser | null) => new Visibility(ctx(u)).canSee();
+		await expect(canSee(null)).resolves.toBe(false);
+		await expect(canSee(user("USER"))).resolves.toBe(false);
+		await expect(canSee(user("EDITOR"))).resolves.toBe(true);
+		await expect(canSee(user("ADMIN"))).resolves.toBe(true);
+	});
+
 	it("refuses to construct a class without a static policy table", () => {
 		class NoPolicy extends ApiBase {}
 		expect(() => new NoPolicy(ctx(null))).toThrow(/static policy/);

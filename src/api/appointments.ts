@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { prismaClient } from "@/lib/db";
 import { labelsInclude } from "@/lib/labels";
+import { redactPlayerFlags } from "@/lib/players";
 import type {
 	Appointment,
 	AppointmentLabel,
@@ -20,7 +21,6 @@ import { requireEditor, useAppSession, useIsRole } from "@/lib/session";
 import { formatTanstackRouterPath } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { sendNotification } from "./notifications";
-import { redactPlayerFlags } from "./players";
 
 type ICreateAppointment =
 	| {
