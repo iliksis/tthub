@@ -5,9 +5,9 @@ import { toast } from "sonner";
 import {
 	createResponse,
 	getNextAppointments,
-	getRecentTransactions,
 	getUserOpenAppointments,
 } from "@/api/appointments";
+import { getRecentAuditLog } from "@/api/auditLog";
 import { getActiveSeason } from "@/api/seasons";
 import { getTeams } from "@/api/teams";
 import { AppointmentRow } from "@/components/AppointmentRow";
@@ -16,9 +16,9 @@ import { TeamHalfBadge } from "@/components/teams/TeamSummary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
+import { auditActionBadge } from "@/lib/auditLabels";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
 import { collapseHalves } from "@/lib/teamHalf";
-import { transactionActionBadge } from "@/lib/transactionLabels";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -60,14 +60,14 @@ export const Route = createFileRoute("/_authed/")({
 			throw new Error(m.common_unauthorized());
 		}
 
-		const [nextRes, openRes, activeSeasonRes, transactionsRes] =
+		const [nextRes, openRes, activeSeasonRes, recentActivityRes] =
 			await Promise.all([
 				getNextAppointments(),
 				getUserOpenAppointments({
 					data: { userId: context.user.id },
 				}),
 				getActiveSeason(),
-				getRecentTransactions({ data: { take: RECENT_ACTIVITY_TAKE } }),
+				getRecentAuditLog({ data: { take: RECENT_ACTIVITY_TAKE } }),
 			]);
 		const teamsRes = await getTeams({
 			data: { seasonId: activeSeasonRes.data?.id },
@@ -76,7 +76,7 @@ export const Route = createFileRoute("/_authed/")({
 		return {
 			nextAppointments: nextRes.data,
 			openAppointments: openRes.data,
-			recentActivity: transactionsRes.data ?? [],
+			recentActivity: recentActivityRes.data ?? [],
 			teams: collapseHalves(teamsRes.data ?? [], (t) => t),
 		};
 	},
@@ -188,11 +188,11 @@ function App() {
 					<Section title={m.dashboard_recent_activity()}>
 						{recentActivity.length > 0 ? (
 							<div className="flex flex-col gap-2.5">
-								{recentActivity.map((tx) => {
-									const badge = transactionActionBadge(tx.type);
+								{recentActivity.map((entry) => {
+									const badge = auditActionBadge(entry.action);
 									return (
 										<div
-											key={tx.id}
+											key={entry.id}
 											className="flex items-center gap-2 text-xs"
 										>
 											<Badge
@@ -204,19 +204,25 @@ function App() {
 											</Badge>
 											<span className="flex min-w-0 flex-1 items-baseline gap-1 text-muted-foreground">
 												<span className="shrink-0 font-medium text-foreground">
-													{tx.user?.name ?? "—"}
+													{entry.user?.name ?? "—"}
 												</span>
 												<span className="shrink-0">·</span>
-												<Link
-													to="/appts/$apptId"
-													params={{ apptId: tx.appointment.id }}
-													className="block min-w-[6ch] flex-1 truncate"
-												>
-													{tx.appointment.title}
-												</Link>
+												{entry.entityType === "Appointment" ? (
+													<Link
+														to="/appts/$apptId"
+														params={{ apptId: entry.entityId }}
+														className="block min-w-[6ch] flex-1 truncate"
+													>
+														{entry.entity.name}
+													</Link>
+												) : (
+													<span className="block min-w-[6ch] flex-1 truncate">
+														{entry.entity.name}
+													</span>
+												)}
 											</span>
 											<span className="shrink-0 text-muted-foreground">
-												{formatRelativeTime(tx.createdAt)}
+												{formatRelativeTime(entry.createdAt)}
 											</span>
 										</div>
 									);

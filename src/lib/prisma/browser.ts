@@ -98,10 +98,10 @@ export type Standing = Prisma.StandingModel
  */
 export type Placement = Prisma.PlacementModel
 /**
- * Model Transaction
+ * Model AuditLog
  * 
  */
-export type Transaction = Prisma.TransactionModel
+export type AuditLog = Prisma.AuditLogModel
 /**
  * Model Subscription
  * 

@@ -196,7 +196,7 @@ export type UserWhereInput = {
   notificationSettings?: Prisma.NotificationSettingsListRelationFilter
   passwordReset?: Prisma.XOR<Prisma.PasswordResetNullableScalarRelationFilter, Prisma.PasswordResetWhereInput> | null
   feedConfig?: Prisma.XOR<Prisma.FeedConfigNullableScalarRelationFilter, Prisma.FeedConfigWhereInput> | null
-  transactions?: Prisma.TransactionListRelationFilter
+  auditLogs?: Prisma.AuditLogListRelationFilter
   mutedLabels?: Prisma.UserMutedLabelListRelationFilter
 }
 
@@ -213,7 +213,7 @@ export type UserOrderByWithRelationInput = {
   notificationSettings?: Prisma.NotificationSettingsOrderByRelationAggregateInput
   passwordReset?: Prisma.PasswordResetOrderByWithRelationInput
   feedConfig?: Prisma.FeedConfigOrderByWithRelationInput
-  transactions?: Prisma.TransactionOrderByRelationAggregateInput
+  auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
   mutedLabels?: Prisma.UserMutedLabelOrderByRelationAggregateInput
 }
 
@@ -233,7 +233,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   notificationSettings?: Prisma.NotificationSettingsListRelationFilter
   passwordReset?: Prisma.XOR<Prisma.PasswordResetNullableScalarRelationFilter, Prisma.PasswordResetWhereInput> | null
   feedConfig?: Prisma.XOR<Prisma.FeedConfigNullableScalarRelationFilter, Prisma.FeedConfigWhereInput> | null
-  transactions?: Prisma.TransactionListRelationFilter
+  auditLogs?: Prisma.AuditLogListRelationFilter
   mutedLabels?: Prisma.UserMutedLabelListRelationFilter
 }, "id" | "userName" | "feedId">
 
@@ -274,7 +274,7 @@ export type UserCreateInput = {
   notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelCreateNestedManyWithoutUserInput
 }
 
@@ -291,7 +291,7 @@ export type UserUncheckedCreateInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -308,7 +308,7 @@ export type UserUpdateInput = {
   notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUpdateManyWithoutUserNestedInput
 }
 
@@ -325,7 +325,7 @@ export type UserUncheckedUpdateInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUncheckedUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -475,20 +475,20 @@ export type UserUpdateOneRequiredWithoutResponsesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutResponsesInput, Prisma.UserUpdateWithoutResponsesInput>, Prisma.UserUncheckedUpdateWithoutResponsesInput>
 }
 
-export type UserCreateNestedOneWithoutTransactionsInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutTransactionsInput, Prisma.UserUncheckedCreateWithoutTransactionsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTransactionsInput
+export type UserCreateNestedOneWithoutAuditLogsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAuditLogsInput, Prisma.UserUncheckedCreateWithoutAuditLogsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuditLogsInput
   connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUpdateOneWithoutTransactionsNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutTransactionsInput, Prisma.UserUncheckedCreateWithoutTransactionsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTransactionsInput
-  upsert?: Prisma.UserUpsertWithoutTransactionsInput
+export type UserUpdateOneWithoutAuditLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAuditLogsInput, Prisma.UserUncheckedCreateWithoutAuditLogsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuditLogsInput
+  upsert?: Prisma.UserUpsertWithoutAuditLogsInput
   disconnect?: Prisma.UserWhereInput | boolean
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTransactionsInput, Prisma.UserUpdateWithoutTransactionsInput>, Prisma.UserUncheckedUpdateWithoutTransactionsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuditLogsInput, Prisma.UserUpdateWithoutAuditLogsInput>, Prisma.UserUncheckedUpdateWithoutAuditLogsInput>
 }
 
 export type UserCreateNestedOneWithoutSubscriptionsInput = {
@@ -531,7 +531,7 @@ export type UserCreateWithoutFeedConfigInput = {
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelCreateNestedManyWithoutUserInput
 }
 
@@ -547,7 +547,7 @@ export type UserUncheckedCreateWithoutFeedConfigInput = {
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -579,7 +579,7 @@ export type UserUpdateWithoutFeedConfigInput = {
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUpdateManyWithoutUserNestedInput
 }
 
@@ -595,7 +595,7 @@ export type UserUncheckedUpdateWithoutFeedConfigInput = {
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -611,7 +611,7 @@ export type UserCreateWithoutInvitationInput = {
   notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelCreateNestedManyWithoutUserInput
 }
 
@@ -627,7 +627,7 @@ export type UserUncheckedCreateWithoutInvitationInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -659,7 +659,7 @@ export type UserUpdateWithoutInvitationInput = {
   notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUpdateManyWithoutUserNestedInput
 }
 
@@ -675,7 +675,7 @@ export type UserUncheckedUpdateWithoutInvitationInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUncheckedUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -691,7 +691,7 @@ export type UserCreateWithoutPasswordResetInput = {
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
   feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelCreateNestedManyWithoutUserInput
 }
 
@@ -707,7 +707,7 @@ export type UserUncheckedCreateWithoutPasswordResetInput = {
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
   feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -739,7 +739,7 @@ export type UserUpdateWithoutPasswordResetInput = {
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUpdateManyWithoutUserNestedInput
 }
 
@@ -755,7 +755,7 @@ export type UserUncheckedUpdateWithoutPasswordResetInput = {
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUncheckedUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -772,7 +772,7 @@ export type UserCreateWithoutMutedLabelsInput = {
   notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMutedLabelsInput = {
@@ -788,7 +788,7 @@ export type UserUncheckedCreateWithoutMutedLabelsInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMutedLabelsInput = {
@@ -820,7 +820,7 @@ export type UserUpdateWithoutMutedLabelsInput = {
   notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMutedLabelsInput = {
@@ -836,7 +836,7 @@ export type UserUncheckedUpdateWithoutMutedLabelsInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUncheckedUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutResponsesInput = {
@@ -851,7 +851,7 @@ export type UserCreateWithoutResponsesInput = {
   notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelCreateNestedManyWithoutUserInput
 }
 
@@ -867,7 +867,7 @@ export type UserUncheckedCreateWithoutResponsesInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -899,7 +899,7 @@ export type UserUpdateWithoutResponsesInput = {
   notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUpdateManyWithoutUserNestedInput
 }
 
@@ -915,11 +915,11 @@ export type UserUncheckedUpdateWithoutResponsesInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUncheckedUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
-export type UserCreateWithoutTransactionsInput = {
+export type UserCreateWithoutAuditLogsInput = {
   id?: string
   userName: string
   password?: string | null
@@ -935,7 +935,7 @@ export type UserCreateWithoutTransactionsInput = {
   mutedLabels?: Prisma.UserMutedLabelCreateNestedManyWithoutUserInput
 }
 
-export type UserUncheckedCreateWithoutTransactionsInput = {
+export type UserUncheckedCreateWithoutAuditLogsInput = {
   id?: string
   userName: string
   password?: string | null
@@ -951,23 +951,23 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   mutedLabels?: Prisma.UserMutedLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
-export type UserCreateOrConnectWithoutTransactionsInput = {
+export type UserCreateOrConnectWithoutAuditLogsInput = {
   where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutTransactionsInput, Prisma.UserUncheckedCreateWithoutTransactionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAuditLogsInput, Prisma.UserUncheckedCreateWithoutAuditLogsInput>
 }
 
-export type UserUpsertWithoutTransactionsInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutTransactionsInput, Prisma.UserUncheckedUpdateWithoutTransactionsInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutTransactionsInput, Prisma.UserUncheckedCreateWithoutTransactionsInput>
+export type UserUpsertWithoutAuditLogsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAuditLogsInput, Prisma.UserUncheckedUpdateWithoutAuditLogsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAuditLogsInput, Prisma.UserUncheckedCreateWithoutAuditLogsInput>
   where?: Prisma.UserWhereInput
 }
 
-export type UserUpdateToOneWithWhereWithoutTransactionsInput = {
+export type UserUpdateToOneWithWhereWithoutAuditLogsInput = {
   where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutTransactionsInput, Prisma.UserUncheckedUpdateWithoutTransactionsInput>
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAuditLogsInput, Prisma.UserUncheckedUpdateWithoutAuditLogsInput>
 }
 
-export type UserUpdateWithoutTransactionsInput = {
+export type UserUpdateWithoutAuditLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userName?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -983,7 +983,7 @@ export type UserUpdateWithoutTransactionsInput = {
   mutedLabels?: Prisma.UserMutedLabelUpdateManyWithoutUserNestedInput
 }
 
-export type UserUncheckedUpdateWithoutTransactionsInput = {
+export type UserUncheckedUpdateWithoutAuditLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userName?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1011,7 +1011,7 @@ export type UserCreateWithoutSubscriptionsInput = {
   notificationSettings?: Prisma.NotificationSettingsCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelCreateNestedManyWithoutUserInput
 }
 
@@ -1027,7 +1027,7 @@ export type UserUncheckedCreateWithoutSubscriptionsInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -1059,7 +1059,7 @@ export type UserUpdateWithoutSubscriptionsInput = {
   notificationSettings?: Prisma.NotificationSettingsUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUpdateManyWithoutUserNestedInput
 }
 
@@ -1075,7 +1075,7 @@ export type UserUncheckedUpdateWithoutSubscriptionsInput = {
   notificationSettings?: Prisma.NotificationSettingsUncheckedUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUncheckedUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -1091,7 +1091,7 @@ export type UserCreateWithoutNotificationSettingsInput = {
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelCreateNestedManyWithoutUserInput
 }
 
@@ -1107,7 +1107,7 @@ export type UserUncheckedCreateWithoutNotificationSettingsInput = {
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   passwordReset?: Prisma.PasswordResetUncheckedCreateNestedOneWithoutUserInput
   feedConfig?: Prisma.FeedConfigUncheckedCreateNestedOneWithoutUserInput
-  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -1139,7 +1139,7 @@ export type UserUpdateWithoutNotificationSettingsInput = {
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUpdateManyWithoutUserNestedInput
 }
 
@@ -1155,7 +1155,7 @@ export type UserUncheckedUpdateWithoutNotificationSettingsInput = {
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   passwordReset?: Prisma.PasswordResetUncheckedUpdateOneWithoutUserNestedInput
   feedConfig?: Prisma.FeedConfigUncheckedUpdateOneWithoutUserNestedInput
-  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   mutedLabels?: Prisma.UserMutedLabelUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -1168,7 +1168,7 @@ export type UserCountOutputType = {
   responses: number
   subscriptions: number
   notificationSettings: number
-  transactions: number
+  auditLogs: number
   mutedLabels: number
 }
 
@@ -1176,7 +1176,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   responses?: boolean | UserCountOutputTypeCountResponsesArgs
   subscriptions?: boolean | UserCountOutputTypeCountSubscriptionsArgs
   notificationSettings?: boolean | UserCountOutputTypeCountNotificationSettingsArgs
-  transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
+  auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
   mutedLabels?: boolean | UserCountOutputTypeCountMutedLabelsArgs
 }
 
@@ -1214,8 +1214,8 @@ export type UserCountOutputTypeCountNotificationSettingsArgs<ExtArgs extends run
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.TransactionWhereInput
+export type UserCountOutputTypeCountAuditLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AuditLogWhereInput
 }
 
 /**
@@ -1239,7 +1239,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   notificationSettings?: boolean | Prisma.User$notificationSettingsArgs<ExtArgs>
   passwordReset?: boolean | Prisma.User$passwordResetArgs<ExtArgs>
   feedConfig?: boolean | Prisma.User$feedConfigArgs<ExtArgs>
-  transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
+  auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   mutedLabels?: boolean | Prisma.User$mutedLabelsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -1279,7 +1279,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   notificationSettings?: boolean | Prisma.User$notificationSettingsArgs<ExtArgs>
   passwordReset?: boolean | Prisma.User$passwordResetArgs<ExtArgs>
   feedConfig?: boolean | Prisma.User$feedConfigArgs<ExtArgs>
-  transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
+  auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   mutedLabels?: boolean | Prisma.User$mutedLabelsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1295,7 +1295,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     notificationSettings: Prisma.$NotificationSettingsPayload<ExtArgs>[]
     passwordReset: Prisma.$PasswordResetPayload<ExtArgs> | null
     feedConfig: Prisma.$FeedConfigPayload<ExtArgs> | null
-    transactions: Prisma.$TransactionPayload<ExtArgs>[]
+    auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
     mutedLabels: Prisma.$UserMutedLabelPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1705,7 +1705,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   notificationSettings<T extends Prisma.User$notificationSettingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationSettingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationSettingsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   passwordReset<T extends Prisma.User$passwordResetArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$passwordResetArgs<ExtArgs>>): Prisma.Prisma__PasswordResetClient<runtime.Types.Result.GetResult<Prisma.$PasswordResetPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   feedConfig<T extends Prisma.User$feedConfigArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$feedConfigArgs<ExtArgs>>): Prisma.Prisma__FeedConfigClient<runtime.Types.Result.GetResult<Prisma.$FeedConfigPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  transactions<T extends Prisma.User$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  auditLogs<T extends Prisma.User$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   mutedLabels<T extends Prisma.User$mutedLabelsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$mutedLabelsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserMutedLabelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2262,27 +2262,27 @@ export type User$feedConfigArgs<ExtArgs extends runtime.Types.Extensions.Interna
 }
 
 /**
- * User.transactions
+ * User.auditLogs
  */
-export type User$transactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type User$auditLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Transaction
+   * Select specific fields to fetch from the AuditLog
    */
-  select?: Prisma.TransactionSelect<ExtArgs> | null
+  select?: Prisma.AuditLogSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Transaction
+   * Omit specific fields from the AuditLog
    */
-  omit?: Prisma.TransactionOmit<ExtArgs> | null
+  omit?: Prisma.AuditLogOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.TransactionInclude<ExtArgs> | null
-  where?: Prisma.TransactionWhereInput
-  orderBy?: Prisma.TransactionOrderByWithRelationInput | Prisma.TransactionOrderByWithRelationInput[]
-  cursor?: Prisma.TransactionWhereUniqueInput
+  include?: Prisma.AuditLogInclude<ExtArgs> | null
+  where?: Prisma.AuditLogWhereInput
+  orderBy?: Prisma.AuditLogOrderByWithRelationInput | Prisma.AuditLogOrderByWithRelationInput[]
+  cursor?: Prisma.AuditLogWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.TransactionScalarFieldEnum | Prisma.TransactionScalarFieldEnum[]
+  distinct?: Prisma.AuditLogScalarFieldEnum | Prisma.AuditLogScalarFieldEnum[]
 }
 
 /**

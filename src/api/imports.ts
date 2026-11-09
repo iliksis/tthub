@@ -2,10 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { getImporter, listImporters } from "@/importers/registry.server";
 import type { EmitResult, ImportEntity } from "@/importers/types";
 import { prismaClient } from "@/lib/db";
-import type { Prisma } from "@/lib/prisma/client";
-import { TransactionType } from "@/lib/prisma/enums";
 import { requireAdmin, requireEditor } from "@/lib/session";
 import { m } from "@/paraglide/messages";
+import { AuditJournal } from "./auditLog.domain.server";
 
 type ImportJob = {
 	status: "running" | "done" | "error";
@@ -63,13 +62,7 @@ async function persistEntity(
 					type: entity.appointmentType,
 				},
 			});
-			await tx.transaction.create({
-				data: {
-					appointmentId: appointment.id,
-					type: TransactionType.CREATE,
-					userId,
-				},
-			});
+			await new AuditJournal(tx, "Appointment", userId).created(appointment.id);
 		});
 		return { status: "imported" };
 	}
@@ -84,19 +77,12 @@ async function persistEntity(
 			data: { startDate },
 			where: { id: entity.externalId },
 		});
-		await tx.transaction.create({
-			data: {
-				appointmentId: appointment.id,
-				changes: {
-					startDate: {
-						new: appointment.startDate,
-						old: existingAppointment.startDate,
-					},
-				} as Prisma.InputJsonValue,
-				type: TransactionType.UPDATE,
-				userId,
-			},
-		});
+		await new AuditJournal(tx, "Appointment", userId).updated(
+			appointment.id,
+			existingAppointment,
+			appointment,
+			["startDate"],
+		);
 	});
 
 	return { status: "updated" };

@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { AuditChanges } from "@/lib/auditLog";
 import { prismaClient } from "@/lib/db";
 import { labelsInclude } from "@/lib/labels";
 import { redactPlayerFlags } from "@/lib/players";
@@ -15,11 +16,15 @@ import {
 	AppointmentStatus,
 	AppointmentType,
 	type ResponseType,
-	TransactionType,
 } from "@/lib/prisma/enums";
 import { requireEditor, useAppSession, useIsRole } from "@/lib/session";
 import { formatTanstackRouterPath } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
+import {
+	type AuditEntry,
+	AuditJournal,
+	auditEntriesFor,
+} from "./auditLog.domain.server";
 import { sendNotification } from "./notifications";
 
 type ICreateAppointment =
@@ -49,8 +54,6 @@ export const createAppointment = createServerFn()
 		}
 
 		try {
-			// prismaClient.$transaction (DB transaction) is unrelated to the
-			// `transaction` model below (the appointment change-history log).
 			const appointment = await prismaClient.$transaction(async (tx) => {
 				const appointment = await tx.appointment.create({
 					data: {
@@ -69,13 +72,9 @@ export const createAppointment = createServerFn()
 						type: data.type,
 					},
 				});
-				await tx.transaction.create({
-					data: {
-						appointmentId: appointment.id,
-						type: TransactionType.CREATE,
-						userId: session.id,
-					},
-				});
+				await new AuditJournal(tx, "Appointment", session.id).created(
+					appointment.id,
+				);
 				return appointment;
 			});
 
@@ -115,15 +114,11 @@ const appointmentDetailInclude = {
 		include: { user: true },
 	},
 	season: true,
-	transactions: {
-		include: { user: true },
-		orderBy: { createdAt: "desc" },
-	},
 } satisfies Prisma.AppointmentInclude;
 
 export type AppointmentDetail = Prisma.AppointmentGetPayload<{
 	include: typeof appointmentDetailInclude;
-}>;
+}> & { auditLog: AuditEntry[] };
 
 export type AppointmentWithResponses = Appointment & {
 	responses: Response[];
@@ -151,8 +146,17 @@ export const getAppointment = createServerFn()
 				...pl,
 				player: redactPlayerFlags(pl.player, canSeeFlags),
 			}));
+			const auditLog = await auditEntriesFor(
+				prismaClient,
+				"Appointment",
+				appointment.id,
+			);
 			return {
-				data: { ...appointment, placements },
+				data: {
+					...appointment,
+					auditLog,
+					placements,
+				} satisfies AppointmentDetail,
 				message: m.appointments_appointment_found(),
 			};
 		} catch (e) {
@@ -196,93 +200,6 @@ export const searchAppointments = createServerFn()
 			return {
 				data: appointments,
 				message: m.appointments_appointments_found(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
-
-export const getTransactionsPage = createServerFn()
-	.validator(
-		(d: {
-			skip: number;
-			take: number;
-			type?: TransactionType;
-			query?: string;
-		}) => d,
-	)
-	.handler(async ({ data }) => {
-		const session = await requireEditor();
-		if (!session) {
-			throw new Error(m.common_unauthorized());
-		}
-		try {
-			const where: Prisma.TransactionWhereInput = {
-				type: data.type,
-				...(data.query
-					? {
-							OR: [
-								{ appointment: { title: { contains: data.query } } },
-								{ user: { name: { contains: data.query } } },
-							],
-						}
-					: {}),
-			};
-			// matchedTotal drives "N remaining"/pagination, grandTotal is the
-			// unfiltered count used for the "N of TOTAL events" summary.
-			const [transactions, matchedTotal, grandTotal] = await Promise.all([
-				prismaClient.transaction.findMany({
-					include: {
-						appointment: true,
-						user: true,
-					},
-					orderBy: { createdAt: "desc" },
-					skip: data.skip,
-					take: data.take,
-					where,
-				}),
-				prismaClient.transaction.count({ where }),
-				prismaClient.transaction.count(),
-			]);
-			return {
-				data: { grandTotal, matchedTotal, transactions },
-				message: m.appointments_transactions_found(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
-
-// Lightweight, non-editor-gated feed for the dashboard's "recent activity"
-// widget — unlike getTransactionsPage, every logged-in user may see it. To
-// keep that safe, it selects only the handful of fields the widget renders
-// instead of the editor-only journal's full records: no `changes` (the
-// audit diff, which can contain sensitive edit details) and no other
-// appointment/user fields.
-export const getRecentTransactions = createServerFn({ method: "GET" })
-	.validator((d: { take: number }) => d)
-	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		if (!session.data.id) {
-			throw new Error(m.common_unauthorized());
-		}
-		try {
-			const transactions = await prismaClient.transaction.findMany({
-				orderBy: { createdAt: "desc" },
-				select: {
-					appointment: { select: { id: true, title: true } },
-					createdAt: true,
-					id: true,
-					type: true,
-					user: { select: { name: true } },
-				},
-				take: data.take,
-			});
-			return {
-				data: transactions,
-				message: m.appointments_transactions_found(),
 			};
 		} catch (e) {
 			console.error(e);
@@ -603,15 +520,7 @@ export const updateAppointment = createServerFn()
 					where: { id: data.id },
 				});
 
-				// Only the fields that were part of this save (and actually
-				// changed value) are logged, matching click-to-edit's
-				// one-field/group-per-save flow.
-				const changes: Record<string, { old: unknown; new: unknown }> = {};
-				for (const key of Object.keys(fieldUpdates) as (keyof Appointment)[]) {
-					if (before[key]?.valueOf() !== appointment[key]?.valueOf()) {
-						changes[key] = { new: appointment[key], old: before[key] };
-					}
-				}
+				const labelChanges: AuditChanges = {};
 
 				if (labelIds !== undefined) {
 					const beforeLabelIds = before.labels.map((l) => l.labelId);
@@ -641,23 +550,23 @@ export const updateAppointment = createServerFn()
 							},
 						});
 						const nameById = new Map(labelRecords.map((l) => [l.id, l.name]));
-						changes.labels = {
+						labelChanges.labels = {
 							new: labelIds.map((id) => nameById.get(id) ?? id),
 							old: beforeLabelIds.map((id) => nameById.get(id) ?? id),
 						};
 					}
 				}
 
-				if (Object.keys(changes).length > 0) {
-					await tx.transaction.create({
-						data: {
-							appointmentId: appointment.id,
-							changes: changes as Prisma.InputJsonValue,
-							type: TransactionType.UPDATE,
-							userId: session.id,
-						},
-					});
-				}
+				// Only the fields that were part of this save (and actually
+				// changed value) are logged, matching click-to-edit's
+				// one-field/group-per-save flow.
+				await new AuditJournal(tx, "Appointment", session.id).updated(
+					appointment.id,
+					before,
+					appointment,
+					Object.keys(fieldUpdates) as (keyof Appointment & string)[],
+					labelChanges,
+				);
 
 				return appointment;
 			});
@@ -688,7 +597,7 @@ export const deleteAppointment = createServerFn()
 			// Re-verify the appointment is still active (deletedAt: null) before
 			// acting, same as the bulk path — without this, calling delete twice
 			// on an already-deleted appointment (e.g. a stale tab) would silently
-			// succeed again and write a second DELETE Transaction audit row.
+			// succeed again and write a second DELETE audit log entry.
 			const ids = await resolveSelectorIds({ ids: [data.id] }, null);
 			if (ids.length === 0) {
 				throw new Error(m.appointments_appointment_not_found());
@@ -696,7 +605,7 @@ export const deleteAppointment = createServerFn()
 			const [appointment] = await setAppointmentsDeletedState(
 				ids,
 				new Date(),
-				TransactionType.DELETE,
+				"DELETE",
 				session.id,
 				(appointment) => cancelAppointmentUpdatedNotification(appointment.id),
 			);
@@ -788,14 +697,12 @@ function chunk<T>(items: T[], size: number): T[][] {
 }
 
 // Shared by bulkDeleteAppointments and bulkRestoreAppointments — both set
-// `deletedAt` on a list of ids and log one Transaction row per id, differing
-// only in the target `deletedAt` value and the TransactionType.
+// `deletedAt` on a list of ids and log one audit log entry per id, differing
+// only in the target `deletedAt` value and the audit action.
 async function setAppointmentsDeletedState(
 	ids: string[],
 	deletedAt: Date | null,
-	transactionType:
-		| typeof TransactionType.DELETE
-		| typeof TransactionType.RESTORE,
+	action: "DELETE" | "RESTORE",
 	userId: string,
 	onEachUpdated?: (appointment: Appointment) => void,
 ) {
@@ -809,13 +716,13 @@ async function setAppointmentsDeletedState(
 			const batchResults = await tx.appointment.findMany({
 				where: { id: { in: batch } },
 			});
-			await tx.transaction.createMany({
-				data: batchResults.map((appointment) => ({
-					appointmentId: appointment.id,
-					type: transactionType,
-					userId,
-				})),
-			});
+			const journal = new AuditJournal(tx, "Appointment", userId);
+			const updatedIds = batchResults.map((appointment) => appointment.id);
+			if (action === "DELETE") {
+				await journal.softDeleted(updatedIds);
+			} else {
+				await journal.restored(updatedIds);
+			}
 			return batchResults;
 		});
 		// Only cancel each row's pending notification once its chunk has
@@ -850,7 +757,7 @@ export const bulkDeleteAppointments = createServerFn()
 			const appointments = await setAppointmentsDeletedState(
 				ids,
 				new Date(),
-				TransactionType.DELETE,
+				"DELETE",
 				session.id,
 				(appointment) => cancelAppointmentUpdatedNotification(appointment.id),
 			);
@@ -924,13 +831,9 @@ export const bulkCopyAppointmentsToSeason = createServerFn()
 								type: source.type,
 							},
 						});
-						await tx.transaction.create({
-							data: {
-								appointmentId: copy.id,
-								type: TransactionType.CREATE,
-								userId: session.id,
-							},
-						});
+						await new AuditJournal(tx, "Appointment", session.id).created(
+							copy.id,
+						);
 						copied++;
 					}
 
@@ -986,7 +889,7 @@ export const bulkRestoreAppointments = createServerFn()
 			const appointments = await setAppointmentsDeletedState(
 				ids,
 				null,
-				TransactionType.RESTORE,
+				"RESTORE",
 				session.id,
 			);
 			return {
@@ -1207,19 +1110,12 @@ export const publishAppointment = createServerFn()
 					},
 					where: { id: data.id },
 				});
-				statusChanged = before.status !== appointment.status;
-				if (statusChanged) {
-					await tx.transaction.create({
-						data: {
-							appointmentId: appointment.id,
-							changes: {
-								status: { new: appointment.status, old: before.status },
-							} as Prisma.InputJsonValue,
-							type: TransactionType.UPDATE,
-							userId: session.id,
-						},
-					});
-				}
+				const changes = await new AuditJournal(
+					tx,
+					"Appointment",
+					session.id,
+				).updated(appointment.id, before, appointment, ["status"]);
+				statusChanged = "status" in changes;
 				return appointment;
 			});
 			if (statusChanged && appointment.type === AppointmentType.TOURNAMENT) {
@@ -1262,18 +1158,12 @@ export const unpublishAppointment = createServerFn()
 					},
 					where: { id: data.id },
 				});
-				if (before.status !== appointment.status) {
-					await tx.transaction.create({
-						data: {
-							appointmentId: appointment.id,
-							changes: {
-								status: { new: appointment.status, old: before.status },
-							} as Prisma.InputJsonValue,
-							type: TransactionType.UPDATE,
-							userId: session.id,
-						},
-					});
-				}
+				await new AuditJournal(tx, "Appointment", session.id).updated(
+					appointment.id,
+					before,
+					appointment,
+					["status"],
+				);
 				return appointment;
 			});
 			return {
@@ -1298,7 +1188,7 @@ export const restoreAppointment = createServerFn()
 			// Re-verify the appointment is still deleted before acting, same as
 			// the bulk path — without this, calling restore twice on an
 			// already-active appointment would silently succeed again and write
-			// a second RESTORE Transaction audit row.
+			// a second RESTORE audit log entry.
 			const ids = await resolveSelectorIds({ ids: [data.id] }, { not: null });
 			if (ids.length === 0) {
 				throw new Error(m.appointments_appointment_not_found());
@@ -1306,7 +1196,7 @@ export const restoreAppointment = createServerFn()
 			const [appointment] = await setAppointmentsDeletedState(
 				ids,
 				null,
-				TransactionType.RESTORE,
+				"RESTORE",
 				session.id,
 			);
 			return {
