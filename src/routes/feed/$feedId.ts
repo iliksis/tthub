@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { labelsInclude } from "@/api/labels";
 import { parseFeedConfig } from "@/api/users";
 import { prismaClient } from "@/lib/db";
 import { type IcalAppointment, IcalGenerator } from "@/lib/ical";
+import { labelsInclude } from "@/lib/labels";
 import type { Prisma } from "@/lib/prisma/client";
 
 export const Route = createFileRoute("/feed/$feedId")({

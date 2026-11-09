@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { labelsInclude } from "@/api/labels";
 import { prismaClient } from "@/lib/db";
+import { labelsInclude } from "@/lib/labels";
 import type {
 	Appointment,
 	AppointmentLabel,
