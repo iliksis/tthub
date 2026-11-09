@@ -142,6 +142,12 @@ export abstract class ApiBase {
 		return id;
 	}
 
+	// For role-dependent output inside a method (e.g. which fields an actor may
+	// see); access to the method itself belongs in the policy table.
+	protected isAtLeast(role: Exclude<Policy, "PUBLIC">) {
+		return isAllowed(role, this.ctx.user);
+	}
+
 	// Row-level rule: the acting user themselves, or at least `role`.
 	protected requireSelfOrRole(userId: string, role: Exclude<Policy, "PUBLIC">) {
 		const user = this.ctx.user;
