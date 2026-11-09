@@ -66,7 +66,7 @@ export const Route = createFileRoute("/_authed/appts/journal")({
 		return { ...data, skip };
 	},
 	head: () => ({
-		meta: [{ title: m.appointments_transaction_journal() }],
+		meta: [{ title: m.common_journal() }],
 	}),
 });
 
@@ -276,9 +276,7 @@ function RouteComponent() {
 	return (
 		<div className="flex flex-col gap-4">
 			<div>
-				<h1 className="font-bold text-lg">
-					{m.appointments_transaction_journal()}
-				</h1>
+				<h1 className="font-bold text-lg">{m.common_journal()}</h1>
 				<p className="text-muted-foreground text-sm">
 					{m.appointments_n_of_n_events({
 						param1: matchedTotal.toString(),
