@@ -13,11 +13,8 @@ export function Login() {
 
 	const loginMutation = useMutation({
 		fn: loginFn,
-		onSuccess: async (ctx) => {
-			if (!ctx.data?.error) {
-				await router.invalidate();
-				return;
-			}
+		onSuccess: async () => {
+			await router.invalidate();
 		},
 	});
 
@@ -84,9 +81,11 @@ export function Login() {
 							);
 						}}
 					</form.Field>
-					{loginMutation.data?.error && (
+					{loginMutation.status === "error" && (
 						<Alert variant="destructive">
-							<AlertDescription>{loginMutation.data.message}</AlertDescription>
+							<AlertDescription>
+								{loginMutation.error?.message}
+							</AlertDescription>
 						</Alert>
 					)}
 					<form.Subscribe

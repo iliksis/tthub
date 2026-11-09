@@ -1,5 +1,6 @@
 import type { ApiBase, ApiContext } from "@/api/kernel.server";
 import type { SessionUser } from "@/lib/session";
+import { createFakeSession } from "./fakeSession";
 import { createTestDb } from "./testDb";
 
 type Role = SessionUser["role"];
@@ -27,13 +28,16 @@ export async function createTestApi<A extends ApiBase>(
 			userName: row.userName,
 		};
 	}
+	const session = createFakeSession(user);
 	return {
-		api: new Api({ db, user }),
+		api: new Api({ db, session: session.store, user }),
 		cleanup: async () => {
 			await db.$disconnect();
 			testDb.close();
 		},
 		db,
+		// What the class stored in (or cleared from) the session cookie.
+		session: session.state,
 		user,
 	};
 }

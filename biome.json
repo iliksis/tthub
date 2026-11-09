@@ -36,7 +36,12 @@
 	},
 	"overrides": [
 		{
-			"includes": ["src/api/labels.ts"],
+			"includes": [
+				"src/api/invitations.ts",
+				"src/api/labels.ts",
+				"src/api/passwordReset.ts",
+				"src/api/users.ts"
+			],
 			"linter": {
 				"rules": {
 					"style": {

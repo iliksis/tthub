@@ -11,18 +11,56 @@ import { m } from "@/paraglide/messages";
 // ---- context ---------------------------------------------------------------
 export type Tx = Prisma.TransactionClient;
 
+// The request's session cookie, as a port so classes (login, invitation
+// accept, password reset) can sign a user in or out without touching the
+// framework, and tests can record what was stored.
+export type SessionStore = {
+	// Replaces the session's contents with exactly these fields.
+	update: (user: SessionUser) => Promise<void>;
+	clear: () => Promise<void>;
+};
+
 export type ApiContext = {
 	db: PrismaClient;
 	user: SessionUser | null;
+	session: SessionStore;
 };
 
 export const buildContext = async (): Promise<ApiContext> => {
-	const { data } = await useAppSession();
+	const session = await useAppSession();
 	return {
 		db: prismaClient,
-		user: data.id ? (data as SessionUser) : null,
+		session: {
+			clear: async () => {
+				await session.clear();
+			},
+			// h3 merges updates into the existing data; drop every old key first
+			// so only SessionUser fields (never a credential) are stored.
+			update: async ({ id, name, role, userName }) => {
+				await session.update((data) => {
+					for (const key of Object.keys(data)) {
+						delete (data as Record<string, unknown>)[key];
+					}
+					return { id, name, role, userName };
+				});
+			},
+		},
+		user: session.data.id ? (session.data as SessionUser) : null,
 	};
 };
+
+// For callers outside a server function that must not touch the session
+// cookie at all (the iCal feed route: calendar clients send no cookie, and
+// reading the session would set one).
+const noSession: SessionStore = {
+	clear: () => Promise.reject(new Error("No session in this context")),
+	update: () => Promise.reject(new Error("No session in this context")),
+};
+export const anonymousContext = (): ApiContext => ({
+	db: prismaClient,
+	session: noSession,
+	user: null,
+});
 
 // ---- errors ----------------------------------------------------------------
 // Expected failures. Their message is user-facing and crosses the wire as-is;
@@ -94,6 +132,21 @@ export abstract class ApiBase {
 
 	protected get actorId(): string | null {
 		return this.ctx.user?.id ?? null;
+	}
+
+	// For AUTHENTICATED (or stricter) methods, where the policy already
+	// guarantees an actor; this only narrows the type.
+	protected get requiredActorId(): string {
+		const id = this.actorId;
+		if (!id) throw new Error("Policy-protected method called without an actor");
+		return id;
+	}
+
+	// Row-level rule: the acting user themselves, or at least `role`.
+	protected requireSelfOrRole(userId: string, role: Exclude<Policy, "PUBLIC">) {
+		const user = this.ctx.user;
+		if (user?.id === userId) return;
+		if (!isAllowed(role, user)) throw new ForbiddenError();
 	}
 
 	protected tx<T>(fn: (tx: Tx) => Promise<T>) {
