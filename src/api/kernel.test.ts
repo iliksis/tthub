@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { PrismaClient } from "@/lib/prisma/client";
 import type { SessionUser } from "@/lib/session";
 import { m } from "@/paraglide/messages";
+import { createFakeSession } from "@/test/fakeSession";
 import {
 	ApiBase,
 	type ApiContext,
@@ -58,6 +59,7 @@ const user = (role: SessionUser["role"]): SessionUser => ({
 });
 const ctx = (u: SessionUser | null): ApiContext => ({
 	db: {} as PrismaClient,
+	session: createFakeSession(u).store,
 	user: u,
 });
 
@@ -117,6 +119,26 @@ describe("ApiBase policy enforcement", () => {
 			}
 		}
 		await expect(new PublicProbe(ctx(null)).whoAmI()).resolves.toBeNull();
+	});
+
+	it("requireSelfOrRole lets the user themselves or the role through", async () => {
+		class OwnRecord extends ApiBase {
+			static readonly policy = {
+				touch: "AUTHENTICATED",
+			} as const satisfies Policies<OwnRecord>;
+			async touch(userId: string) {
+				this.requireSelfOrRole(userId, "ADMIN");
+				return "ok";
+			}
+		}
+		const asUser = new OwnRecord(ctx(user("USER")));
+		await expect(asUser.touch("u-USER")).resolves.toBe("ok");
+		await expect(asUser.touch("someone-else")).rejects.toBeInstanceOf(
+			ForbiddenError,
+		);
+		await expect(
+			new OwnRecord(ctx(user("ADMIN"))).touch("someone-else"),
+		).resolves.toBe("ok");
 	});
 
 	it("refuses to construct a class without a static policy table", () => {

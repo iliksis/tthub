@@ -1,32 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { AuthApi } from "@/api/auth.server";
+import { run } from "@/api/kernel.server";
 import { Login } from "@/components/Login";
-import { hashPassword, prismaClient } from "@/lib/db";
-import { useAppSession } from "@/lib/session";
 import { m } from "@/paraglide/messages";
 
 export const loginFn = createServerFn({ method: "POST" })
 	.validator((d: { userName: string; password: string }) => d)
-	.handler(async ({ data }) => {
-		const user = await prismaClient.user.findUnique({
-			where: {
-				userName: data.userName,
-			},
-		});
-
-		const session = await useAppSession();
-
-		const hashedPassword = await hashPassword(data.password);
-
-		if (!user || user.password !== hashedPassword) {
-			session.clear();
-			return {
-				error: true,
-				message: m.auth_incorrect_user_name_or_password(),
-			};
-		}
-		await session.update(user);
-	});
+	.handler(({ data }) =>
+		run(AuthApi, m.auth_logged_in, (api) =>
+			api.login(data.userName, data.password),
+		),
+	);
 
 export const Route = createFileRoute("/_authed")({
 	beforeLoad: ({ context }) => {

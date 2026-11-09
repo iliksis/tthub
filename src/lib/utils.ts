@@ -17,7 +17,9 @@ export const isInformationalAppointmentType = (type: AppointmentType) =>
 	type === AppointmentType.HOLIDAY || type === AppointmentType.TEAM_MATCH;
 
 const expirationDays = 3;
-export const isInvitationExpired = (invitation: UserInvitation) => {
+export const isInvitationExpired = (
+	invitation: Pick<UserInvitation, "createdAt">,
+) => {
 	const expirationDate = new Date(invitation.createdAt);
 	expirationDate.setDate(expirationDate.getDate() + expirationDays);
 	return expirationDate < new Date();

@@ -38,13 +38,26 @@ const apiClassFiles = fs
 			!f.endsWith(".domain.server.ts"),
 	);
 
-// Value imports (and value re-exports) a handler file may use. Type-only
-// imports/exports are free: they are erased and carry no logic.
+// Handlers whose export names predate the split of their logic into another
+// aggregate's class (issue #106). Keep this list explicit and short.
+const crossAggregateDelegation: Record<string, string[]> = {
+	"src/api/users.ts": [
+		"./feed.server",
+		"./invitations.server",
+		"./passwordReset.server",
+	],
+};
+
+// Value imports (and value re-exports) a handler file may use: the
+// framework, messages, the kernel, its own API class and any listed
+// cross-aggregate class. Type-only imports/exports are free: they are erased
+// and carry no logic.
 const allowedValueSources = (file: string) => [
 	"@tanstack/react-start",
 	"@/paraglide/messages",
 	"./kernel.server",
 	`./${path.basename(file, ".ts")}.server`,
+	...(crossAggregateDelegation[file] ?? []),
 ];
 
 const valueModuleSources = (source: string) => [
@@ -98,7 +111,7 @@ describe("migrated handler files", () => {
 		expect(fs.existsSync(server)).toBe(true);
 	});
 
-	it.each(files)("%s only imports the framework and its API class", (file) => {
+	it.each(files)("%s only imports the framework and API classes", (file) => {
 		const sources = valueModuleSources(read(path.join(root, file)));
 		const allowed = allowedValueSources(file);
 		expect(sources.filter((s) => !allowed.includes(s))).toEqual([]);

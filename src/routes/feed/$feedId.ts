@@ -1,111 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { parseFeedConfig } from "@/api/users";
-import { prismaClient } from "@/lib/db";
-import { type IcalAppointment, IcalGenerator } from "@/lib/ical";
-import { labelsInclude } from "@/lib/labels";
-import type { Prisma } from "@/lib/prisma/client";
+import { FeedApi } from "@/api/feed.server";
+import { anonymousContext, NotFoundError } from "@/api/kernel.server";
+import { IcalGenerator } from "@/lib/ical";
 
+// HTTP and iCal formatting only; lookup and filtering live in FeedApi. The
+// context is anonymous on purpose: calendar clients send no session cookie,
+// and reading the session would set one on the response.
 export const Route = createFileRoute("/feed/$feedId")({
 	server: {
 		handlers: {
 			GET: async ({ params, request }) => {
-				const { feedId } = params;
-
+				let appointments: Awaited<ReturnType<FeedApi["forFeed"]>>;
 				try {
-					// Find user by feedId
-					const user = await prismaClient.user.findUnique({
-						select: {
-							feedConfig: true,
-							id: true,
-							responses: {
-								include: {
-									appointment: true,
-								},
-							},
-						},
-						where: { feedId },
-					});
-
-					if (!user) {
-						return new Response("Feed not found", { status: 404 });
-					}
-
-					// Parse feed configuration from database
-					const config = parseFeedConfig(user.feedConfig);
-
-					// Build query for appointments
-					// Deliberately not season-scoped: a personal calendar feed is
-					// meant to span season boundaries, so appointments from every
-					// season are eligible here.
-					const where: Prisma.AppointmentWhereInput = {
-						deletedAt: null,
-					};
-
-					// Filter by appointment types if configured
-					where.type = { in: config.includeAppointmentTypes ?? [] };
-
-					// Filter by draft status if configured
-					if (config.includeDraftStatus === false) {
-						where.OR = [{ status: "PUBLISHED" }, { status: null }];
-					}
-
-					// Exclude-by-label only (no include-by-label): an appointment
-					// carrying any excluded label is omitted entirely, regardless of
-					// its other labels.
-					if (config.excludeLabelIds?.length) {
-						where.labels = {
-							none: { labelId: { in: config.excludeLabelIds } },
-						};
-					}
-
-					// Get appointments based on response types
-					let appointments: IcalAppointment[] = [];
-
-					if (
-						config.includeResponseTypes &&
-						config.includeResponseTypes.length > 0
-					) {
-						// Filter by user's responses
-						const userResponses = user.responses.filter((r) =>
-							config.includeResponseTypes?.includes(r.responseType),
-						);
-
-						const appointmentIds = userResponses.map((r) => r.appointmentId);
-
-						if (appointmentIds.length > 0) {
-							appointments = await prismaClient.appointment.findMany({
-								include: { labels: labelsInclude },
-								orderBy: { startDate: "asc" },
-								where: {
-									...where,
-									id: { in: appointmentIds },
-								},
-							});
-						}
-					} else {
-						// No response filter, get all appointments matching other criteria
-						appointments = await prismaClient.appointment.findMany({
-							include: { labels: labelsInclude },
-							orderBy: { startDate: "asc" },
-							where,
-						});
-					}
-
-					// Generate iCal feed
-					const icalGenerator = new IcalGenerator(new URL(request.url).origin);
-					const icalContent = icalGenerator.createIcalString(...appointments);
-
-					return new Response(icalContent, {
-						headers: {
-							"Content-Disposition": 'attachment; filename="tthub-feed.ics"',
-							"Content-Type": "text/calendar; charset=utf-8",
-						},
-						status: 200,
-					});
+					appointments = await new FeedApi(anonymousContext()).forFeed(
+						params.feedId,
+					);
 				} catch (error) {
-					console.error("Feed generation error:", error);
-					return new Response("Internal server error", { status: 500 });
+					// FeedApi already logged anything unexpected.
+					return error instanceof NotFoundError
+						? new Response("Feed not found", { status: 404 })
+						: new Response("Internal server error", { status: 500 });
 				}
+
+				const icalGenerator = new IcalGenerator(new URL(request.url).origin);
+				return new Response(icalGenerator.createIcalString(...appointments), {
+					headers: {
+						"Content-Disposition": 'attachment; filename="tthub-feed.ics"',
+						"Content-Type": "text/calendar; charset=utf-8",
+					},
+					status: 200,
+				});
 			},
 		},
 	},

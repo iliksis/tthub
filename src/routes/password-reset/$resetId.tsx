@@ -11,12 +11,10 @@ import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/password-reset/$resetId")({
 	beforeLoad: async ({ params }) => {
-		const passwordReset = await getPasswordReset({
+		// Throws (with a user-facing message) for an unknown token.
+		const { data: passwordReset } = await getPasswordReset({
 			data: { id: params.resetId },
 		});
-		if (passwordReset === null) {
-			throw new Error(m.common_password_reset_request_not_found());
-		}
 		return { passwordReset };
 	},
 	component: RouteComponent,
