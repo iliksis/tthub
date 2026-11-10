@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import * as React from "react";
 import { toast } from "sonner";
-import { getImportProgress, runImport } from "@/api/imports";
+import { getImportProgress, type ImportJob, runImport } from "@/api/imports";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -27,14 +27,6 @@ type ImportDialogProps = {
 	onClose: () => void;
 };
 
-type ImportProgress = {
-	status: "running" | "done" | "error";
-	imported: number;
-	updated: number;
-	skipped: number;
-	message?: string;
-};
-
 const IndeterminateProgressBar = () => (
 	<div className="h-2 overflow-hidden rounded-full bg-muted">
 		<div className="h-full w-1/3 animate-[indeterminate-progress_1.2s_ease-in-out_infinite] rounded-full bg-primary" />
@@ -51,7 +43,7 @@ const toDefaultValues = (configFields: ImporterConfigField[]) =>
 
 export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 	const [jobId, setJobId] = React.useState<string | null>(null);
-	const [progress, setProgress] = React.useState<ImportProgress | null>(null);
+	const [progress, setProgress] = React.useState<ImportJob | null>(null);
 
 	const importMutation = useMutation({
 		fn: runImport,

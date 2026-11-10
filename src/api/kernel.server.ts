@@ -81,6 +81,20 @@ export class ForbiddenError extends ApiError {
 export class NotFoundError extends ApiError {}
 export class ConflictError extends ApiError {}
 
+// The one place unexpected errors are logged and replaced: ApiErrors pass
+// through, anything else is logged once with its origin and actor and becomes
+// the generic text. Exported for work that outlives the request (background
+// import jobs), where ApiBase's wrapper can no longer catch.
+export const toUserFacingError = (
+	e: unknown,
+	origin: string,
+	actorId: string | null,
+): Error => {
+	if (e instanceof ApiError) return e;
+	console.error(`[${origin}]`, actorId, e);
+	return new Error(m.common_something_went_wrong());
+};
+
 // ---- policy ----------------------------------------------------------------
 export type Policy = "PUBLIC" | "AUTHENTICATED" | "EDITOR" | "ADMIN";
 
@@ -128,9 +142,7 @@ export abstract class ApiBase {
 					try {
 						return await value.apply(target, args);
 					} catch (e) {
-						if (e instanceof ApiError) throw e;
-						console.error(`[${name}.${prop}]`, ctx.user?.id ?? null, e);
-						throw new Error(m.common_something_went_wrong());
+						throw toUserFacingError(e, `${name}.${prop}`, ctx.user?.id ?? null);
 					}
 				};
 			},
