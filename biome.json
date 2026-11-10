@@ -38,6 +38,7 @@
 		{
 			"includes": [
 				"src/api/auditLog.ts",
+				"src/api/imports.ts",
 				"src/api/invitations.ts",
 				"src/api/labels.ts",
 				"src/api/notifications.ts",
