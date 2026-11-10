@@ -6,9 +6,9 @@ import {
 import { PencilIcon, PlusIcon, RotateCcwIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { z } from "zod";
-import { getTransactionsPage } from "@/api/appointments";
+import { type AuditLogPageEntry, getAuditLogPage } from "@/api/auditLog";
+import { AuditEntryDetail } from "@/components/appointments/AuditEntryDetail";
 import { LoadMoreFooter } from "@/components/appointments/LoadMoreFooter";
-import { TransactionDetail } from "@/components/appointments/TransactionDetail";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,13 +23,9 @@ import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
-import type { Appointment, Transaction, User } from "@/lib/prisma/client";
-import { TransactionType } from "@/lib/prisma/enums";
-import {
-	getChangedFields,
-	type TransactionChanges,
-	transactionActionBadge,
-} from "@/lib/transactionLabels";
+import { auditActionBadge, getChangedFields } from "@/lib/auditLabels";
+import type { AuditChanges } from "@/lib/auditLog";
+import { AuditAction } from "@/lib/prisma/enums";
 import {
 	cn,
 	createColorForUserId,
@@ -53,49 +49,45 @@ export const Route = createFileRoute("/_authed/appts/journal")({
 	loaderDeps: ({ search }) => ({ ...search }),
 	loader: async ({ deps }) => {
 		const skip = deps.skip ?? 0;
-		const response = await getTransactionsPage({
+		// The URL keeps `type` for the action filter so existing links work.
+		const response = await getAuditLogPage({
 			data: {
+				action: deps.type,
 				query: deps.query,
 				skip,
 				take: BATCH_SIZE,
-				type: deps.type,
 			},
 		});
 		const data = response.data ?? {
+			entries: [],
 			grandTotal: 0,
 			matchedTotal: 0,
-			transactions: [],
 		};
 		return { ...data, skip };
 	},
 	head: () => ({
-		meta: [{ title: m.appointments_transaction_journal() }],
+		meta: [{ title: m.common_journal() }],
 	}),
 });
 
-type TransactionWithRelations = Transaction & {
-	user: User | null;
-	appointment: Appointment;
-};
-
-const typeFilters: { value: TransactionType | "ALL"; label: string }[] = [
+const typeFilters: { value: AuditAction | "ALL"; label: string }[] = [
 	{ label: m.appointments_all_actions(), value: "ALL" },
-	{ label: m.common_created(), value: TransactionType.CREATE },
-	{ label: m.appointments_changed(), value: TransactionType.UPDATE },
-	{ label: m.appointments_deleted(), value: TransactionType.DELETE },
-	{ label: m.appointments_restored(), value: TransactionType.RESTORE },
+	{ label: m.common_created(), value: AuditAction.CREATE },
+	{ label: m.appointments_changed(), value: AuditAction.UPDATE },
+	{ label: m.appointments_deleted(), value: AuditAction.DELETE },
+	{ label: m.appointments_restored(), value: AuditAction.RESTORE },
 ];
 
 // Icon + past-participle shown inline in each row's sentence — distinct from
-// transactionActionBadge's capitalized labels, which read correctly only as
+// auditActionBadge's capitalized labels, which read correctly only as
 // standalone badges, not mid-sentence.
-const actionIcon: Record<TransactionType, typeof PlusIcon> = {
+const actionIcon: Record<AuditAction, typeof PlusIcon> = {
 	CREATE: PlusIcon,
 	DELETE: Trash2Icon,
 	RESTORE: RotateCcwIcon,
 	UPDATE: PencilIcon,
 };
-const actionParticiple: Record<TransactionType, string> = {
+const actionParticiple: Record<AuditAction, string> = {
 	CREATE: m.appointments_created(),
 	DELETE: m.appointments_deleted_2(),
 	RESTORE: m.appointments_restored_2(),
@@ -114,8 +106,8 @@ const dateHeaderFmt = (d: Date | string) =>
 		weekday: "long",
 	});
 
-function groupByDay(items: TransactionWithRelations[]) {
-	const groups = new Map<string, TransactionWithRelations[]>();
+function groupByDay(items: AuditLogPageEntry[]) {
+	const groups = new Map<string, AuditLogPageEntry[]>();
 	for (const item of items) {
 		const key = new Date(item.createdAt).toDateString();
 		const list = groups.get(key) ?? [];
@@ -125,23 +117,26 @@ function groupByDay(items: TransactionWithRelations[]) {
 	return [...groups.entries()];
 }
 
-type TransactionRowProps = {
-	item: TransactionWithRelations;
+type AuditEntryRowProps = {
+	item: AuditLogPageEntry;
 	isSelected: boolean;
 	isNew: boolean;
 	onClick: () => void;
 };
 
-function TransactionRow({
+function AuditEntryRow({
 	item,
 	isSelected,
 	isNew,
 	onClick,
-}: TransactionRowProps) {
-	const badge = transactionActionBadge(item.type);
-	const Icon = actionIcon[item.type];
+}: AuditEntryRowProps) {
+	const badge = auditActionBadge(item.action);
+	const Icon = actionIcon[item.action];
 	const textClass = actionTextClass[badge.variant];
-	const fields = getChangedFields(item.changes as TransactionChanges | null);
+	const fields = getChangedFields(
+		item.entityType,
+		item.changes as AuditChanges | null,
+	);
 	const userColor = item.user ? createColorForUserId(item.user.id) : null;
 
 	return (
@@ -183,8 +178,8 @@ function TransactionRow({
 						{item.user?.name ?? m.appointments_deleted_user()}
 					</span>{" "}
 					{m.appointments_has()}{" "}
-					<span className="font-medium">{item.appointment.title}</span>{" "}
-					<span className={textClass}>{actionParticiple[item.type]}</span>
+					<span className="font-medium">{item.entity.name}</span>{" "}
+					<span className={textClass}>{actionParticiple[item.action]}</span>
 					{fields.length > 0 && (
 						<span className="text-muted-foreground">
 							{" "}
@@ -202,7 +197,7 @@ function TransactionRow({
 
 function RouteComponent() {
 	const {
-		transactions: batch,
+		entries: batch,
 		matchedTotal,
 		grandTotal,
 		skip,
@@ -251,7 +246,7 @@ function RouteComponent() {
 		return () => clearTimeout(timeout);
 	}, [queryInput]);
 
-	const onTypeChange = (value: TransactionType | "ALL") => {
+	const onTypeChange = (value: AuditAction | "ALL") => {
 		router.navigate({
 			replace: true,
 			search: {
@@ -281,9 +276,7 @@ function RouteComponent() {
 	return (
 		<div className="flex flex-col gap-4">
 			<div>
-				<h1 className="font-bold text-lg">
-					{m.appointments_transaction_journal()}
-				</h1>
+				<h1 className="font-bold text-lg">{m.common_journal()}</h1>
 				<p className="text-muted-foreground text-sm">
 					{m.appointments_n_of_n_events({
 						param1: matchedTotal.toString(),
@@ -301,7 +294,7 @@ function RouteComponent() {
 				/>
 				<Select
 					value={search.type ?? "ALL"}
-					onValueChange={(v) => onTypeChange(v as TransactionType | "ALL")}
+					onValueChange={(v) => onTypeChange(v as AuditAction | "ALL")}
 				>
 					<SelectTrigger size="sm" className="w-40">
 						<SelectValue />
@@ -330,7 +323,7 @@ function RouteComponent() {
 								</div>
 								<div className="relative ml-3.5 flex flex-col border-border/60 border-l pb-2">
 									{dayItems.map((item) => (
-										<TransactionRow
+										<AuditEntryRow
 											key={item.id}
 											item={item}
 											isSelected={item.id === selectedId}
@@ -349,7 +342,7 @@ function RouteComponent() {
 				<div className="hidden lg:sticky lg:top-6 lg:block lg:h-fit">
 					{selected ? (
 						<div className="rounded-lg bg-card p-4">
-							<TransactionDetail transaction={selected} />
+							<AuditEntryDetail entry={selected} />
 						</div>
 					) : (
 						<div className="rounded-lg border border-border/60 border-dashed p-4 text-center text-muted-foreground text-sm">
@@ -395,7 +388,7 @@ function RouteComponent() {
 					</div>
 					{selected && (
 						<div className="px-4 pb-6">
-							<TransactionDetail transaction={selected} />
+							<AuditEntryDetail entry={selected} />
 						</div>
 					)}
 				</SheetContent>

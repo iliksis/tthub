@@ -157,6 +157,31 @@ describe("ApiBase policy enforcement", () => {
 		await expect(canSee(user("ADMIN"))).resolves.toBe(true);
 	});
 
+	it("journal(tx) writes audit entries as the acting user inside the transaction", async () => {
+		class Journalled extends ApiBase {
+			static readonly policy = {
+				create: "EDITOR",
+			} as const satisfies Policies<Journalled>;
+			async create() {
+				return this.tx((tx) => this.journal(tx, "Appointment").created("a1"));
+			}
+		}
+		const create = vi.fn();
+		const tx = { auditLog: { create } };
+		const db = {
+			$transaction: (fn: (t: typeof tx) => unknown) => fn(tx),
+		} as unknown as PrismaClient;
+		await new Journalled({ ...ctx(user("EDITOR")), db }).create();
+		expect(create).toHaveBeenCalledWith({
+			data: {
+				action: "CREATE",
+				entityId: "a1",
+				entityType: "Appointment",
+				userId: "u-EDITOR",
+			},
+		});
+	});
+
 	it("refuses to construct a class without a static policy table", () => {
 		class NoPolicy extends ApiBase {}
 		expect(() => new NoPolicy(ctx(null))).toThrow(/static policy/);

@@ -37,6 +37,7 @@
 	"overrides": [
 		{
 			"includes": [
+				"src/api/auditLog.ts",
 				"src/api/invitations.ts",
 				"src/api/labels.ts",
 				"src/api/passwordReset.ts",

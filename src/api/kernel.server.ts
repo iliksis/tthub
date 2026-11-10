@@ -2,11 +2,13 @@
 // enforcement, the single place unexpected errors are logged and translated,
 // and the `tx()` helper. Server functions in `src/api/<aggregate>.ts` stay
 // one-liners that hand a context-built class to `run`.
+import type { AuditEntityType } from "@/lib/auditLog";
 import { prismaClient } from "@/lib/db";
 import type { Prisma, PrismaClient } from "@/lib/prisma/client";
 import { type SessionUser, useAppSession } from "@/lib/session";
 import { compareRoles } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
+import { AuditJournal } from "./auditLog.domain.server";
 
 // ---- context ---------------------------------------------------------------
 export type Tx = Prisma.TransactionClient;
@@ -157,6 +159,12 @@ export abstract class ApiBase {
 
 	protected tx<T>(fn: (tx: Tx) => Promise<T>) {
 		return this.ctx.db.$transaction(fn);
+	}
+
+	// The audit journal for one entity type, writing inside `tx` as the acting
+	// user (null for session-less callers). See docs/adr/0005.
+	protected journal(tx: Tx, entityType: AuditEntityType) {
+		return new AuditJournal(tx, entityType, this.actorId);
 	}
 }
 
