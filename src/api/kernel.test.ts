@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { PrismaClient } from "@/lib/prisma/client";
 import type { SessionUser } from "@/lib/session";
 import { m } from "@/paraglide/messages";
+import { createFakeNotifier } from "@/test/fakeNotifier";
 import { createFakeSession } from "@/test/fakeSession";
 import {
 	ApiBase,
@@ -59,6 +60,7 @@ const user = (role: SessionUser["role"]): SessionUser => ({
 });
 const ctx = (u: SessionUser | null): ApiContext => ({
 	db: {} as PrismaClient,
+	notifier: createFakeNotifier().notifier,
 	session: createFakeSession(u).store,
 	user: u,
 });

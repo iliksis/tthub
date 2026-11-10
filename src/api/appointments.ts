@@ -18,7 +18,6 @@ import {
 	type ResponseType,
 } from "@/lib/prisma/enums";
 import { requireEditor, useAppSession, useIsRole } from "@/lib/session";
-import { formatTanstackRouterPath } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import {
 	type AuditEntry,
@@ -26,7 +25,7 @@ import {
 	auditEntriesFor,
 	type SoftDeleteAction,
 } from "./auditLog.domain.server";
-import { sendNotification } from "./notifications";
+import { notifier } from "./notifier.server";
 
 type ICreateAppointment =
 	| {
@@ -83,15 +82,7 @@ export const createAppointment = createServerFn()
 				appointment.type === AppointmentType.TOURNAMENT &&
 				appointment.status === AppointmentStatus.PUBLISHED
 			) {
-				await sendNotification({
-					appointmentId: appointment.id,
-					body: appointment.title,
-					scope: "new",
-					title: m.appointments_new_appointment(),
-					url: formatTanstackRouterPath("/appts/$apptId", {
-						apptId: appointment.id,
-					}),
-				});
+				notifier.published(appointment, session.id);
 			}
 
 			return {
@@ -450,43 +441,6 @@ export const getBulkAppointmentsPage = createServerFn()
 		}
 	});
 
-// Click-to-edit saves one field at a time, so a burst of edits to the same
-// appointment would otherwise fire one notification per field. Debounce so
-// only one notification goes out per appointment, ~5s after the last edit.
-const pendingUpdateNotifications = new Map<
-	string,
-	ReturnType<typeof setTimeout>
->();
-const UPDATE_NOTIFICATION_DEBOUNCE_MS = 5000;
-
-function scheduleAppointmentUpdatedNotification(appointment: Appointment) {
-	const existing = pendingUpdateNotifications.get(appointment.id);
-	if (existing) clearTimeout(existing);
-	pendingUpdateNotifications.set(
-		appointment.id,
-		setTimeout(() => {
-			pendingUpdateNotifications.delete(appointment.id);
-			void sendNotification({
-				appointmentId: appointment.id,
-				body: appointment.title,
-				scope: "updated",
-				title: m.appointments_appointment_updated(),
-				url: formatTanstackRouterPath("/appts/$apptId", {
-					apptId: appointment.id,
-				}),
-			});
-		}, UPDATE_NOTIFICATION_DEBOUNCE_MS),
-	);
-}
-
-function cancelAppointmentUpdatedNotification(appointmentId: string) {
-	const existing = pendingUpdateNotifications.get(appointmentId);
-	if (existing) {
-		clearTimeout(existing);
-		pendingUpdateNotifications.delete(appointmentId);
-	}
-}
-
 export const updateAppointment = createServerFn()
 	.validator(
 		(d: {
@@ -573,7 +527,7 @@ export const updateAppointment = createServerFn()
 			});
 
 			if (appointment.type === AppointmentType.TOURNAMENT) {
-				scheduleAppointmentUpdatedNotification(appointment);
+				notifier.updated(appointment, session.id);
 			}
 
 			return {
@@ -608,7 +562,7 @@ export const deleteAppointment = createServerFn()
 				new Date(),
 				"DELETE",
 				session.id,
-				(appointment) => cancelAppointmentUpdatedNotification(appointment.id),
+				(appointment) => notifier.cancelUpdated(appointment.id),
 			);
 			return {
 				data: appointment,
@@ -760,7 +714,7 @@ export const bulkDeleteAppointments = createServerFn()
 				new Date(),
 				"DELETE",
 				session.id,
-				(appointment) => cancelAppointmentUpdatedNotification(appointment.id),
+				(appointment) => notifier.cancelUpdated(appointment.id),
 			);
 			return {
 				data: appointments,
@@ -1120,15 +1074,7 @@ export const publishAppointment = createServerFn()
 				return appointment;
 			});
 			if (statusChanged && appointment.type === AppointmentType.TOURNAMENT) {
-				await sendNotification({
-					appointmentId: appointment.id,
-					body: appointment.title,
-					scope: "new",
-					title: m.appointments_new_appointment(),
-					url: formatTanstackRouterPath("/appts/$apptId", {
-						apptId: appointment.id,
-					}),
-				});
+				notifier.published(appointment, session.id);
 			}
 			return {
 				data: appointment,

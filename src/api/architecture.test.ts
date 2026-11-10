@@ -29,12 +29,15 @@ const migratedHandlerFiles = (): string[] => {
 	return override.includes;
 };
 
+// `.server.ts` files that are not API classes (besides `.domain.server.ts`):
+// the kernel and the notifier collaborator injected through the context.
+const nonClassServerFiles = ["kernel.server.ts", "notifier.server.ts"];
 const apiClassFiles = fs
 	.readdirSync(apiDir)
 	.filter(
 		(f) =>
 			f.endsWith(".server.ts") &&
-			f !== "kernel.server.ts" &&
+			!nonClassServerFiles.includes(f) &&
 			!f.endsWith(".domain.server.ts"),
 	);
 

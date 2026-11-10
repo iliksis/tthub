@@ -9,6 +9,7 @@ import { type SessionUser, useAppSession } from "@/lib/session";
 import { compareRoles } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 import { AuditJournal } from "./auditLog.domain.server";
+import { type Notifier, notifier } from "./notifier.server";
 
 // ---- context ---------------------------------------------------------------
 export type Tx = Prisma.TransactionClient;
@@ -26,12 +27,15 @@ export type ApiContext = {
 	db: PrismaClient;
 	user: SessionUser | null;
 	session: SessionStore;
+	// Push notifications; call only after the transaction has committed.
+	notifier: Notifier;
 };
 
 export const buildContext = async (): Promise<ApiContext> => {
 	const session = await useAppSession();
 	return {
 		db: prismaClient,
+		notifier,
 		session: {
 			clear: async () => {
 				await session.clear();
@@ -60,6 +64,7 @@ const noSession: SessionStore = {
 };
 export const anonymousContext = (): ApiContext => ({
 	db: prismaClient,
+	notifier,
 	session: noSession,
 	user: null,
 });
