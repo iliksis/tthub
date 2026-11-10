@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import type { AuditChanges } from "@/lib/auditLog";
 import { prismaClient } from "@/lib/db";
 import { labelsInclude } from "@/lib/labels";
-import { redactPlayerFlags } from "@/lib/players";
 import type {
 	Appointment,
 	AppointmentLabel,
@@ -17,15 +16,24 @@ import {
 	AppointmentType,
 	type ResponseType,
 } from "@/lib/prisma/enums";
-import { requireEditor, useAppSession, useIsRole } from "@/lib/session";
+import { requireEditor } from "@/lib/session";
 import { m } from "@/paraglide/messages";
 import {
-	type AuditEntry,
-	AuditJournal,
-	auditEntriesFor,
-	type SoftDeleteAction,
-} from "./auditLog.domain.server";
+	type AppointmentListFilter,
+	AppointmentsApi,
+	type AppointmentsPageFilter,
+	type CalendarRange,
+} from "./appointments.server";
+import { AuditJournal, type SoftDeleteAction } from "./auditLog.domain.server";
+import { run } from "./kernel.server";
 import { notifier } from "./notifier.server";
+
+export type {
+	AppointmentDetail,
+	AppointmentListFilter,
+	AppointmentsPageFilter,
+	CalendarRange,
+} from "./appointments.server";
 
 type ICreateAppointment =
 	| {
@@ -95,23 +103,6 @@ export const createAppointment = createServerFn()
 		}
 	});
 
-const appointmentDetailInclude = {
-	labels: labelsInclude,
-	nextAppointment: true,
-	ownTeam: true,
-	placements: {
-		include: { player: true },
-	},
-	responses: {
-		include: { user: true },
-	},
-	season: true,
-} satisfies Prisma.AppointmentInclude;
-
-export type AppointmentDetail = Prisma.AppointmentGetPayload<{
-	include: typeof appointmentDetailInclude;
-}> & { auditLog: AuditEntry[] };
-
 export type AppointmentWithResponses = Appointment & {
 	responses: Response[];
 	ownTeam: Team | null;
@@ -120,240 +111,35 @@ export type AppointmentWithResponses = Appointment & {
 
 export const getAppointment = createServerFn()
 	.validator((d: { id: string }) => d)
-	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		if (session.data.id === null) {
-			throw new Error(m.common_unauthorized());
-		}
-		const canSeeFlags = await useIsRole("EDITOR");
-		try {
-			const appointment = await prismaClient.appointment.findUnique({
-				include: appointmentDetailInclude,
-				where: { id: data.id },
-			});
-			if (!appointment) {
-				throw new Error(m.appointments_appointment_not_found());
-			}
-			const placements = appointment.placements.map((pl) => ({
-				...pl,
-				player: redactPlayerFlags(pl.player, canSeeFlags),
-			}));
-			const auditLog = await auditEntriesFor(
-				prismaClient,
-				"Appointment",
-				appointment.id,
-			);
-			return {
-				data: {
-					...appointment,
-					auditLog,
-					placements,
-				} satisfies AppointmentDetail,
-				message: m.appointments_appointment_found(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(AppointmentsApi, m.appointments_appointment_found, (api) =>
+			api.get(data.id),
+		),
+	);
 
 export const searchAppointments = createServerFn()
 	.validator((d: { query?: string }) => d)
-	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		if (session.data.id === null) {
-			throw new Error(m.common_unauthorized());
-		}
-		try {
-			const appointments = await prismaClient.appointment.findMany({
-				include: {
-					labels: labelsInclude,
-					placements: {
-						distinct: "playerId",
-					},
-				},
-				orderBy: { startDate: "desc" },
-				take: 10,
-				where: {
-					deletedAt: null,
-					NOT: {
-						type: AppointmentType.HOLIDAY,
-					},
-					OR: [
-						{
-							title: { contains: data.query ?? "" },
-						},
-						{
-							location: { contains: data.query ?? "" },
-						},
-					],
-				},
-			});
-			return {
-				data: appointments,
-				message: m.appointments_appointments_found(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(AppointmentsApi, m.appointments_appointments_found, (api) =>
+			api.search(data.query),
+		),
+	);
 
 export const getAppointments = createServerFn()
-	.validator(
-		(d: {
-			title?: string;
-			location?: string;
-			minDate?: Date;
-			withDeleted?: boolean;
-			seasonId?: string;
-			orderBy?:
-				| Prisma.AppointmentOrderByWithRelationInput
-				| Prisma.AppointmentOrderByWithRelationInput[];
-		}) => d,
-	)
-	.handler(async ({ data }) => {
-		try {
-			const appointments = await prismaClient.appointment.findMany({
-				include: { ownTeam: true, responses: true },
-				orderBy: data.orderBy,
-				where: {
-					deletedAt: data.withDeleted ? undefined : null,
-					location: {
-						contains: data.location,
-					},
-					OR: [
-						{
-							title: { contains: data.title ?? "" },
-							type: AppointmentType.TOURNAMENT,
-						},
-					],
-					seasonId: data.seasonId,
-					startDate: {
-						gt: data.minDate,
-					},
-				},
-			});
-			return {
-				data: appointments,
-				message: m.appointments_appointments_found(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.validator((d: AppointmentListFilter) => d)
+	.handler(({ data }) =>
+		run(AppointmentsApi, m.appointments_appointments_found, (api) =>
+			api.list(data),
+		),
+	);
 
 export const getAppointmentsPage = createServerFn()
-	.validator(
-		(d: {
-			query?: string;
-			typeGroup?: "TOURNAMENT" | "TEAM_MATCH";
-			responses?: (ResponseType | "NONE")[];
-			teamIds?: string[];
-			seasonId?: string;
-			sortDir?: "asc" | "desc";
-			skip: number;
-			take: number;
-		}) => d,
-	)
-	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		if (!session.data.id) {
-			throw new Error(m.common_unauthorized());
-		}
-		const userId = session.data.id;
-
-		try {
-			const responseTypes = (data.responses ?? []).filter(
-				(r): r is ResponseType => r !== "NONE",
-			);
-			const wantsNoResponse = (data.responses ?? []).includes("NONE");
-			// "no response" and specific response types can't both be expressed
-			// through the `responses` relation filter at once (one is `none`,
-			// the other `some`), so that combination goes into its own `OR`
-			// clause instead — kept separate from the query-text `OR` below via
-			// `AND` so Prisma doesn't have to merge two ORs into one.
-			const mixedResponseFilter = wantsNoResponse && responseTypes.length > 0;
-			const todayStart = new Date();
-			todayStart.setHours(0, 0, 0, 0);
-
-			const where: Prisma.AppointmentWhereInput = {
-				AND: [
-					{
-						OR: [
-							{ title: { contains: data.query ?? "" } },
-							{ location: { contains: data.query ?? "" } },
-						],
-					},
-					mixedResponseFilter
-						? {
-								OR: [
-									{ responses: { none: { userId } } },
-									{
-										responses: {
-											some: { responseType: { in: responseTypes }, userId },
-										},
-									},
-								],
-							}
-						: {},
-				],
-				deletedAt: null,
-				NOT: { type: AppointmentType.HOLIDAY },
-				ownTeamId:
-					data.teamIds && data.teamIds.length > 0
-						? { in: data.teamIds }
-						: undefined,
-				responses: mixedResponseFilter
-					? undefined
-					: wantsNoResponse
-						? { none: { userId } }
-						: responseTypes.length > 0
-							? { some: { responseType: { in: responseTypes }, userId } }
-							: undefined,
-				seasonId: data.seasonId,
-				startDate: { gte: todayStart },
-				type:
-					data.typeGroup === "TOURNAMENT"
-						? AppointmentType.TOURNAMENT
-						: data.typeGroup === "TEAM_MATCH"
-							? AppointmentType.TEAM_MATCH
-							: undefined,
-			};
-
-			const [appointments, matchedTotal, grandTotal] = await Promise.all([
-				prismaClient.appointment.findMany({
-					include: {
-						labels: labelsInclude,
-						ownTeam: true,
-						responses: true,
-					},
-					orderBy: { startDate: data.sortDir ?? "asc" },
-					skip: data.skip,
-					take: data.take,
-					where,
-				}),
-				prismaClient.appointment.count({ where }),
-				prismaClient.appointment.count({
-					where: {
-						deletedAt: null,
-						NOT: { type: AppointmentType.HOLIDAY },
-						seasonId: data.seasonId,
-						startDate: { gte: todayStart },
-					},
-				}),
-			]);
-
-			return {
-				data: { appointments, grandTotal, matchedTotal },
-				message: m.appointments_appointments_found(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.validator((d: AppointmentsPageFilter) => d)
+	.handler(({ data }) =>
+		run(AppointmentsApi, m.appointments_appointments_found, (api) =>
+			api.page(data),
+		),
+	);
 
 export type AppointmentWithSeason = Appointment & {
 	season: Season | null;
@@ -861,189 +647,39 @@ export const bulkRestoreAppointments = createServerFn()
 
 export const createResponse = createServerFn()
 	.validator((d: { appointmentId: string; response: ResponseType }) => d)
-	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		if (!session.data.id) {
-			throw new Error(m.common_unauthorized());
-		}
+	.handler(({ data }) =>
+		run(AppointmentsApi, m.appointments_response_created, (api) =>
+			api.respond(data.appointmentId, data.response),
+		),
+	);
 
-		try {
-			const response = await prismaClient.response.upsert({
-				create: {
-					appointmentId: data.appointmentId,
-					responseType: data.response,
-					userId: session.data.id,
-				},
-				update: {
-					responseType: data.response,
-				},
-				where: {
-					userId_appointmentId: {
-						appointmentId: data.appointmentId,
-						userId: session.data.id,
-					},
-				},
-			});
-			return { data: response, message: m.appointments_response_created() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
-
-export const getNextAppointments = createServerFn().handler(async () => {
-	try {
-		const now = new Date();
-		now.setHours(0, 0, 0, 0);
-		const fourWeeks = new Date(now.getTime() + 86400000 * 28);
-		const appointments = await prismaClient.appointment.findMany({
-			orderBy: {
-				startDate: "asc",
-			},
-			where: {
-				AND: [
-					{
-						startDate: {
-							gte: now,
-						},
-					},
-					{
-						startDate: {
-							lt: fourWeeks,
-						},
-					},
-				],
-				deletedAt: null,
-				NOT: { type: AppointmentType.HOLIDAY },
-			},
-		});
-		return { data: appointments, message: m.appointments_appointments_found() };
-	} catch (e) {
-		console.error(e);
-		throw new Error((e as Error).message);
-	}
-});
+export const getNextAppointments = createServerFn().handler(() =>
+	run(AppointmentsApi, m.appointments_appointments_found, (api) => api.next()),
+);
 
 export const getUserAppointments = createServerFn()
 	.validator((d: { userId: string }) => d)
-	.handler(async ({ data }) => {
-		try {
-			const appointments = await prismaClient.appointment.findMany({
-				include: {
-					responses: true,
-				},
-				orderBy: {
-					startDate: "asc",
-				},
-				where: {
-					deletedAt: null,
-					responses: {
-						some: {
-							responseType: "ACCEPT",
-							userId: data.userId,
-						},
-					},
-					startDate: {
-						gte: new Date(),
-					},
-					type: AppointmentType.TOURNAMENT,
-				},
-			});
-			return {
-				data: appointments,
-				message: m.appointments_appointments_found(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(AppointmentsApi, m.appointments_appointments_found, (api) =>
+			api.acceptedBy(data.userId),
+		),
+	);
 
-// "Open" appointments are ones the user hasn't committed to yet: either no
-// response at all, or an explicit "Maybe" (which the rest of the UI already
-// treats as the same non-committal state, e.g. appointments/Card.tsx's
-// `?? "MAYBE"` fallback for a missing response).
 export const getUserOpenAppointments = createServerFn()
 	.validator((d: { userId: string }) => d)
-	.handler(async ({ data }) => {
-		try {
-			const now = new Date();
-			now.setHours(0, 0, 0, 0);
-			const appointments = await prismaClient.appointment.findMany({
-				include: {
-					responses: true,
-				},
-				orderBy: {
-					startDate: "asc",
-				},
-				where: {
-					deletedAt: null,
-					OR: [
-						{ responses: { none: { userId: data.userId } } },
-						{
-							responses: {
-								some: { responseType: "MAYBE", userId: data.userId },
-							},
-						},
-					],
-					startDate: {
-						gte: now,
-					},
-					type: AppointmentType.TOURNAMENT,
-				},
-			});
-			return {
-				data: appointments,
-				message: m.appointments_appointments_found(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(AppointmentsApi, m.appointments_appointments_found, (api) =>
+			api.openFor(data.userId),
+		),
+	);
 
 export const getCalendarAppointments = createServerFn()
-	.validator((d: { start: Date; end: Date; seasonId?: string }) => d)
-	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		if (session.data.id === null) {
-			throw new Error(m.common_unauthorized());
-		}
-		try {
-			const start = new Date(data.start);
-			const end = new Date(data.end);
-			const appointments = await prismaClient.appointment.findMany({
-				include: {
-					labels: labelsInclude,
-				},
-				where: {
-					deletedAt: null,
-					OR: [
-						{ endDate: { gte: start } },
-						{ endDate: null, startDate: { gte: start } },
-					],
-					seasonId: data.seasonId,
-					startDate: { lt: end },
-				},
-			});
-			const calAppointments = appointments.map((a) => ({
-				end: a.endDate ?? a.startDate,
-				id: a.id,
-				labels: a.labels.map((l) => l.label),
-				location: a.location,
-				start: a.startDate,
-				title: a.title,
-				type: a.type,
-			}));
-			return {
-				data: calAppointments,
-				message: m.appointments_appointments_found(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.validator((d: CalendarRange) => d)
+	.handler(({ data }) =>
+		run(AppointmentsApi, m.appointments_appointments_found, (api) =>
+			api.calendar(data),
+		),
+	);
 
 export const publishAppointment = createServerFn()
 	.validator((d: { id: string }) => d)

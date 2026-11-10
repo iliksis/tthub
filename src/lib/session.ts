@@ -24,17 +24,6 @@ export const useIsRole = async (role: User["role"]) => {
 	return compare !== -1;
 };
 
-export const useIsUserOrRole = async (
-	userId: User["id"],
-	role: User["role"],
-) => {
-	const { data } = await useAppSession();
-	if (data.id === null) {
-		return false;
-	}
-	return data.id === userId || data.role === role;
-};
-
 // Shared by every Appointment-mutating server function: EDITOR+ role AND a
 // present session.id. Returns the session on success, null otherwise so
 // callers can build their own `Return`/status-401 response.
