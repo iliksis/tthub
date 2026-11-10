@@ -4,6 +4,7 @@ import {
 	ApiError,
 	NotFoundError,
 	type Policies,
+	type Tx,
 } from "./kernel.server";
 
 export type NotificationSettingsInput = {
@@ -71,12 +72,7 @@ export class NotificationsApi extends ApiBase {
 
 	async deleteSubscription(id: string) {
 		await this.tx(async (tx) => {
-			const subscription = await tx.subscription.findFirst({
-				where: { id, userId: this.requiredActorId },
-			});
-			if (!subscription) {
-				throw new NotFoundError(m.notifications_subscription_not_found());
-			}
+			await this.requireOwnSubscription(tx, id);
 			await tx.notificationSettings.deleteMany({
 				where: { subscriptionId: id },
 			});
@@ -98,10 +94,13 @@ export class NotificationsApi extends ApiBase {
 		newAppointment,
 	}: NotificationSettingsInput) {
 		const userId = this.requiredActorId;
-		await this.ctx.db.notificationSettings.upsert({
-			create: { changedAppointment, newAppointment, subscriptionId, userId },
-			update: { changedAppointment, newAppointment },
-			where: { userId_subscriptionId: { subscriptionId, userId } },
+		await this.tx(async (tx) => {
+			await this.requireOwnSubscription(tx, subscriptionId);
+			await tx.notificationSettings.upsert({
+				create: { changedAppointment, newAppointment, subscriptionId, userId },
+				update: { changedAppointment, newAppointment },
+				where: { userId_subscriptionId: { subscriptionId, userId } },
+			});
 		});
 	}
 
@@ -141,5 +140,16 @@ export class NotificationsApi extends ApiBase {
 
 	async sendTest() {
 		await this.ctx.notifier.test();
+	}
+
+	// Settings and deletion apply only to the actor's own devices; someone
+	// else's subscription is reported as not found.
+	private async requireOwnSubscription(tx: Tx, id: string) {
+		const subscription = await tx.subscription.findFirst({
+			where: { id, userId: this.requiredActorId },
+		});
+		if (!subscription) {
+			throw new NotFoundError(m.notifications_subscription_not_found());
+		}
 	}
 }

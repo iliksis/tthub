@@ -173,6 +173,19 @@ describe("NotificationsApi settings", () => {
 		});
 	});
 
+	it("refuses settings for another user's subscription", async () => {
+		const { api, db } = await setup("ADMIN");
+		const theirs = await othersSubscription(db);
+		await expect(
+			api.updateSettings({
+				changedAppointment: true,
+				newAppointment: true,
+				subscriptionId: theirs.id,
+			}),
+		).rejects.toBeInstanceOf(NotFoundError);
+		expect(await db.notificationSettings.count()).toBe(0);
+	});
+
 	it("replaces the actor's muted labels", async () => {
 		const { api, db } = await setup();
 		const [a, b] = await Promise.all(
