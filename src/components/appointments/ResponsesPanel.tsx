@@ -23,7 +23,7 @@ const responseBadgeLabel: Record<string, string> = {
 };
 
 type ResponsesPanelProps = {
-	responses: (Response & { user: User })[];
+	responses: (Response & { user: Pick<User, "name"> })[];
 	currentUserId?: string;
 	isDeleted: boolean;
 	onResponse: (response: ResponseType) => () => Promise<void>;
