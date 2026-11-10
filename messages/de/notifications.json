@@ -20,5 +20,7 @@
 	"notifications_subscription_deleted": "Benachrichtigung abgemeldet",
 	"notifications_subscription_found": "Benachrichtigung gefunden",
 	"notifications_subscription_not_found": "Benachrichtigung nicht gefunden",
-	"notifications_subscriptions_found": "Benachrichtigungen gefunden"
+	"notifications_subscriptions_found": "Benachrichtigungen gefunden",
+	"notifications_test_notification_body": "Dies ist eine Testbenachrichtigung",
+	"notifications_test_notification_title": "TT Hub - Testbenachrichtigung"
 }

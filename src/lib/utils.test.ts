@@ -9,6 +9,7 @@ import {
 	createGoogleMapsLink,
 	dateToInputValue,
 	formatDateWithYear,
+	formatTanstackRouterPath,
 	isDayInPast,
 	isInvitationExpired,
 } from "./utils";
@@ -227,5 +228,17 @@ describe("formatDateWithYear", () => {
 		expect(formatDateWithYear(new Date("2026-11-04T23:30:00Z"))).toBe(
 			"05.11.2026",
 		);
+	});
+});
+
+describe("formatTanstackRouterPath", () => {
+	it("substitutes path params by name", () => {
+		expect(
+			formatTanstackRouterPath("/appts/$apptId", { apptId: "abc123" }),
+		).toBe("/appts/abc123");
+	});
+
+	it("drops a trailing slash", () => {
+		expect(formatTanstackRouterPath("/appts/", {})).toBe("/appts");
 	});
 });

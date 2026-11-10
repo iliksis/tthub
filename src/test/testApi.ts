@@ -1,5 +1,6 @@
 import type { ApiBase, ApiContext } from "@/api/kernel.server";
 import type { SessionUser } from "@/lib/session";
+import { createFakeNotifier } from "./fakeNotifier";
 import { createFakeSession } from "./fakeSession";
 import { createTestDb } from "./testDb";
 
@@ -29,13 +30,21 @@ export async function createTestApi<A extends ApiBase>(
 		};
 	}
 	const session = createFakeSession(user);
+	const notifier = createFakeNotifier();
 	return {
-		api: new Api({ db, session: session.store, user }),
+		api: new Api({
+			db,
+			notifier: notifier.notifier,
+			session: session.store,
+			user,
+		}),
 		cleanup: async () => {
 			await db.$disconnect();
 			testDb.close();
 		},
 		db,
+		// What the class asked the notifier to send.
+		notifications: notifier.calls,
 		// What the class stored in (or cleared from) the session cookie.
 		session: session.state,
 		user,

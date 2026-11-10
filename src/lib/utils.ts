@@ -257,15 +257,10 @@ export const getCatppuccinColorStyle = (
 export const formatTanstackRouterPath = (
 	path: FileRouteTypes["fullPaths"],
 	params: Record<string, string>,
-) => {
-	const keys = Object.keys(params);
-	const values = Object.values(params);
-	return path
+) =>
+	path
 		.replace(/\/$/, "")
-		.replace(new RegExp(`\\$${keys.join("|\\$")}`, "g"), (match, index) => {
-			return values[index] ?? match;
-		});
-};
+		.replace(/\$(\w+)/g, (match, key: string) => params[key] ?? match);
 
 import type { AgeGroup } from "@/lib/ageGroup";
 
