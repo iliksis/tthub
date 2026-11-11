@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import type { AuditChanges } from "@/lib/auditLog";
 import { prismaClient } from "@/lib/db";
 import { labelsInclude } from "@/lib/labels";
 import type {
@@ -13,7 +12,7 @@ import type {
 } from "@/lib/prisma/client";
 import {
 	AppointmentStatus,
-	AppointmentType,
+	type AppointmentType,
 	type ResponseType,
 } from "@/lib/prisma/enums";
 import { requireEditor } from "@/lib/session";
@@ -22,7 +21,9 @@ import {
 	type AppointmentListFilter,
 	AppointmentsApi,
 	type AppointmentsPageFilter,
+	type AppointmentUpdate,
 	type CalendarRange,
+	type CreateAppointmentInput,
 } from "./appointments.server";
 import { AuditJournal, type SoftDeleteAction } from "./auditLog.domain.server";
 import { run } from "./kernel.server";
@@ -32,76 +33,18 @@ export type {
 	AppointmentDetail,
 	AppointmentListFilter,
 	AppointmentsPageFilter,
+	AppointmentUpdate,
 	CalendarRange,
+	CreateAppointmentInput,
 } from "./appointments.server";
 
-type ICreateAppointment =
-	| {
-			title: string;
-			type: "HOLIDAY";
-			startDate: Date;
-			endDate: Date | null;
-	  }
-	| {
-			title: string;
-			type: "TOURNAMENT";
-			startDate: Date;
-			endDate: Date | null;
-			location: string | null;
-			status: AppointmentStatus;
-			seasonId: string;
-			labelIds: string[];
-	  };
-
 export const createAppointment = createServerFn()
-	.validator((d: ICreateAppointment) => d)
-	.handler(async ({ data }) => {
-		const session = await requireEditor();
-		if (!session) {
-			throw new Error(m.common_unauthorized());
-		}
-
-		try {
-			const appointment = await prismaClient.$transaction(async (tx) => {
-				const appointment = await tx.appointment.create({
-					data: {
-						endDate: data.endDate,
-						labels:
-							data.type === "HOLIDAY"
-								? undefined
-								: {
-										create: data.labelIds.map((labelId) => ({ labelId })),
-									},
-						location: data.type === "HOLIDAY" ? undefined : data.location,
-						seasonId: data.type === "HOLIDAY" ? undefined : data.seasonId,
-						startDate: data.startDate,
-						status: data.type === "HOLIDAY" ? undefined : data.status,
-						title: data.title,
-						type: data.type,
-					},
-				});
-				await new AuditJournal(tx, "Appointment", session.id).created(
-					appointment.id,
-				);
-				return appointment;
-			});
-
-			if (
-				appointment.type === AppointmentType.TOURNAMENT &&
-				appointment.status === AppointmentStatus.PUBLISHED
-			) {
-				notifier.published(appointment, session.id);
-			}
-
-			return {
-				data: appointment,
-				message: m.appointments_appointment_created(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.validator((d: CreateAppointmentInput) => d)
+	.handler(({ data }) =>
+		run(AppointmentsApi, m.appointments_appointment_created, (api) =>
+			api.create(data),
+		),
+	);
 
 export type AppointmentWithResponses = Appointment & {
 	responses: Response[];
@@ -228,103 +171,12 @@ export const getBulkAppointmentsPage = createServerFn()
 	});
 
 export const updateAppointment = createServerFn()
-	.validator(
-		(d: {
-			id: string;
-			updates: Partial<Appointment> & { labelIds?: string[] };
-		}) => d,
-	)
-	.handler(async ({ data }) => {
-		const session = await requireEditor();
-		if (!session) {
-			throw new Error(m.common_unauthorized());
-		}
-
-		try {
-			const { labelIds, ...fieldUpdates } = data.updates;
-			const appointment = await prismaClient.$transaction(async (tx) => {
-				const before = await tx.appointment.findUniqueOrThrow({
-					include: { labels: true },
-					where: { id: data.id },
-				});
-				const appointment = await tx.appointment.update({
-					data: {
-						endDate: fieldUpdates.endDate,
-						link: fieldUpdates.link,
-						location: fieldUpdates.location,
-						nextAppointmentId: fieldUpdates.nextAppointmentId,
-						seasonId: fieldUpdates.seasonId,
-						startDate: fieldUpdates.startDate,
-						status: fieldUpdates.status,
-						title: fieldUpdates.title,
-					},
-					where: { id: data.id },
-				});
-
-				const labelChanges: AuditChanges = {};
-
-				if (labelIds !== undefined) {
-					const beforeLabelIds = before.labels.map((l) => l.labelId);
-					const sortedBefore = [...beforeLabelIds].sort();
-					const sortedAfter = [...labelIds].sort();
-					const labelsChanged =
-						sortedBefore.length !== sortedAfter.length ||
-						sortedBefore.some((id, i) => id !== sortedAfter[i]);
-					if (labelsChanged) {
-						await tx.appointmentLabel.deleteMany({
-							where: { appointmentId: data.id },
-						});
-						if (labelIds.length > 0) {
-							await tx.appointmentLabel.createMany({
-								data: labelIds.map((labelId) => ({
-									appointmentId: data.id,
-									labelId,
-								})),
-							});
-						}
-						// Both old and new label ids are resolved to names in one
-						// query so the audit journal reads as label names, not ids —
-						// a since-deleted label falls back to its raw id.
-						const labelRecords = await tx.label.findMany({
-							where: {
-								id: { in: [...new Set([...beforeLabelIds, ...labelIds])] },
-							},
-						});
-						const nameById = new Map(labelRecords.map((l) => [l.id, l.name]));
-						labelChanges.labels = {
-							new: labelIds.map((id) => nameById.get(id) ?? id),
-							old: beforeLabelIds.map((id) => nameById.get(id) ?? id),
-						};
-					}
-				}
-
-				// Only the fields that were part of this save (and actually
-				// changed value) are logged, matching click-to-edit's
-				// one-field/group-per-save flow.
-				await new AuditJournal(tx, "Appointment", session.id).updated(
-					appointment.id,
-					before,
-					appointment,
-					Object.keys(fieldUpdates) as (keyof Appointment & string)[],
-					labelChanges,
-				);
-
-				return appointment;
-			});
-
-			if (appointment.type === AppointmentType.TOURNAMENT) {
-				notifier.updated(appointment, session.id);
-			}
-
-			return {
-				data: appointment,
-				message: m.appointments_appointment_updated(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.validator((d: { id: string; updates: AppointmentUpdate }) => d)
+	.handler(({ data }) =>
+		run(AppointmentsApi, m.appointments_appointment_updated, (api) =>
+			api.update(data.id, data.updates),
+		),
+	);
 
 export const deleteAppointment = createServerFn()
 	.validator((d: { id: string }) => d)
@@ -683,81 +535,19 @@ export const getCalendarAppointments = createServerFn()
 
 export const publishAppointment = createServerFn()
 	.validator((d: { id: string }) => d)
-	.handler(async ({ data }) => {
-		const session = await requireEditor();
-		if (!session) {
-			throw new Error(m.common_unauthorized());
-		}
-
-		try {
-			let statusChanged = false;
-			const appointment = await prismaClient.$transaction(async (tx) => {
-				const before = await tx.appointment.findUniqueOrThrow({
-					where: { id: data.id },
-				});
-				const appointment = await tx.appointment.update({
-					data: {
-						status: AppointmentStatus.PUBLISHED,
-					},
-					where: { id: data.id },
-				});
-				const changes = await new AuditJournal(
-					tx,
-					"Appointment",
-					session.id,
-				).updated(appointment.id, before, appointment, ["status"]);
-				statusChanged = "status" in changes;
-				return appointment;
-			});
-			if (statusChanged && appointment.type === AppointmentType.TOURNAMENT) {
-				notifier.published(appointment, session.id);
-			}
-			return {
-				data: appointment,
-				message: m.appointments_appointment_published(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(AppointmentsApi, m.appointments_appointment_published, (api) =>
+			api.publish(data.id),
+		),
+	);
 
 export const unpublishAppointment = createServerFn()
 	.validator((d: { id: string }) => d)
-	.handler(async ({ data }) => {
-		const session = await requireEditor();
-		if (!session) {
-			throw new Error(m.common_unauthorized());
-		}
-
-		try {
-			const appointment = await prismaClient.$transaction(async (tx) => {
-				const before = await tx.appointment.findUniqueOrThrow({
-					where: { id: data.id },
-				});
-				const appointment = await tx.appointment.update({
-					data: {
-						status: AppointmentStatus.DRAFT,
-					},
-					where: { id: data.id },
-				});
-				await new AuditJournal(tx, "Appointment", session.id).updated(
-					appointment.id,
-					before,
-					appointment,
-					["status"],
-				);
-				return appointment;
-			});
-			return {
-				data: appointment,
-				message: m.appointments_appointment_unpublished(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(AppointmentsApi, m.appointments_appointment_unpublished, (api) =>
+			api.unpublish(data.id),
+		),
+	);
 
 export const restoreAppointment = createServerFn()
 	.validator((d: { id: string }) => d)
