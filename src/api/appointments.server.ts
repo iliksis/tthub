@@ -1,15 +1,26 @@
+import type { AuditChanges } from "@/lib/auditLog";
 import { labelsInclude } from "@/lib/labels";
 import { redactPlayerFlags } from "@/lib/players";
-import type { Prisma } from "@/lib/prisma/client";
-import { AppointmentType, type ResponseType } from "@/lib/prisma/enums";
+import type { Appointment, Prisma } from "@/lib/prisma/client";
+import {
+	AppointmentStatus,
+	AppointmentType,
+	type ResponseType,
+} from "@/lib/prisma/enums";
 import { userViewSelect } from "@/lib/users";
 import { m } from "@/paraglide/messages";
 import { type AuditEntry, auditEntriesFor } from "./auditLog.domain.server";
-import { ApiBase, NotFoundError, type Policies } from "./kernel.server";
+import {
+	ApiBase,
+	NotFoundError,
+	type Policies,
+	type Tx,
+} from "./kernel.server";
 
-// Migrated in slices (issue #119 onwards): this class holds the reads and RSVP
-// responses so far; the mutations still live in the legacy handlers in
-// `appointments.ts` until their slices land.
+// Migrated in slices (issue #119 onwards): this class holds the reads, RSVP
+// responses, create, update and publish so far; delete/restore and the bulk
+// and trash actions still live in the legacy handlers in `appointments.ts`
+// until their slices land.
 
 const appointmentDetailInclude = {
 	labels: labelsInclude,
@@ -50,6 +61,39 @@ export type AppointmentsPageFilter = {
 	take: number;
 };
 
+export type CreateAppointmentInput =
+	| {
+			title: string;
+			type: "HOLIDAY";
+			startDate: Date;
+			endDate: Date | null;
+	  }
+	| {
+			title: string;
+			type: "TOURNAMENT";
+			startDate: Date;
+			endDate: Date | null;
+			location: string | null;
+			status: AppointmentStatus;
+			seasonId: string;
+			labelIds: string[];
+	  };
+
+export type AppointmentUpdate = Partial<Appointment> & { labelIds?: string[] };
+
+// The fields `update` writes (and journals); anything else in an update is
+// ignored. Labels are synced separately.
+const EDITABLE_FIELDS = [
+	"endDate",
+	"link",
+	"location",
+	"nextAppointmentId",
+	"seasonId",
+	"startDate",
+	"status",
+	"title",
+] as const satisfies readonly (keyof Appointment)[];
+
 export type CalendarRange = { start: Date; end: Date; seasonId?: string };
 
 const startOfToday = () => {
@@ -79,13 +123,17 @@ export class AppointmentsApi extends ApiBase {
 	static readonly policy = {
 		acceptedBy: "AUTHENTICATED",
 		calendar: "AUTHENTICATED",
+		create: "EDITOR",
 		get: "AUTHENTICATED",
 		list: "AUTHENTICATED",
 		next: "AUTHENTICATED",
 		openFor: "AUTHENTICATED",
 		page: "AUTHENTICATED",
+		publish: "EDITOR",
 		respond: "AUTHENTICATED",
 		search: "AUTHENTICATED",
+		unpublish: "EDITOR",
+		update: "EDITOR",
 	} as const satisfies Policies<AppointmentsApi>;
 
 	// Player flags (Club Member / Playing Eligibility) are editor-only, see
@@ -289,5 +337,166 @@ export class AppointmentsApi extends ApiBase {
 				where: { userId_appointmentId: { appointmentId, userId } },
 			});
 		});
+	}
+
+	// A published tournament notifies on creation; drafts and holidays don't.
+	async create(input: CreateAppointmentInput) {
+		const appointment = await this.tx(async (tx) => {
+			const appointment = await tx.appointment.create({
+				data:
+					input.type === AppointmentType.HOLIDAY
+						? {
+								endDate: input.endDate,
+								startDate: input.startDate,
+								title: input.title,
+								type: input.type,
+							}
+						: {
+								endDate: input.endDate,
+								labels: {
+									create: input.labelIds.map((labelId) => ({ labelId })),
+								},
+								location: input.location,
+								seasonId: input.seasonId,
+								startDate: input.startDate,
+								status: input.status,
+								title: input.title,
+								type: input.type,
+							},
+			});
+			await this.journal(tx, "Appointment").created(appointment.id);
+			return appointment;
+		});
+		if (
+			appointment.type === AppointmentType.TOURNAMENT &&
+			appointment.status === AppointmentStatus.PUBLISHED
+		) {
+			this.ctx.notifier.published(appointment, this.requiredActorId);
+		}
+		return appointment;
+	}
+
+	// Click-to-edit saves one field or group at a time: only the editable
+	// fields present in `updates` (and actually changed) are journalled. A
+	// tournament's subscribers get a (debounced) update push.
+	async update(id: string, updates: AppointmentUpdate) {
+		const { labelIds } = updates;
+		const fields = EDITABLE_FIELDS.filter((field) => field in updates);
+		const appointment = await this.tx(async (tx) => {
+			const before = await this.requireAppointment(tx, id);
+			const appointment = await tx.appointment.update({
+				// `undefined` leaves a field untouched.
+				data: {
+					endDate: updates.endDate,
+					link: updates.link,
+					location: updates.location,
+					nextAppointmentId: updates.nextAppointmentId,
+					seasonId: updates.seasonId,
+					startDate: updates.startDate,
+					status: updates.status,
+					title: updates.title,
+				},
+				where: { id },
+			});
+			const labelChanges =
+				labelIds === undefined
+					? {}
+					: await this.syncLabels(
+							tx,
+							id,
+							before.labels.map((l) => l.labelId),
+							labelIds,
+						);
+			await this.journal(tx, "Appointment").updated(
+				id,
+				before,
+				appointment,
+				fields,
+				labelChanges,
+			);
+			return appointment;
+		});
+		if (appointment.type === AppointmentType.TOURNAMENT) {
+			this.ctx.notifier.updated(appointment, this.requiredActorId);
+		}
+		return appointment;
+	}
+
+	// Notifies only when a tournament actually went from unpublished to
+	// published, so a repeated publish stays silent.
+	async publish(id: string) {
+		const { appointment, changed } = await this.setStatus(
+			id,
+			AppointmentStatus.PUBLISHED,
+		);
+		if (changed && appointment.type === AppointmentType.TOURNAMENT) {
+			this.ctx.notifier.published(appointment, this.requiredActorId);
+		}
+		return appointment;
+	}
+
+	async unpublish(id: string) {
+		const { appointment } = await this.setStatus(id, AppointmentStatus.DRAFT);
+		return appointment;
+	}
+
+	private setStatus(id: string, status: AppointmentStatus) {
+		return this.tx(async (tx) => {
+			const before = await this.requireAppointment(tx, id);
+			const appointment = await tx.appointment.update({
+				data: { status },
+				where: { id },
+			});
+			const changes = await this.journal(tx, "Appointment").updated(
+				id,
+				before,
+				appointment,
+				["status"],
+			);
+			return { appointment, changed: "status" in changes };
+		});
+	}
+
+	// With its label links, for the label diff. Soft-deleted appointments are
+	// found too: the detail page still edits and publishes them.
+	private async requireAppointment(tx: Tx, id: string) {
+		const appointment = await tx.appointment.findUnique({
+			include: { labels: true },
+			where: { id },
+		});
+		if (!appointment) {
+			throw new NotFoundError(m.appointments_appointment_not_found());
+		}
+		return appointment;
+	}
+
+	// Replaces the appointment's labels when the set differs and returns the
+	// journal change with label ids resolved to names (a since-deleted label
+	// falls back to its raw id); unchanged sets write and return nothing.
+	private async syncLabels(
+		tx: Tx,
+		appointmentId: string,
+		beforeIds: string[],
+		afterIds: string[],
+	): Promise<AuditChanges> {
+		const sortedBefore = [...beforeIds].sort();
+		const sortedAfter = [...afterIds].sort();
+		const unchanged =
+			sortedBefore.length === sortedAfter.length &&
+			sortedBefore.every((labelId, i) => labelId === sortedAfter[i]);
+		if (unchanged) return {};
+
+		await tx.appointmentLabel.deleteMany({ where: { appointmentId } });
+		if (afterIds.length > 0) {
+			await tx.appointmentLabel.createMany({
+				data: afterIds.map((labelId) => ({ appointmentId, labelId })),
+			});
+		}
+		const labels = await tx.label.findMany({
+			where: { id: { in: [...new Set([...beforeIds, ...afterIds])] } },
+		});
+		const nameById = new Map(labels.map((l) => [l.id, l.name]));
+		const names = (ids: string[]) => ids.map((i) => nameById.get(i) ?? i);
+		return { labels: { new: names(afterIds), old: names(beforeIds) } };
 	}
 }

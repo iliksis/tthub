@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it } from "vitest";
-import type { AppointmentType } from "@/lib/prisma/enums";
+import type { AppointmentStatus, AppointmentType } from "@/lib/prisma/enums";
 import { m } from "@/paraglide/messages";
 import { expectNoCredentials } from "@/test/noCredentials";
 import { createTestApi } from "@/test/testApi";
@@ -38,6 +38,7 @@ type Seed = {
 	seasonId?: string | null;
 	ownTeamId?: string | null;
 	deletedAt?: Date | null;
+	status?: AppointmentStatus | null;
 };
 const seedAppointment = (db: Db, over: Seed = {}) =>
 	db.appointment.create({
@@ -60,13 +61,17 @@ describe("AppointmentsApi policy", () => {
 			{
 			  "acceptedBy": "AUTHENTICATED",
 			  "calendar": "AUTHENTICATED",
+			  "create": "EDITOR",
 			  "get": "AUTHENTICATED",
 			  "list": "AUTHENTICATED",
 			  "next": "AUTHENTICATED",
 			  "openFor": "AUTHENTICATED",
 			  "page": "AUTHENTICATED",
+			  "publish": "EDITOR",
 			  "respond": "AUTHENTICATED",
 			  "search": "AUTHENTICATED",
+			  "unpublish": "EDITOR",
+			  "update": "EDITOR",
 			}
 		`);
 	});
@@ -363,5 +368,238 @@ describe("AppointmentsApi.respond", () => {
 			m.appointments_appointment_not_found(),
 		);
 		expect(await db.response.count()).toBe(0);
+	});
+});
+
+const auditRows = (db: Db, entityId: string) =>
+	db.auditLog.findMany({
+		orderBy: { createdAt: "asc" },
+		where: { entityId, entityType: "Appointment" },
+	});
+
+describe("AppointmentsApi.create", () => {
+	it("creates a published tournament with labels, journals it and notifies", async () => {
+		const { api, db, notifications, user } = await setup("EDITOR");
+		const season = await db.season.create({ data: { name: "2026/27" } });
+		const label = await db.label.create({
+			data: { color: "red", name: "Wichtig" },
+		});
+
+		const appointment = await api.create({
+			endDate: null,
+			labelIds: [label.id],
+			location: "Bonn",
+			seasonId: season.id,
+			startDate: daysFromNow(3),
+			status: "PUBLISHED",
+			title: "Pokal",
+			type: "TOURNAMENT",
+		});
+
+		expect(appointment).toMatchObject({
+			location: "Bonn",
+			seasonId: season.id,
+			status: "PUBLISHED",
+			title: "Pokal",
+		});
+		expect(
+			await db.appointmentLabel.findMany({
+				where: { appointmentId: appointment.id },
+			}),
+		).toEqual([{ appointmentId: appointment.id, labelId: label.id }]);
+		expect(await auditRows(db, appointment.id)).toMatchObject([
+			{ action: "CREATE", userId: user?.id },
+		]);
+		expect(notifications).toEqual([
+			{ actorId: user?.id, id: appointment.id, kind: "published" },
+		]);
+	});
+
+	it("creates a draft tournament or a holiday without notifying", async () => {
+		const { api, db, notifications } = await setup("EDITOR");
+		const season = await db.season.create({ data: { name: "2026/27" } });
+
+		await api.create({
+			endDate: null,
+			labelIds: [],
+			location: null,
+			seasonId: season.id,
+			startDate: daysFromNow(3),
+			status: "DRAFT",
+			title: "Entwurf",
+			type: "TOURNAMENT",
+		});
+		const holiday = await api.create({
+			endDate: daysFromNow(10),
+			startDate: daysFromNow(3),
+			title: "Ferien",
+			type: "HOLIDAY",
+		});
+
+		expect(holiday).toMatchObject({ seasonId: null, type: "HOLIDAY" });
+		expect(await db.auditLog.count({ where: { action: "CREATE" } })).toBe(2);
+		expect(notifications).toEqual([]);
+	});
+
+	it("denies a USER and writes nothing", async () => {
+		const { api, db } = await setup("USER");
+		await expect(
+			api.create({
+				endDate: null,
+				startDate: daysFromNow(3),
+				title: "Ferien",
+				type: "HOLIDAY",
+			}),
+		).rejects.toBeInstanceOf(ForbiddenError);
+		expect(await db.appointment.count()).toBe(0);
+	});
+});
+
+describe("AppointmentsApi.update", () => {
+	it("journals only the saved fields that changed and notifies for a tournament", async () => {
+		const { api, db, notifications, user } = await setup("EDITOR");
+		const appointment = await seedAppointment(db, { location: "Bonn" });
+
+		const updated = await api.update(appointment.id, {
+			location: "Bonn",
+			title: "Bezirksmeisterschaft",
+		});
+
+		expect(updated.title).toBe("Bezirksmeisterschaft");
+		expect(await auditRows(db, appointment.id)).toMatchObject([
+			{
+				action: "UPDATE",
+				changes: {
+					title: { new: "Bezirksmeisterschaft", old: "Kreismeisterschaft" },
+				},
+				userId: user?.id,
+			},
+		]);
+		expect(notifications).toEqual([
+			{ actorId: user?.id, id: appointment.id, kind: "updated" },
+		]);
+	});
+
+	it("replaces labels and journals them by name", async () => {
+		const { api, db } = await setup("EDITOR");
+		const appointment = await seedAppointment(db);
+		const [alt, neu] = await Promise.all([
+			db.label.create({ data: { color: "red", name: "Alt" } }),
+			db.label.create({ data: { color: "blue", name: "Neu" } }),
+		]);
+		await db.appointmentLabel.create({
+			data: { appointmentId: appointment.id, labelId: alt.id },
+		});
+
+		await api.update(appointment.id, { labelIds: [neu.id] });
+
+		expect(
+			await db.appointmentLabel.findMany({
+				where: { appointmentId: appointment.id },
+			}),
+		).toEqual([{ appointmentId: appointment.id, labelId: neu.id }]);
+		expect(await auditRows(db, appointment.id)).toMatchObject([
+			{ changes: { labels: { new: ["Neu"], old: ["Alt"] } } },
+		]);
+	});
+
+	it("journals nothing when labels are saved unchanged, and ignores non-editable fields", async () => {
+		const { api, db } = await setup("EDITOR");
+		const appointment = await seedAppointment(db);
+		const label = await db.label.create({
+			data: { color: "red", name: "Alt" },
+		});
+		await db.appointmentLabel.create({
+			data: { appointmentId: appointment.id, labelId: label.id },
+		});
+
+		const updated = await api.update(appointment.id, {
+			labelIds: [label.id],
+			type: "HOLIDAY",
+		});
+
+		expect(updated.type).toBe("TOURNAMENT");
+		expect(await auditRows(db, appointment.id)).toEqual([]);
+	});
+
+	it("does not notify for a holiday", async () => {
+		const { api, db, notifications } = await setup("EDITOR");
+		const holiday = await seedAppointment(db, { type: "HOLIDAY" });
+		await api.update(holiday.id, { title: "Sommerferien" });
+		expect(notifications).toEqual([]);
+	});
+
+	it("throws NotFoundError for an unknown id and notifies nobody", async () => {
+		const { api, notifications } = await setup("EDITOR");
+		const error = await api
+			.update("nope", { title: "X" })
+			.catch((e: unknown) => e);
+		expect(error).toBeInstanceOf(NotFoundError);
+		expect((error as Error).message).toBe(
+			m.appointments_appointment_not_found(),
+		);
+		expect(notifications).toEqual([]);
+	});
+});
+
+describe("AppointmentsApi.publish and unpublish", () => {
+	it("publishes a draft tournament, journals the status and notifies once", async () => {
+		const { api, db, notifications, user } = await setup("EDITOR");
+		const appointment = await seedAppointment(db, { status: "DRAFT" });
+
+		const published = await api.publish(appointment.id);
+		await api.publish(appointment.id);
+
+		expect(published.status).toBe("PUBLISHED");
+		expect(await auditRows(db, appointment.id)).toMatchObject([
+			{
+				action: "UPDATE",
+				changes: { status: { new: "PUBLISHED", old: "DRAFT" } },
+			},
+		]);
+		expect(notifications).toEqual([
+			{ actorId: user?.id, id: appointment.id, kind: "published" },
+		]);
+	});
+
+	it("does not notify when publishing a team match", async () => {
+		const { api, db, notifications } = await setup("EDITOR");
+		const match = await seedAppointment(db, { type: "TEAM_MATCH" });
+		await api.publish(match.id);
+		expect(notifications).toEqual([]);
+	});
+
+	it("unpublishes back to draft, journals it and notifies nobody", async () => {
+		const { api, db, notifications } = await setup("EDITOR");
+		const appointment = await seedAppointment(db, { status: "PUBLISHED" });
+
+		const draft = await api.unpublish(appointment.id);
+
+		expect(draft.status).toBe("DRAFT");
+		expect(await auditRows(db, appointment.id)).toMatchObject([
+			{ changes: { status: { new: "DRAFT", old: "PUBLISHED" } } },
+		]);
+		expect(notifications).toEqual([]);
+	});
+
+	it("throws NotFoundError when publishing an unknown id", async () => {
+		const { api } = await setup("EDITOR");
+		await expect(api.publish("nope")).rejects.toBeInstanceOf(NotFoundError);
+		await expect(api.unpublish("nope")).rejects.toBeInstanceOf(NotFoundError);
+	});
+
+	it("denies a USER publishing and changes nothing", async () => {
+		const { api, db } = await setup("USER");
+		const appointment = await seedAppointment(db, { status: "DRAFT" });
+		await expect(api.publish(appointment.id)).rejects.toBeInstanceOf(
+			ForbiddenError,
+		);
+		expect(
+			(
+				await db.appointment.findUniqueOrThrow({
+					where: { id: appointment.id },
+				})
+			).status,
+		).toBe("DRAFT");
 	});
 });
