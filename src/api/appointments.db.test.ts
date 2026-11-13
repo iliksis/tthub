@@ -5,7 +5,7 @@ import { m } from "@/paraglide/messages";
 import { expectNoCredentials } from "@/test/noCredentials";
 import { createTestApi } from "@/test/testApi";
 import { AppointmentsApi } from "./appointments.server";
-import { ForbiddenError, NotFoundError } from "./kernel.server";
+import { ApiError, ForbiddenError, NotFoundError } from "./kernel.server";
 
 let cleanup: (() => Promise<void>) | undefined;
 afterEach(async () => {
@@ -60,8 +60,13 @@ describe("AppointmentsApi policy", () => {
 		expect(AppointmentsApi.policy).toMatchInlineSnapshot(`
 			{
 			  "acceptedBy": "AUTHENTICATED",
+			  "bulkDelete": "EDITOR",
+			  "bulkPage": "EDITOR",
+			  "bulkRestore": "EDITOR",
 			  "calendar": "AUTHENTICATED",
+			  "copyToSeason": "EDITOR",
 			  "create": "EDITOR",
+			  "delete": "EDITOR",
 			  "get": "AUTHENTICATED",
 			  "list": "AUTHENTICATED",
 			  "next": "AUTHENTICATED",
@@ -69,7 +74,9 @@ describe("AppointmentsApi policy", () => {
 			  "page": "AUTHENTICATED",
 			  "publish": "EDITOR",
 			  "respond": "AUTHENTICATED",
+			  "restore": "EDITOR",
 			  "search": "AUTHENTICATED",
+			  "trashPage": "EDITOR",
 			  "unpublish": "EDITOR",
 			  "update": "EDITOR",
 			}
@@ -601,5 +608,292 @@ describe("AppointmentsApi.publish and unpublish", () => {
 				})
 			).status,
 		).toBe("DRAFT");
+	});
+});
+
+const deletedAtOf = async (db: Db, id: string) =>
+	(await db.appointment.findUniqueOrThrow({ where: { id } })).deletedAt;
+
+// `count` tournaments named T0..T<count-1>, with ids a0..a<count-1>.
+const seedMany = (db: Db, count: number) =>
+	db.appointment.createMany({
+		data: Array.from({ length: count }, (_, i) => ({
+			id: `a${i}`,
+			startDate: daysFromNow(1),
+			title: `T${i}`,
+			type: "TOURNAMENT" as const,
+		})),
+	});
+
+describe("AppointmentsApi.bulkPage and trashPage", () => {
+	it("pages every active appointment, including holidays and past ones, newest first", async () => {
+		const { api, db } = await setup("EDITOR");
+		const season = await db.season.create({ data: { name: "2026/27" } });
+		await seedAppointment(db, {
+			seasonId: season.id,
+			startDate: daysFromNow(-10),
+			title: "Vorbei",
+		});
+		await seedAppointment(db, {
+			location: "Bonn",
+			startDate: daysFromNow(5),
+			title: "Pokal",
+		});
+		await seedAppointment(db, {
+			startDate: daysFromNow(1),
+			title: "Ferien",
+			type: "HOLIDAY",
+		});
+		await seedAppointment(db, { deletedAt: new Date(), title: "Gelöscht" });
+
+		const page = await api.bulkPage({ skip: 0, take: 2 });
+		expect(page.appointments.map((a) => a.title)).toEqual(["Pokal", "Ferien"]);
+		expect(page).toMatchObject({ grandTotal: 3, matchedTotal: 3 });
+
+		const titles = async (filter: Parameters<typeof api.bulkPage>[0]) =>
+			(await api.bulkPage(filter)).appointments.map((a) => a.title);
+		expect(await titles({ query: "Bonn", skip: 0, take: 10 })).toEqual([
+			"Pokal",
+		]);
+		expect(await titles({ seasonId: season.id, skip: 0, take: 10 })).toEqual([
+			"Vorbei",
+		]);
+		expect(await titles({ skip: 0, take: 10, types: ["HOLIDAY"] })).toEqual([
+			"Ferien",
+		]);
+		expect(
+			await api.bulkPage({ query: "Bonn", skip: 0, take: 10 }),
+		).toMatchObject({ grandTotal: 3, matchedTotal: 1 });
+	});
+
+	it("pages only deleted appointments in the trash", async () => {
+		const { api, db } = await setup("EDITOR");
+		await seedAppointment(db, { title: "Aktiv" });
+		await seedAppointment(db, { deletedAt: new Date(), title: "Gelöscht" });
+
+		const page = await api.trashPage({ skip: 0, take: 10 });
+		expect(page.appointments.map((a) => a.title)).toEqual(["Gelöscht"]);
+		expect(page).toMatchObject({ grandTotal: 1, matchedTotal: 1 });
+	});
+
+	it("denies a USER the bulk listing", async () => {
+		const { api } = await setup("USER");
+		await expect(api.bulkPage({ skip: 0, take: 10 })).rejects.toBeInstanceOf(
+			ForbiddenError,
+		);
+	});
+});
+
+describe("AppointmentsApi.delete and restore", () => {
+	it("soft-deletes, journals the delete and cancels a pending update push", async () => {
+		const { api, db, notifications, user } = await setup("EDITOR");
+		const appointment = await seedAppointment(db);
+
+		const deleted = await api.delete(appointment.id);
+
+		expect(deleted.id).toBe(appointment.id);
+		expect(await deletedAtOf(db, appointment.id)).not.toBeNull();
+		expect(await auditRows(db, appointment.id)).toMatchObject([
+			{ action: "DELETE", userId: user?.id },
+		]);
+		expect(notifications).toEqual([
+			{ id: appointment.id, kind: "cancelUpdated" },
+		]);
+	});
+
+	it("throws NotFoundError deleting an already deleted appointment and journals nothing", async () => {
+		const { api, db, notifications } = await setup("EDITOR");
+		const appointment = await seedAppointment(db, { deletedAt: new Date() });
+
+		const error = await api.delete(appointment.id).catch((e: unknown) => e);
+		expect(error).toBeInstanceOf(NotFoundError);
+		expect((error as Error).message).toBe(
+			m.appointments_appointment_not_found(),
+		);
+		expect(await auditRows(db, appointment.id)).toEqual([]);
+		expect(notifications).toEqual([]);
+	});
+
+	it("restores a deleted appointment and journals it without notifying", async () => {
+		const { api, db, notifications, user } = await setup("EDITOR");
+		const appointment = await seedAppointment(db, { deletedAt: new Date() });
+
+		const restored = await api.restore(appointment.id);
+
+		expect(restored.deletedAt).toBeNull();
+		expect(await auditRows(db, appointment.id)).toMatchObject([
+			{ action: "RESTORE", userId: user?.id },
+		]);
+		expect(notifications).toEqual([]);
+	});
+
+	it("throws NotFoundError restoring an active appointment", async () => {
+		const { api, db } = await setup("EDITOR");
+		const appointment = await seedAppointment(db);
+		await expect(api.restore(appointment.id)).rejects.toBeInstanceOf(
+			NotFoundError,
+		);
+		expect(await auditRows(db, appointment.id)).toEqual([]);
+	});
+
+	it("denies a USER deleting and changes nothing", async () => {
+		const { api, db } = await setup("USER");
+		const appointment = await seedAppointment(db);
+		await expect(api.delete(appointment.id)).rejects.toBeInstanceOf(
+			ForbiddenError,
+		);
+		expect(await deletedAtOf(db, appointment.id)).toBeNull();
+	});
+});
+
+describe("AppointmentsApi.bulkDelete and bulkRestore", () => {
+	it("deletes the listed ids that are still active, journalling and cancelling each", async () => {
+		const { api, db, notifications } = await setup("EDITOR");
+		const a = await seedAppointment(db, { title: "A" });
+		const b = await seedAppointment(db, { title: "B" });
+		const gone = await seedAppointment(db, { deletedAt: new Date() });
+		const untouched = await seedAppointment(db, { title: "C" });
+
+		const deleted = await api.bulkDelete({ ids: [a.id, b.id, gone.id] });
+
+		expect(deleted.map((x) => x.id).sort()).toEqual([a.id, b.id].sort());
+		expect(await deletedAtOf(db, untouched.id)).toBeNull();
+		expect(await db.auditLog.count({ where: { action: "DELETE" } })).toBe(2);
+		expect(
+			notifications
+				.map((n) => ("id" in n ? `${n.kind}:${n.id}` : n.kind))
+				.sort(),
+		).toEqual([`cancelUpdated:${a.id}`, `cancelUpdated:${b.id}`].sort());
+	});
+
+	it("deletes whatever currently matches the filter, minus excluded ids", async () => {
+		const { api, db } = await setup("EDITOR");
+		const keep = await seedAppointment(db, { location: "Bonn", title: "A" });
+		const hit = await seedAppointment(db, { location: "Bonn", title: "B" });
+		const other = await seedAppointment(db, { location: "Köln", title: "C" });
+
+		await api.bulkDelete({
+			excludeIds: [keep.id],
+			matching: { query: "Bonn" },
+		});
+
+		expect(await deletedAtOf(db, hit.id)).not.toBeNull();
+		expect(await deletedAtOf(db, keep.id)).toBeNull();
+		expect(await deletedAtOf(db, other.id)).toBeNull();
+	});
+
+	it("deletes selections larger than one transaction chunk", async () => {
+		const { api, db } = await setup("EDITOR");
+		await seedMany(db, 150);
+
+		const deleted = await api.bulkDelete({ excludeIds: [], matching: {} });
+
+		expect(deleted).toHaveLength(150);
+		expect(await db.auditLog.count({ where: { action: "DELETE" } })).toBe(150);
+	});
+
+	it.each([
+		["an id list", { ids: Array.from({ length: 501 }, (_, i) => `a${i}`) }],
+		["a matching filter", { excludeIds: [], matching: {} }],
+	])(
+		"rejects %s over the selection limit and deletes nothing",
+		async (_, selector) => {
+			const { api, db } = await setup("EDITOR");
+			await seedMany(db, 501);
+
+			const error = await api.bulkDelete(selector).catch((e: unknown) => e);
+			expect(error).toBeInstanceOf(ApiError);
+			expect((error as Error).message).toBe(
+				m.appointments_bulk_selection_too_large({ max: 500 }),
+			);
+			expect(await db.appointment.count({ where: { deletedAt: null } })).toBe(
+				501,
+			);
+		},
+	);
+
+	it("restores only deleted appointments and journals each without notifying", async () => {
+		const { api, db, notifications } = await setup("EDITOR");
+		const a = await seedAppointment(db, { deletedAt: new Date() });
+		const b = await seedAppointment(db, { deletedAt: new Date() });
+		const active = await seedAppointment(db);
+
+		const restored = await api.bulkRestore({ ids: [a.id, active.id] });
+		expect(restored.map((x) => x.id)).toEqual([a.id]);
+		await api.bulkRestore({ excludeIds: [], matching: {} });
+
+		expect(await deletedAtOf(db, b.id)).toBeNull();
+		expect(await db.auditLog.count({ where: { action: "RESTORE" } })).toBe(2);
+		expect(notifications).toEqual([]);
+	});
+
+	it("denies a USER bulk deleting and changes nothing", async () => {
+		const { api, db } = await setup("USER");
+		const appointment = await seedAppointment(db);
+		await expect(
+			api.bulkDelete({ ids: [appointment.id] }),
+		).rejects.toBeInstanceOf(ForbiddenError);
+		expect(await deletedAtOf(db, appointment.id)).toBeNull();
+	});
+});
+
+describe("AppointmentsApi.copyToSeason", () => {
+	it("copies season appointments one year later as drafts, skipping holidays", async () => {
+		const { api, db, notifications, user } = await setup("EDITOR");
+		const [from, to] = await Promise.all([
+			db.season.create({ data: { name: "2025/26" } }),
+			db.season.create({ data: { name: "2026/27" } }),
+		]);
+		const source = await seedAppointment(db, {
+			endDate: new Date("2026-03-02T18:00:00Z"),
+			location: "Bonn",
+			seasonId: from.id,
+			startDate: new Date("2026-03-01T10:00:00Z"),
+			status: "PUBLISHED",
+			title: "Pokal",
+		});
+		const holiday = await seedAppointment(db, {
+			title: "Ferien",
+			type: "HOLIDAY",
+		});
+		const deleted = await seedAppointment(db, {
+			deletedAt: new Date(),
+			seasonId: from.id,
+		});
+
+		const result = await api.copyToSeason(
+			{ ids: [source.id, holiday.id, deleted.id] },
+			to.id,
+		);
+
+		expect(result).toEqual({ copied: 1, skipped: 1 });
+		const [copy] = await db.appointment.findMany({
+			where: { seasonId: to.id },
+		});
+		expect(copy).toMatchObject({
+			endDate: new Date("2027-03-02T18:00:00Z"),
+			location: "Bonn",
+			startDate: new Date("2027-03-01T10:00:00Z"),
+			status: "DRAFT",
+			title: "Pokal",
+			type: "TOURNAMENT",
+		});
+		expect(await auditRows(db, copy.id)).toMatchObject([
+			{ action: "CREATE", userId: user?.id },
+		]);
+		expect(notifications).toEqual([]);
+	});
+
+	it("throws NotFoundError for an unknown target season and copies nothing", async () => {
+		const { api, db } = await setup("EDITOR");
+		const season = await db.season.create({ data: { name: "2025/26" } });
+		const source = await seedAppointment(db, { seasonId: season.id });
+
+		const error = await api
+			.copyToSeason({ ids: [source.id] }, "nope")
+			.catch((e: unknown) => e);
+		expect(error).toBeInstanceOf(NotFoundError);
+		expect((error as Error).message).toBe(m.appointments_season_not_found());
+		expect(await db.appointment.count()).toBe(1);
 	});
 });

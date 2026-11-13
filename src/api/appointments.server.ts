@@ -9,18 +9,18 @@ import {
 } from "@/lib/prisma/enums";
 import { userViewSelect } from "@/lib/users";
 import { m } from "@/paraglide/messages";
-import { type AuditEntry, auditEntriesFor } from "./auditLog.domain.server";
+import {
+	type AuditEntry,
+	auditEntriesFor,
+	type SoftDeleteAction,
+} from "./auditLog.domain.server";
 import {
 	ApiBase,
+	ApiError,
 	NotFoundError,
 	type Policies,
 	type Tx,
 } from "./kernel.server";
-
-// Migrated in slices (issue #119 onwards): this class holds the reads, RSVP
-// responses, create, update and publish so far; delete/restore and the bulk
-// and trash actions still live in the legacy handlers in `appointments.ts`
-// until their slices land.
 
 const appointmentDetailInclude = {
 	labels: labelsInclude,
@@ -119,11 +119,87 @@ const titleOrLocation = (query: string | undefined) => ({
 	],
 });
 
+// The filters of the bulk management list (/appts/bulk) and the trash
+// (/appts/trash). A "matching" selector uses the same shape, so "every row
+// matching the active filters" means the same rows in the list and the
+// action.
+export type BulkAppointmentsFilter = {
+	query?: string;
+	seasonId?: string;
+	types?: AppointmentType[];
+};
+
+export type BulkAppointmentsPageFilter = BulkAppointmentsFilter & {
+	skip: number;
+	take: number;
+};
+
+// What a bulk action acts on: explicit ids, or whatever matches the filter
+// when the action runs (not when "select all matching" was clicked), minus
+// the rows the user unchecked.
+export type AppointmentSelector =
+	| { ids: string[] }
+	| { matching: BulkAppointmentsFilter; excludeIds: string[] };
+
+type DeletedScope = Prisma.AppointmentWhereInput["deletedAt"];
+const ACTIVE: DeletedScope = null;
+const TRASHED: DeletedScope = { not: null };
+
+// The rows a soft-delete action may act on, and the `deletedAt` it sets.
+const softDelete = {
+	DELETE: { from: ACTIVE, to: () => new Date() },
+	RESTORE: { from: TRASHED, to: () => null },
+} as const satisfies Record<
+	SoftDeleteAction,
+	{ from: DeletedScope; to: () => Date | null }
+>;
+
+const bulkFilterWhere = (
+	filter: BulkAppointmentsFilter,
+	deletedAt: DeletedScope,
+): Prisma.AppointmentWhereInput => ({
+	deletedAt,
+	...titleOrLocation(filter.query),
+	seasonId: filter.seasonId,
+	type:
+		filter.types && filter.types.length > 0 ? { in: filter.types } : undefined,
+});
+
+// Every id in a selector, and every resolved id, becomes one bound SQL
+// parameter; SQLite allows ~999, so larger selections get a friendly error
+// instead of a raw DB one.
+const MAX_BULK_SELECTION_IDS = 500;
+
+// Each chunk of a bulk delete/restore commits on its own, so a large
+// selection never holds one long transaction.
+const SOFT_DELETE_CHUNK_SIZE = 100;
+
+const chunk = <T>(items: T[], size: number): T[][] => {
+	const chunks: T[][] = [];
+	for (let i = 0; i < items.length; i += size) {
+		chunks.push(items.slice(i, i + size));
+	}
+	return chunks;
+};
+
+// Same month/day/time one calendar year later; Feb 29 lands on Mar 1 in a
+// non-leap target year, matching plain `Date` rollover.
+const oneYearLater = (date: Date) => {
+	const shifted = new Date(date);
+	shifted.setFullYear(shifted.getFullYear() + 1);
+	return shifted;
+};
+
 export class AppointmentsApi extends ApiBase {
 	static readonly policy = {
 		acceptedBy: "AUTHENTICATED",
+		bulkDelete: "EDITOR",
+		bulkPage: "EDITOR",
+		bulkRestore: "EDITOR",
 		calendar: "AUTHENTICATED",
+		copyToSeason: "EDITOR",
 		create: "EDITOR",
+		delete: "EDITOR",
 		get: "AUTHENTICATED",
 		list: "AUTHENTICATED",
 		next: "AUTHENTICATED",
@@ -131,7 +207,9 @@ export class AppointmentsApi extends ApiBase {
 		page: "AUTHENTICATED",
 		publish: "EDITOR",
 		respond: "AUTHENTICATED",
+		restore: "EDITOR",
 		search: "AUTHENTICATED",
+		trashPage: "EDITOR",
 		unpublish: "EDITOR",
 		update: "EDITOR",
 	} as const satisfies Policies<AppointmentsApi>;
@@ -438,6 +516,180 @@ export class AppointmentsApi extends ApiBase {
 	async unpublish(id: string) {
 		const { appointment } = await this.setStatus(id, AppointmentStatus.DRAFT);
 		return appointment;
+	}
+
+	// The bulk management list: any active appointment, holidays and past ones
+	// included (unlike the RSVP-centric `page`).
+	async bulkPage(filter: BulkAppointmentsPageFilter) {
+		return this.filteredPage(filter, ACTIVE);
+	}
+
+	async trashPage(filter: BulkAppointmentsPageFilter) {
+		return this.filteredPage(filter, TRASHED);
+	}
+
+	// Deleting an already deleted appointment (a stale tab) is a NotFound, not
+	// a second journal entry. Cancels a pending (debounced) update push.
+	async delete(id: string) {
+		return this.softDeleteOne(id, "DELETE");
+	}
+
+	async restore(id: string) {
+		return this.softDeleteOne(id, "RESTORE");
+	}
+
+	// Rows no longer active by the time the action runs are skipped.
+	async bulkDelete(selector: AppointmentSelector) {
+		return this.setDeleted(
+			await this.resolveSelector(selector, ACTIVE),
+			"DELETE",
+		);
+	}
+
+	async bulkRestore(selector: AppointmentSelector) {
+		return this.setDeleted(
+			await this.resolveSelector(selector, TRASHED),
+			"RESTORE",
+		);
+	}
+
+	// Copies the selected active appointments into `targetSeasonId` one year
+	// later, as drafts. Holidays have no season and are skipped rather than
+	// failing a mixed selection. Labels and responses are not copied.
+	async copyToSeason(selector: AppointmentSelector, targetSeasonId: string) {
+		const season = await this.ctx.db.season.findUnique({
+			select: { id: true },
+			where: { id: targetSeasonId },
+		});
+		if (!season) {
+			throw new NotFoundError(m.appointments_season_not_found());
+		}
+		const ids = await this.resolveSelector(selector, ACTIVE);
+		return this.tx(async (tx) => {
+			const sources = await tx.appointment.findMany({
+				where: { deletedAt: null, id: { in: ids } },
+			});
+			const journal = this.journal(tx, "Appointment");
+			let copied = 0;
+			let skipped = 0;
+			for (const source of sources) {
+				if (source.seasonId === null) {
+					skipped++;
+					continue;
+				}
+				const copy = await tx.appointment.create({
+					data: {
+						awayTeam: source.awayTeam,
+						endDate: source.endDate ? oneYearLater(source.endDate) : null,
+						homeTeam: source.homeTeam,
+						link: source.link,
+						location: source.location,
+						ownTeamId: source.ownTeamId,
+						seasonId: targetSeasonId,
+						startDate: oneYearLater(source.startDate),
+						status: AppointmentStatus.DRAFT,
+						title: source.title,
+						type: source.type,
+					},
+				});
+				await journal.created(copy.id);
+				copied++;
+			}
+			return { copied, skipped };
+		});
+	}
+
+	private async filteredPage(
+		filter: BulkAppointmentsPageFilter,
+		deletedAt: DeletedScope,
+	) {
+		const where = bulkFilterWhere(filter, deletedAt);
+		const [appointments, matchedTotal, grandTotal] = await Promise.all([
+			this.ctx.db.appointment.findMany({
+				include: { labels: labelsInclude, season: true },
+				// `id` breaks `startDate` ties so skip/take paging can't repeat or
+				// skip a row.
+				orderBy: [{ startDate: "desc" }, { id: "asc" }],
+				skip: filter.skip,
+				take: filter.take,
+				where,
+			}),
+			this.ctx.db.appointment.count({ where }),
+			this.ctx.db.appointment.count({ where: { deletedAt } }),
+		]);
+		return { appointments, grandTotal, matchedTotal };
+	}
+
+	private async softDeleteOne(id: string, action: SoftDeleteAction) {
+		const [appointment] = await this.setDeleted([id], action);
+		if (!appointment) {
+			throw new NotFoundError(m.appointments_appointment_not_found());
+		}
+		return appointment;
+	}
+
+	// The selector's ids in `deletedAt` scope right now. A `matching`
+	// selector's exclude list says nothing about how many rows match, so the
+	// resolved count is checked too.
+	private async resolveSelector(
+		selector: AppointmentSelector,
+		deletedAt: DeletedScope,
+	) {
+		const tooLarge = () =>
+			new ApiError(
+				m.appointments_bulk_selection_too_large({
+					max: MAX_BULK_SELECTION_IDS,
+				}),
+			);
+		const listed =
+			"ids" in selector ? selector.ids.length : selector.excludeIds.length;
+		if (listed > MAX_BULK_SELECTION_IDS) throw tooLarge();
+
+		const rows = await this.ctx.db.appointment.findMany({
+			select: { id: true },
+			where:
+				"ids" in selector
+					? { deletedAt, id: { in: selector.ids } }
+					: {
+							...bulkFilterWhere(selector.matching, deletedAt),
+							id: { notIn: selector.excludeIds },
+						},
+		});
+		if (rows.length > MAX_BULK_SELECTION_IDS) throw tooLarge();
+		return rows.map((row) => row.id);
+	}
+
+	// Soft-deletes or restores `ids` in chunks, one transaction and one
+	// journal entry per row each; rows whose state changed since they were
+	// resolved are skipped. A failure partway leaves earlier chunks committed.
+	// A deleted row's pending update push is cancelled once its chunk has
+	// committed, so a rolled-back chunk can't drop a real push.
+	private async setDeleted(ids: string[], action: SoftDeleteAction) {
+		const { from, to } = softDelete[action];
+		const updated: Appointment[] = [];
+		for (const batch of chunk(ids, SOFT_DELETE_CHUNK_SIZE)) {
+			const rows = await this.tx(async (tx) => {
+				const where = { deletedAt: from, id: { in: batch } };
+				const targets = (
+					await tx.appointment.findMany({ select: { id: true }, where })
+				).map((row) => row.id);
+				if (targets.length === 0) return [];
+				await tx.appointment.updateMany({
+					data: { deletedAt: to() },
+					where: { id: { in: targets } },
+				});
+				const journal = this.journal(tx, "Appointment");
+				await (action === "DELETE"
+					? journal.softDeleted(targets)
+					: journal.restored(targets));
+				return tx.appointment.findMany({ where: { id: { in: targets } } });
+			});
+			if (action === "DELETE") {
+				for (const row of rows) this.ctx.notifier.cancelUpdated(row.id);
+			}
+			updated.push(...rows);
+		}
+		return updated;
 	}
 
 	private setStatus(id: string, status: AppointmentStatus) {
