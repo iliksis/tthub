@@ -1,7 +1,6 @@
 // The audit log's write and read helpers (docs/adr/0005). Plain functions and
-// a collaborator taking a `db`/`tx`, so every owning class (and, until their
-// migration, the legacy appointments/imports handlers) journals the same way,
-// and AuditLogApi plus the appointment detail read entries the same way.
+// a collaborator taking a `db`/`tx`, so every owning class journals the same
+// way, and AuditLogApi plus the appointment detail read entries the same way.
 import {
 	type AuditChanges,
 	type AuditEntityType,

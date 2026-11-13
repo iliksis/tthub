@@ -232,7 +232,7 @@ test.describe("Trash Route - Restore", () => {
 	});
 
 	// bulkRestoreAppointments is gated the same way as restoreAppointment
-	// (requireEditor) — since USER can't reach /appts/trash at all (see the
+	// (the EDITOR policy on AppointmentsApi) — since USER can't reach /appts/trash at all (see the
 	// Access Control block above), there's no UI path for a USER to invoke it.
 });
 
