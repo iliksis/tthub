@@ -1,5 +1,6 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
 	"invitations_create_account": "Account erstellen",
+	"invitations_invitation_loaded": "Einladung geladen",
 	"invitations_set_a_password_to_create_your_account": "Passwort festlegen, um Account zu erstellen"
 }

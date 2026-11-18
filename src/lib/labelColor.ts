@@ -1,4 +1,4 @@
-import type { LabelColor } from "@/api/labels";
+import type { LabelColor } from "@/lib/labels";
 
 type PrioritizedLabel = { priority: number };
 

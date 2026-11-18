@@ -23,10 +23,10 @@ import { getLabels } from "@/api/labels";
 import { getUniqueCategories } from "@/api/placements";
 import { getPlayers } from "@/api/players";
 import { getSeasons } from "@/api/seasons";
+import { AuditHistory } from "@/components/appointments/AuditHistory";
 import { EditableNextAppointmentCard } from "@/components/appointments/editable/EditableNextAppointmentCard";
 import { RecordInfoPanel } from "@/components/appointments/RecordInfoPanel";
 import { ResponsesPanel } from "@/components/appointments/ResponsesPanel";
-import { TransactionHistory } from "@/components/appointments/TransactionHistory";
 import { LabelBadges } from "@/components/labels/LabelBadges";
 import { LabelMultiSelect } from "@/components/labels/LabelMultiSelect";
 import { DeleteModal } from "@/components/modal/DeleteModal";
@@ -505,12 +505,12 @@ function RouteComponent() {
 								<RecordInfoPanel
 									createdAt={new Date(appointment.createdAt)}
 									lastUpdated={
-										appointment.transactions[0]
-											? new Date(appointment.transactions[0].createdAt)
+										appointment.auditLog[0]
+											? new Date(appointment.auditLog[0].createdAt)
 											: new Date(appointment.createdAt)
 									}
 								/>
-								<TransactionHistory transactions={appointment.transactions} />
+								<AuditHistory entries={appointment.auditLog} />
 							</div>
 						</CollapsibleContent>
 					</Collapsible>
@@ -750,8 +750,8 @@ function RouteComponent() {
 					<RecordInfoPanel
 						createdAt={new Date(appointment.createdAt)}
 						lastUpdated={
-							appointment.transactions[0]
-								? new Date(appointment.transactions[0].createdAt)
+							appointment.auditLog[0]
+								? new Date(appointment.auditLog[0].createdAt)
 								: new Date(appointment.createdAt)
 						}
 					/>
@@ -763,7 +763,7 @@ function RouteComponent() {
 							onResponse={onResponse}
 						/>
 					)}
-					<TransactionHistory transactions={appointment.transactions} />
+					<AuditHistory entries={appointment.auditLog} />
 				</div>
 			</div>
 

@@ -60,11 +60,11 @@ export const TeamHalf = {
 export type TeamHalf = (typeof TeamHalf)[keyof typeof TeamHalf]
 
 
-export const TransactionType = {
+export const AuditAction = {
   CREATE: 'CREATE',
   UPDATE: 'UPDATE',
   DELETE: 'DELETE',
   RESTORE: 'RESTORE'
 } as const
 
-export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType]
+export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction]

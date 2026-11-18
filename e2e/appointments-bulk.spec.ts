@@ -240,7 +240,7 @@ test.describe("Bulk Appointments Route - Delete", () => {
 	});
 
 	// bulkDeleteAppointments is gated the same way as deleteAppointment
-	// (requireEditor) — since USER can't reach /appts/bulk at all (see the
+	// (the EDITOR policy on AppointmentsApi) — since USER can't reach /appts/bulk at all (see the
 	// Access Control block above), there's no UI path for a USER to invoke it.
 });
 
@@ -411,7 +411,7 @@ test.describe("Bulk Appointments Route - Copy to Season", () => {
 	});
 
 	// bulkCopyAppointmentsToSeason is gated the same way as bulkDeleteAppointments
-	// (requireEditor) — since USER can't reach /appts/bulk at all (see the
+	// (the EDITOR policy on AppointmentsApi) — since USER can't reach /appts/bulk at all (see the
 	// Access Control block above), there's no UI path for a USER to invoke it.
 	test("copying a mixed selection copies eligible appointments, skips the HOLIDAY one, and lands drafts one year later", async ({
 		page,

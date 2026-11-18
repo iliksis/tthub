@@ -42,7 +42,7 @@ Extend/compose these — don't hand-roll a new primitive if one exists here.
 - `size`: `default` (h-8), `xs` (h-6), `sm` (h-7), `lg` (h-9), `icon` (size-8), `icon-xs` (size-6), `icon-sm` (size-7), `icon-lg` (size-9)
 - Defaults: `variant="default" size="default"`.
 
-**Badge** (`badge.tsx`) — pill shape (`rounded-full px-2 py-0.5 text-xs`), no size variants. `variant`: `default`, `secondary`, `destructive`, `success`, `warning`, `info`, `outline`, `ghost`, `link`. `success`/`warning`/`info` are this codebase's additions over stock shadcn — use them for status badges (publish state, response status, transaction type) rather than `outline` + manual color classes.
+**Badge** (`badge.tsx`) — pill shape (`rounded-full px-2 py-0.5 text-xs`), no size variants. `variant`: `default`, `secondary`, `destructive`, `success`, `warning`, `info`, `outline`, `ghost`, `link`. `success`/`warning`/`info` are this codebase's additions over stock shadcn — use them for status badges (publish state, response status, audit action) rather than `outline` + manual color classes.
 
 **Alert** (`alert.tsx`) — `rounded-lg border px-2.5 py-2`. `variant`: `default`, `destructive`, `success`, `warning`, `info` (no `outline`/`secondary` — all variants share `bg-card`, only text color changes).
 
@@ -133,7 +133,7 @@ Most-repeated values — prefer these over inventing new ones:
 
 - Publish state: `<Badge variant={isPublished ? "success" : "warning"}>`
 - Appointment type: `<Badge variant="outline">{typeLabel(...)}</Badge>`
-- Transaction actions: derive `{variant, label}` from `transactionActionBadge(item.type)` and feed straight into `<Badge variant={badge.variant}>`
+- Audit log actions: derive `{variant, label}` from `auditActionBadge(item.action)` (`src/lib/auditLabels.ts`) and feed straight into `<Badge variant={badge.variant}>`
 - Small status dot: `<span className="size-1.5 shrink-0 rounded-full bg-success|bg-warning|bg-muted-foreground" />`
 
 **Accept/Maybe/Decline tri-state buttons** — not badges, ghost `Button`s with tri-state color coding. This exact pattern is copy-pasted across `appts/index.tsx`, `appts/$apptId.tsx`, and `index.tsx` — reuse it verbatim for any similar RSVP-style control:

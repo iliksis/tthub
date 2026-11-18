@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ExternalLinkIcon } from "lucide-react";
+import type { AuditLogPageEntry } from "@/api/auditLog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,13 +9,12 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Appointment, Transaction, User } from "@/lib/prisma/client";
 import {
-	fieldLabels,
+	auditActionBadge,
+	fieldLabel,
 	formatChangeValue,
-	type TransactionChanges,
-	transactionActionBadge,
-} from "@/lib/transactionLabels";
+} from "@/lib/auditLabels";
+import type { AuditChanges } from "@/lib/auditLog";
 import {
 	createColorForUserId,
 	formatRelativeTime,
@@ -30,17 +30,16 @@ const dateTimeFormat: Intl.DateTimeFormatOptions = {
 	year: "numeric",
 };
 
-type TransactionDetailProps = {
-	transaction: Transaction & { user: User | null; appointment: Appointment };
+type AuditEntryDetailProps = {
+	entry: AuditLogPageEntry;
 };
 
-export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
-	const userColor = transaction.user
-		? createColorForUserId(transaction.user.id)
-		: null;
-	const badge = transactionActionBadge(transaction.type);
-	const changes = transaction.changes as TransactionChanges | null;
+export const AuditEntryDetail = ({ entry }: AuditEntryDetailProps) => {
+	const userColor = entry.user ? createColorForUserId(entry.user.id) : null;
+	const badge = auditActionBadge(entry.action);
+	const changes = entry.changes as AuditChanges | null;
 	const entries = Object.entries(changes ?? {});
+	const isAppointment = entry.entityType === "Appointment";
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -49,15 +48,15 @@ export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
 				<Badge variant={badge.variant}>{badge.label}</Badge>
 			</div>
 			<div>
-				<div className="font-medium text-sm">
-					{transaction.appointment.title}
-				</div>
-				<div className="text-muted-foreground text-xs">
-					{transaction.appointment.location ?? m.appointments_no_location_set()}
-				</div>
+				<div className="font-medium text-sm">{entry.entity.name}</div>
+				{(entry.entity.detail || isAppointment) && (
+					<div className="text-muted-foreground text-xs">
+						{entry.entity.detail ?? m.appointments_no_location_set()}
+					</div>
+				)}
 			</div>
 			<div className="flex items-center gap-2 text-sm">
-				{transaction.user && userColor ? (
+				{entry.user && userColor ? (
 					<>
 						<Avatar size="sm" className="shrink-0">
 							<AvatarFallback
@@ -66,10 +65,10 @@ export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
 									color: userColor.foregroundColor,
 								}}
 							>
-								{shortenUserName(transaction.user.name)}
+								{shortenUserName(entry.user.name)}
 							</AvatarFallback>
 						</Avatar>
-						<span>{transaction.user.name}</span>
+						<span>{entry.user.name}</span>
 					</>
 				) : (
 					<span className="text-muted-foreground">
@@ -81,13 +80,10 @@ export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
 				<TooltipTrigger
 					render={<div className="w-fit text-muted-foreground text-xs" />}
 				>
-					{formatRelativeTime(transaction.createdAt)}
+					{formatRelativeTime(entry.createdAt)}
 				</TooltipTrigger>
 				<TooltipContent>
-					{new Date(transaction.createdAt).toLocaleString(
-						"de-DE",
-						dateTimeFormat,
-					)}
+					{new Date(entry.createdAt).toLocaleString("de-DE", dateTimeFormat)}
 				</TooltipContent>
 			</Tooltip>
 			{entries.length > 0 && (
@@ -95,35 +91,34 @@ export const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
 					{entries.map(([field, change]) => (
 						<div key={field} className="flex flex-wrap items-center gap-1.5">
 							<dt className="font-medium text-foreground">
-								{fieldLabels[field] ?? field}:
+								{fieldLabel(entry.entityType, field)}:
 							</dt>
 							<dd className="flex items-center gap-1.5 text-muted-foreground">
 								<span className="line-through decoration-destructive/50">
-									{formatChangeValue(field, change.old)}
+									{formatChangeValue(entry.entityType, field, change.old)}
 								</span>
 								<span aria-hidden="true">→</span>
 								<span className="text-foreground">
-									{formatChangeValue(field, change.new)}
+									{formatChangeValue(entry.entityType, field, change.new)}
 								</span>
 							</dd>
 						</div>
 					))}
 				</dl>
 			)}
-			<Button
-				variant="outline"
-				size="sm"
-				className="mt-1 w-fit"
-				render={
-					<Link
-						to="/appts/$apptId"
-						params={{ apptId: transaction.appointment.id }}
-					/>
-				}
-			>
-				<ExternalLinkIcon className="size-3.5" />
-				{m.appointments_open_appointment()}
-			</Button>
+			{isAppointment && (
+				<Button
+					variant="outline"
+					size="sm"
+					className="mt-1 w-fit"
+					render={
+						<Link to="/appts/$apptId" params={{ apptId: entry.entityId }} />
+					}
+				>
+					<ExternalLinkIcon className="size-3.5" />
+					{m.appointments_open_appointment()}
+				</Button>
+			)}
 		</div>
 	);
 };

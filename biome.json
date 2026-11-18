@@ -34,6 +34,46 @@
 			"recommended": true
 		}
 	},
+	"overrides": [
+		{
+			"includes": [
+				"src/api/appointments.ts",
+				"src/api/auditLog.ts",
+				"src/api/imports.ts",
+				"src/api/invitations.ts",
+				"src/api/labels.ts",
+				"src/api/notifications.ts",
+				"src/api/passwordReset.ts",
+				"src/api/placements.ts",
+				"src/api/players.ts",
+				"src/api/seasons.ts",
+				"src/api/stats.ts",
+				"src/api/teams.ts",
+				"src/api/users.ts"
+			],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"@/lib/db": "Handler files delegate to their API class (src/api/<aggregate>.server.ts); Prisma access lives there. See ADR 0004.",
+									"@/lib/session": "Handler files delegate to their API class; auth is the class's static policy. See ADR 0004."
+								},
+								"patterns": [
+									{
+										"group": ["@/lib/prisma/**", "@prisma/**"],
+										"message": "Handler files delegate to their API class (src/api/<aggregate>.server.ts); Prisma access lives there. See ADR 0004."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		}
+	],
 	"vcs": {
 		"clientKind": "git",
 		"enabled": false,

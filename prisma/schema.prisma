@@ -21,7 +21,7 @@ model User {
   notificationSettings NotificationSettings[]
   passwordReset        PasswordReset?
   feedConfig           FeedConfig?
-  transactions         Transaction[]
+  auditLogs            AuditLog[]
   mutedLabels          UserMutedLabel[]
 }
 
@@ -71,7 +71,6 @@ model Appointment {
   nextAppointmentId    String?
   nextAppointment      Appointment?       @relation("AppointmentSeries", fields: [nextAppointmentId], references: [id])
   previousAppointments Appointment[]      @relation("AppointmentSeries")
-  transactions         Transaction[]
   ownTeamId            String?
   ownTeam              Team?              @relation(fields: [ownTeamId], references: [id], onDelete: SetNull)
   homeTeam             String?
@@ -267,18 +266,26 @@ model Placement {
   @@id([playerId, appointmentId, category])
 }
 
-model Transaction {
-  id            String          @id @default(nanoid(6))
-  createdAt     DateTime        @default(now())
-  appointmentId String
-  appointment   Appointment     @relation(fields: [appointmentId], references: [id])
-  userId        String?
-  user          User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
-  type          TransactionType
-  changes       Json?
+// One entry per create, update, soft delete or restore of a journalled entity
+// (see CONTEXT.md "Audit Log" and docs/adr/0005). No FK to the entity, so a
+// new journalled entity needs no schema change; readers resolve entities per
+// `entityType` in code (src/api/auditLog.domain.server.ts).
+model AuditLog {
+  id         String      @id @default(nanoid(6))
+  createdAt  DateTime    @default(now())
+  entityType String
+  entityId   String
+  userId     String?
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     AuditAction
+  // { field: { old, new } } for updates; null otherwise.
+  changes    Json?
+
+  @@index([entityType, entityId, createdAt])
+  @@index([createdAt])
 }
 
-enum TransactionType {
+enum AuditAction {
   CREATE
   UPDATE
   DELETE

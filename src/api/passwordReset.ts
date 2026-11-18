@@ -1,51 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
-import { prismaClient } from "@/lib/db";
-import { useIsRole } from "@/lib/session";
 import { m } from "@/paraglide/messages";
+import { run } from "./kernel.server";
+import { PasswordResetApi } from "./passwordReset.server";
 
 export const getPasswordReset = createServerFn({ method: "GET" })
 	.validator((d: { id: string }) => d)
-	.handler(async ({ data }) => {
-		const invitation = await prismaClient.passwordReset.findUnique({
-			include: {
-				user: true,
-			},
-			where: {
-				id: data.id,
-			},
-		});
-		return invitation;
-	});
+	.handler(({ data }) =>
+		run(PasswordResetApi, m.users_password_reset_loaded, (api) =>
+			api.get(data.id),
+		),
+	);
 
 export const createPasswordReset = createServerFn({ method: "POST" })
 	.validator((d: { userId: string }) => d)
-	.handler(async ({ data }) => {
-		const isAuthorized = await useIsRole("ADMIN");
-		if (!isAuthorized) {
-			throw new Error(m.common_unauthorized());
-		}
-
-		try {
-			const existing = await prismaClient.passwordReset.findUnique({
-				where: {
-					userId: data.userId,
-				},
-			});
-			if (existing) {
-				await prismaClient.passwordReset.delete({
-					where: {
-						userId: data.userId,
-					},
-				});
-			}
-			const invitation = await prismaClient.passwordReset.create({
-				data: {
-					userId: data.userId,
-				},
-			});
-			return { data: invitation, message: m.common_user_updated() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(PasswordResetApi, m.common_user_updated, (api) =>
+			api.create(data.userId),
+		),
+	);

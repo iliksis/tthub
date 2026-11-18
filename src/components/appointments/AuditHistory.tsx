@@ -1,3 +1,4 @@
+import type { AuditEntry } from "@/api/auditLog";
 import { Section } from "@/components/Section";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -5,9 +6,9 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Transaction, User } from "@/lib/prisma/client";
-import { TransactionType } from "@/lib/prisma/enums";
-import { fieldLabels, type TransactionChanges } from "@/lib/transactionLabels";
+import { fieldLabel } from "@/lib/auditLabels";
+import type { AuditChanges } from "@/lib/auditLog";
+import { AuditAction } from "@/lib/prisma/enums";
 import {
 	createColorForUserId,
 	formatRelativeTime,
@@ -15,8 +16,8 @@ import {
 } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
-type TransactionHistoryProps = {
-	transactions: (Transaction & { user: User | null })[];
+type AuditHistoryProps = {
+	entries: AuditEntry[];
 };
 
 const dateTimeFormat: Intl.DateTimeFormatOptions = {
@@ -30,46 +31,46 @@ const dateTimeFormat: Intl.DateTimeFormatOptions = {
 type HistoryEntry = {
 	key: string;
 	header: string;
-	user: User | null;
+	user: AuditEntry["user"];
 	createdAt: Date;
 };
 
-const buildEntries = (
-	transactions: (Transaction & { user: User | null })[],
-): HistoryEntry[] => {
+const buildEntries = (auditEntries: AuditEntry[]): HistoryEntry[] => {
 	const entries: HistoryEntry[] = [];
-	for (const transaction of transactions) {
-		if (transaction.type === TransactionType.CREATE) {
+	for (const entry of auditEntries) {
+		if (entry.action === AuditAction.CREATE) {
 			entries.push({
-				createdAt: transaction.createdAt,
+				createdAt: entry.createdAt,
 				header: m.appointments_appointment_created(),
-				key: transaction.id,
-				user: transaction.user,
+				key: entry.id,
+				user: entry.user,
 			});
-		} else if (transaction.type === TransactionType.DELETE) {
+		} else if (entry.action === AuditAction.DELETE) {
 			entries.push({
-				createdAt: transaction.createdAt,
+				createdAt: entry.createdAt,
 				header: m.appointments_appointment_deleted(),
-				key: transaction.id,
-				user: transaction.user,
+				key: entry.id,
+				user: entry.user,
 			});
-		} else if (transaction.type === TransactionType.RESTORE) {
+		} else if (entry.action === AuditAction.RESTORE) {
 			entries.push({
-				createdAt: transaction.createdAt,
+				createdAt: entry.createdAt,
 				header: m.appointments_appointment_restored(),
-				key: transaction.id,
-				user: transaction.user,
+				key: entry.id,
+				user: entry.user,
 			});
 		} else {
-			const changes = transaction.changes as TransactionChanges | null;
+			const changes = entry.changes as AuditChanges | null;
 			const fields = Object.keys(changes ?? {});
 			if (fields.length > 0) {
-				const labels = fields.map((field) => fieldLabels[field] ?? field);
+				const labels = fields.map((field) =>
+					fieldLabel(entry.entityType, field),
+				);
 				entries.push({
-					createdAt: transaction.createdAt,
+					createdAt: entry.createdAt,
 					header: m.appointments_n_changed({ param1: labels.join(", ") }),
-					key: transaction.id,
-					user: transaction.user,
+					key: entry.id,
+					user: entry.user,
 				});
 			}
 		}
@@ -77,10 +78,8 @@ const buildEntries = (
 	return entries;
 };
 
-export const TransactionHistory = ({
-	transactions,
-}: TransactionHistoryProps) => {
-	const entries = buildEntries(transactions);
+export const AuditHistory = ({ entries: auditEntries }: AuditHistoryProps) => {
+	const entries = buildEntries(auditEntries);
 	if (entries.length === 0) return null;
 
 	return (

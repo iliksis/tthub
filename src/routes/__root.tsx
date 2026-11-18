@@ -9,40 +9,24 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
+import { AuthApi } from "@/api/auth.server";
+import { run } from "@/api/kernel.server";
 import { NavigationWrapper } from "@/components/NavigationWrapper";
 import { NotFound } from "@/components/NotFound";
 import { getTheme } from "@/components/ThemeSwitch";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { prismaClient } from "@/lib/db";
-import { useAppSession } from "@/lib/session";
+import { m } from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";
 import appCss from "../styles.css?url";
 
-const fetchUser = createServerFn({ method: "GET" }).handler(async () => {
-	const session = await useAppSession();
-	if (!session.data.userName) {
-		return null;
-	}
-	const user = await prismaClient.user.findUnique({
-		where: {
-			userName: session.data.userName,
-		},
-	});
-	if (user === null) {
-		return null;
-	}
-	return {
-		id: session.data.id,
-		name: session.data.name,
-		role: session.data.role,
-		userName: session.data.userName,
-	};
-});
+const fetchUser = createServerFn({ method: "GET" }).handler(() =>
+	run(AuthApi, m.auth_session_loaded, (api) => api.currentUser()),
+);
 
 export const Route = createRootRoute({
 	beforeLoad: async () => {
-		const user = await fetchUser();
+		const { data: user } = await fetchUser();
 		const theme = await getTheme();
 		return { theme, user };
 	},

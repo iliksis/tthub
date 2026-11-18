@@ -27,8 +27,9 @@ import {
 } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
+type ListedUser = Pick<User, "id" | "name" | "role" | "userName">;
 type IUserManagementProps = {
-	users: (User & {
+	users: (ListedUser & {
 		invitation: UserInvitation | null;
 		passwordReset: PasswordReset | null;
 	})[];
@@ -52,7 +53,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 		},
 	});
 
-	const onDelete = (user: User) => async () => {
+	const onDelete = (user: ListedUser) => async () => {
 		deleteMutation.mutate({
 			data: {
 				id: user.id,
@@ -71,7 +72,7 @@ export const UserManagement = ({ users }: IUserManagementProps) => {
 		},
 	});
 
-	const onCreateInvitation = (user: User) => async () => {
+	const onCreateInvitation = (user: ListedUser) => async () => {
 		createInvitationMutation.mutate({
 			data: {
 				userId: user.id,

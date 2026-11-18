@@ -15,7 +15,7 @@ async function main() {
 	await prismaClient.team.deleteMany();
 	await prismaClient.player.deleteMany();
 	await prismaClient.response.deleteMany();
-	await prismaClient.transaction.deleteMany();
+	await prismaClient.auditLog.deleteMany();
 	await prismaClient.appointment.deleteMany();
 	await prismaClient.seasonStatistics.deleteMany();
 	await prismaClient.season.deleteMany();

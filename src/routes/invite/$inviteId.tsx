@@ -7,18 +7,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
-import { isInvitationExpired } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/invite/$inviteId")({
 	beforeLoad: async ({ params }) => {
-		const invitation = await getInvitation({ data: { id: params.inviteId } });
-		if (invitation === null) {
-			throw new Error(m.common_invitation_not_found());
-		}
-		if (isInvitationExpired(invitation)) {
-			throw new Error(m.common_invitation_expired());
-		}
+		// Throws (with a user-facing message) for unknown or expired tokens.
+		const { data: invitation } = await getInvitation({
+			data: { id: params.inviteId },
+		});
 		return { invitation };
 	},
 	component: RouteComponent,

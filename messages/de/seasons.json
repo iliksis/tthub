@@ -12,6 +12,7 @@
 	"seasons_cannot_delete_while_referenced": "Saison kann nicht gelöscht werden, solange Teams oder Termine darauf verweisen",
 	"seasons_season_created": "Saison erstellt",
 	"seasons_season_deleted": "Saison gelöscht",
+	"seasons_season_not_found": "Saison nicht gefunden",
 	"seasons_season_updated": "Saison aktualisiert",
 	"seasons_seasons_found": "Saisons gefunden",
 	"seasons_set_active": "Als aktiv festlegen",

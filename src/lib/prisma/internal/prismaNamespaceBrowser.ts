@@ -67,7 +67,7 @@ export const ModelName = {
   TeamPlayer: 'TeamPlayer',
   Standing: 'Standing',
   Placement: 'Placement',
-  Transaction: 'Transaction',
+  AuditLog: 'AuditLog',
   Subscription: 'Subscription',
   ImporterSetting: 'ImporterSetting',
   NotificationSettings: 'NotificationSettings'
@@ -280,16 +280,17 @@ export const PlacementScalarFieldEnum = {
 export type PlacementScalarFieldEnum = (typeof PlacementScalarFieldEnum)[keyof typeof PlacementScalarFieldEnum]
 
 
-export const TransactionScalarFieldEnum = {
+export const AuditLogScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
-  appointmentId: 'appointmentId',
+  entityType: 'entityType',
+  entityId: 'entityId',
   userId: 'userId',
-  type: 'type',
+  action: 'action',
   changes: 'changes'
 } as const
 
-export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
+export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
 
 
 export const SubscriptionScalarFieldEnum = {

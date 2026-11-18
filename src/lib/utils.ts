@@ -17,7 +17,9 @@ export const isInformationalAppointmentType = (type: AppointmentType) =>
 	type === AppointmentType.HOLIDAY || type === AppointmentType.TEAM_MATCH;
 
 const expirationDays = 3;
-export const isInvitationExpired = (invitation: UserInvitation) => {
+export const isInvitationExpired = (
+	invitation: Pick<UserInvitation, "createdAt">,
+) => {
 	const expirationDate = new Date(invitation.createdAt);
 	expirationDate.setDate(expirationDate.getDate() + expirationDays);
 	return expirationDate < new Date();
@@ -255,15 +257,10 @@ export const getCatppuccinColorStyle = (
 export const formatTanstackRouterPath = (
 	path: FileRouteTypes["fullPaths"],
 	params: Record<string, string>,
-) => {
-	const keys = Object.keys(params);
-	const values = Object.values(params);
-	return path
+) =>
+	path
 		.replace(/\/$/, "")
-		.replace(new RegExp(`\\$${keys.join("|\\$")}`, "g"), (match, index) => {
-			return values[index] ?? match;
-		});
-};
+		.replace(/\$(\w+)/g, (match, key: string) => params[key] ?? match);
 
 import type { AgeGroup } from "@/lib/ageGroup";
 

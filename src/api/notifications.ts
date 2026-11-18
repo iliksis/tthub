@@ -1,361 +1,75 @@
-import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
-import webpush from "web-push";
-import { prismaClient } from "@/lib/db";
-import { useAppSession } from "@/lib/session";
+import { createServerFn } from "@tanstack/react-start";
 import { m } from "@/paraglide/messages";
+import { run } from "./kernel.server";
+import {
+	type NotificationSettingsInput,
+	NotificationsApi,
+} from "./notifications.server";
 
 export const createNotificationSubscription = createServerFn({ method: "POST" })
 	.validator((d: { subscription: PushSubscriptionJSON; device: string }) => d)
-	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		if (!session.data.id) {
-			throw new Error(m.common_unauthorized());
-		}
-		if (!data.subscription.keys || !data.subscription.endpoint) {
-			throw new Error(m.notifications_invalid_subscription());
-		}
-		try {
-			const subscription = await prismaClient.subscription.create({
-				data: {
-					auth: data.subscription.keys.auth,
-					device: data.device,
-					endpoint: data.subscription.endpoint,
-					p256dh: data.subscription.keys.p256dh,
-					userId: session.data.id,
-				},
-			});
-			return {
-				data: subscription,
-				message: m.notifications_subscription_created(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(NotificationsApi, m.notifications_subscription_created, (api) =>
+			api.createSubscription(data),
+		),
+	);
 
 export const tryGetSubscription = createServerFn({ method: "GET" })
 	.validator((d: { authKey: string }) => d)
-	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		if (!session.data.id) {
-			throw new Error(m.common_unauthorized());
-		}
-		try {
-			const subscription = await prismaClient.subscription.findUnique({
-				where: {
-					auth: data.authKey,
-				},
-			});
-			if (!subscription) {
-				throw new Error(m.notifications_subscription_not_found());
-			}
-			return {
-				data: subscription,
-				message: m.notifications_subscription_found(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(NotificationsApi, m.notifications_subscription_found, (api) =>
+			api.subscriptionByAuthKey(data.authKey),
+		),
+	);
 
 export const getAllSubscriptions = createServerFn({ method: "GET" }).handler(
-	async () => {
-		const session = await useAppSession();
-		if (!session.data.id) {
-			throw new Error(m.common_unauthorized());
-		}
-		try {
-			const subscriptions = await prismaClient.subscription.findMany({
-				where: {
-					userId: session.data.id,
-				},
-			});
-			return {
-				data: subscriptions,
-				message: m.notifications_subscriptions_found(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	},
+	() =>
+		run(NotificationsApi, m.notifications_subscriptions_found, (api) =>
+			api.subscriptions(),
+		),
 );
 
 export const deleteNotificationSubscription = createServerFn({ method: "POST" })
 	.validator((d: { id: string }) => d)
-	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		if (!session.data.id) {
-			throw new Error(m.common_unauthorized());
-		}
-		try {
-			const settings = await prismaClient.notificationSettings.findUnique({
-				where: {
-					userId_subscriptionId: {
-						subscriptionId: data.id,
-						userId: session.data.id,
-					},
-				},
-			});
-			if (settings) {
-				await prismaClient.notificationSettings.delete({
-					where: {
-						userId_subscriptionId: {
-							subscriptionId: data.id,
-							userId: session.data.id,
-						},
-					},
-				});
-			}
-			await prismaClient.subscription.delete({
-				where: {
-					id: data.id,
-				},
-			});
-			return { message: m.notifications_subscription_deleted() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(NotificationsApi, m.notifications_subscription_deleted, (api) =>
+			api.deleteSubscription(data.id),
+		),
+	);
 
 export const updateNotificationSettings = createServerFn({ method: "POST" })
-	.validator(
-		(d: {
-			subscriptionId: string;
-			changedAppointment: boolean;
-			newAppointment: boolean;
-		}) => d,
-	)
-	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		if (!session.data.id) {
-			throw new Error(m.common_unauthorized());
-		}
-		try {
-			await prismaClient.notificationSettings.upsert({
-				create: {
-					changedAppointment: data.changedAppointment,
-					newAppointment: data.newAppointment,
-					subscriptionId: data.subscriptionId,
-					userId: session.data.id,
-				},
-				update: {
-					changedAppointment: data.changedAppointment,
-					newAppointment: data.newAppointment,
-				},
-				where: {
-					userId_subscriptionId: {
-						subscriptionId: data.subscriptionId,
-						userId: session.data.id,
-					},
-				},
-			});
-			return { message: m.common_settings_updated() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.validator((d: NotificationSettingsInput) => d)
+	.handler(({ data }) =>
+		run(NotificationsApi, m.common_settings_updated, (api) =>
+			api.updateSettings(data),
+		),
+	);
 
 export const getNotificationSettings = createServerFn({ method: "GET" })
 	.validator((d: { subscriptionId: string }) => d)
-	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		if (!session.data.id) {
-			throw new Error(m.common_unauthorized());
-		}
-		try {
-			const notificationSettings =
-				await prismaClient.notificationSettings.findUnique({
-					where: {
-						userId_subscriptionId: {
-							subscriptionId: data.subscriptionId,
-							userId: session.data.id,
-						},
-					},
-				});
-			return {
-				data: notificationSettings,
-				message: m.notifications_settings_found(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(NotificationsApi, m.notifications_settings_found, (api) =>
+			api.settings(data.subscriptionId),
+		),
+	);
 
-export const getMutedLabels = createServerFn({ method: "GET" }).handler(
-	async () => {
-		const session = await useAppSession();
-		if (!session.data.id) {
-			throw new Error(m.common_unauthorized());
-		}
-		try {
-			const muted = await prismaClient.userMutedLabel.findMany({
-				include: { label: true },
-				where: { userId: session.data.id },
-			});
-			return {
-				data: muted.map((entry) => entry.label),
-				message: m.notifications_muted_labels_found(),
-			};
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	},
+export const getMutedLabels = createServerFn({ method: "GET" }).handler(() =>
+	run(NotificationsApi, m.notifications_muted_labels_found, (api) =>
+		api.mutedLabels(),
+	),
 );
 
 export const updateMutedLabels = createServerFn({ method: "POST" })
 	.validator((d: { labelIds: string[] }) => d)
-	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		if (!session.data.id) {
-			throw new Error(m.common_unauthorized());
-		}
-		try {
-			const before = await prismaClient.userMutedLabel.findMany({
-				select: { labelId: true },
-				where: { userId: session.data.id },
-			});
-			const sortedBefore = before.map((l) => l.labelId).sort();
-			const sortedAfter = [...data.labelIds].sort();
-			const unchanged =
-				sortedBefore.length === sortedAfter.length &&
-				sortedBefore.every((id, i) => id === sortedAfter[i]);
-			if (!unchanged) {
-				await prismaClient.$transaction(async (tx) => {
-					await tx.userMutedLabel.deleteMany({
-						where: { userId: session.data.id as string },
-					});
-					if (data.labelIds.length > 0) {
-						await tx.userMutedLabel.createMany({
-							data: data.labelIds.map((labelId) => ({
-								labelId,
-								userId: session.data.id as string,
-							})),
-						});
-					}
-				});
-			}
-			return { message: m.common_settings_updated() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	});
+	.handler(({ data }) =>
+		run(NotificationsApi, m.common_settings_updated, (api) =>
+			api.updateMutedLabels(data.labelIds),
+		),
+	);
 
 export const sendTestNotification = createServerFn({ method: "POST" }).handler(
-	async () => {
-		const session = await useAppSession();
-		if (!session.data.id) {
-			throw new Error(m.common_unauthorized());
-		}
-		try {
-			webpush.setVapidDetails(
-				"mailto:mail@example.com",
-				import.meta.env.VITE_VAPID_PUBLIC_KEY,
-				process.env.VAPID_PRIVATE_KEY,
-			);
-
-			const payload = JSON.stringify({
-				badge: "/favicon-96x96.png",
-				body: "This is a test notification",
-				title: "TT Hub - Test Notification",
-				url: "/",
-			});
-
-			const subscriptions = await prismaClient.subscription.findMany();
-			for (const subscription of subscriptions) {
-				await webpush.sendNotification(
-					{
-						endpoint: subscription.endpoint,
-						keys: {
-							auth: subscription.auth,
-							p256dh: subscription.p256dh,
-						},
-					},
-					payload,
-				);
-			}
-
-			return { message: m.notifications_notifications_sent() };
-		} catch (e) {
-			console.error(e);
-			throw new Error((e as Error).message);
-		}
-	},
-);
-
-export const sendNotification = createServerOnlyFn(
-	async (data: {
-		body: string;
-		title: string;
-		url: string;
-		scope: "new" | "updated";
-		appointmentId: string;
-	}) => {
-		webpush.setVapidDetails(
-			"mailto:mail@example.com",
-			import.meta.env.VITE_VAPID_PUBLIC_KEY,
-			process.env.VAPID_PRIVATE_KEY,
-		);
-
-		const payload = JSON.stringify({
-			badge: "/favicon-96x96.png",
-			body: data.body,
-			title: data.title,
-			url: data.url,
-		});
-
-		const session = await useAppSession();
-
-		// Read the appointment's current labels here (rather than having every
-		// caller snapshot and pass them) so the debounced "updated" notification
-		// — sent up to 5s after the triggering save — always reflects the
-		// appointment's actual labels at send time, not whatever they were when
-		// the save request came in.
-		const labels = await prismaClient.appointmentLabel.findMany({
-			select: { labelId: true },
-			where: { appointmentId: data.appointmentId },
-		});
-		const labelIds = labels.map((l) => l.labelId);
-
-		const userSettings = await prismaClient.notificationSettings.findMany({
-			include: {
-				subscription: true,
-			},
-			where: {
-				changedAppointment: data.scope === "updated" ? true : undefined,
-				NOT: {
-					userId: session.data.id,
-				},
-				newAppointment: data.scope === "new" ? true : undefined,
-				// A recipient whose muted-label set intersects the appointment's
-				// labels is skipped entirely — muting is per-user and otherwise
-				// leaves who-gets-notified unaffected (see CONTEXT.md's "Muted
-				// Label" entry). No labels on the appointment means no possible
-				// intersection, so the clause is omitted rather than querying it.
-				user:
-					labelIds.length > 0
-						? { mutedLabels: { none: { labelId: { in: labelIds } } } }
-						: undefined,
-			},
-		});
-		for (const setting of userSettings) {
-			await webpush.sendNotification(
-				{
-					endpoint: setting.subscription.endpoint,
-					keys: {
-						auth: setting.subscription.auth,
-						p256dh: setting.subscription.p256dh,
-					},
-				},
-				payload,
-			);
-		}
-	},
+	() =>
+		run(NotificationsApi, m.notifications_notifications_sent, (api) =>
+			api.sendTest(),
+		),
 );

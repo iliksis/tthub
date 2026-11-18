@@ -24,7 +24,8 @@
       "./messages/{locale}/auth.json",
       "./messages/{locale}/dashboard.json",
       "./messages/{locale}/labels.json",
-      "./messages/{locale}/stats.json"
+      "./messages/{locale}/stats.json",
+      "./messages/{locale}/audit.json"
     ]
   }
 }

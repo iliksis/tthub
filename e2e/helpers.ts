@@ -79,21 +79,24 @@ export async function loginAs(page: Page, role: UserRole | string) {
 }
 
 /**
- * Deletes any appointments (and their dependent Transaction/Response/Placement
- * rows) whose title starts with `prefix`. Shared by the seed-*.ts fixture
- * scripts to clear leftovers from a previous run before seeding fresh data —
- * Transaction/Response/Placement rows reference the appointment id and
- * aren't cascade-deleted, so they'd otherwise leave a dangling FK once a
- * previous run's soft-deleted appointments (which also log a Transaction per
- * row, e.g. via bulkDeleteAppointments) are hard-deleted below.
+ * Deletes any appointments (and their dependent Response/Placement rows and
+ * audit log entries) whose title starts with `prefix`. Shared by the seed-*.ts
+ * fixture scripts to clear leftovers from a previous run before seeding fresh
+ * data — Response/Placement rows reference the appointment id and aren't
+ * cascade-deleted, so they'd otherwise leave a dangling FK once a previous
+ * run's soft-deleted appointments are hard-deleted below. Audit log entries
+ * have no FK, but would otherwise outlive the appointments they describe.
  */
 export async function cleanupByTitlePrefix(prefix: string) {
 	const staleIds = await prismaClient.appointment.findMany({
 		select: { id: true },
 		where: { title: { startsWith: prefix } },
 	});
-	const staleWhere = { appointmentId: { in: staleIds.map((a) => a.id) } };
-	await prismaClient.transaction.deleteMany({ where: staleWhere });
+	const ids = staleIds.map((a) => a.id);
+	const staleWhere = { appointmentId: { in: ids } };
+	await prismaClient.auditLog.deleteMany({
+		where: { entityId: { in: ids }, entityType: "Appointment" },
+	});
 	await prismaClient.response.deleteMany({ where: staleWhere });
 	await prismaClient.placement.deleteMany({ where: staleWhere });
 	await prismaClient.appointment.deleteMany({

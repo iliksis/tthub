@@ -56,7 +56,12 @@ const config = defineConfig({
       strategy: ['cookie', 'baseLocale'],
       cookieName: 'PARAGLIDE_LOCALE',
     }),
-    tanstackStart(),
+    // Import protection mocks `*.server.*` modules in Vitest's (client-like)
+    // environment, which hangs any test importing an API class. The build
+    // keeps the guard, so a client import of a `.server` file still fails CI.
+    tanstackStart(
+      process.env.VITEST ? { importProtection: { enabled: false } } : undefined,
+    ),
     viteReact(),
   ],
   test: {

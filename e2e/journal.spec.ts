@@ -3,7 +3,7 @@ import { loginAs, readSummary } from "./helpers";
 
 const BATCH_SIZE = 25;
 
-test.describe("Transaction Journal Route - Access Control", () => {
+test.describe("Journal Route - Access Control", () => {
 	test("ADMIN can access the journal", async ({ page }) => {
 		await loginAs(page, "admin");
 		await page.goto("/appts/journal");
@@ -33,15 +33,13 @@ test.describe("Transaction Journal Route - Access Control", () => {
 	});
 });
 
-test.describe("Transaction Journal Route - Data Display", () => {
+test.describe("Journal Route - Data Display", () => {
 	test("shows the journal heading and filter controls", async ({ page }) => {
 		await loginAs(page, "admin");
 		await page.goto("/appts/journal");
 		await page.waitForLoadState("networkidle");
 
-		await expect(
-			page.getByRole("heading", { name: "Transaktionsjournal" }),
-		).toBeVisible();
+		await expect(page.getByRole("heading", { name: "Journal" })).toBeVisible();
 		await expect(
 			page.getByPlaceholder("Termin oder Person suchen…"),
 		).toBeVisible();
@@ -85,7 +83,7 @@ test.describe("Transaction Journal Route - Data Display", () => {
 	});
 });
 
-test.describe("Transaction Journal Route - Pagination", () => {
+test.describe("Journal Route - Pagination", () => {
 	test("shows a completion message once everything is loaded", async ({
 		page,
 	}) => {

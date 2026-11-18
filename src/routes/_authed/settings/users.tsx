@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_authed/settings/users")({
 		meta: [{ title: m.common_user_management() }],
 	}),
 	loader: async () => {
-		const users = await fetchUsers();
+		const { data: users } = await fetchUsers();
 		return { users };
 	},
 });

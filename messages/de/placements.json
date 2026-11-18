@@ -11,6 +11,7 @@
 	"placements_pending": "Ausstehend",
 	"placements_placement_created": "Platzierung erstellt",
 	"placements_placement_deleted": "Platzierung gelöscht",
+	"placements_placement_not_found": "Platzierung nicht gefunden",
 	"placements_placement_updated": "Platzierung aktualisiert",
 	"placements_show_all": "Anzeigen"
 }

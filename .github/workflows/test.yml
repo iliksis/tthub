@@ -35,8 +35,16 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci
 
+      - name: Lint and format check
+        run: npm run check
+
       - name: Run unit tests
         run: npm test
+
+      # Fails the PR when client code imports a `*.server.ts` API class
+      # (TanStack Start import protection), instead of at Fly deploy.
+      - name: Build
+        run: npm run build
 
   e2e-tests:
     name: E2E Tests (shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
