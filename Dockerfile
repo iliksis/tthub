@@ -9,7 +9,7 @@ LABEL fly_launch_runtime="Node.js/Prisma"
 ARG VAPID_PUBLIC_KEY
 ENV VITE_VAPID_PUBLIC_KEY="${VAPID_PUBLIC_KEY}"
 
-# Optional; empty falls back to the default in src/lib/ttrViewer.ts
+# Optional; when empty the ttr-viewer link is hidden
 ARG TTR_VIEWER_URL=""
 ENV VITE_TTR_VIEWER_URL="${TTR_VIEWER_URL}"
 

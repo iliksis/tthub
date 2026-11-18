@@ -80,6 +80,9 @@ function RouteComponent() {
 
 	if (!player) return <div>{m.common_an_error_occurred()}</div>;
 
+	const ttrViewerUrl = player.myTischtennisId
+		? ttrViewerPlayerUrl(player.myTischtennisId)
+		: null;
 	const yearGroups = groupByYear(player.placements);
 	// A split squad leaves two memberships per season; show the current half's.
 	const memberships = collapseHalves(player.teams, (tp) => tp.team);
@@ -209,14 +212,14 @@ function RouteComponent() {
 									</div>
 								</>
 							)}
-							{canEdit && player.myTischtennisId && (
+							{canEdit && player.myTischtennisId && ttrViewerUrl && (
 								<div className="flex items-center justify-between py-2.5 border-b border-border/60">
 									<dt className="text-muted-foreground">
 										{m.players_mytischtennis_id()}
 									</dt>
 									<dd className="font-medium">
 										<a
-											href={ttrViewerPlayerUrl(player.myTischtennisId)}
+											href={ttrViewerUrl}
 											target="_blank"
 											rel="noopener noreferrer"
 											className="underline-offset-4 hover:underline"
