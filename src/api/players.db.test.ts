@@ -2,7 +2,12 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { m } from "@/paraglide/messages";
 import { createTestApi } from "@/test/testApi";
-import { ForbiddenError, NotFoundError } from "./kernel.server";
+import {
+	ConflictError,
+	ForbiddenError,
+	NotFoundError,
+	ValidationError,
+} from "./kernel.server";
 import { type PlayerInput, PlayersApi } from "./players.server";
 
 let cleanup: (() => Promise<void>) | undefined;
@@ -219,5 +224,71 @@ describe("PlayersApi mutations", () => {
 			NotFoundError,
 		);
 		await expect(api.delete("missing")).rejects.toBeInstanceOf(NotFoundError);
+	});
+});
+
+describe("PlayersApi myTischtennis id", () => {
+	it("stores it normalized and clears it with blank or null", async () => {
+		const { api } = await setup("EDITOR");
+		const p = await api.create(input({ myTischtennisId: "123" }));
+		expect(p.myTischtennisId).toBe("NU123");
+		expect(
+			(await api.update(p.id, input({ myTischtennisId: " nu456 " })))
+				.myTischtennisId,
+		).toBe("NU456");
+		expect(
+			(await api.update(p.id, input({ myTischtennisId: "" }))).myTischtennisId,
+		).toBeNull();
+	});
+
+	it("rejects invalid input and writes nothing", async () => {
+		const { api, db } = await setup("EDITOR");
+		await expect(
+			api.create(input({ myTischtennisId: "abc" })),
+		).rejects.toBeInstanceOf(ValidationError);
+		expect(await db.player.count()).toBe(0);
+	});
+
+	it("throws ConflictError on a clash but allows many players without one", async () => {
+		const { api } = await setup("EDITOR");
+		await api.create(input({ myTischtennisId: "NU1" }));
+		await api.create(input());
+		await api.create(input());
+		await expect(
+			api.create(input({ myTischtennisId: "1" })),
+		).rejects.toBeInstanceOf(ConflictError);
+		const other = await api.create(input({ myTischtennisId: "NU2" }));
+		await expect(
+			api.update(other.id, input({ myTischtennisId: "NU1" })),
+		).rejects.toBeInstanceOf(ConflictError);
+	});
+
+	it("is visible to editors and redacted for users", async () => {
+		const editor = await setup("EDITOR");
+		const p = await seedPlayer(editor.db, { myTischtennisId: "NU7" });
+		expect((await editor.api.get(p.id)).myTischtennisId).toBe("NU7");
+		await editor.cleanup();
+
+		const viewer = await setup("USER");
+		const q = await seedPlayer(viewer.db, { myTischtennisId: "NU7" });
+		expect((await viewer.api.get(q.id)).myTischtennisId).toBeNull();
+		expect((await viewer.api.list(undefined))[0].myTischtennisId).toBeNull();
+		expect((await viewer.api.search(undefined))[0].myTischtennisId).toBeNull();
+	});
+
+	it("journals a change of the id, and nothing for other edits", async () => {
+		const { api, db } = await setup("EDITOR");
+		const p = await seedPlayer(db);
+		await api.update(p.id, input({ name: "Anna B." }));
+		expect(await db.auditLog.count()).toBe(0);
+
+		await api.update(p.id, input({ myTischtennisId: "5" }));
+		const [entry] = await db.auditLog.findMany();
+		expect(entry).toMatchObject({
+			action: "UPDATE",
+			changes: { myTischtennisId: { new: "NU5", old: null } },
+			entityId: p.id,
+			entityType: "Player",
+		});
 	});
 });

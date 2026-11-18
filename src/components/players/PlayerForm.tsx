@@ -37,6 +37,7 @@ type PlayerFormProps = {
 		gender: Gender | null;
 		isClubMember: boolean;
 		isEligibleToPlay: boolean;
+		myTischtennisId: string | null;
 	};
 	onSubmit: (updates: {
 		name: string;
@@ -45,6 +46,7 @@ type PlayerFormProps = {
 		gender: Gender | null;
 		isClubMember: boolean;
 		isEligibleToPlay: boolean;
+		myTischtennisId: string | null;
 	}) => Promise<void>;
 };
 export const PlayerForm = ({
@@ -55,6 +57,7 @@ export const PlayerForm = ({
 		gender: null,
 		isClubMember: false,
 		isEligibleToPlay: false,
+		myTischtennisId: null,
 		name: "",
 		qttr: 0,
 		year: new Date().getFullYear(),
@@ -217,6 +220,25 @@ export const PlayerForm = ({
 											{field.state.meta.errors.join(", ")}
 										</p>
 									)}
+								</fieldset>
+							)}
+						</form.Field>
+					</div>
+					<div>
+						<form.Field name="myTischtennisId">
+							{(field) => (
+								<fieldset className="flex flex-col gap-1.5">
+									<Label htmlFor={field.name}>
+										{m.players_mytischtennis_id()}:
+									</Label>
+									<Input
+										id={field.name}
+										name={field.name}
+										placeholder="NU12345"
+										value={field.state.value ?? ""}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+									/>
 								</fieldset>
 							)}
 						</form.Field>

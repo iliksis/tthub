@@ -83,6 +83,7 @@ export class ForbiddenError extends ApiError {
 }
 export class NotFoundError extends ApiError {}
 export class ConflictError extends ApiError {}
+export class ValidationError extends ApiError {}
 
 // The one place unexpected errors are logged and replaced: ApiErrors pass
 // through, anything else is logged once with its origin and actor and becomes

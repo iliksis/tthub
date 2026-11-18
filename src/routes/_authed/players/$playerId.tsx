@@ -295,6 +295,7 @@ function RouteComponent() {
 							gender: player.gender,
 							isClubMember: player.isClubMember,
 							isEligibleToPlay: player.isEligibleToPlay,
+							myTischtennisId: player.myTischtennisId,
 							name: player.name,
 							qttr: player.qttr,
 							year: player.year,

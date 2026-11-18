@@ -1,4 +1,8 @@
-import { redactFlags, redactPlayerFlags } from "@/lib/players";
+import {
+	normalizeMyTischtennisId,
+	redactFlags,
+	redactPlayerFlags,
+} from "@/lib/players";
 import type { Team } from "@/lib/prisma/client";
 import type { Gender } from "@/lib/prisma/enums";
 import { activeSeasonFilter } from "@/lib/season";
@@ -6,9 +10,11 @@ import { collapseHalves } from "@/lib/teamHalf";
 import { m } from "@/paraglide/messages";
 import {
 	ApiBase,
+	ConflictError,
 	NotFoundError,
 	type Policies,
 	type Tx,
+	ValidationError,
 } from "./kernel.server";
 
 export type PlayerInput = {
@@ -18,6 +24,7 @@ export type PlayerInput = {
 	gender: Gender | null;
 	isClubMember?: boolean;
 	isEligibleToPlay?: boolean;
+	myTischtennisId?: string | null;
 };
 
 // A Player on both halves of a split squad holds two memberships; compact
@@ -38,7 +45,15 @@ const teamsInSeason = (season: { id: string } | typeof activeSeasonFilter) =>
 		teams: { include: { team: true }, where: { team: { season } } },
 	}) as const;
 
-const toData = (input: PlayerInput) => ({
+const toData = (input: PlayerInput) => {
+	const myTischtennisId = normalizeMyTischtennisId(input.myTischtennisId);
+	if (myTischtennisId === undefined) {
+		throw new ValidationError(m.players_mytischtennis_id_invalid());
+	}
+	return { ...baseData(input), myTischtennisId };
+};
+
+const baseData = (input: PlayerInput) => ({
 	gender: input.gender,
 	isClubMember: input.isClubMember === true,
 	isEligibleToPlay: input.isEligibleToPlay === true,
@@ -104,14 +119,34 @@ export class PlayersApi extends ApiBase {
 	}
 
 	async create(input: PlayerInput) {
-		return this.ctx.db.player.create({ data: toData(input) });
+		const data = toData(input);
+		return this.uniqueId(() => this.ctx.db.player.create({ data }));
 	}
 
 	async update(id: string, input: PlayerInput) {
-		return this.tx(async (tx) => {
-			await this.requirePlayer(tx, id);
-			return tx.player.update({ data: toData(input), where: { id } });
-		});
+		const data = toData(input);
+		return this.uniqueId(() =>
+			this.tx(async (tx) => {
+				const before = await this.requirePlayer(tx, id);
+				const after = await tx.player.update({ data, where: { id } });
+				await this.journal(tx, "Player").updated(id, before, after, [
+					"myTischtennisId",
+				]);
+				return after;
+			}),
+		);
+	}
+
+	// The unique index is the arbiter, so concurrent writes can't both win.
+	private async uniqueId<T>(write: () => Promise<T>): Promise<T> {
+		try {
+			return await write();
+		} catch (e) {
+			if ((e as { code?: string }).code === "P2002") {
+				throw new ConflictError(m.players_mytischtennis_id_taken());
+			}
+			throw e;
+		}
 	}
 
 	// TeamPlayer rows cascade-delete; Placements do not, so deleting a player
@@ -126,5 +161,6 @@ export class PlayersApi extends ApiBase {
 	private async requirePlayer(tx: Tx, id: string) {
 		const player = await tx.player.findUnique({ where: { id } });
 		if (!player) throw new NotFoundError(m.players_player_not_found());
+		return player;
 	}
 }
