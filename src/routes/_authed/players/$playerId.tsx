@@ -214,19 +214,14 @@ function RouteComponent() {
 							)}
 							{canEdit && player.myTischtennisId && ttrViewerUrl && (
 								<div className="flex items-center justify-between py-2.5 border-b border-border/60">
-									<dt className="text-muted-foreground">
-										{m.players_mytischtennis_id()}
-									</dt>
-									<dd className="font-medium">
-										<a
-											href={ttrViewerUrl}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="underline-offset-4 hover:underline"
-										>
-											{m.players_open_in_ttr_viewer()}
-										</a>
-									</dd>
+									<a
+										href={ttrViewerUrl}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="underline-offset-4 hover:underline font-medium"
+									>
+										{m.players_open_in_ttr_viewer()}
+									</a>
 								</div>
 							)}
 							{currentMembership?.team.league && (
