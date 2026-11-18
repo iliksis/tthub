@@ -15,3 +15,6 @@ We moved the logic into one class per aggregate, `src/api/<aggregate>.server.ts`
 - Permissions are tightened while moving: the default is "logged in", and each migration PR lists every endpoint whose access changed. Unexpected errors (Prisma etc.) now show a generic message instead of raw text; notifications are fire-and-forget after commit and no longer fail the mutation.
 - Methods calling each other through `this` skip the policy check (the Proxy wraps the raw target). The policy table is the one place to read who may call what; a snapshot test makes changes reviewable.
 - The migration is incremental, one aggregate per PR, guarded by a Biome import restriction plus an architecture test that share an allowlist of migrated handler files. See the migration issues for the order.
+
+**Exceptions:**
+- *Importers* (`src/importers`) may update data directly through the shared Prisma client and write audit entries with `AuditJournal` in a transaction, using the `actorId` of the user who started the import (`ImportContext.actorId`, captured at start because the job outlives the request). They run in the background with no request context, so routing every write through an API class would force a policy check with no caller. Guardrails only cover `src/api` handler files, so nothing else is needed to allow this.

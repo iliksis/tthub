@@ -217,7 +217,8 @@ export const PlayerScalarFieldEnum = {
   qttr: 'qttr',
   gender: 'gender',
   isClubMember: 'isClubMember',
-  isEligibleToPlay: 'isEligibleToPlay'
+  isEligibleToPlay: 'isEligibleToPlay',
+  myTischtennisId: 'myTischtennisId'
 } as const
 
 export type PlayerScalarFieldEnum = (typeof PlayerScalarFieldEnum)[keyof typeof PlayerScalarFieldEnum]

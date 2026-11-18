@@ -186,6 +186,7 @@ model Player {
   gender           Gender?
   isClubMember     Boolean      @default(false)
   isEligibleToPlay Boolean      @default(false)
+  myTischtennisId  String?      @unique
   teams            TeamPlayer[]
   placements       Placement[]
 }

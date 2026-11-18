@@ -1,5 +1,9 @@
 import { getImporter, listImporters } from "@/importers/registry.server";
-import type { EmitResult, ImportEntity } from "@/importers/types";
+import type {
+	EmitResult,
+	ImportEntity,
+	ImporterDefinition,
+} from "@/importers/types";
 import { m } from "@/paraglide/messages";
 import {
 	ApiBase,
@@ -34,7 +38,7 @@ export class ImportsApi extends ApiBase {
 	// client polls `progress` instead of blocking one request on the whole
 	// (potentially long) import.
 	async start(importerId: string, config: Record<string, unknown>) {
-		const importer = getImporter(importerId);
+		const importer: ImporterDefinition | undefined = getImporter(importerId);
 		if (!importer || !(await this.isEnabled(importer.id))) {
 			throw new NotFoundError(m.imports_importer_not_found());
 		}
@@ -55,6 +59,7 @@ export class ImportsApi extends ApiBase {
 		void (async () => {
 			try {
 				const result = await importer.run({
+					actorId,
 					config,
 					emit: async (entity) => {
 						const { status } = await this.persist(entity);
@@ -65,12 +70,15 @@ export class ImportsApi extends ApiBase {
 						console[level](`[${importer.id}] ${message}`),
 					secrets: {},
 				});
+				job.updated += result.updated ?? 0;
 				job.status = "done";
-				job.message = m.imports_n_created_n_updated_n_skipped({
-					param1: result.imported.toString(),
-					param2: job.updated.toString(),
-					param3: result.skipped.toString(),
-				});
+				job.message =
+					result.message ??
+					m.imports_n_created_n_updated_n_skipped({
+						param1: result.imported.toString(),
+						param2: job.updated.toString(),
+						param3: result.skipped.toString(),
+					});
 			} catch (e) {
 				// The job outlives the request, so ApiBase can't catch this.
 				job.status = "error";

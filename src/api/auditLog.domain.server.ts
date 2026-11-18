@@ -122,6 +122,22 @@ const resolvers: Record<AuditEntityType, EntityResolver> = {
 			return rows.map((r) => r.id);
 		},
 	},
+	Player: {
+		resolve: async (db, ids) => {
+			const rows = await db.player.findMany({
+				select: { id: true, name: true },
+				where: { id: { in: ids } },
+			});
+			return new Map(rows.map((r) => [r.id, { detail: null, name: r.name }]));
+		},
+		search: async (db, query) => {
+			const rows = await db.player.findMany({
+				select: { id: true },
+				where: { name: { contains: query } },
+			});
+			return rows.map((r) => r.id);
+		},
+	},
 };
 
 const resolverFor = (entityType: string): EntityResolver | undefined =>

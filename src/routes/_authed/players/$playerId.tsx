@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
 import { collapseHalves } from "@/lib/teamHalf";
+import { ttrViewerPlayerUrl } from "@/lib/ttrViewer";
 import { ageGroupLabel, calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -79,6 +80,9 @@ function RouteComponent() {
 
 	if (!player) return <div>{m.common_an_error_occurred()}</div>;
 
+	const ttrViewerUrl = player.myTischtennisId
+		? ttrViewerPlayerUrl(player.myTischtennisId)
+		: null;
 	const yearGroups = groupByYear(player.placements);
 	// A split squad leaves two memberships per season; show the current half's.
 	const memberships = collapseHalves(player.teams, (tp) => tp.team);
@@ -217,6 +221,16 @@ function RouteComponent() {
 								</div>
 							)}
 						</dl>
+						{canEdit && ttrViewerUrl && (
+							<a
+								href={ttrViewerUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="mt-3 inline-block text-sm font-medium underline-offset-4 hover:underline"
+							>
+								{m.players_open_in_ttr_viewer()}
+							</a>
+						)}
 					</Section>
 
 					{pastMemberships.length > 0 && (
@@ -295,6 +309,7 @@ function RouteComponent() {
 							gender: player.gender,
 							isClubMember: player.isClubMember,
 							isEligibleToPlay: player.isEligibleToPlay,
+							myTischtennisId: player.myTischtennisId,
 							name: player.name,
 							qttr: player.qttr,
 							year: player.year,

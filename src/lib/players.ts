@@ -8,7 +8,23 @@ export const redactPlayerFlags = <P extends object>(
 ): P =>
 	canSeeFlags
 		? player
-		: { ...player, isClubMember: false, isEligibleToPlay: false };
+		: {
+				...player,
+				isClubMember: false,
+				isEligibleToPlay: false,
+				myTischtennisId: null,
+			};
+
+// Stored as `NU<digits>`: bare digits get the prefix, case is folded, blank
+// means "none" (null). Returns undefined for anything else.
+export const normalizeMyTischtennisId = (
+	raw: string | null | undefined,
+): string | null | undefined => {
+	const v = raw?.trim() ?? "";
+	if (v === "") return null;
+	const match = /^(?:nu)?(\d+)$/i.exec(v);
+	return match ? `NU${match[1]}` : undefined;
+};
 
 export const redactFlags = <P extends object>(
 	players: P[],

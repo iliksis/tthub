@@ -2,11 +2,13 @@
 import type { z } from "zod";
 import { clickTTImporter } from "./clickTT-importer.server";
 import { holidayImporter } from "./holiday-importer.server";
+import { qttrImporter } from "./qttr-importer.server";
 import type { ImporterConfigField, ImporterDefinition } from "./types";
 
 const importers = [
 	holidayImporter,
 	clickTTImporter,
+	qttrImporter,
 ] as const satisfies readonly ImporterDefinition[];
 
 function extractConfigFields(shape: z.ZodRawShape): ImporterConfigField[] {

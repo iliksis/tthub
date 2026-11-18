@@ -5,7 +5,7 @@
 // Entities that are journalled today. Adding one means a journal call in its
 // owning class, a resolver in src/api/auditLog.domain.server.ts and field
 // labels in src/lib/auditLabels.ts; the table itself needs no change.
-export const AUDIT_ENTITY_TYPES = ["Appointment"] as const;
+export const AUDIT_ENTITY_TYPES = ["Appointment", "Player"] as const;
 export type AuditEntityType = (typeof AUDIT_ENTITY_TYPES)[number];
 
 // The `changes` JSON of an UPDATE entry.

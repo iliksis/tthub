@@ -30,6 +30,12 @@ const entityLabels: Record<AuditEntityType, EntityLabels> = {
 			},
 		},
 	},
+	Player: {
+		fields: {
+			myTischtennisId: m.players_mytischtennis_id(),
+			qttr: m.common_qttr(),
+		},
+	},
 };
 
 const labelsFor = (entityType: string): EntityLabels | undefined =>
