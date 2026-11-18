@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { m } from "@/paraglide/messages";
 import { createTestApi } from "@/test/testApi";
 import { ConflictError, ForbiddenError, NotFoundError } from "./kernel.server";
@@ -388,6 +388,43 @@ describe("TeamsApi mutations", () => {
 				expect(await db.teamPlayer.count({ where: { id: kept.id } })).toBe(1);
 			},
 		);
+
+		it("maps a concurrent duplicate insert (P2002) to ConflictError", async () => {
+			const { api, db } = await setup("EDITOR");
+			const season = await seedSeason(db);
+			const team = await seedTeam(db, season.id);
+			const anna = await seedPlayer(db);
+			// Simulate the race: a concurrent writer inserts the row after the
+			// pre-check passed but before our createMany runs.
+			const real = db.$transaction.bind(db) as (fn: unknown) => unknown;
+			vi.spyOn(db, "$transaction").mockImplementation(((
+				fn: (tx: Db) => unknown,
+			) =>
+				real((tx: Db) =>
+					fn(
+						new Proxy(tx, {
+							get: (t, k) =>
+								k === "teamPlayer"
+									? new Proxy(t.teamPlayer, {
+											get: (d, f) =>
+												f === "createMany"
+													? async (args: { data: { playerId: string }[] }) => {
+															await d.create({ data: args.data[0] as never });
+															return d.createMany(args as never);
+														}
+													: Reflect.get(d, f),
+										})
+									: Reflect.get(t, k),
+						}),
+					),
+				)) as never);
+
+			const result = api.applyRosterChanges(team.id, [anna.id], []);
+			await expect(result).rejects.toBeInstanceOf(ConflictError);
+			await expect(result).rejects.toThrow(
+				m.teams_player_is_already_assigned_to_a_team_this_season(),
+			);
+		});
 
 		it("only removes memberships of this team", async () => {
 			const { api, db } = await setup("EDITOR");

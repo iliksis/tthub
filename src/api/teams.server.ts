@@ -144,7 +144,7 @@ export class TeamsApi extends ApiBase {
 
 	// `removes` are TeamPlayer ids of this team; `adds` are Player ids.
 	async applyRosterChanges(teamId: string, adds: string[], removes: string[]) {
-		await this.tx(async (tx) => {
+		const run = this.tx(async (tx) => {
 			const team = await this.requireTeam(tx, teamId);
 
 			if (removes.length > 0) {
@@ -180,6 +180,13 @@ export class TeamsApi extends ApiBase {
 					teamId,
 				})),
 			});
+		});
+		// The pre-check can lose a race; the unique index is the backstop.
+		await run.catch((e) => {
+			if ((e as { code?: string }).code !== "P2002") throw e;
+			throw new ConflictError(
+				m.teams_player_is_already_assigned_to_a_team_this_season(),
+			);
 		});
 	}
 
