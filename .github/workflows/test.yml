@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.15.0'
+          node-version: '24.22.3'
           cache: 'npm'
 
       - name: Cache node_modules
@@ -61,7 +61,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.15.0'
+          node-version: '24.22.3'
           cache: 'npm'
 
       - name: Cache node_modules
