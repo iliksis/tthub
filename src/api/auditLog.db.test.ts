@@ -166,4 +166,3 @@ describe("AuditLogApi.recent", () => {
 		]);
 	});
 });
-
