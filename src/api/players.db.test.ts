@@ -276,7 +276,7 @@ describe("PlayersApi myTischtennis id", () => {
 		expect((await viewer.api.search(undefined))[0].myTischtennisId).toBeNull();
 	});
 
-	it("journals a change of the id, and nothing for other edits", async () => {
+	it("journals a change of the id and of the qttr, and nothing for other edits", async () => {
 		const { api, db } = await setup("EDITOR");
 		const p = await seedPlayer(db);
 		await api.update(p.id, input({ name: "Anna B." }));
@@ -289,6 +289,15 @@ describe("PlayersApi myTischtennis id", () => {
 			changes: { myTischtennisId: { new: "NU5", old: null } },
 			entityId: p.id,
 			entityType: "Player",
+		});
+
+		await api.update(p.id, input({ myTischtennisId: "5", qttr: 1650 }));
+		const entries = await db.auditLog.findMany({
+			orderBy: { createdAt: "asc" },
+		});
+		expect(entries).toHaveLength(2);
+		expect(entries[1].changes).toMatchObject({
+			qttr: { new: 1650, old: expect.any(Number) },
 		});
 	});
 });

@@ -50,17 +50,16 @@ const toData = (input: PlayerInput) => {
 	if (myTischtennisId === undefined) {
 		throw new ValidationError(m.players_mytischtennis_id_invalid());
 	}
-	return { ...baseData(input), myTischtennisId };
+	return {
+		gender: input.gender,
+		isClubMember: input.isClubMember === true,
+		isEligibleToPlay: input.isEligibleToPlay === true,
+		myTischtennisId,
+		name: input.name,
+		qttr: input.qttr,
+		year: input.year,
+	};
 };
-
-const baseData = (input: PlayerInput) => ({
-	gender: input.gender,
-	isClubMember: input.isClubMember === true,
-	isEligibleToPlay: input.isEligibleToPlay === true,
-	name: input.name,
-	qttr: input.qttr,
-	year: input.year,
-});
 
 export class PlayersApi extends ApiBase {
 	static readonly policy = {
@@ -131,6 +130,7 @@ export class PlayersApi extends ApiBase {
 				const after = await tx.player.update({ data, where: { id } });
 				await this.journal(tx, "Player").updated(id, before, after, [
 					"myTischtennisId",
+					"qttr",
 				]);
 				return after;
 			}),

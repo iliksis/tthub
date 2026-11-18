@@ -7,6 +7,8 @@ import { m } from "@/paraglide/messages";
 import type { ImporterDefinition } from "./types";
 
 const CHUNK_SIZE = 1000;
+// Node's fetch would otherwise wait about 5 minutes on a silent service.
+const FETCH_TIMEOUT_MS = 30_000;
 
 type QttrResponse = {
 	players: ({ id: string; qttr: number } | null)[];
@@ -19,6 +21,7 @@ const fetchChunk = async (base: string, ids: string[]) => {
 			body: JSON.stringify({ ids }),
 			headers: { "Content-Type": "application/json" },
 			method: "POST",
+			signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
 		});
 	} catch {
 		throw new ApiError(m.imports_qttr_service_failed());

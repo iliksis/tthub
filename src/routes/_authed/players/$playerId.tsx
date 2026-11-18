@@ -212,18 +212,6 @@ function RouteComponent() {
 									</div>
 								</>
 							)}
-							{canEdit && player.myTischtennisId && ttrViewerUrl && (
-								<div className="flex items-center justify-between py-2.5 border-b border-border/60">
-									<a
-										href={ttrViewerUrl}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="underline-offset-4 hover:underline font-medium"
-									>
-										{m.players_open_in_ttr_viewer()}
-									</a>
-								</div>
-							)}
 							{currentMembership?.team.league && (
 								<div className="flex items-center justify-between py-2.5 border-b border-border/60">
 									<dt className="text-muted-foreground">{m.common_league()}</dt>
@@ -233,6 +221,16 @@ function RouteComponent() {
 								</div>
 							)}
 						</dl>
+						{canEdit && ttrViewerUrl && (
+							<a
+								href={ttrViewerUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="mt-3 inline-block text-sm font-medium underline-offset-4 hover:underline"
+							>
+								{m.players_open_in_ttr_viewer()}
+							</a>
+						)}
 					</Section>
 
 					{pastMemberships.length > 0 && (
