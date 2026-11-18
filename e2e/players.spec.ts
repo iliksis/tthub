@@ -298,6 +298,14 @@ test.describe("Players Route - Team Half Resolution", () => {
 });
 
 test.describe("Players Route - Club Member and Playing Eligibility flags", () => {
+	// Leftover eligible Players would leak into the Active Season's stored
+	// counts the next time a spec refreshes them (see stats.spec.ts).
+	test.afterEach(async () => {
+		await prismaClient.player.deleteMany({
+			where: { name: { startsWith: "PFlag " } },
+		});
+	});
+
 	async function createFlagPlayer(label: string, flags = {}) {
 		return prismaClient.player.create({
 			data: {
