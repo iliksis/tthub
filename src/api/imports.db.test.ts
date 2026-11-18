@@ -3,12 +3,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ImportEntity } from "@/importers/types";
 import { m } from "@/paraglide/messages";
 import { createTestApi } from "@/test/testApi";
+import { AuditJournal } from "./auditLog.domain.server";
 import { ImportsApi } from "./imports.server";
 import { ForbiddenError, NotFoundError } from "./kernel.server";
 
 // The importer registry is the seam: real importers call external APIs, so
 // tests swap in importers that emit a scripted list of entities (or throw).
 const fake = vi.hoisted(() => ({
+	// Stands in for an importer that writes through the shared Prisma client.
+	direct: null as null | ((actorId: string) => Promise<number>),
 	entities: [] as ImportEntity[],
 	failure: null as Error | null,
 }));
@@ -18,7 +21,13 @@ vi.mock("@/importers/registry.server", () => {
 		description: "Fake",
 		id: "fake",
 		name: "Fake",
-		async run({ emit }: { emit: (e: ImportEntity) => Promise<unknown> }) {
+		async run({
+			actorId,
+			emit,
+		}: {
+			actorId: string;
+			emit: (e: ImportEntity) => Promise<unknown>;
+		}) {
 			if (fake.failure) throw fake.failure;
 			let imported = 0;
 			let skipped = 0;
@@ -27,7 +36,8 @@ vi.mock("@/importers/registry.server", () => {
 				if (status === "imported") imported++;
 				else skipped++;
 			}
-			return { imported, skipped };
+			const updated = (await fake.direct?.(actorId)) ?? 0;
+			return { imported, skipped, updated };
 		},
 		version: "1.0.0",
 	};
@@ -49,6 +59,7 @@ let cleanup: (() => Promise<void>) | undefined;
 afterEach(async () => {
 	fake.entities = [];
 	fake.failure = null;
+	fake.direct = null;
 	vi.restoreAllMocks();
 	await cleanup?.();
 	cleanup = undefined;
@@ -208,6 +219,63 @@ describe("ImportsApi.start", () => {
 					},
 				},
 				entityId: "h1",
+				userId: user?.id,
+			},
+		]);
+	});
+
+	it("lets an importer update a player itself, journalled as the starting user", async () => {
+		const { api, db, user } = await setup();
+		const [changed, same] = await Promise.all([
+			db.player.create({ data: { name: "A", qttr: 1000, year: 2000 } }),
+			db.player.create({
+				data: { myTischtennisId: "same", name: "B", qttr: 1000, year: 2000 },
+			}),
+		]);
+		fake.direct = async (actorId) => {
+			let updated = 0;
+			for (const [id, myTischtennisId] of [
+				[changed.id, "new"],
+				[same.id, "same"],
+			]) {
+				await db.$transaction(async (tx) => {
+					const before = await tx.player.findUniqueOrThrow({ where: { id } });
+					const after = await tx.player.update({
+						data: { myTischtennisId },
+						where: { id },
+					});
+					const logged = await new AuditJournal(tx, "Player", actorId).updated(
+						id,
+						before,
+						after,
+						["myTischtennisId"],
+					);
+					if (Object.keys(logged).length > 0) updated++;
+				});
+			}
+			return updated;
+		};
+
+		const job = await importAll(api, []);
+
+		expect(job).toMatchObject({ imported: 0, skipped: 0, updated: 1 });
+		expect(job.message).toBe(
+			m.imports_n_created_n_updated_n_skipped({
+				param1: "0",
+				param2: "1",
+				param3: "0",
+			}),
+		);
+		expect(
+			(await db.player.findUniqueOrThrow({ where: { id: changed.id } }))
+				.myTischtennisId,
+		).toBe("new");
+		expect(await db.auditLog.findMany()).toMatchObject([
+			{
+				action: "UPDATE",
+				changes: { myTischtennisId: { new: "new", old: null } },
+				entityId: changed.id,
+				entityType: "Player",
 				userId: user?.id,
 			},
 		]);
