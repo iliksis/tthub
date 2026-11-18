@@ -33,6 +33,9 @@ export type ApiContext = {
 
 export const buildContext = async (): Promise<ApiContext> => {
 	const session = await useAppSession();
+	// Pick the four fields: cookies from the old login also carry the whole
+	// User row (password hash, feedId) and must not reach the client.
+	const { id, name, role, userName } = session.data as SessionUser;
 	return {
 		db: prismaClient,
 		notifier,
@@ -51,7 +54,7 @@ export const buildContext = async (): Promise<ApiContext> => {
 				});
 			},
 		},
-		user: session.data.id ? (session.data as SessionUser) : null,
+		user: id ? { id, name, role, userName } : null,
 	};
 };
 
