@@ -1,7 +1,15 @@
 import type { AuditChanges } from "@/lib/auditLog";
 import { labelsInclude } from "@/lib/labels";
 import { redactPlayerFlags } from "@/lib/players";
-import type { Appointment, Prisma } from "@/lib/prisma/client";
+import type {
+	Appointment,
+	AppointmentLabel,
+	Label,
+	Prisma,
+	Response,
+	Season,
+	Team,
+} from "@/lib/prisma/client";
 import {
 	AppointmentStatus,
 	AppointmentType,
@@ -21,6 +29,21 @@ import {
 	type Policies,
 	type Tx,
 } from "./kernel.server";
+
+// The handler file may not import Prisma (biome.json), so the model types its
+// validators name are re-exported from here.
+export type { Appointment, ResponseType };
+
+export type AppointmentWithResponses = Appointment & {
+	responses: Response[];
+	ownTeam: Team | null;
+	labels: (AppointmentLabel & { label: Label })[];
+};
+
+export type AppointmentWithSeason = Appointment & {
+	season: Season | null;
+	labels: (AppointmentLabel & { label: Label })[];
+};
 
 const appointmentDetailInclude = {
 	labels: labelsInclude,

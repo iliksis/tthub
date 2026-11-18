@@ -1,15 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import type {
-	Appointment,
-	AppointmentLabel,
-	Label,
-	Response,
-	Season,
-	Team,
-} from "@/lib/prisma/client";
-import type { ResponseType } from "@/lib/prisma/enums";
 import { m } from "@/paraglide/messages";
 import {
+	type Appointment,
 	type AppointmentListFilter,
 	type AppointmentSelector,
 	AppointmentsApi,
@@ -18,6 +10,7 @@ import {
 	type BulkAppointmentsPageFilter,
 	type CalendarRange,
 	type CreateAppointmentInput,
+	type ResponseType,
 } from "./appointments.server";
 import { run } from "./kernel.server";
 
@@ -27,6 +20,8 @@ export type {
 	AppointmentSelector,
 	AppointmentsPageFilter,
 	AppointmentUpdate,
+	AppointmentWithResponses,
+	AppointmentWithSeason,
 	BulkAppointmentsFilter,
 	CalendarRange,
 	CreateAppointmentInput,
@@ -39,12 +34,6 @@ export const createAppointment = createServerFn()
 			api.create(data),
 		),
 	);
-
-export type AppointmentWithResponses = Appointment & {
-	responses: Response[];
-	ownTeam: Team | null;
-	labels: (AppointmentLabel & { label: Label })[];
-};
 
 export const getAppointment = createServerFn()
 	.validator((d: { id: string }) => d)
@@ -77,11 +66,6 @@ export const getAppointmentsPage = createServerFn()
 			api.page(data),
 		),
 	);
-
-export type AppointmentWithSeason = Appointment & {
-	season: Season | null;
-	labels: (AppointmentLabel & { label: Label })[];
-};
 
 export const getBulkAppointmentsPage = createServerFn()
 	.validator((d: BulkAppointmentsPageFilter) => d)

@@ -41,6 +41,9 @@ const apiClassFiles = fs
 			!f.endsWith(".domain.server.ts"),
 	);
 
+// Plain `.ts` files in src/api that hold no server functions.
+const nonHandlerFiles = ["types.ts"];
+
 // Handlers whose export names predate the split of their logic into another
 // aggregate's class (issue #106). Keep this list explicit and short.
 const crossAggregateDelegation: Record<string, string[]> = {
@@ -107,6 +110,20 @@ describe("migrated handler files", () => {
 			expect(file).toMatch(/^src\/api\/[\w-]+\.ts$/);
 			expect(fs.existsSync(path.join(root, file)), file).toBe(true);
 		}
+	});
+
+	it("covers every handler file in src/api", () => {
+		const handlerFiles = fs
+			.readdirSync(apiDir)
+			.filter(
+				(f) =>
+					f.endsWith(".ts") &&
+					!f.endsWith(".server.ts") &&
+					!f.endsWith(".test.ts") &&
+					!nonHandlerFiles.includes(f),
+			)
+			.map((f) => `src/api/${f}`);
+		expect(handlerFiles.filter((f) => !files.includes(f))).toEqual([]);
 	});
 
 	it.each(files)("%s has its API class next to it", (file) => {

@@ -37,6 +37,7 @@
 	"overrides": [
 		{
 			"includes": [
+				"src/api/appointments.ts",
 				"src/api/auditLog.ts",
 				"src/api/imports.ts",
 				"src/api/invitations.ts",
