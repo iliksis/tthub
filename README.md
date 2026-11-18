@@ -16,7 +16,7 @@ Personal table tennis management application for organizing teams, players and t
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 24+ 
 - npm or pnpm
 
 ### Installation
