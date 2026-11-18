@@ -1,7 +1,5 @@
-import type { AuditEntityType } from "@/lib/auditLog";
 import type { AuditAction, Prisma } from "@/lib/prisma/client";
 import {
-	auditEntriesFor,
 	auditEntryInclude,
 	resolveEntities,
 	searchEntities,
@@ -25,7 +23,6 @@ export type AuditLogPageInput = {
 // in the class that owns the entity.
 export class AuditLogApi extends ApiBase {
 	static readonly policy = {
-		forEntity: "AUTHENTICATED",
 		page: "EDITOR",
 		recent: "AUTHENTICATED",
 	} as const satisfies Policies<AuditLogApi>;
@@ -83,9 +80,5 @@ export class AuditLogApi extends ApiBase {
 			...row,
 			entity: { name: entities[i].name },
 		}));
-	}
-
-	async forEntity(entityType: AuditEntityType, entityId: string) {
-		return auditEntriesFor(this.ctx.db, entityType, entityId);
 	}
 }

@@ -72,7 +72,6 @@ describe("AuditLogApi policy", () => {
 	it("matches the reviewed access table", () => {
 		expect(AuditLogApi.policy).toMatchInlineSnapshot(`
 			{
-			  "forEntity": "AUTHENTICATED",
 			  "page": "EDITOR",
 			  "recent": "AUTHENTICATED",
 			}
@@ -168,13 +167,3 @@ describe("AuditLogApi.recent", () => {
 	});
 });
 
-describe("AuditLogApi.forEntity", () => {
-	it("lists one entity's entries newest first", async () => {
-		const { api, db } = await setup("USER");
-		const { a1 } = await seed(db);
-
-		const entries = await api.forEntity("Appointment", a1.id);
-		expect(entries.map((e) => e.id)).toEqual(["e2", "e1"]);
-		expectNoCredentials(entries);
-	});
-});
