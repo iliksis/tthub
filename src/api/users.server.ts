@@ -72,7 +72,7 @@ export class UsersApi extends ApiBase {
 		this.requireSelfOrRole(id, "ADMIN");
 		requirePasswordsMatch(password, confirmPassword);
 		const hashed = password ? await hashPassword(password) : undefined;
-		return this.tx(async (tx) => {
+		const updated = await this.tx(async (tx) => {
 			await requireUser(tx, id);
 			return tx.user.update({
 				data: { name, password: hashed },
@@ -80,6 +80,9 @@ export class UsersApi extends ApiBase {
 				where: { id },
 			});
 		});
+		// Keep the cookie's copy of the user (shown in the header) in step.
+		if (id === this.actorId) await this.ctx.session.update(updated);
+		return updated;
 	}
 
 	// Removes the rows that reference the user without a cascade, then the

@@ -130,7 +130,7 @@ describe("UsersApi.updateRole", () => {
 
 describe("UsersApi.updateInformation", () => {
 	it("lets users rename themselves and change their password", async () => {
-		const { actorId, api, db } = await setup("USER");
+		const { actorId, api, db, session } = await setup("USER");
 		const updated = await api.updateInformation({
 			confirmPassword: "new",
 			id: actorId,
@@ -141,6 +141,23 @@ describe("UsersApi.updateInformation", () => {
 		expect(updated.name).toBe("Renamed");
 		const row = await db.user.findUniqueOrThrow({ where: { id: actorId } });
 		expect(row.password).toBe(await hashPassword("new"));
+		expect(session.stored).toEqual({
+			id: actorId,
+			name: "Renamed",
+			role: "USER",
+			userName: "test-USER",
+		});
+	});
+
+	it("leaves the session alone when an admin edits someone else", async () => {
+		const { api, other, session } = await setup("ADMIN");
+		await api.updateInformation({
+			confirmPassword: "",
+			id: other.id,
+			name: "Renamed",
+			password: "",
+		});
+		expect(session.stored?.name).toBe("Test ADMIN");
 	});
 
 	it("keeps the password when none is entered", async () => {

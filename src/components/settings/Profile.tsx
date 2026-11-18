@@ -1,6 +1,5 @@
 import { useForm, useStore } from "@tanstack/react-form";
 import { useRouteContext, useRouter } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { updateUserInformation } from "@/api/users";
 import { Section } from "@/components/Section";
@@ -9,16 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/useMutation";
-import { useAppSession } from "@/lib/session";
 import { roleBadgeVariant, roleLabel } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-
-const updateSession = createServerFn({ method: "POST" })
-	.validator((d: { name: string }) => d)
-	.handler(async ({ data }) => {
-		const session = await useAppSession();
-		await session.update({ ...session.data, name: data.name });
-	});
 
 export const Profile = () => {
 	const router = useRouter();
@@ -33,7 +24,6 @@ export const Profile = () => {
 		},
 		onSuccess: async (ctx) => {
 			await router.invalidate();
-			await updateSession({ data: { name: ctx.data.data.name } });
 			toast.success(ctx.data.message);
 		},
 	});
