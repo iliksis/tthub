@@ -24,7 +24,11 @@ const fetchChunk = async (base: string, ids: string[]) => {
 		throw new ApiError(m.imports_qttr_service_failed());
 	}
 	if (!res.ok) throw new ApiError(m.imports_qttr_service_failed());
-	return (await res.json()) as QttrResponse;
+	const body = (await res.json().catch(() => null)) as QttrResponse | null;
+	if (!Array.isArray(body?.players)) {
+		throw new ApiError(m.imports_qttr_service_failed());
+	}
+	return body;
 };
 
 export const qttrImporter = {
