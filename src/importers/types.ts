@@ -42,6 +42,8 @@ export type ImportResult = {
 	skipped: number;
 	// Rows the importer updated itself; ones updated through `emit` are counted there.
 	updated?: number;
+	// Replaces the generic counts line as the job final message.
+	message?: string;
 	nextCursor?: string;
 };
 

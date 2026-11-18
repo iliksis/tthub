@@ -72,11 +72,13 @@ export class ImportsApi extends ApiBase {
 				});
 				job.updated += result.updated ?? 0;
 				job.status = "done";
-				job.message = m.imports_n_created_n_updated_n_skipped({
-					param1: result.imported.toString(),
-					param2: job.updated.toString(),
-					param3: result.skipped.toString(),
-				});
+				job.message =
+					result.message ??
+					m.imports_n_created_n_updated_n_skipped({
+						param1: result.imported.toString(),
+						param2: job.updated.toString(),
+						param3: result.skipped.toString(),
+					});
 			} catch (e) {
 				// The job outlives the request, so ApiBase can't catch this.
 				job.status = "error";

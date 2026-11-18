@@ -13,6 +13,12 @@
 	"imports_n_skipped": "{param1} übersprungen",
 	"imports_n_updated": "{param1} aktualisiert",
 	"imports_optional": "(optional)",
+	"imports_qttr_description": "Aktualisiert den Q-TTR aller Spieler mit myTischtennis-ID über den TTR-Viewer.",
+	"imports_qttr_done": "{param1} aktualisiert, {param2} übersprungen",
+	"imports_qttr_name": "Q-TTR",
+	"imports_qttr_not_configured": "Der TTR-Viewer ist nicht konfiguriert",
+	"imports_qttr_not_found": "{param1} aktualisiert, {param2} übersprungen. Nicht gefunden: {param3}",
+	"imports_qttr_service_failed": "Der TTR-Viewer ist nicht erreichbar oder hat die Anfrage abgelehnt. Es wurde nichts geändert.",
 	"imports_start_import": "Import starten",
 	"imports_this_field_is_required": "Dieses Feld ist erforderlich",
 	"imports_you_do_not_have_permission_to_access_import_settings": "Du hast keine Berechtigung, um auf die Importeinstellungen zuzugreifen"
