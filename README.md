@@ -36,6 +36,9 @@ VAPID_PUBLIC_KEY="your-vapid-public-key"
 VAPID_PRIVATE_KEY="your-vapid-private-key"
 CLICKTT_SCHEDULE_URL="https://bttv.click-tt.de/cgi-bin/WebObjects/nuLigaDokumentTTDE.woa/wa/nuDokument?dokument=ScheduleReportFOP"
 CLICKTT_CLUB_NAME="Your Club Name"
+# Optional: base URL of the ttr-viewer service (default https://ttr.tmueller.dev).
+# Build-time like the VAPID public key; for Docker pass --build-arg TTR_VIEWER_URL=...
+VITE_TTR_VIEWER_URL="https://ttr.tmueller.dev"
 ```
 
 Generate VAPID keys for web push notifications:

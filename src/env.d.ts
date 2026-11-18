@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
 	readonly VITE_VAPID_PUBLIC_KEY: string;
+	readonly VITE_TTR_VIEWER_URL?: string;
 }
 
 interface ImportMeta {

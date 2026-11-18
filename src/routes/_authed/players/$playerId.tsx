@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { useMutation } from "@/hooks/useMutation";
 import { collapseHalves } from "@/lib/teamHalf";
+import { ttrViewerPlayerUrl } from "@/lib/ttrViewer";
 import { ageGroupLabel, calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -207,6 +208,23 @@ function RouteComponent() {
 										</dd>
 									</div>
 								</>
+							)}
+							{canEdit && player.myTischtennisId && (
+								<div className="flex items-center justify-between py-2.5 border-b border-border/60">
+									<dt className="text-muted-foreground">
+										{m.players_mytischtennis_id()}
+									</dt>
+									<dd className="font-medium">
+										<a
+											href={ttrViewerPlayerUrl(player.myTischtennisId)}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="underline-offset-4 hover:underline"
+										>
+											{m.players_open_in_ttr_viewer()}
+										</a>
+									</dd>
+								</div>
 							)}
 							{currentMembership?.team.league && (
 								<div className="flex items-center justify-between py-2.5 border-b border-border/60">
