@@ -33,9 +33,16 @@ export type ApiContext = {
 
 export const buildContext = async (): Promise<ApiContext> => {
 	const session = await useAppSession();
-	// Pick the four fields: cookies from the old login also carry the whole
-	// User row (password hash, feedId) and must not reach the client.
-	const { id, name, role, userName } = session.data as SessionUser;
+	// The cookie only says who; name and role come from the DB so a demoted or
+	// deleted user loses access at once. Selecting four fields also keeps the
+	// credential of cookies from the old login away from the client.
+	const { id: cookieId } = session.data as SessionUser;
+	const user = cookieId
+		? await prismaClient.user.findUnique({
+				select: { id: true, name: true, role: true, userName: true },
+				where: { id: cookieId },
+			})
+		: null;
 	return {
 		db: prismaClient,
 		notifier,
@@ -54,7 +61,7 @@ export const buildContext = async (): Promise<ApiContext> => {
 				});
 			},
 		},
-		user: id ? { id, name, role, userName } : null,
+		user,
 	};
 };
 

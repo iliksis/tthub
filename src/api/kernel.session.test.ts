@@ -13,19 +13,32 @@ const legacyData = {
 	userName: "ada",
 };
 
+const findUnique = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/db", () => ({ prismaClient: { user: { findUnique } } }));
 vi.mock("@/lib/session", () => ({
 	useAppSession: async () => ({ data: legacyData }),
 }));
 
 describe("buildContext", () => {
-	it("exposes only the SessionUser fields of a legacy session", async () => {
+	it("uses the DB's current role, not the cookie's", async () => {
+		findUnique.mockResolvedValue({
+			id: "u1",
+			name: "Ada",
+			role: "ADMIN",
+			userName: "ada",
+		});
 		const { user } = await buildContext();
 		expect(user).toEqual({
 			id: "u1",
 			name: "Ada",
-			role: "USER",
+			role: "ADMIN",
 			userName: "ada",
 		});
 		expectNoCredentials(user);
+	});
+
+	it("treats a deleted user as signed out", async () => {
+		findUnique.mockResolvedValue(null);
+		expect((await buildContext()).user).toBeNull();
 	});
 });
