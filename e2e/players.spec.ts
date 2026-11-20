@@ -208,6 +208,13 @@ test.describe("Players Route - Edit Functionality", () => {
 });
 
 test.describe("Players Route - Team Half Resolution", () => {
+	// Leftover Players would leak into the Active Season's stored counts.
+	test.afterEach(async () => {
+		await prismaClient.player.deleteMany({
+			where: { name: { startsWith: "PHalf Player " } },
+		});
+	});
+
 	async function createSplitPlayer(
 		label: string,
 		{ onBoth }: { onBoth: boolean },

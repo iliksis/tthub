@@ -815,10 +815,8 @@ test.describe("Stats Route - Player Breakdown", () => {
 	test("shows the seeded Active Season's stored breakdown with its Stand note", async ({
 		page,
 	}) => {
-		// prisma/seed.ts: two Players without a gender, born 2010 and 2011, one of
-		// them eligible, so each Player's age group has one of each.
-		// Other specs' Player changes leave the stored record stale; re-derive it
-		// from the seeded Players.
+		// Other specs' Player changes leave the stored record stale (and may edit
+		// the seeded Players), so re-derive it and expect what the Players give.
 		await cleanupFixtures();
 		await recomputeActiveSeasonStatistics(prismaClient);
 		const active = await prismaClient.season.findFirstOrThrow({
@@ -827,9 +825,12 @@ test.describe("Stats Route - Player Breakdown", () => {
 		});
 		const computedAt = active.statistics?.computedAt;
 		if (!computedAt) throw new Error("seed has no Active Season record");
-		// Max (2010) is eligible, Lisa (2011) is not; they may share an age group.
+		const players = await prismaClient.player.findMany();
 		const maxGroup = calculateAgeGroup(2010, year);
-		const lisaGroup = calculateAgeGroup(2011, year);
+		const row = buildAgeGroupBreakdown(players, year).rows.find(
+			(r) => r.ageGroup === maxGroup,
+		);
+		if (!row) throw new Error("no breakdown row");
 
 		await loginAs(page, "user");
 		await page.goto("/stats");
@@ -842,12 +843,12 @@ test.describe("Stats Route - Player Breakdown", () => {
 			page,
 			maxGroup === "ADULT" ? "Erwachsen" : maxGroup,
 		);
-		await expect(tooltipRow(tooltip, "Unbekannt")).toHaveText("Unbekannt1");
+		await expect(tooltipRow(tooltip, "Unbekannt")).toHaveText(
+			`Unbekannt${row.eligible.unknown}`,
+		);
 		await expect(
 			tooltipRow(tooltip, "Unbekannt (nicht spielberechtigt)"),
-		).toHaveText(
-			`Unbekannt (nicht spielberechtigt)${lisaGroup === maxGroup ? 1 : 0}`,
-		);
+		).toHaveText(`Unbekannt (nicht spielberechtigt)${row.notEligible.unknown}`);
 	});
 
 	test("follows the season selector and shows real, not cumulative, counts", async ({
@@ -994,16 +995,17 @@ test.describe("Stats Route - Player Breakdown", () => {
 });
 
 test.describe("Stats Route - Player Count Chart", () => {
-	// prisma/seed.ts: two Players, only one of them eligible, neither with a
-	// gender, so the Active Season's stored record is 1 / 0 / 0 / 2.
 	test("shows the seeded Active Season's stored Eligible Player counts", async ({
 		page,
 	}) => {
 		await cleanupFixtures();
 		await recomputeActiveSeasonStatistics(prismaClient);
 		const activeSeason = await prismaClient.season.findFirstOrThrow({
+			include: { statistics: true },
 			where: { isActive: true },
 		});
+		const stored = activeSeason.statistics;
+		if (!stored) throw new Error("seed has no Active Season record");
 
 		await loginAs(page, "user");
 		await page.goto("/stats");
@@ -1025,10 +1027,10 @@ test.describe("Stats Route - Player Count Chart", () => {
 			.filter({ hasText: activeSeason.name });
 		await expect(tooltip).toBeVisible();
 		for (const [series, count] of [
-			["Spielberechtigt gesamt", "1"],
-			["Männlich", "0"],
-			["Weiblich", "0"],
-			["Alle Spieler", "2"],
+			["Spielberechtigt gesamt", String(stored.eligibleCount)],
+			["Männlich", String(stored.eligibleMaleCount)],
+			["Weiblich", String(stored.eligibleFemaleCount)],
+			["Alle Spieler", String(stored.playerCount)],
 		]) {
 			await expect(
 				tooltip.locator(".ts-chart-tooltip__row", { hasText: series }),
