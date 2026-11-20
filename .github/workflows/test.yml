@@ -93,6 +93,14 @@ jobs:
         if: steps.cache-playwright.outputs.cache-hit == 'true'
         run: npx playwright install-deps
 
+      # vite-plugin-mkcert downloads the mkcert binary from the GitHub API on
+      # start; caching it (with the generated CA/cert) avoids rate-limit failures.
+      - name: Cache mkcert
+        uses: actions/cache@v4
+        with:
+          path: ~/.vite-plugin-mkcert
+          key: ${{ runner.os }}-mkcert-${{ hashFiles('package-lock.json') }}
+
       - name: Reset & seed test database
         run: npx dotenv -e .env.test -- npm run test:e2e:setup
 

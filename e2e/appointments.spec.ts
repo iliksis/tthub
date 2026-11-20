@@ -357,7 +357,9 @@ test.describe("Appointments - Labels", () => {
 
 	test("label badges attached via the edit sheet appear in the appointments list and detail page", async ({
 		page,
+		isMobile,
 	}) => {
+		test.skip(isMobile, "edit flow is desktop-only");
 		const labelName = `${LABEL_PREFIX}Editable`;
 		const title = `${TITLE_PREFIX}Edit`;
 		const label = await prismaClient.label.create({

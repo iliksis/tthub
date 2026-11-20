@@ -1,7 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { calculateAgeGroup } from "../src/lib/ageGroup";
 import { prismaClient } from "../src/lib/db";
-import { buildAgeGroupBreakdown } from "../src/lib/seasonStatistics";
+import {
+	buildAgeGroupBreakdown,
+	recomputeActiveSeasonStatistics,
+} from "../src/lib/seasonStatistics";
 import { loginAs } from "./helpers";
 
 // Fixture seasons/teams/labels/players/appointments created by this spec are
@@ -115,7 +118,9 @@ test.describe("Stats Route - Team League/Placement Table", () => {
 
 	test("shows a split team as two labelled rows and a non-split team as one", async ({
 		page,
+		isMobile,
 	}) => {
+		test.skip(isMobile, "table rows are hidden on mobile viewports");
 		const season = await prismaClient.season.create({
 			data: { isActive: false, name: `${PREFIX}Split` },
 		});
@@ -259,7 +264,11 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 		return season;
 	}
 
-	test("lists every season in chronological order", async ({ page }) => {
+	test("lists every season in chronological order", async ({
+		page,
+		isMobile,
+	}) => {
+		test.skip(isMobile, "table rows are hidden on mobile viewports");
 		const older = await prismaClient.season.create({
 			data: { isActive: false, name: `${PREFIX}CountOlder` },
 		});
@@ -808,6 +817,10 @@ test.describe("Stats Route - Player Breakdown", () => {
 	}) => {
 		// prisma/seed.ts: two Players without a gender, born 2010 and 2011, one of
 		// them eligible, so each Player's age group has one of each.
+		// Other specs' Player changes leave the stored record stale; re-derive it
+		// from the seeded Players.
+		await cleanupFixtures();
+		await recomputeActiveSeasonStatistics(prismaClient);
 		const active = await prismaClient.season.findFirstOrThrow({
 			include: { statistics: true },
 			where: { isActive: true },
@@ -986,6 +999,8 @@ test.describe("Stats Route - Player Count Chart", () => {
 	test("shows the seeded Active Season's stored Eligible Player counts", async ({
 		page,
 	}) => {
+		await cleanupFixtures();
+		await recomputeActiveSeasonStatistics(prismaClient);
 		const activeSeason = await prismaClient.season.findFirstOrThrow({
 			where: { isActive: true },
 		});
