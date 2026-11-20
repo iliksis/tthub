@@ -129,3 +129,12 @@ export async function readSummary(page: Page) {
 export async function readRowTitle(row: Locator) {
 	return row.locator("a").first().textContent();
 }
+
+// Locator.boundingBox() returns wrong coordinates for SVG <text> in WebKit;
+// the DOM rect is correct in every engine.
+export async function domRect(locator: Locator) {
+	return locator.evaluate((el) => {
+		const { x, y, width, height } = el.getBoundingClientRect();
+		return { height, width, x, y };
+	});
+}

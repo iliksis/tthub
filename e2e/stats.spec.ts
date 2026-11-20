@@ -5,7 +5,7 @@ import {
 	buildAgeGroupBreakdown,
 	recomputeActiveSeasonStatistics,
 } from "../src/lib/seasonStatistics";
-import { loginAs } from "./helpers";
+import { domRect, loginAs } from "./helpers";
 
 // Fixture seasons/teams/labels/players/appointments created by this spec are
 // named with this prefix so tests can find their own rows regardless of
@@ -237,11 +237,9 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 		seasonName: string,
 	) {
 		const chart = page.getByRole("img", { name: CHART_NAME });
-		const label = await chart
-			.getByText(seasonName, { exact: true })
-			.boundingBox();
+		const label = await domRect(chart.getByText(seasonName, { exact: true }));
 		const plot = await chart.boundingBox();
-		if (!label || !plot) throw new Error("chart not laid out");
+		if (!plot) throw new Error("chart not laid out");
 		await page.mouse.move(label.x + label.width / 2, plot.y + plot.height / 2);
 		return page.getByRole("status").filter({ hasText: seasonName });
 	}
@@ -297,13 +295,12 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 		await page.waitForLoadState("networkidle");
 
 		const chart = page.getByRole("img", { name: CHART_NAME });
-		const olderBox = await chart
-			.getByText(older.name, { exact: true })
-			.boundingBox();
-		const newerBox = await chart
-			.getByText(newer.name, { exact: true })
-			.boundingBox();
-		if (!olderBox || !newerBox) throw new Error("chart not laid out");
+		const olderBox = await domRect(
+			chart.getByText(older.name, { exact: true }),
+		);
+		const newerBox = await domRect(
+			chart.getByText(newer.name, { exact: true }),
+		);
 		expect(newerBox.x).toBeGreaterThan(olderBox.x);
 	});
 
@@ -366,11 +363,9 @@ test.describe("Stats Route - Player Count Over Seasons", () => {
 		await page.waitForLoadState("networkidle");
 
 		const chart = page.getByRole("img", { name: CHART_NAME });
-		const label = await chart
-			.getByText(season.name, { exact: true })
-			.boundingBox();
+		const label = await domRect(chart.getByText(season.name, { exact: true }));
 		const plot = await chart.boundingBox();
-		if (!label || !plot) throw new Error("chart not laid out");
+		if (!plot) throw new Error("chart not laid out");
 
 		// Hover above the season's x-axis label, inside the plot area.
 		await page.mouse.move(label.x + label.width / 2, plot.y + plot.height / 2);
@@ -791,11 +786,9 @@ test.describe("Stats Route - Player Breakdown", () => {
 		const chart = page.getByRole("img", { name: SECTION });
 		// Mouse coordinates are viewport-relative, so the chart must be on screen.
 		await chart.scrollIntoViewIfNeeded();
-		const label = await chart
-			.getByText(ageGroup, { exact: true })
-			.boundingBox();
+		const label = await domRect(chart.getByText(ageGroup, { exact: true }));
 		const plot = await chart.boundingBox();
-		if (!label || !plot) throw new Error("chart not laid out");
+		if (!plot) throw new Error("chart not laid out");
 		await page.mouse.move(label.x + label.width / 2, plot.y + plot.height / 2);
 		const tooltip = page.getByRole("status").filter({ hasText: ageGroup });
 		await expect(tooltip).toBeVisible();
@@ -1015,11 +1008,11 @@ test.describe("Stats Route - Player Count Chart", () => {
 			name: "Spielerzahl im Saisonvergleich",
 		});
 		await chart.scrollIntoViewIfNeeded();
-		const label = await chart
-			.getByText(activeSeason.name, { exact: true })
-			.boundingBox();
+		const label = await domRect(
+			chart.getByText(activeSeason.name, { exact: true }),
+		);
 		const plot = await chart.boundingBox();
-		if (!label || !plot) throw new Error("chart not laid out");
+		if (!plot) throw new Error("chart not laid out");
 		await page.mouse.move(label.x + label.width / 2, plot.y + plot.height / 2);
 
 		const tooltip = page
