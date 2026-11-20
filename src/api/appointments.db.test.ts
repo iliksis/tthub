@@ -465,7 +465,10 @@ describe("AppointmentsApi.create", () => {
 describe("AppointmentsApi.update", () => {
 	it("journals only the saved fields that changed and notifies for a tournament", async () => {
 		const { api, db, notifications, user } = await setup("EDITOR");
-		const appointment = await seedAppointment(db, { location: "Bonn" });
+		const appointment = await seedAppointment(db, {
+			location: "Bonn",
+			status: "PUBLISHED",
+		});
 
 		const updated = await api.update(appointment.id, {
 			location: "Bonn",
@@ -529,6 +532,30 @@ describe("AppointmentsApi.update", () => {
 		expect(await auditRows(db, appointment.id)).toEqual([]);
 	});
 
+	it("does not notify for a draft tournament", async () => {
+		const { api, db, notifications } = await setup("EDITOR");
+		const draft = await seedAppointment(db, { status: "DRAFT" });
+		await api.update(draft.id, { title: "Neu" });
+		expect(notifications).toEqual([]);
+	});
+
+	it("does not notify for a trashed tournament", async () => {
+		const { api, db, notifications } = await setup("EDITOR");
+		const trashed = await seedAppointment(db, {
+			deletedAt: new Date(),
+			status: "PUBLISHED",
+		});
+		await api.update(trashed.id, { title: "Neu" });
+		expect(notifications).toEqual([]);
+	});
+
+	it("does not notify when the edit unpublishes the tournament", async () => {
+		const { api, db, notifications } = await setup("EDITOR");
+		const appointment = await seedAppointment(db, { status: "PUBLISHED" });
+		await api.update(appointment.id, { status: "DRAFT" });
+		expect(notifications).toEqual([]);
+	});
+
 	it("does not notify for a holiday", async () => {
 		const { api, db, notifications } = await setup("EDITOR");
 		const holiday = await seedAppointment(db, { type: "HOLIDAY" });
@@ -576,7 +603,7 @@ describe("AppointmentsApi.publish and unpublish", () => {
 		expect(notifications).toEqual([]);
 	});
 
-	it("unpublishes back to draft, journals it and notifies nobody", async () => {
+	it("unpublishes back to draft, journals it and cancels a pending update push", async () => {
 		const { api, db, notifications } = await setup("EDITOR");
 		const appointment = await seedAppointment(db, { status: "PUBLISHED" });
 
@@ -586,7 +613,9 @@ describe("AppointmentsApi.publish and unpublish", () => {
 		expect(await auditRows(db, appointment.id)).toMatchObject([
 			{ changes: { status: { new: "DRAFT", old: "PUBLISHED" } } },
 		]);
-		expect(notifications).toEqual([]);
+		expect(notifications).toEqual([
+			{ id: appointment.id, kind: "cancelUpdated" },
+		]);
 	});
 
 	it("throws NotFoundError when publishing an unknown id", async () => {

@@ -517,7 +517,11 @@ export class AppointmentsApi extends ApiBase {
 			);
 			return appointment;
 		});
-		if (appointment.type === AppointmentType.TOURNAMENT) {
+		if (
+			appointment.type === AppointmentType.TOURNAMENT &&
+			appointment.status === AppointmentStatus.PUBLISHED &&
+			appointment.deletedAt === null
+		) {
 			this.ctx.notifier.updated(appointment, this.requiredActorId);
 		}
 		return appointment;
@@ -538,6 +542,7 @@ export class AppointmentsApi extends ApiBase {
 
 	async unpublish(id: string) {
 		const { appointment } = await this.setStatus(id, AppointmentStatus.DRAFT);
+		this.ctx.notifier.cancelUpdated(id);
 		return appointment;
 	}
 
