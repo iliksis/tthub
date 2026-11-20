@@ -46,6 +46,8 @@ function searchInput(page: Page) {
 	return page.locator('input[placeholder="Termin suchen…"]:visible');
 }
 
+test.skip(({ isMobile }) => isMobile, "desktop-only layout");
+
 test.describe("Trash Route - Access Control", () => {
 	test("ADMIN can access the trash page", async ({ page }) => {
 		await loginAs(page, "admin");

@@ -47,6 +47,8 @@ function searchInput(page: Page) {
 	return page.locator('input[placeholder="Termin suchen…"]:visible');
 }
 
+test.skip(({ isMobile }) => isMobile, "desktop-only layout");
+
 test.describe("Bulk Appointments Route - Access Control", () => {
 	test("ADMIN can access the bulk management page", async ({ page }) => {
 		await loginAs(page, "admin");

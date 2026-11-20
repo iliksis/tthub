@@ -168,6 +168,7 @@ test.describe("Teams Route - Edit Functionality", () => {
 });
 
 test.describe("Teams Route - Team Halves", () => {
+	test.skip(({ isMobile }) => isMobile, "desktop-only layout");
 	async function createSplitFixture(label: string) {
 		const season = await prismaClient.season.findFirstOrThrow();
 		const title = `Half ${label} ${Date.now()}`;
@@ -422,6 +423,7 @@ test.describe("Teams Route - Team Halves", () => {
 });
 
 test.describe("Teams Route - Compact Half Resolution", () => {
+	test.skip(({ isMobile }) => isMobile, "desktop-only layout");
 	async function createSquad(label: string, { split }: { split: boolean }) {
 		const season = await prismaClient.season.findFirstOrThrow({
 			where: { isActive: true },
