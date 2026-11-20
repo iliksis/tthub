@@ -37,12 +37,19 @@ export const buildContext = async (): Promise<ApiContext> => {
 	// deleted user loses access at once. Selecting four fields also keeps the
 	// credential of cookies from the old login away from the client.
 	const { id: cookieId } = session.data as SessionUser;
-	const user = cookieId
-		? await prismaClient.user.findUnique({
+	let user: SessionUser | null = null;
+	if (cookieId) {
+		try {
+			user = await prismaClient.user.findUnique({
 				select: { id: true, name: true, role: true, userName: true },
 				where: { id: cookieId },
-			})
-		: null;
+			});
+		} catch (e) {
+			throw toUserFacingError(e, "buildContext", cookieId);
+		}
+		// Account is gone: drop the stale cookie so later requests skip the lookup.
+		if (!user) await session.clear();
+	}
 	return {
 		db: prismaClient,
 		notifier,
