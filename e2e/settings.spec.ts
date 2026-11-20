@@ -28,6 +28,16 @@ test.describe("Settings - Profile Route", () => {
 test.describe("Settings - Notification Muting by Label", () => {
 	const LABEL_PREFIX = "E2EMUTE-";
 
+	// Playwright's WebKit hangs the page on PushManager.getSubscription(), which
+	// the profile page calls on mount; these tests don't exercise push.
+	test.beforeEach(async ({ page }) => {
+		await page.addInitScript(() => {
+			if (window.PushManager) {
+				window.PushManager.prototype.getSubscription = async () => null;
+			}
+		});
+	});
+
 	test.beforeAll(async () => {
 		await prismaClient.userMutedLabel.deleteMany({
 			where: { label: { name: { startsWith: LABEL_PREFIX } } },
