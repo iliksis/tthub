@@ -848,9 +848,7 @@ test.describe("Stats Route - Player Breakdown", () => {
 		);
 		await expect(
 			tooltipRow(tooltip, "Unbekannt (nicht spielberechtigt)"),
-		).toHaveText(
-			`Unbekannt (nicht spielberechtigt)${row.notEligible.unknown}`,
-		);
+		).toHaveText(`Unbekannt (nicht spielberechtigt)${row.notEligible.unknown}`);
 	});
 
 	test("follows the season selector and shows real, not cumulative, counts", async ({
