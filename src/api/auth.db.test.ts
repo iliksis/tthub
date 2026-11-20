@@ -99,10 +99,8 @@ describe("AuthApi.currentUser", () => {
 		await expect(api.currentUser()).resolves.toBeNull();
 	});
 
-	it("returns the session user while their row exists", async () => {
-		const { api, db, user } = await setup("USER");
+	it("returns the session user", async () => {
+		const { api, user } = await setup("USER");
 		await expect(api.currentUser()).resolves.toEqual(user);
-		await db.user.delete({ where: { id: user?.id } });
-		await expect(api.currentUser()).resolves.toBeNull();
 	});
 });

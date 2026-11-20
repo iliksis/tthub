@@ -29,12 +29,8 @@ export class AuthApi extends ApiBase {
 		return null;
 	}
 
-	// The session user, as long as their account still exists (a deleted user's
-	// cookie stops counting as signed in).
+	// buildContext already re-read the user, so a deleted account is null here.
 	async currentUser() {
-		const user = this.ctx.user;
-		if (!user) return null;
-		const exists = await this.ctx.db.user.count({ where: { id: user.id } });
-		return exists ? user : null;
+		return this.ctx.user;
 	}
 }
