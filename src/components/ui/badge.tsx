@@ -1,6 +1,5 @@
-import { mergeProps } from "@base-ui/react/merge-props";
-import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
+import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -58,24 +57,15 @@ function Badge({
 	className,
 	variant = "default",
 	inverted = true,
-	render,
 	...props
-}: useRender.ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {
-	return useRender({
-		defaultTagName: "span",
-		props: mergeProps<"span">(
-			{
-				className: cn(badgeVariants({ inverted, variant }), className),
-			},
-			props,
-		),
-		render,
-		state: {
-			inverted,
-			slot: "badge",
-			variant,
-		},
-	});
+}: React.ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {
+	return (
+		<span
+			data-slot="badge"
+			className={cn(badgeVariants({ inverted, variant }), className)}
+			{...props}
+		/>
+	);
 }
 
 export { Badge, badgeVariants };

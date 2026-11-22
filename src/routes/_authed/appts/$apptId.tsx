@@ -498,9 +498,9 @@ function RouteComponent() {
 							<span className="font-medium text-sm">
 								{m.appointments_more_details()}
 							</span>
-							<ChevronDownIcon className="size-4 text-muted-foreground transition-transform duration-200 ease-out group-data-[state=open]:rotate-180" />
+							<ChevronDownIcon className="size-4 text-muted-foreground transition-transform duration-200 ease-out group-data-open:rotate-180" />
 						</CollapsibleTrigger>
-						<CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+						<CollapsibleContent className="overflow-hidden">
 							<div className="flex flex-col gap-4 px-4 pb-4">
 								<RecordInfoPanel
 									createdAt={new Date(appointment.createdAt)}

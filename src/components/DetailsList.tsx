@@ -196,9 +196,12 @@ export function DetailsList<T extends RowData>({
 					if (selectMode === "multiple") {
 						return (
 							<Checkbox
-								checked={table.getIsAllRowsSelected()}
-								indeterminate={
-									table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()
+								checked={
+									table.getIsAllRowsSelected()
+										? true
+										: table.getIsSomeRowsSelected()
+											? "indeterminate"
+											: false
 								}
 								onCheckedChange={(checked) =>
 									table.toggleAllRowsSelected(checked === true)
