@@ -95,7 +95,7 @@ export const List = ({ players, showFlags = false }: ListProps) => {
 						key: "qttr",
 						label: m.common_qttr(),
 						render: (item) => (
-							<span className="font-semibold tabular-nums">{item.qttr}</span>
+							<span className="font-medium tabular-nums">{item.qttr}</span>
 						),
 						sortable: true,
 						sortFn: (a, b) => a.qttr - b.qttr,
@@ -107,7 +107,7 @@ export const List = ({ players, showFlags = false }: ListProps) => {
 							const team = item.teams[0]?.team;
 							return (
 								team && (
-									<div className="flex items-center gap-1.5 text-muted-foreground">
+									<div className="flex items-center gap-2 text-muted-foreground">
 										<Link
 											to="/teams/$teamId"
 											params={{ teamId: team.id }}

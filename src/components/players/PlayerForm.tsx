@@ -99,7 +99,7 @@ export const PlayerForm = ({
 							}}
 						>
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>{m.common_name()}:</Label>
 									<Input
 										id={field.name}
@@ -130,7 +130,7 @@ export const PlayerForm = ({
 							}}
 						>
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>
 										{m.players_year_of_birth()}:
 									</Label>
@@ -157,7 +157,7 @@ export const PlayerForm = ({
 					<div>
 						<form.Field name="gender">
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>{m.players_gender()}:</Label>
 									<Select
 										value={field.state.value}
@@ -202,7 +202,7 @@ export const PlayerForm = ({
 							}}
 						>
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>{m.common_qttr()}:</Label>
 									<Input
 										id={field.name}
@@ -227,7 +227,7 @@ export const PlayerForm = ({
 					<div>
 						<form.Field name="myTischtennisId">
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>
 										{m.players_mytischtennis_id()}:
 									</Label>

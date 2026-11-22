@@ -129,7 +129,7 @@ function TypeGroupTabs({
 					type="button"
 					onClick={() => onChange(tab.key)}
 					className={cn(
-						"flex-1 rounded-[calc(var(--radius-md)-2px)] px-3 py-1.5 font-medium transition-colors sm:flex-none",
+						"flex-1 rounded-[calc(var(--radius-md)-2px)] px-3 py-2 font-medium transition-colors sm:flex-none",
 						value === tab.key
 							? "bg-primary text-primary-foreground"
 							: "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -294,7 +294,7 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 	);
 
 	return (
-		<div className="flex flex-col gap-1.5">
+		<div className="flex flex-col gap-2">
 			<div className="flex items-center gap-2">
 				<Input
 					placeholder={m.appointments_search_appointment()}
@@ -348,15 +348,15 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 						<div className="h-1.5 w-9 rounded-full bg-muted-foreground/30" />
 					</div>
 					<div className="flex flex-col gap-4 px-4 pb-6">
-						<fieldset className="flex flex-col gap-1.5">
+						<fieldset className="flex flex-col gap-2">
 							<Label>{m.appointments_type()}</Label>
 							<TypeGroupTabs value={typeGroup} onChange={setTypeGroup} />
 						</fieldset>
 
 						{seasons.length > 0 && (
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<Label>{m.common_season()}</Label>
-								<div className="flex flex-wrap gap-1.5">
+								<div className="flex flex-wrap gap-2">
 									{seasonFilterOptions(seasons).map((option) => (
 										<FilterPill
 											key={option.value}
@@ -378,9 +378,9 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 						)}
 
 						{typeGroup === "TOURNAMENT" && (
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<Label>{m.appointments_my_response()}</Label>
-								<div className="flex flex-wrap gap-1.5">
+								<div className="flex flex-wrap gap-2">
 									{responseOptions.map((opt) => (
 										<FilterPill
 											key={opt.value}
@@ -395,9 +395,9 @@ export const MobileFilters = (props: FiltersProps & SeasonFiltersProps) => {
 						)}
 
 						{typeGroup === "TEAM_MATCH" && teams.length > 0 && (
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<Label>{m.common_team()}</Label>
-								<div className="flex flex-wrap gap-1.5">
+								<div className="flex flex-wrap gap-2">
 									{teams.map((team) => (
 										<FilterPill
 											key={team.id}

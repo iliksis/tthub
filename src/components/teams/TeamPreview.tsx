@@ -17,8 +17,8 @@ export function TeamPreview({ team }: { team: TeamDetail }) {
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center gap-3">
 				<div className="min-w-0 flex-1">
-					<div className="flex items-center gap-1.5">
-						<span className="min-w-[6ch] truncate font-semibold text-sm">
+					<div className="flex items-center gap-2">
+						<span className="min-w-[6ch] truncate font-medium text-sm">
 							{team.title}
 						</span>
 						<TeamHalfBadge half={team.half} />
@@ -35,7 +35,7 @@ export function TeamPreview({ team }: { team: TeamDetail }) {
 			</div>
 
 			<div>
-				<div className="mb-1.5 flex items-center gap-1.5 text-muted-foreground text-sm">
+				<div className="mb-1.5 flex items-center gap-2 text-muted-foreground text-sm">
 					<UsersIcon className="size-3.5" />
 					{m.common_players()} · {team.players.length}
 				</div>

@@ -16,10 +16,8 @@ export function Section({
 	return (
 		<div className={className}>
 			<div className="mb-3 flex flex-wrap items-center gap-2.5">
-				<span className="font-bold text-xs uppercase tracking-wider">
-					{title}
-				</span>
-				<span className="h-px flex-1 bg-accent-foreground/55" />
+				<span className="font-medium text-sm">{title}</span>
+				<span className="h-px flex-1 bg-border/60" />
 				{description && (
 					<span className="text-muted-foreground text-xs basis-full lg:basis-auto">
 						{description}

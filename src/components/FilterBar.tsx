@@ -131,7 +131,7 @@ function SegmentTrigger({
 		<button
 			type="button"
 			className={cn(
-				"flex h-9 items-center gap-1.5 px-3 text-sm transition-colors",
+				"flex h-9 items-center gap-2 px-3 text-sm transition-colors",
 				active
 					? "bg-primary/10 font-medium text-primary"
 					: "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
@@ -230,7 +230,7 @@ const FilterBarResetButton = ({ onReset }: { onReset: () => void }) => {
 	return (
 		<button
 			type="button"
-			className="flex h-9 items-center gap-1.5 px-3 text-sm text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+			className="flex h-9 items-center gap-2 px-3 text-sm text-muted-foreground hover:bg-muted/60 hover:text-foreground"
 			onClick={onReset}
 			aria-label={m.common_clear()}
 		>

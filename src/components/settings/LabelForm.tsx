@@ -55,7 +55,7 @@ export const LabelForm = ({
 				>
 					<form.Field name="name">
 						{(field) => (
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<FieldLabel htmlFor={field.name}>{m.labels_name()}:</FieldLabel>
 								<Input
 									id={field.name}
@@ -69,7 +69,7 @@ export const LabelForm = ({
 					</form.Field>
 					<form.Field name="color">
 						{(field) => (
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<FieldLabel>{m.labels_color()}:</FieldLabel>
 								<div className="flex flex-wrap gap-2">
 									{catppuccinColorNames.map((colorName) => {

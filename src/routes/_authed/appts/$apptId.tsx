@@ -396,13 +396,13 @@ function RouteComponent() {
 					<Section title={m.common_details()}>
 						<div className="grid grid-cols-2 gap-4 text-sm">
 							<div>
-								<div className="mb-1 text-muted-foreground text-xs uppercase">
+								<div className="mb-1 text-muted-foreground text-xs">
 									{m.appointments_start()}
 								</div>
 								<div>{formatDateTime(appointment.startDate)}</div>
 							</div>
 							<div>
-								<div className="mb-1 text-muted-foreground text-xs uppercase">
+								<div className="mb-1 text-muted-foreground text-xs">
 									{m.appointments_end()}
 								</div>
 								<div>
@@ -413,7 +413,7 @@ function RouteComponent() {
 							</div>
 							{!isHoliday && (
 								<div className="col-span-2">
-									<div className="mb-1 text-muted-foreground text-xs uppercase">
+									<div className="mb-1 text-muted-foreground text-xs">
 										{m.appointments_location()}
 									</div>
 									{appointment.location ? (
@@ -432,7 +432,7 @@ function RouteComponent() {
 							)}
 							{appointment.ownTeam && (
 								<div className="col-span-2">
-									<div className="mb-1 text-muted-foreground text-xs uppercase">
+									<div className="mb-1 text-muted-foreground text-xs">
 										{m.common_team()}
 									</div>
 									<Link
@@ -495,7 +495,7 @@ function RouteComponent() {
 
 					<Collapsible className="rounded-lg bg-card">
 						<CollapsibleTrigger className="group flex w-full items-center justify-between p-4 text-left">
-							<span className="font-bold text-sm">
+							<span className="font-medium text-sm">
 								{m.appointments_more_details()}
 							</span>
 							<ChevronDownIcon className="size-4 text-muted-foreground transition-transform duration-200 ease-out group-data-[state=open]:rotate-180" />
@@ -517,7 +517,7 @@ function RouteComponent() {
 				</div>
 
 				{showMobileDock && (
-					<div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-2 border-border/60 border-t bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm">
+					<div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-2 border-border/60 border-t bg-background p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
 						<Button
 							variant="ghost"
 							className={cn(
@@ -608,7 +608,7 @@ function RouteComponent() {
 								)}
 							</div>
 							<div>
-								<h1 className="font-bold text-2xl">{appointment.title}</h1>
+								<h1 className="font-medium text-2xl">{appointment.title}</h1>
 							</div>
 							<LabelBadges
 								labels={appointment.labels.map((l) => l.label)}
@@ -625,13 +625,13 @@ function RouteComponent() {
 							)}
 						>
 							<div>
-								<div className="mb-1 text-muted-foreground text-xs uppercase">
+								<div className="mb-1 text-muted-foreground text-xs">
 									{m.appointments_start()}
 								</div>
 								<div>{formatDateTime(appointment.startDate)}</div>
 							</div>
 							<div>
-								<div className="mb-1 text-muted-foreground text-xs uppercase">
+								<div className="mb-1 text-muted-foreground text-xs">
 									{m.appointments_end()}
 								</div>
 								<div>
@@ -642,7 +642,7 @@ function RouteComponent() {
 							</div>
 							{!isHoliday && (
 								<div>
-									<div className="mb-1 text-muted-foreground text-xs uppercase">
+									<div className="mb-1 text-muted-foreground text-xs">
 										{m.appointments_location()}
 									</div>
 									{appointment.location ? (
@@ -661,7 +661,7 @@ function RouteComponent() {
 							)}
 							{appointment.ownTeam && (
 								<div>
-									<div className="mb-1 text-muted-foreground text-xs uppercase">
+									<div className="mb-1 text-muted-foreground text-xs">
 										{m.common_team()}
 									</div>
 									<Link
@@ -689,7 +689,7 @@ function RouteComponent() {
 						<Section title={m.appointments_links()}>
 							<div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
 								<div>
-									<div className="mb-1 text-muted-foreground text-xs uppercase">
+									<div className="mb-1 text-muted-foreground text-xs">
 										{m.appointments_link()}
 									</div>
 									{appointment.link ? (
@@ -794,7 +794,7 @@ function RouteComponent() {
 						className="flex flex-1 flex-col gap-4 overflow-y-auto px-4"
 						onSubmit={onSaveEdit}
 					>
-						<fieldset className="flex flex-col gap-1.5">
+						<fieldset className="flex flex-col gap-2">
 							<Label htmlFor="title">{m.common_title()}</Label>
 							<Input
 								id="title"
@@ -803,7 +803,7 @@ function RouteComponent() {
 								onChange={(e) => setDraft({ ...draft, title: e.target.value })}
 							/>
 						</fieldset>
-						<fieldset className="flex flex-col gap-1.5">
+						<fieldset className="flex flex-col gap-2">
 							<Label htmlFor="startDate">{m.appointments_startdate()}</Label>
 							<Input
 								id="startDate"
@@ -817,7 +817,7 @@ function RouteComponent() {
 								}
 							/>
 						</fieldset>
-						<fieldset className="flex flex-col gap-1.5">
+						<fieldset className="flex flex-col gap-2">
 							<Label htmlFor="endDate">{m.appointments_enddate()}</Label>
 							<Input
 								id="endDate"
@@ -835,7 +835,7 @@ function RouteComponent() {
 						</fieldset>
 						{!isHoliday && (
 							<>
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor="location">{m.appointments_location()}</Label>
 									<Input
 										id="location"
@@ -845,7 +845,7 @@ function RouteComponent() {
 										}
 									/>
 								</fieldset>
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor="link">{m.appointments_link()}</Label>
 									<Input
 										id="link"
@@ -858,7 +858,7 @@ function RouteComponent() {
 								{/* isHoliday (above) covers HOLIDAY and TEAM_MATCH, so this
 								    whole branch already excludes TEAM_MATCH — its season
 								    stays derived from ownTeam, never editable here. */}
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor="season">{m.common_season()}</Label>
 									<EntitySelect
 										id="season"
@@ -872,7 +872,7 @@ function RouteComponent() {
 							</>
 						)}
 						{isTournament && (
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<Label>{m.labels_labels()}</Label>
 								<LabelMultiSelect
 									availableLabels={labels}

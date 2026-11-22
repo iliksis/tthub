@@ -40,7 +40,7 @@ export const CalendarToolbar = ({
 					<ChevronRightIcon />
 				</Button>
 			</div>
-			<h2 className="text-lg font-bold tabular-nums">
+			<h2 className="text-lg font-medium tabular-nums">
 				{monthLabel(year, monthIndex)}
 			</h2>
 			<div className="flex-1" />

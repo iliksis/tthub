@@ -184,7 +184,7 @@ export const CommandBarFilters = ({
 			active: hasQttrFilter,
 			align: "end",
 			children: (
-				<div className="flex items-center gap-2 px-2 py-1.5">
+				<div className="flex items-center gap-2 px-2 py-2">
 					<Input
 						type="number"
 						placeholder={m.players_min()}
@@ -277,7 +277,7 @@ export const MobilePlayerFilters = ({
 	);
 
 	return (
-		<div className="mb-3 flex flex-col gap-1.5">
+		<div className="mb-3 flex flex-col gap-2">
 			<div className="flex items-center gap-2">
 				<Input
 					placeholder={m.players_search_players()}
@@ -332,7 +332,7 @@ export const MobilePlayerFilters = ({
 					</div>
 					<div className="flex flex-col gap-4 px-4 pb-6">
 						<div className="grid grid-cols-2 gap-3">
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<Label htmlFor="mobile-player-filters-team">
 									{m.common_team()}
 								</Label>
@@ -357,7 +357,7 @@ export const MobilePlayerFilters = ({
 									</SelectContent>
 								</Select>
 							</fieldset>
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<Label htmlFor="mobile-player-filters-age-group">
 									{m.common_age_group()}
 								</Label>
@@ -385,7 +385,7 @@ export const MobilePlayerFilters = ({
 						</div>
 						{showFlags && (
 							<div className="grid grid-cols-2 gap-3">
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor="mobile-player-filters-eligible">
 										{m.players_eligible_to_play()}
 									</Label>
@@ -413,7 +413,7 @@ export const MobilePlayerFilters = ({
 										</SelectContent>
 									</Select>
 								</fieldset>
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor="mobile-player-filters-member">
 										{m.players_club_member()}
 									</Label>
@@ -444,7 +444,7 @@ export const MobilePlayerFilters = ({
 							</div>
 						)}
 						<div className="grid grid-cols-2 gap-3">
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<Label htmlFor="mobile-player-filters-qttr-min">
 									QTTR {m.players_min()}
 								</Label>
@@ -462,7 +462,7 @@ export const MobilePlayerFilters = ({
 									}
 								/>
 							</fieldset>
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<Label htmlFor="mobile-player-filters-qttr-max">
 									QTTR {m.players_max()}
 								</Label>

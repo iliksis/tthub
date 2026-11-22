@@ -392,7 +392,7 @@ const ActiveSubscriptions = ({ subscriptions }: ActiveSubscriptionsProps) => {
 	if (!subscriptions || subscriptions.length === 0) return null;
 	return (
 		<div className="flex flex-col gap-2">
-			<span className="text-muted-foreground text-xs uppercase tracking-wide">
+			<span className="text-muted-foreground text-xs">
 				{m.notifications_active_subscriptions()}
 			</span>
 			<div className="flex flex-col gap-2">

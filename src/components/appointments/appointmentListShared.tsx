@@ -201,7 +201,7 @@ export function AppointmentMobileFilters({
 	);
 
 	return (
-		<div className="flex flex-col gap-1.5">
+		<div className="flex flex-col gap-2">
 			<div className="flex items-center gap-2">
 				<Input
 					placeholder={m.appointments_search_appointment()}
@@ -256,9 +256,9 @@ export function AppointmentMobileFilters({
 					</div>
 					<div className="flex flex-col gap-4 px-4 pb-6">
 						{segments.map((segment) => (
-							<fieldset key={segment.key} className="flex flex-col gap-1.5">
+							<fieldset key={segment.key} className="flex flex-col gap-2">
 								<Label>{segment.label}</Label>
-								<div className="flex flex-wrap gap-1.5">
+								<div className="flex flex-wrap gap-2">
 									{segment.type === "radio" &&
 										segment.options.map((option) => (
 											<FilterPill
@@ -397,7 +397,7 @@ export function MobileCommandDock<T>({
 	return (
 		<div
 			className={cn(
-				"fixed inset-x-0 bottom-0 z-40 flex gap-2 border-border/60 border-t bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm lg:hidden",
+				"fixed inset-x-0 bottom-0 z-40 flex gap-2 border-border/60 border-t bg-background p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden",
 				isNavigating && "pointer-events-none opacity-60",
 			)}
 		>

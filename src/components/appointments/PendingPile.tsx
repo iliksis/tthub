@@ -125,7 +125,7 @@ const PileCard = ({ appointment, depth, onRespond }: PileCardProps) => {
 			className={cn(
 				"absolute inset-x-0 top-0 touch-pan-y select-none rounded-xl border p-4 shadow-sm",
 				isTop ? "border-border/60 bg-card" : "border-border bg-muted",
-				!dragging && "transition-all duration-200 ease-out",
+				!dragging && "transition-[transform,opacity] duration-200 ease-out",
 				isTop ? "cursor-grab active:cursor-grabbing" : "pointer-events-none",
 			)}
 			style={{
@@ -143,7 +143,7 @@ const PileCard = ({ appointment, depth, onRespond }: PileCardProps) => {
 						style={{ opacity: declineStrength }}
 					>
 						<div
-							className="flex items-center gap-2 rounded-xl bg-destructive px-4 py-2 font-extrabold text-lg text-white uppercase tracking-wide shadow-lg"
+							className="flex items-center gap-2 rounded-xl bg-destructive px-4 py-2 font-medium text-lg text-white"
 							style={{
 								transform: `scale(${0.8 + declineStrength * 0.2}) rotate(-6deg)`,
 							}}
@@ -156,7 +156,7 @@ const PileCard = ({ appointment, depth, onRespond }: PileCardProps) => {
 						style={{ opacity: acceptStrength }}
 					>
 						<div
-							className="flex items-center gap-2 rounded-xl bg-success px-4 py-2 font-extrabold text-lg text-success-foreground uppercase tracking-wide shadow-lg"
+							className="flex items-center gap-2 rounded-xl bg-success px-4 py-2 font-medium text-lg text-success-foreground"
 							style={{
 								transform: `scale(${0.8 + acceptStrength * 0.2}) rotate(6deg)`,
 							}}
@@ -166,25 +166,25 @@ const PileCard = ({ appointment, depth, onRespond }: PileCardProps) => {
 					</div>
 				</div>
 			)}
-			<div className="mb-1 font-bold text-xs uppercase tracking-wide">
+			<div className="mb-1 font-medium text-xs">
 				{new Date(appointment.startDate).toLocaleDateString("de-DE", {
 					weekday: "long",
 				})}
 			</div>
-			<h3 className="mb-2 font-bold text-lg leading-tight">
+			<h3 className="mb-2 font-medium text-lg leading-tight">
 				<Link to={`/appts/$apptId`} params={{ apptId: appointment.id }}>
 					{appointment.title}
 				</Link>
 			</h3>
 			<div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground text-sm">
-				<span className="flex items-center gap-1.5">
+				<span className="flex items-center gap-2">
 					<CalendarDaysIcon className="size-3.5" />
 					{new Date(appointment.startDate).toLocaleTimeString("de-DE", {
 						timeStyle: "short",
 					})}
 				</span>
 				{appointment.location && (
-					<span className="flex items-center gap-1.5">
+					<span className="flex items-center gap-2">
 						<MapPinIcon className="size-3.5" />
 						{appointment.location}
 					</span>

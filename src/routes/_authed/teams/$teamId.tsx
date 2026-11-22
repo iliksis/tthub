@@ -196,7 +196,7 @@ function RouteComponent() {
 		<div>
 			{/* Desktop toolbar */}
 			<div className="mb-4 hidden flex-wrap items-center gap-x-3 gap-y-2 lg:flex">
-				<span className="font-semibold text-[15px]">{team.title}</span>
+				<span className="font-medium text-base">{team.title}</span>
 				<span className="text-muted-foreground text-sm">·</span>
 				<span className="text-muted-foreground text-sm">{team.league}</span>
 				{team.placement && <Badge variant="default">{team.placement}</Badge>}

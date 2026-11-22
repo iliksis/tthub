@@ -91,7 +91,7 @@ export const CreateUserModal = ({
 						<form.Field name="name">
 							{(field) => {
 								return (
-									<fieldset className="flex flex-col gap-1.5">
+									<fieldset className="flex flex-col gap-2">
 										<Label htmlFor={field.name}>{m.common_name()}:</Label>
 										<Input
 											id={field.name}
@@ -108,7 +108,7 @@ export const CreateUserModal = ({
 					<div>
 						<form.Field name="userName">
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>{m.common_user_name()}:</Label>
 									<Input
 										id={field.name}
@@ -124,7 +124,7 @@ export const CreateUserModal = ({
 					<div>
 						<form.Field name="role">
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>{m.users_role()}:</Label>
 									<Select
 										value={field.state.value}

@@ -22,7 +22,7 @@ export function ErrorPage({ error }: { error: Error }) {
 			<div className="mb-2 flex size-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
 				<TriangleAlertIcon className="size-7" />
 			</div>
-			<h1 className="font-bold text-lg">{m.common_an_error_occurred()}</h1>
+			<h1 className="font-medium text-lg">{m.common_an_error_occurred()}</h1>
 			<p className="max-w-sm text-muted-foreground text-sm">{error.message}</p>
 			<Button className="mt-2" onClick={handleCopyDetails} variant="outline">
 				<ClipboardIcon />

@@ -147,7 +147,7 @@ export const ImportDialog = ({ importer, onClose }: ImportDialogProps) => {
 								}}
 							>
 								{(field) => (
-									<fieldset className="flex flex-col gap-1.5">
+									<fieldset className="flex flex-col gap-2">
 										<Label htmlFor={field.name}>
 											{configField.label}
 											{!configField.required && ` ${m.imports_optional()}`}:

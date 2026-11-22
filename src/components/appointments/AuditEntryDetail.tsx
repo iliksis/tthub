@@ -44,7 +44,7 @@ export const AuditEntryDetail = ({ entry }: AuditEntryDetailProps) => {
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex items-center justify-between gap-2">
-				<span className="font-bold text-sm">{m.common_details()}</span>
+				<span className="font-medium text-sm">{m.common_details()}</span>
 				<Badge variant={badge.variant}>{badge.label}</Badge>
 			</div>
 			<div>
@@ -87,13 +87,13 @@ export const AuditEntryDetail = ({ entry }: AuditEntryDetailProps) => {
 				</TooltipContent>
 			</Tooltip>
 			{entries.length > 0 && (
-				<dl className="flex flex-col gap-1.5 rounded-md bg-muted/50 p-2.5 text-xs">
+				<dl className="flex flex-col gap-2 rounded-md bg-muted/50 p-2.5 text-xs">
 					{entries.map(([field, change]) => (
-						<div key={field} className="flex flex-wrap items-center gap-1.5">
+						<div key={field} className="flex flex-wrap items-center gap-2">
 							<dt className="font-medium text-foreground">
 								{fieldLabel(entry.entityType, field)}:
 							</dt>
-							<dd className="flex items-center gap-1.5 text-muted-foreground">
+							<dd className="flex items-center gap-2 text-muted-foreground">
 								<span className="line-through decoration-destructive/50">
 									{formatChangeValue(entry.entityType, field, change.old)}
 								</span>

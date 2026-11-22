@@ -1,5 +1,4 @@
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
-import { UsersIcon } from "lucide-react";
 import { getPlayers } from "@/api/players";
 import { getActiveSeason } from "@/api/seasons";
 import { getTeams } from "@/api/teams";
@@ -11,6 +10,7 @@ import {
 	MobilePlayerFilters,
 } from "@/components/players/Filters";
 import { List } from "@/components/players/List";
+import { Section } from "@/components/Section";
 import {
 	TeamMeta,
 	TeamPlacementBadge,
@@ -69,7 +69,7 @@ function RouteComponent() {
 				<div className="min-w-0">
 					<div className="mb-3 flex items-center gap-3">
 						<div className="flex flex-1 items-baseline gap-2">
-							<h1 className="font-bold text-lg">{m.common_players()}</h1>
+							<h1 className="font-medium text-lg">{m.common_players()}</h1>
 							<p className="text-muted-foreground text-sm">
 								{m.players_n_of_n_players({
 									param1: filteredPlayers.length.toString(),
@@ -99,14 +99,7 @@ type TeamsRailProps = {
 };
 const TeamsRail = ({ teams }: TeamsRailProps) => {
 	return (
-		<div className="min-w-0">
-			<div className="mb-3 flex items-center gap-2.5">
-				<UsersIcon className="size-4 text-foreground" />
-				<span className="font-bold text-xs uppercase tracking-wider">
-					{m.common_teams()}
-				</span>
-				<span className="h-px flex-1 bg-border" />
-			</div>
+		<Section title={m.common_teams()} className="min-w-0">
 			{teams.length === 0 ? (
 				<div className="text-muted-foreground text-sm">
 					{m.common_no_teams_found()}
@@ -116,7 +109,7 @@ const TeamsRail = ({ teams }: TeamsRailProps) => {
 					{teams.map((team) => (
 						<div
 							key={team.id}
-							className="flex items-center justify-between gap-2 border-border/60 border-b py-2.5 last:border-0"
+							className="flex items-center justify-between gap-2 border-border/60 border-b py-3 last:border-0"
 						>
 							<div className="min-w-0">
 								<Link
@@ -135,6 +128,6 @@ const TeamsRail = ({ teams }: TeamsRailProps) => {
 					))}
 				</div>
 			)}
-		</div>
+		</Section>
 	);
 };

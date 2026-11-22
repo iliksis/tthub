@@ -238,8 +238,8 @@ export function PlacementsSheet({
 									key={category}
 									className="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
 								>
-									<div className="flex items-center justify-between border-border/60 border-b bg-muted/30 px-4 py-2.5">
-										<h3 className="font-bold text-sm">{category}</h3>
+									<div className="flex items-center justify-between border-border/60 border-b bg-muted/30 px-4 py-3">
+										<h3 className="font-medium text-sm">{category}</h3>
 										<Badge variant="outline">{rows.length}</Badge>
 									</div>
 
@@ -326,9 +326,9 @@ export function PlacementsSheet({
 									</div>
 
 									{canEdit && (
-										<div className="border-border/40 border-t px-4 py-2.5">
+										<div className="border-border/40 border-t px-4 py-3">
 											{addingToCategory === category ? (
-												<div className="flex items-center gap-1.5">
+												<div className="flex items-center gap-2">
 													<Select
 														value={newPlayerId}
 														onValueChange={(value) =>
@@ -394,7 +394,7 @@ export function PlacementsSheet({
 					{canEdit && (
 						<div className="mt-4 rounded-xl border border-border border-dashed p-3">
 							{composingCategory ? (
-								<div className="flex items-center gap-1.5">
+								<div className="flex items-center gap-2">
 									<Input
 										autoFocus
 										list="placement-categories"

@@ -47,7 +47,7 @@ export const SeasonForm = ({
 				>
 					<form.Field name="name">
 						{(field) => (
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<Label htmlFor={field.name}>{m.common_name()}:</Label>
 								<Input
 									id={field.name}
