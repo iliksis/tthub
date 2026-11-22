@@ -434,7 +434,7 @@ function RouteComponent() {
 			    mobile content column above reserves `pb-16` so its last item
 			    never sits underneath it. */}
 			<nav
-				className="fixed inset-x-0 bottom-0 z-30 flex border-border/60 border-t bg-background/95 backdrop-blur-sm lg:hidden"
+				className="fixed inset-x-0 bottom-0 z-30 flex border-border/60 border-t bg-background  lg:hidden"
 				style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
 			>
 				<Link
@@ -473,7 +473,7 @@ function RouteComponent() {
 			>
 				<div className="flex items-center gap-3">
 					<div className="flex flex-1 items-baseline gap-2">
-						<h1 className="font-bold text-lg">{m.common_appointments()}</h1>
+						<h1 className="font-medium text-lg">{m.common_appointments()}</h1>
 						<p className="text-muted-foreground text-sm">
 							{m.appointments_n_of_n_events({
 								param1: matchedTotal.toString(),
@@ -605,7 +605,7 @@ const ResponseCell = ({
 	}
 
 	return (
-		<div className="flex justify-end gap-1.5">
+		<div className="flex justify-end gap-2">
 			<Button
 				type="button"
 				variant="ghost"
@@ -702,7 +702,7 @@ const AppointmentTimeline = ({
 						<h2
 							ref={registerHeader(group.key)}
 							data-month-key={group.key}
-							className="sticky top-0 z-10 -mx-1 mb-2 bg-background px-1 py-2 font-semibold text-muted-foreground text-xs uppercase tracking-wide"
+							className="sticky top-0 z-10 -mx-1 mb-2 bg-background px-1 py-2 font-medium text-muted-foreground text-xs  "
 						>
 							{group.label}
 						</h2>
@@ -719,10 +719,10 @@ const AppointmentTimeline = ({
 								return (
 									<div key={item.id} className="flex gap-4">
 										<div className="flex w-11 shrink-0 flex-col items-center pt-3">
-											<span className="font-bold text-lg leading-none">
+											<span className="font-medium text-lg leading-none">
 												{new Date(item.startDate).getDate()}
 											</span>
-											<span className="mt-0.5 text-[10px] text-muted-foreground uppercase">
+											<span className="mt-0.5 text-xs text-muted-foreground ">
 												{new Date(item.startDate).toLocaleDateString("de-DE", {
 													weekday: "short",
 												})}
@@ -733,7 +733,7 @@ const AppointmentTimeline = ({
 										</div>
 										<div
 											className={cn(
-												"flex min-w-0 max-w-xl flex-1 items-center gap-4 rounded-lg px-3 py-2.5 pb-5",
+												"flex min-w-0 max-w-xl flex-1 items-center gap-4 rounded-lg px-3 py-3 pb-5",
 												inPast && "opacity-65",
 												isDeleted && "text-destructive",
 											)}

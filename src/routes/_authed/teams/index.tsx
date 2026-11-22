@@ -79,7 +79,7 @@ function RouteComponent() {
 			{/* Desktop layout: master-detail split view */}
 			<div className="hidden lg:flex lg:flex-col lg:gap-4">
 				<div className="flex items-center gap-3">
-					<h1 className="flex-1 font-bold text-lg">
+					<h1 className="flex-1 font-medium text-lg">
 						{m.common_teams()}{" "}
 						<span className="font-normal text-muted-foreground text-sm">
 							· {teams.length}

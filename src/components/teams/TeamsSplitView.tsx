@@ -33,7 +33,7 @@ export const TeamsSplitView = ({ teams }: { teams: TeamRow[] }) => {
 							key: "name",
 							label: m.common_name(),
 							render: (item) => (
-								<span className="flex items-center gap-1.5">
+								<span className="flex items-center gap-2">
 									<Link
 										to="/teams/$teamId"
 										params={{ teamId: item.id }}

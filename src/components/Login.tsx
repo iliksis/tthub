@@ -36,7 +36,7 @@ export function Login() {
 	return (
 		<div className="w-dvw h-dvh relative">
 			<form
-				className="w-full max-w-sm shrink-0 rounded-xl bg-card text-card-foreground shadow-2xl absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+				className="w-full max-w-sm shrink-0 rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
 				onSubmit={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
@@ -47,7 +47,7 @@ export function Login() {
 					<form.Field name="userName">
 						{(field) => {
 							return (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									{/* register your input into the hook by invoking the "register" function */}
 									<Label htmlFor={field.name}>{m.common_user_name()}</Label>
 									<Input
@@ -65,7 +65,7 @@ export function Login() {
 					<form.Field name="password">
 						{(field) => {
 							return (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									{/* register your input into the hook by invoking the "register" function */}
 									<Label htmlFor={field.name}>{m.common_password()}</Label>
 									<Input

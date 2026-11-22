@@ -124,9 +124,7 @@ function RouteComponent() {
 		<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] lg:gap-8">
 			{/* Rail */}
 			<div className="py-4 lg:py-8 lg:pr-8">
-				<h1 className="mt-0.5 font-bold text-2xl tracking-tight">
-					{player.name}
-				</h1>
+				<h1 className="mt-0.5 font-medium text-2xl ">{player.name}</h1>
 
 				{canEdit && (
 					<div className="mt-5 flex gap-2">
@@ -154,7 +152,7 @@ function RouteComponent() {
 				<div className="mt-6">
 					<Section title={m.common_details()}>
 						<dl className="flex flex-col text-sm">
-							<div className="flex items-center justify-between py-2.5 border-b border-border/60">
+							<div className="flex items-center justify-between py-3 border-b border-border/60">
 								<dt className="text-muted-foreground">
 									{m.players_year_of_birth()}
 								</dt>
@@ -166,17 +164,17 @@ function RouteComponent() {
 									)
 								</dd>
 							</div>
-							<div className="flex items-center justify-between py-2.5 border-b border-border/60">
+							<div className="flex items-center justify-between py-3 border-b border-border/60">
 								<dt className="text-muted-foreground">{m.common_qttr()}</dt>
-								<dd className="font-semibold text-success tabular-nums">
+								<dd className="font-medium text-success tabular-nums">
 									{player.qttr}
 								</dd>
 							</div>
-							<div className="flex items-center justify-between py-2.5 border-b border-border/60">
+							<div className="flex items-center justify-between py-3 border-b border-border/60">
 								<dt className="text-muted-foreground">{m.common_team()}</dt>
 								<dd className="font-medium">
 									{currentMembership ? (
-										<span className="flex items-center justify-end gap-1.5">
+										<span className="flex items-center justify-end gap-2">
 											<Link
 												to="/teams/$teamId"
 												params={{ teamId: currentMembership.team.id }}
@@ -192,7 +190,7 @@ function RouteComponent() {
 							</div>
 							{canEdit && (
 								<>
-									<div className="flex items-center justify-between py-2.5 border-b border-border/60">
+									<div className="flex items-center justify-between py-3 border-b border-border/60">
 										<dt className="text-muted-foreground">
 											{m.players_club_member()}
 										</dt>
@@ -200,7 +198,7 @@ function RouteComponent() {
 											{player.isClubMember ? m.players_yes() : m.players_no()}
 										</dd>
 									</div>
-									<div className="flex items-center justify-between py-2.5 border-b border-border/60">
+									<div className="flex items-center justify-between py-3 border-b border-border/60">
 										<dt className="text-muted-foreground">
 											{m.players_eligible_to_play()}
 										</dt>
@@ -213,7 +211,7 @@ function RouteComponent() {
 								</>
 							)}
 							{currentMembership?.team.league && (
-								<div className="flex items-center justify-between py-2.5 border-b border-border/60">
+								<div className="flex items-center justify-between py-3 border-b border-border/60">
 									<dt className="text-muted-foreground">{m.common_league()}</dt>
 									<dd className="font-medium">
 										{currentMembership.team.league}
@@ -240,12 +238,12 @@ function RouteComponent() {
 									{pastMemberships.map((tp) => (
 										<div
 											key={tp.id}
-											className="flex items-center justify-between py-2.5 border-b border-border/60 last:border-b-0"
+											className="flex items-center justify-between py-3 border-b border-border/60 last:border-b-0"
 										>
 											<dt className="text-muted-foreground">
 												{tp.team.season.name}
 											</dt>
-											<dd className="flex items-center gap-1.5 font-medium">
+											<dd className="flex items-center gap-2 font-medium">
 												<Link
 													to="/teams/$teamId"
 													params={{ teamId: tp.team.id }}

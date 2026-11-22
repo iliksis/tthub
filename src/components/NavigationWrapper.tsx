@@ -210,7 +210,7 @@ export const NavigationWrapper = ({
 			<SidebarInset>
 				<nav className="flex h-11 w-full items-center gap-2 px-3 lg:hidden">
 					<SidebarTrigger className="lg:hidden" />
-					<span className="font-bold text-lg">{title}</span>
+					<span className="font-medium text-lg">{title}</span>
 				</nav>
 				{/* Page content here */}
 				<div className="lg:mx-4 mx-0 p-4 relative">{children}</div>

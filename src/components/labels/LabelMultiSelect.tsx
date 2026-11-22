@@ -89,7 +89,7 @@ export function LabelMultiSelect({
 	return (
 		<div className="flex flex-col gap-2">
 			{selected.length > 0 && (
-				<div className="flex flex-wrap gap-1.5">
+				<div className="flex flex-wrap gap-2">
 					{selected.map((label) => {
 						const style = getCatppuccinColorStyle(label.color as LabelColor);
 						return (
@@ -124,7 +124,7 @@ export function LabelMultiSelect({
 				onChange={(e) => setQuery(e.target.value)}
 			/>
 			{trimmedQuery.length > 0 && (filtered.length > 0 || canCreate) && (
-				<div className="flex flex-wrap gap-1.5">
+				<div className="flex flex-wrap gap-2">
 					{filtered.map((label) => (
 						<button
 							key={label.id}

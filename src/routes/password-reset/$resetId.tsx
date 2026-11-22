@@ -70,7 +70,7 @@ function RouteComponent() {
 
 	return (
 		<div className="w-dvw h-dvh relative">
-			<Card className="w-full max-w-sm shrink-0 shadow-2xl absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2">
+			<Card className="w-full max-w-sm shrink-0  absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2">
 				<form
 					className="flex flex-col gap-3"
 					onSubmit={(e) => {
@@ -80,10 +80,10 @@ function RouteComponent() {
 					}}
 				>
 					<CardContent className="flex flex-col gap-2">
-						<h2 className="text-lg font-semibold leading-none">
+						<h2 className="text-lg font-medium leading-none">
 							{m.auth_update_your_password()}
 						</h2>
-						<fieldset className="flex flex-col gap-1.5">
+						<fieldset className="flex flex-col gap-2">
 							<Label htmlFor="username">{m.common_user_name()}:</Label>
 							<Input
 								id="username"
@@ -94,7 +94,7 @@ function RouteComponent() {
 						</fieldset>
 						<form.Field name="password">
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>{m.common_password()}:</Label>
 									<Input
 										id={field.name}
@@ -109,7 +109,7 @@ function RouteComponent() {
 						</form.Field>
 						<form.Field name="confirmPassword">
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>
 										{m.common_confirm_password()}:
 									</Label>

@@ -33,7 +33,7 @@ export const CopyToSeasonModal = ({
 			confirmDisabled={!targetSeasonId}
 			title={m.appointments_copy_to_season_title()}
 		>
-			<fieldset className="flex flex-col gap-1.5">
+			<fieldset className="flex flex-col gap-2">
 				<Label htmlFor="target-season">{m.appointments_target_season()}</Label>
 				<EntitySelect
 					id="target-season"

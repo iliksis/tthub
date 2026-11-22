@@ -65,7 +65,7 @@ export const Profile = () => {
 	return (
 		<div className="flex flex-col gap-8">
 			<div className="flex flex-col items-center gap-1 sm:items-start">
-				<h1 className="font-bold text-2xl">{currentUser?.name}</h1>
+				<h1 className="font-medium text-2xl">{currentUser?.name}</h1>
 				<div className="flex items-center gap-2 text-muted-foreground text-sm">
 					<span>{currentUser?.userName}</span>
 					{currentUser?.role && (
@@ -90,7 +90,7 @@ export const Profile = () => {
 				>
 					<form.Field name="name">
 						{(field) => (
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<Label htmlFor={field.name}>{m.common_name()}:</Label>
 								<Input
 									id={field.name}
@@ -105,7 +105,7 @@ export const Profile = () => {
 					<div className="grid gap-5 sm:grid-cols-2">
 						<form.Field name="password">
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>{m.common_password()}:</Label>
 									<Input
 										id={field.name}
@@ -120,7 +120,7 @@ export const Profile = () => {
 						</form.Field>
 						<form.Field name="confirmPassword">
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>
 										{m.common_confirm_password()}:
 									</Label>

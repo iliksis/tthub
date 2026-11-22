@@ -126,7 +126,7 @@ Most-repeated values — prefer these over inventing new ones:
 - Vertical stacks: `flex flex-col gap-3` (mobile), `gap-4`/`lg:gap-6` (desktop)
 - Card padding: `p-4` (compact), `p-5`/`p-6` (prominent panels)
 - Grid gaps: `gap-2` (dense stat tiles), `gap-4`/`gap-6` (section/column grids), `gap-2.5` (card lists)
-- Label/value pairing: label `text-muted-foreground text-xs uppercase` above value `text-sm` (used throughout detail pages and dashboard tiles)
+- Label/value pairing: label `text-muted-foreground text-xs` above value `text-sm` (used throughout detail pages and dashboard tiles)
 - Subtle dividers: `border-border/60` or `border-border/40`, not full-opacity `border-border`
 
 ## 6. Status/semantic color usage
@@ -153,10 +153,10 @@ Most-repeated values — prefer these over inventing new ones:
 **Calendar event categories** — reuse the shared `categoryStyle` map (`src/components/calendar/MonthCalendar.tsx`) rather than inventing new category colors:
 
 ```ts
-export const categoryStyle: Record<AppointmentType, {gradient, solidText, dot}> = {
-  HOLIDAY:       { dot: "bg-primary",  gradient: "bg-gradient-to-br from-primary to-primary/70",  solidText: "text-primary-foreground" },
-  TOURNAMENT:    { dot: "bg-success",  gradient: "bg-gradient-to-br from-success to-success/70",  solidText: "text-success-foreground" },
-  TOURNAMENT_DE: { dot: "bg-info",     gradient: "bg-gradient-to-br from-info to-info/70",         solidText: "text-info-foreground" },
+export const categoryStyle: Record<AppointmentType, {bar, solidText, dot}> = {
+  HOLIDAY:       { dot: "bg-primary",  bar: "bg-primary",  solidText: "text-primary-foreground" },
+  TOURNAMENT:    { dot: "bg-success",  bar: "bg-success",  solidText: "text-success-foreground" },
+  TOURNAMENT_DE: { dot: "bg-info",     bar: "bg-info",         solidText: "text-info-foreground" },
 };
 ```
 

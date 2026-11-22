@@ -59,21 +59,21 @@ const ROW_TEMPLATE = [
 
 export const categoryStyle: Record<
 	AppointmentType,
-	{ gradient: string; solidText: string; dot: string }
+	{ bar: string; solidText: string; dot: string }
 > = {
 	HOLIDAY: {
+		bar: "bg-primary",
 		dot: "bg-primary",
-		gradient: "bg-gradient-to-br from-primary to-primary/70",
 		solidText: "text-primary-foreground",
 	},
 	TEAM_MATCH: {
+		bar: "bg-warning",
 		dot: "bg-warning",
-		gradient: "bg-gradient-to-br from-warning to-warning/70",
 		solidText: "text-warning-foreground",
 	},
 	TOURNAMENT: {
+		bar: "bg-success",
 		dot: "bg-success",
-		gradient: "bg-gradient-to-br from-success to-success/70",
 		solidText: "text-success-foreground",
 	},
 };
@@ -110,7 +110,7 @@ export function resolveEventColorStyle(
 	}
 
 	return {
-		barClassName: `${style.gradient} ${style.solidText}`,
+		barClassName: `${style.bar} ${style.solidText}`,
 		dotClassName: style.dot,
 	};
 }
@@ -162,7 +162,7 @@ export const MonthCalendar = ({
 				{weekdayLabels.map((label) => (
 					<div
 						key={label}
-						className="px-2 py-2.5 text-center text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
+						className="px-2 py-3 text-center text-xs font-medium   text-muted-foreground"
 					>
 						{label}
 					</div>
@@ -210,7 +210,7 @@ export const MonthCalendar = ({
 								className="flex justify-end px-2 pt-2 pr-1.5"
 							>
 								{cell.isToday ? (
-									<span className="flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
+									<span className="flex size-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
 										{cell.date}
 									</span>
 								) : (
@@ -242,7 +242,7 @@ export const MonthCalendar = ({
 													gridRow: bar.lane + 2,
 													...colorStyle.barStyle,
 												}}
-												className={`mx-1 flex h-6.5 items-center rounded-lg px-2 text-[11px] font-semibold ${colorStyle.barClassName} ${bar.isTrueStart ? "" : "rounded-l-none"} ${bar.isTrueEnd ? "" : "rounded-r-none"}`}
+												className={`mx-1 flex h-6.5 items-center rounded-lg px-2 text-xs font-medium ${colorStyle.barClassName} ${bar.isTrueStart ? "" : "rounded-l-none"} ${bar.isTrueEnd ? "" : "rounded-r-none"}`}
 											/>
 										}
 									>
@@ -260,7 +260,7 @@ export const MonthCalendar = ({
 											sideOffset={6}
 											className="z-50"
 										>
-											<TooltipPrimitive.Popup className="w-56 origin-(--transform-origin) rounded-xl border border-border/60 bg-popover p-3 text-popover-foreground shadow-lg data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95 data-[state=delayed-open]:animate-in data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:animate-out">
+											<TooltipPrimitive.Popup className="w-56 origin-(--transform-origin) rounded-xl border border-border/60 bg-popover p-3 text-popover-foreground data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95 data-[state=delayed-open]:animate-in data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:animate-out">
 												<div className="flex items-start gap-2">
 													<span
 														className={cn(
@@ -272,7 +272,7 @@ export const MonthCalendar = ({
 														<Icon className="size-3.5" />
 													</span>
 													<div className="min-w-0 flex-1">
-														<div className="text-sm font-semibold leading-tight">
+														<div className="text-sm font-medium leading-tight">
 															{bar.event.title}
 														</div>
 														<div className="mt-1 flex items-center gap-1 text-muted-foreground text-xs">
@@ -313,7 +313,7 @@ export const MonthCalendar = ({
 													gridColumn: col + 1,
 													gridRow: OVERFLOW_ROW_INDEX,
 												}}
-												className="mx-1 h-6.5 rounded-lg px-2 text-left text-[10px] font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+												className="mx-1 h-6.5 rounded-lg px-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
 											/>
 										}
 									>
@@ -345,7 +345,7 @@ export const MonthCalendar = ({
 														<span className="min-w-[6ch] truncate font-medium">
 															{event.title}
 														</span>
-														<span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
+														<span className="ml-auto shrink-0 text-xs text-muted-foreground">
 															{formatTime(event.start)}
 														</span>
 													</DropdownMenuItem>

@@ -109,8 +109,8 @@ export const CreateAppointmentForm = ({
 	const canAdvanceFromType = !!type;
 
 	const typeStep = (
-		<div className="duration-300 animate-in fade-in slide-in-from-right-2">
-			<h2 className="mb-4 font-semibold text-base">
+		<div className="">
+			<h2 className="mb-4 font-medium text-base">
 				{m.appointments_appointment_type()}
 			</h2>
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -171,12 +171,12 @@ export const CreateAppointmentForm = ({
 	);
 
 	const detailsStep = (
-		<div className="duration-300 animate-in fade-in slide-in-from-right-2">
-			<h2 className="mb-4 font-semibold text-base">{m.common_details()}</h2>
+		<div className="">
+			<h2 className="mb-4 font-medium text-base">{m.common_details()}</h2>
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<form.Field name="title">
 					{(field) => (
-						<fieldset className="flex flex-col gap-1.5">
+						<fieldset className="flex flex-col gap-2">
 							<Label htmlFor={field.name}>{m.common_title()}:</Label>
 							<Input
 								id={field.name}
@@ -190,7 +190,7 @@ export const CreateAppointmentForm = ({
 				</form.Field>
 				<form.Field name="startDate">
 					{(field) => (
-						<fieldset className="flex flex-col gap-1.5">
+						<fieldset className="flex flex-col gap-2">
 							<Label htmlFor={field.name}>{m.appointments_startdate()}:</Label>
 							<Input
 								id={field.name}
@@ -209,7 +209,7 @@ export const CreateAppointmentForm = ({
 				</form.Field>
 				<form.Field name="endDate">
 					{(field) => (
-						<fieldset className="flex flex-col gap-1.5">
+						<fieldset className="flex flex-col gap-2">
 							<Label htmlFor={field.name}>{m.appointments_enddate()}:</Label>
 							<Input
 								id={field.name}
@@ -235,7 +235,7 @@ export const CreateAppointmentForm = ({
 				{type !== "holiday" && (
 					<form.Field name="location">
 						{(field) => (
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<Label htmlFor={field.name}>{m.appointments_location()}:</Label>
 								<Input
 									id={field.name}
@@ -251,7 +251,7 @@ export const CreateAppointmentForm = ({
 				{type !== "holiday" && (
 					<form.Field name="seasonId">
 						{(field) => (
-							<fieldset className="flex flex-col gap-1.5">
+							<fieldset className="flex flex-col gap-2">
 								<Label htmlFor={field.name}>{m.common_season()}:</Label>
 								<EntitySelect
 									id={field.name}
@@ -264,7 +264,7 @@ export const CreateAppointmentForm = ({
 					</form.Field>
 				)}
 				{type === "tournament" && (
-					<fieldset className="flex flex-col gap-1.5 sm:col-span-2">
+					<fieldset className="flex flex-col gap-2 sm:col-span-2">
 						<Label>{m.labels_labels()}:</Label>
 						<LabelMultiSelect
 							availableLabels={labels}
@@ -296,16 +296,14 @@ export const CreateAppointmentForm = ({
 
 	const reviewStep = (
 		<form
-			className="duration-300 animate-in fade-in slide-in-from-right-2"
+			className=""
 			onSubmit={(e) => {
 				e.preventDefault();
 				e.stopPropagation();
 				form.handleSubmit();
 			}}
 		>
-			<h2 className="mb-4 font-semibold text-base">
-				{m.appointments_review()}
-			</h2>
+			<h2 className="mb-4 font-medium text-base">{m.appointments_review()}</h2>
 			<form.Subscribe selector={(state) => state.values}>
 				{(values) => (
 					<div className="mb-4 grid grid-cols-1 gap-4 rounded-xl border border-border/60 bg-card p-5 sm:grid-cols-2">
@@ -320,7 +318,7 @@ export const CreateAppointmentForm = ({
 							</span>
 						</div>
 						<div>
-							<div className="text-muted-foreground text-xs uppercase">
+							<div className="text-muted-foreground text-xs ">
 								{m.appointments_startdate()}
 							</div>
 							<div className="text-sm">
@@ -329,7 +327,7 @@ export const CreateAppointmentForm = ({
 						</div>
 						{type !== "holiday" && (
 							<div>
-								<div className="text-muted-foreground text-xs uppercase">
+								<div className="text-muted-foreground text-xs ">
 									{m.appointments_location()}
 								</div>
 								<div className="text-sm">{values.location || "—"}</div>
@@ -337,7 +335,7 @@ export const CreateAppointmentForm = ({
 						)}
 						{type === "tournament" && selectedLabels.length > 0 && (
 							<div className="sm:col-span-2">
-								<div className="text-muted-foreground text-xs uppercase">
+								<div className="text-muted-foreground text-xs ">
 									{m.labels_labels()}
 								</div>
 								<LabelBadges labels={selectedLabels} className="mt-1" />
@@ -349,7 +347,7 @@ export const CreateAppointmentForm = ({
 			{type !== "holiday" && (
 				<form.Field name="status">
 					{(field) => (
-						<fieldset className="mb-6 flex flex-col gap-1.5">
+						<fieldset className="mb-6 flex flex-col gap-2">
 							<div className="flex items-center gap-2">
 								<Checkbox
 									id={field.name}
@@ -393,16 +391,16 @@ export const CreateAppointmentForm = ({
 		<div className="lg:flex">
 			{/* Mobile: compact step progress above the content */}
 			<div className="border-border/60 border-b pb-4 lg:hidden">
-				<h1 className="mb-3 font-bold text-lg">
+				<h1 className="mb-3 font-medium text-lg">
 					{m.appointments_create_appointment()}
 				</h1>
 				<div className="flex items-center gap-2">
 					{steps.map((label, i) => (
 						<React.Fragment key={label}>
-							<div className="flex items-center gap-1.5">
+							<div className="flex items-center gap-2">
 								<div
 									className={cn(
-										"flex size-5 shrink-0 items-center justify-center rounded-full text-[11px]",
+										"flex size-5 shrink-0 items-center justify-center rounded-full text-xs",
 										i < step
 											? "bg-success text-success-foreground"
 											: i === step
@@ -431,7 +429,7 @@ export const CreateAppointmentForm = ({
 
 			{/* Desktop: persistent left step rail */}
 			<div className="hidden w-56 shrink-0 border-border/60 border-r pr-6 lg:block">
-				<h1 className="mb-6 font-bold text-lg">
+				<h1 className="mb-6 font-medium text-lg">
 					{m.appointments_create_appointment()}
 				</h1>
 				<div className="flex flex-col gap-1">
@@ -445,7 +443,7 @@ export const CreateAppointmentForm = ({
 									setStep(i);
 							}}
 							className={cn(
-								"flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors duration-150",
+								"flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm transition-colors duration-150",
 								i === step
 									? "bg-primary/10 font-medium text-primary"
 									: "text-muted-foreground hover:bg-accent/50 disabled:hover:bg-transparent",
@@ -453,7 +451,7 @@ export const CreateAppointmentForm = ({
 						>
 							<div
 								className={cn(
-									"flex size-5 shrink-0 items-center justify-center rounded-full text-[11px]",
+									"flex size-5 shrink-0 items-center justify-center rounded-full text-xs",
 									i < step
 										? "bg-success text-success-foreground"
 										: i === step

@@ -201,7 +201,7 @@ export const TeamForm = ({
 					<div>
 						<form.Field name="title">
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>{m.common_title()}:</Label>
 									<Input
 										id={field.name}
@@ -219,7 +219,7 @@ export const TeamForm = ({
 					<div>
 						<form.Field name="league">
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>{m.common_league()}:</Label>
 									<Input
 										id={field.name}
@@ -237,7 +237,7 @@ export const TeamForm = ({
 					<div>
 						<form.Field name="clickTTGroupId">
 							{(field) => (
-								<fieldset className="flex flex-col gap-1.5">
+								<fieldset className="flex flex-col gap-2">
 									<Label htmlFor={field.name}>
 										{m.teams_click_tt_group_id()}:
 									</Label>
@@ -257,7 +257,7 @@ export const TeamForm = ({
 						<div>
 							<form.Field name="seasonId">
 								{(field) => (
-									<fieldset className="flex flex-col gap-1.5">
+									<fieldset className="flex flex-col gap-2">
 										<Label htmlFor={field.name}>{m.common_season()}:</Label>
 										<EntitySelect
 											id={field.name}

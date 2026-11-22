@@ -86,7 +86,7 @@ const teamColumns: DetailsListColumn<TeamRow>[] = [
 		key: "title",
 		label: m.common_name(),
 		render: (item) => (
-			<span className="flex items-center gap-1.5">
+			<span className="flex items-center gap-2">
 				<Link to="/teams/$teamId" params={{ teamId: item.id }}>
 					{item.title}
 				</Link>
@@ -130,7 +130,7 @@ function TeamStandingsMobileList({ teams }: { teams: TeamRow[] }) {
 					className="flex w-full items-center justify-between gap-3 border-b border-b-border py-3.5 text-left last:border-b-0"
 				>
 					<div className="min-w-0 flex-1">
-						<div className="flex items-center gap-1.5">
+						<div className="flex items-center gap-2">
 							<span className="min-w-[6ch] truncate font-medium text-sm">
 								{team.title}
 							</span>
@@ -576,7 +576,7 @@ function SeriesTree({ series }: { series: TournamentSeries }) {
 						<text
 							x={TREE_DOT_RADIUS + 7}
 							y={4}
-							className={`text-[11px] ${node.isCurrent ? "fill-foreground font-semibold" : "fill-muted-foreground"}`}
+							className={`text-xs ${node.isCurrent ? "fill-foreground font-medium" : "fill-muted-foreground"}`}
 						>
 							{node.title.length > TREE_LABEL_MAX_CHARS
 								? `${node.title.slice(0, TREE_LABEL_MAX_CHARS - 1)}…`
@@ -603,7 +603,7 @@ function SeriesPlacementRow({
 	return (
 		<div className="grid grid-cols-[2.5rem_1fr] items-baseline gap-x-2 py-1">
 			{placement ? (
-				<span className="text-right font-medium text-primary text-sm tabular-nums">
+				<span className="text-right font-medium text-sm tabular-nums">
 					{placement}
 				</span>
 			) : (
@@ -635,7 +635,7 @@ function SeriesNodeResults({ node }: { node: TournamentSeriesNode }) {
 					{node.title}
 				</Link>
 				{node.isCurrent && (
-					<span className="rounded-full bg-primary/15 px-1.5 py-0.5 font-medium text-[10px] text-primary uppercase">
+					<span className="rounded-full bg-primary/15 px-1.5 py-0.5 font-medium text-xs text-primary ">
 						{m.stats_this_season()}
 					</span>
 				)}
@@ -651,7 +651,7 @@ function SeriesNodeResults({ node }: { node: TournamentSeriesNode }) {
 				<div className="flex flex-col gap-2">
 					{node.categories.map((group) => (
 						<div key={group.category}>
-							<div className="mb-1 text-[11px] text-muted-foreground uppercase tracking-wide">
+							<div className="mb-1 text-xs text-muted-foreground  ">
 								{group.category}
 							</div>
 							{group.placements.map((p) => (
@@ -718,7 +718,7 @@ function TournamentSeriesList({ series }: { series: TournamentSeries[] }) {
 							)}
 						>
 							{seriesTabLabel(s)}
-							<span className="block font-normal text-[11px] text-muted-foreground">
+							<span className="block font-normal text-xs text-muted-foreground">
 								{m.stats_tournament_count({ count: s.nodes.length })}
 							</span>
 						</button>
@@ -773,7 +773,7 @@ function RouteComponent() {
 				<SeasonSwitcher />
 			</div>
 			<div className="hidden items-center gap-3 lg:flex">
-				<h1 className="flex-1 font-bold text-lg">{m.stats_statistics()}</h1>
+				<h1 className="flex-1 font-medium text-lg">{m.stats_statistics()}</h1>
 				<SeasonSwitcher />
 			</div>
 
