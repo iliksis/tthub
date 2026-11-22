@@ -1,5 +1,5 @@
-import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 import { Link } from "@tanstack/react-router";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-sdk/react/tooltip";
 import {
 	CalendarDaysIcon,
 	MapPinIcon,
@@ -231,8 +231,8 @@ export const MonthCalendar = ({
 							const colorStyle = resolveEventColorStyle(bar.event);
 							const Icon = typeIcon[bar.event.type];
 							return (
-								<TooltipPrimitive.Root key={bar.event.id}>
-									<TooltipPrimitive.Trigger
+								<Tooltip key={bar.event.id}>
+									<TooltipTrigger
 										render={
 											<Link
 												to="/appts/$apptId"
@@ -253,51 +253,46 @@ export const MonthCalendar = ({
 										) : (
 											""
 										)}
-									</TooltipPrimitive.Trigger>
-									<TooltipPrimitive.Portal>
-										<TooltipPrimitive.Positioner
-											side="top"
-											sideOffset={6}
-											className="z-50"
-										>
-											<TooltipPrimitive.Popup className="w-56 origin-(--transform-origin) rounded-xl border border-border/60 bg-popover p-3 text-popover-foreground data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95 data-[state=delayed-open]:animate-in data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:animate-out">
-												<div className="flex items-start gap-2">
-													<span
-														className={cn(
-															"flex size-6 shrink-0 items-center justify-center rounded-full",
-															colorStyle.barClassName,
-														)}
-														style={colorStyle.barStyle}
-													>
-														<Icon className="size-3.5" />
-													</span>
-													<div className="min-w-0 flex-1">
-														<div className="text-sm font-medium leading-tight">
-															{bar.event.title}
-														</div>
-														<div className="mt-1 flex items-center gap-1 text-muted-foreground text-xs">
-															<CalendarDaysIcon className="size-3" />
-															{formatTiming(bar.event)}
-														</div>
-														{bar.event.location && (
-															<div className="mt-0.5 flex items-center gap-1 text-muted-foreground text-xs">
-																<MapPinIcon className="size-3" />
-																{bar.event.location}
-															</div>
-														)}
-														{bar.event.labels &&
-															bar.event.labels.length > 0 && (
-																<LabelBadges
-																	labels={bar.event.labels}
-																	className="mt-1.5"
-																/>
-															)}
-													</div>
+									</TooltipTrigger>
+									<TooltipContent
+										side="top"
+										sideOffset={6}
+										className="z-50 w-56 origin-(--transform-origin) rounded-xl border border-border/60 bg-popover p-3 text-popover-foreground transition-[opacity,scale] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-instant:transition-none data-starting-style:scale-95 data-starting-style:opacity-0"
+									>
+										<div className="flex items-start gap-2">
+											<span
+												className={cn(
+													"flex size-6 shrink-0 items-center justify-center rounded-full",
+													colorStyle.barClassName,
+												)}
+												style={colorStyle.barStyle}
+											>
+												<Icon className="size-3.5" />
+											</span>
+											<div className="min-w-0 flex-1">
+												<div className="text-sm font-medium leading-tight">
+													{bar.event.title}
 												</div>
-											</TooltipPrimitive.Popup>
-										</TooltipPrimitive.Positioner>
-									</TooltipPrimitive.Portal>
-								</TooltipPrimitive.Root>
+												<div className="mt-1 flex items-center gap-1 text-muted-foreground text-xs">
+													<CalendarDaysIcon className="size-3" />
+													{formatTiming(bar.event)}
+												</div>
+												{bar.event.location && (
+													<div className="mt-0.5 flex items-center gap-1 text-muted-foreground text-xs">
+														<MapPinIcon className="size-3" />
+														{bar.event.location}
+													</div>
+												)}
+												{bar.event.labels && bar.event.labels.length > 0 && (
+													<LabelBadges
+														labels={bar.event.labels}
+														className="mt-1.5"
+													/>
+												)}
+											</div>
+										</div>
+									</TooltipContent>
+								</Tooltip>
 							);
 						})}
 
