@@ -14,7 +14,9 @@ import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
 // shortcut: ui-sdk dialogs live in the top layer, so base-ui popups (select) must portal into them. Remove once select/dropdown move to ui-sdk (#164, #163).
-const DialogContainerContext = React.createContext<HTMLElement | null>(null);
+export const DialogContainerContext = React.createContext<HTMLElement | null>(
+	null,
+);
 const useDialogContainer = () => React.useContext(DialogContainerContext);
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive>) {
