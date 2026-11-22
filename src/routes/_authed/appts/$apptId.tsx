@@ -396,13 +396,13 @@ function RouteComponent() {
 					<Section title={m.common_details()}>
 						<div className="grid grid-cols-2 gap-4 text-sm">
 							<div>
-								<div className="mb-1 text-muted-foreground text-xs ">
+								<div className="mb-1 text-muted-foreground text-xs">
 									{m.appointments_start()}
 								</div>
 								<div>{formatDateTime(appointment.startDate)}</div>
 							</div>
 							<div>
-								<div className="mb-1 text-muted-foreground text-xs ">
+								<div className="mb-1 text-muted-foreground text-xs">
 									{m.appointments_end()}
 								</div>
 								<div>
@@ -413,7 +413,7 @@ function RouteComponent() {
 							</div>
 							{!isHoliday && (
 								<div className="col-span-2">
-									<div className="mb-1 text-muted-foreground text-xs ">
+									<div className="mb-1 text-muted-foreground text-xs">
 										{m.appointments_location()}
 									</div>
 									{appointment.location ? (
@@ -432,7 +432,7 @@ function RouteComponent() {
 							)}
 							{appointment.ownTeam && (
 								<div className="col-span-2">
-									<div className="mb-1 text-muted-foreground text-xs ">
+									<div className="mb-1 text-muted-foreground text-xs">
 										{m.common_team()}
 									</div>
 									<Link
@@ -517,7 +517,7 @@ function RouteComponent() {
 				</div>
 
 				{showMobileDock && (
-					<div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-2 border-border/60 border-t bg-background p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] ">
+					<div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-2 border-border/60 border-t bg-background p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
 						<Button
 							variant="ghost"
 							className={cn(
@@ -625,13 +625,13 @@ function RouteComponent() {
 							)}
 						>
 							<div>
-								<div className="mb-1 text-muted-foreground text-xs ">
+								<div className="mb-1 text-muted-foreground text-xs">
 									{m.appointments_start()}
 								</div>
 								<div>{formatDateTime(appointment.startDate)}</div>
 							</div>
 							<div>
-								<div className="mb-1 text-muted-foreground text-xs ">
+								<div className="mb-1 text-muted-foreground text-xs">
 									{m.appointments_end()}
 								</div>
 								<div>
@@ -642,7 +642,7 @@ function RouteComponent() {
 							</div>
 							{!isHoliday && (
 								<div>
-									<div className="mb-1 text-muted-foreground text-xs ">
+									<div className="mb-1 text-muted-foreground text-xs">
 										{m.appointments_location()}
 									</div>
 									{appointment.location ? (
@@ -661,7 +661,7 @@ function RouteComponent() {
 							)}
 							{appointment.ownTeam && (
 								<div>
-									<div className="mb-1 text-muted-foreground text-xs ">
+									<div className="mb-1 text-muted-foreground text-xs">
 										{m.common_team()}
 									</div>
 									<Link
@@ -689,7 +689,7 @@ function RouteComponent() {
 						<Section title={m.appointments_links()}>
 							<div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
 								<div>
-									<div className="mb-1 text-muted-foreground text-xs ">
+									<div className="mb-1 text-muted-foreground text-xs">
 										{m.appointments_link()}
 									</div>
 									{appointment.link ? (

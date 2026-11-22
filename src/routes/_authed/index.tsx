@@ -145,7 +145,7 @@ function App() {
 									>
 										<div className="flex min-w-0 items-center gap-2">
 											<span className="size-1.5 shrink-0 rounded-full bg-warning" />
-											<span className="shrink-0 text-muted-foreground text-xs tabular-nums">
+											<span className="shrink-0 text-muted-foreground text-xs">
 												{openDateFmt(a.startDate)}
 											</span>
 											<Link
@@ -269,13 +269,11 @@ function App() {
 									<tbody>
 										{team.standings.map((s) => (
 											<tr key={s.id} className="border-border/40 border-b">
-												<td className="w-6 py-2 text-muted-foreground tabular-nums">
+												<td className="w-6 py-2 text-muted-foreground">
 													{s.rank}
 												</td>
 												<td className="truncate py-2">{s.teamName}</td>
-												<td className="py-2 text-right tabular-nums">
-													{s.pointsWon}
-												</td>
+												<td className="py-2 text-right">{s.pointsWon}</td>
 											</tr>
 										))}
 									</tbody>

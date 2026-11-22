@@ -109,7 +109,7 @@ export const CreateAppointmentForm = ({
 	const canAdvanceFromType = !!type;
 
 	const typeStep = (
-		<div className="">
+		<div>
 			<h2 className="mb-4 font-medium text-base">
 				{m.appointments_appointment_type()}
 			</h2>
@@ -171,7 +171,7 @@ export const CreateAppointmentForm = ({
 	);
 
 	const detailsStep = (
-		<div className="">
+		<div>
 			<h2 className="mb-4 font-medium text-base">{m.common_details()}</h2>
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<form.Field name="title">
@@ -296,7 +296,6 @@ export const CreateAppointmentForm = ({
 
 	const reviewStep = (
 		<form
-			className=""
 			onSubmit={(e) => {
 				e.preventDefault();
 				e.stopPropagation();
@@ -318,7 +317,7 @@ export const CreateAppointmentForm = ({
 							</span>
 						</div>
 						<div>
-							<div className="text-muted-foreground text-xs ">
+							<div className="text-muted-foreground text-xs">
 								{m.appointments_startdate()}
 							</div>
 							<div className="text-sm">
@@ -327,7 +326,7 @@ export const CreateAppointmentForm = ({
 						</div>
 						{type !== "holiday" && (
 							<div>
-								<div className="text-muted-foreground text-xs ">
+								<div className="text-muted-foreground text-xs">
 									{m.appointments_location()}
 								</div>
 								<div className="text-sm">{values.location || "—"}</div>
@@ -335,7 +334,7 @@ export const CreateAppointmentForm = ({
 						)}
 						{type === "tournament" && selectedLabels.length > 0 && (
 							<div className="sm:col-span-2">
-								<div className="text-muted-foreground text-xs ">
+								<div className="text-muted-foreground text-xs">
 									{m.labels_labels()}
 								</div>
 								<LabelBadges labels={selectedLabels} className="mt-1" />

@@ -162,7 +162,7 @@ export const MonthCalendar = ({
 				{weekdayLabels.map((label) => (
 					<div
 						key={label}
-						className="px-2 py-3 text-center text-xs font-medium   text-muted-foreground"
+						className="px-2 py-3 text-center text-xs font-medium text-muted-foreground"
 					>
 						{label}
 					</div>

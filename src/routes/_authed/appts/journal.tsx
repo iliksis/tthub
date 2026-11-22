@@ -318,7 +318,7 @@ function RouteComponent() {
 					<div className="flex flex-col">
 						{groups.map(([day, dayItems]) => (
 							<div key={day}>
-								<div className="sticky top-0 z-10 bg-background py-2 pl-3 font-medium text-muted-foreground text-xs  ">
+								<div className="sticky top-0 z-10 bg-background py-2 pl-3 font-medium text-muted-foreground text-xs">
 									{dateHeaderFmt(dayItems[0].createdAt)}
 								</div>
 								<div className="relative ml-3.5 flex flex-col border-border/60 border-l pb-2">

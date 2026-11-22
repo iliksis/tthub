@@ -70,7 +70,7 @@ function RouteComponent() {
 
 	return (
 		<div className="w-dvw h-dvh relative">
-			<Card className="w-full max-w-sm shrink-0  absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2">
+			<Card className="w-full max-w-sm shrink-0 absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2">
 				<form
 					className="flex flex-col gap-3"
 					onSubmit={(e) => {

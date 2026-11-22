@@ -32,7 +32,7 @@ export function PlacementsPanel({
 			<div className="flex flex-col gap-4">
 				{grouped.map((group) => (
 					<div key={group.category}>
-						<div className="mb-2 text-muted-foreground text-xs  ">
+						<div className="mb-2 text-muted-foreground text-xs">
 							{group.category}
 						</div>
 						<div className="flex flex-col gap-1">

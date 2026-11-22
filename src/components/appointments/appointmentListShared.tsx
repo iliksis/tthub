@@ -397,7 +397,7 @@ export function MobileCommandDock<T>({
 	return (
 		<div
 			className={cn(
-				"fixed inset-x-0 bottom-0 z-40 flex gap-2 border-border/60 border-t bg-background p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]  lg:hidden",
+				"fixed inset-x-0 bottom-0 z-40 flex gap-2 border-border/60 border-t bg-background p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden",
 				isNavigating && "pointer-events-none opacity-60",
 			)}
 		>

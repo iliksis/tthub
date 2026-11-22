@@ -434,7 +434,7 @@ function RouteComponent() {
 			    mobile content column above reserves `pb-16` so its last item
 			    never sits underneath it. */}
 			<nav
-				className="fixed inset-x-0 bottom-0 z-30 flex border-border/60 border-t bg-background  lg:hidden"
+				className="fixed inset-x-0 bottom-0 z-30 flex border-border/60 border-t bg-background lg:hidden"
 				style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
 			>
 				<Link
@@ -702,7 +702,7 @@ const AppointmentTimeline = ({
 						<h2
 							ref={registerHeader(group.key)}
 							data-month-key={group.key}
-							className="sticky top-0 z-10 -mx-1 mb-2 bg-background px-1 py-2 font-medium text-muted-foreground text-xs  "
+							className="sticky top-0 z-10 -mx-1 mb-2 bg-background px-1 py-2 font-medium text-muted-foreground text-xs"
 						>
 							{group.label}
 						</h2>
@@ -722,7 +722,7 @@ const AppointmentTimeline = ({
 											<span className="font-medium text-lg leading-none">
 												{new Date(item.startDate).getDate()}
 											</span>
-											<span className="mt-0.5 text-xs text-muted-foreground ">
+											<span className="mt-0.5 text-xs text-muted-foreground">
 												{new Date(item.startDate).toLocaleDateString("de-DE", {
 													weekday: "short",
 												})}

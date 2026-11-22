@@ -576,7 +576,7 @@ function SeriesTree({ series }: { series: TournamentSeries }) {
 						<text
 							x={TREE_DOT_RADIUS + 7}
 							y={4}
-							className={`text-xs ${node.isCurrent ? "fill-foreground font-medium" : "fill-muted-foreground"}`}
+							className={`text-[11px] ${node.isCurrent ? "fill-foreground font-medium" : "fill-muted-foreground"}`}
 						>
 							{node.title.length > TREE_LABEL_MAX_CHARS
 								? `${node.title.slice(0, TREE_LABEL_MAX_CHARS - 1)}…`
@@ -635,7 +635,7 @@ function SeriesNodeResults({ node }: { node: TournamentSeriesNode }) {
 					{node.title}
 				</Link>
 				{node.isCurrent && (
-					<span className="rounded-full bg-primary/15 px-1.5 py-0.5 font-medium text-xs text-primary ">
+					<span className="rounded-full bg-primary/15 px-1.5 py-0.5 font-medium text-xs text-primary">
 						{m.stats_this_season()}
 					</span>
 				)}
@@ -651,7 +651,7 @@ function SeriesNodeResults({ node }: { node: TournamentSeriesNode }) {
 				<div className="flex flex-col gap-2">
 					{node.categories.map((group) => (
 						<div key={group.category}>
-							<div className="mb-1 text-xs text-muted-foreground  ">
+							<div className="mb-1 text-xs text-muted-foreground">
 								{group.category}
 							</div>
 							{group.placements.map((p) => (

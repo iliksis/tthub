@@ -1,5 +1,4 @@
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
-import { UsersIcon } from "lucide-react";
 import { getPlayers } from "@/api/players";
 import { getActiveSeason } from "@/api/seasons";
 import { getTeams } from "@/api/teams";
@@ -11,6 +10,7 @@ import {
 	MobilePlayerFilters,
 } from "@/components/players/Filters";
 import { List } from "@/components/players/List";
+import { Section } from "@/components/Section";
 import {
 	TeamMeta,
 	TeamPlacementBadge,
@@ -99,12 +99,7 @@ type TeamsRailProps = {
 };
 const TeamsRail = ({ teams }: TeamsRailProps) => {
 	return (
-		<div className="min-w-0">
-			<div className="mb-3 flex items-center gap-2.5">
-				<UsersIcon className="size-4 text-foreground" />
-				<span className="font-medium text-xs  ">{m.common_teams()}</span>
-				<span className="h-px flex-1 bg-border" />
-			</div>
+		<Section title={m.common_teams()} className="min-w-0">
 			{teams.length === 0 ? (
 				<div className="text-muted-foreground text-sm">
 					{m.common_no_teams_found()}
@@ -133,6 +128,6 @@ const TeamsRail = ({ teams }: TeamsRailProps) => {
 					))}
 				</div>
 			)}
-		</div>
+		</Section>
 	);
 };

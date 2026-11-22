@@ -124,7 +124,7 @@ function RouteComponent() {
 		<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] lg:gap-8">
 			{/* Rail */}
 			<div className="py-4 lg:py-8 lg:pr-8">
-				<h1 className="mt-0.5 font-medium text-2xl ">{player.name}</h1>
+				<h1 className="mt-0.5 font-medium text-2xl">{player.name}</h1>
 
 				{canEdit && (
 					<div className="mt-5 flex gap-2">

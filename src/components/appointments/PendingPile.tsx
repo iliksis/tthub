@@ -143,7 +143,7 @@ const PileCard = ({ appointment, depth, onRespond }: PileCardProps) => {
 						style={{ opacity: declineStrength }}
 					>
 						<div
-							className="flex items-center gap-2 rounded-xl bg-destructive px-4 py-2 font-medium text-lg text-white  "
+							className="flex items-center gap-2 rounded-xl bg-destructive px-4 py-2 font-medium text-lg text-white"
 							style={{
 								transform: `scale(${0.8 + declineStrength * 0.2}) rotate(-6deg)`,
 							}}
@@ -156,7 +156,7 @@ const PileCard = ({ appointment, depth, onRespond }: PileCardProps) => {
 						style={{ opacity: acceptStrength }}
 					>
 						<div
-							className="flex items-center gap-2 rounded-xl bg-success px-4 py-2 font-medium text-lg text-success-foreground  "
+							className="flex items-center gap-2 rounded-xl bg-success px-4 py-2 font-medium text-lg text-success-foreground"
 							style={{
 								transform: `scale(${0.8 + acceptStrength * 0.2}) rotate(6deg)`,
 							}}
@@ -166,7 +166,7 @@ const PileCard = ({ appointment, depth, onRespond }: PileCardProps) => {
 					</div>
 				</div>
 			)}
-			<div className="mb-1 font-medium text-xs  ">
+			<div className="mb-1 font-medium text-xs">
 				{new Date(appointment.startDate).toLocaleDateString("de-DE", {
 					weekday: "long",
 				})}

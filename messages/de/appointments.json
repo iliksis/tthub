@@ -136,7 +136,7 @@
 		}
 	],
 	"appointments_appointment_updated": "Termin aktualisiert",
-	"appointments_appointment_was_deleted": "Termin wurde gelöscht",
+	"appointments_appointment_was_deleted": "Termin wurde gelöscht.",
 	"appointments_appointments_could_not_be_loaded": "Termine konnten nicht geladen werden",
 	"appointments_appointments_found": "Termine gefunden",
 	"appointments_are_you_sure_you_want_to_delete_n_appointments": [

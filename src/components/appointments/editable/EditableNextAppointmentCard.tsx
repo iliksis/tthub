@@ -39,7 +39,7 @@ export function EditableNextAppointmentCard({
 	if (editing) {
 		return (
 			<div>
-				<div className="mb-1 text-muted-foreground text-xs ">
+				<div className="mb-1 text-muted-foreground text-xs">
 					{m.appointments_next_appointment()}:
 				</div>
 				<Select
@@ -82,7 +82,7 @@ export function EditableNextAppointmentCard({
 
 	return (
 		<div>
-			<div className="mb-1 text-muted-foreground text-xs ">
+			<div className="mb-1 text-muted-foreground text-xs">
 				{m.appointments_next_appointment()}:
 			</div>
 			{nextAppointment ? (

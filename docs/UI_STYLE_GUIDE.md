@@ -11,7 +11,8 @@ Not every page is migrated yet — if a file still uses daisyUI classes (`btn`, 
 - **Stack**: Tailwind v4 (config-less, `@theme inline` in `src/styles.css`), shadcn/ui "new-york" style, Catppuccin Latte (light) / Macchiato (dark) via `@catppuccin/tailwindcss`.
 - **Dark mode**: class-based, via `@custom-variant dark (&:where(.dark, .dark *))` / `@custom-variant light (...)` — not `prefers-color-scheme`. Toggling happens by adding `.dark`/`.light` to an ancestor.
 - **Icons**: `lucide-react` exclusively. Do not add another icon package. Unsized icons default to `size-4` (set on Button via `[&_svg:not([class*='size-'])]:size-4`); Badge icons default to `size-3`.
-- **Motion**: no animation library (no framer-motion, react-spring, gsap). Use CSS transitions, `tw-animate-css`'s `animate-in`/`animate-out` (driven by Radix `data-[state=]` attributes), or — for drag interactions like `PendingPile` — raw `PointerEvent` handlers with inline `style={{ transform, opacity }}` plus a `transition-all duration-200 ease-out` class that's conditionally removed while actively dragging.
+- **Motion**: no animation library (no framer-motion, react-spring, gsap). Use CSS transitions, `tw-animate-css`'s `animate-in`/`animate-out` (driven by Radix `data-[state=]` attributes), or — for drag interactions like `PendingPile` — raw `PointerEvent` handlers with inline `style={{ transform, opacity }}` plus a `transition-[transform,opacity] duration-200 ease-out` class that's conditionally removed while actively dragging.
+- **Numerals**: `tabular-nums` is set globally on `body` (`src/styles.css`); don't add it per element.
 - **Font**: no custom `font-family` is set anywhere — default stack. Don't add one without discussion.
 - **Class merging**: always use `cn()` from `@/lib/utils` for conditional classes, never string concatenation.
 
@@ -23,7 +24,7 @@ Registered via `@theme inline` as `hsl(var(--token))`, so use them as normal Tai
 
 `success`/`warning`/`info` are custom additions on top of stock shadcn — they exist specifically so status/semantic color doesn't fall back to raw palette colors. Always reach for these first.
 
-App-specific calendar tokens `--color-appointment-by`, `--color-tournament-de`, `--color-holiday` (`src/styles.css`) are dead: `MonthCalendar.tsx`'s `categoryStyle` hardcodes `bg-primary`/`bg-success`/`bg-info` per event type directly instead of consuming them. Don't add new calendar coloring through these tokens — follow `categoryStyle`'s pattern of semantic Tailwind utilities instead.
+App-specific calendar tokens `--color-appointment-by`, `--color-tournament-de`, `--color-holiday` (`src/styles.css`) are dead: `MonthCalendar.tsx`'s `categoryStyle` hardcodes `bg-primary`/`bg-warning`/`bg-success` per event type (HOLIDAY/TEAM_MATCH/TOURNAMENT) directly instead of consuming them. Don't add new calendar coloring through these tokens — follow `categoryStyle`'s pattern of semantic Tailwind utilities instead.
 
 ### Radius scale
 
@@ -38,7 +39,7 @@ Base `--radius: 0.375rem` (`src\styles.css`). Derived scale: `--radius-sm` (base
 Extend/compose these — don't hand-roll a new primitive if one exists here.
 
 **Button** (`button.tsx`) — cva variants:
-- `variant`: `default` (bg-primary), `destructive` (bg-destructive, white text), `outline` (border + bg-background + shadow-xs), `secondary` (bg-secondary), `ghost` (transparent, hover bg-accent), `link` (text-primary, underline on hover)
+- `variant`: `default` (bg-primary), `destructive` (bg-destructive, white text), `outline` (border + bg-background), `secondary` (bg-secondary), `ghost` (transparent, hover bg-accent), `link` (text-primary, underline on hover)
 - `size`: `default` (h-8), `xs` (h-6), `sm` (h-7), `lg` (h-9), `icon` (size-8), `icon-xs` (size-6), `icon-sm` (size-7), `icon-lg` (size-9)
 - Defaults: `variant="default" size="default"`.
 
@@ -75,9 +76,9 @@ Don't scatter `md:`/`sm:` into this split — pick `lg:` for the structural mobi
 
 ## 4. Page composition patterns
 
-**Desktop page header**: `<h1 className="font-bold text-lg">{title}</h1>` + muted subtitle/count (`text-muted-foreground text-sm`, e.g. `"{matched} of {total} events"`) + right-aligned action `Button`s, all in one `flex items-center gap-3` row.
+**Desktop page header**: `<h1 className="font-medium text-lg">{title}</h1>` + muted subtitle/count (`text-muted-foreground text-sm`, e.g. `"{matched} of {total} events"`) + right-aligned action `Button`s, all in one `flex items-center gap-3` row.
 
-**Detail page header** (players, teams): breadcrumb-style instead — `<span className="text-muted-foreground text-sm">{m.common_players()} /</span>` + `<span className="flex-1 font-semibold text-[15px]">{name}</span>`, followed by outline Edit + destructive-tinted Delete (`border-destructive/40 text-destructive hover:bg-destructive/10`).
+**Detail page header** (players, teams): title is `font-medium` (`text-base` in the teams toolbar, `text-2xl` in the players rail `<h1>`), followed by outline Edit + destructive-tinted Delete (`border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive`).
 
 **Lists**: desktop = shared `DetailsList` table component in `rounded-lg bg-card`; mobile = stacked custom row/card components, `flex flex-col gap-2.5`. Master-detail split: `grid grid-cols-[1fr_360px] gap-4`, detail rail `lg:sticky lg:top-6`. Row selection state: `cn("h-11 cursor-pointer", item.id === selectedId && "bg-muted")`.
 
@@ -103,7 +104,7 @@ Don't scatter `md:`/`sm:` into this split — pick `lg:` for the structural mobi
 
 **Mobile bottom-of-screen UI** — three distinct patterns, not interchangeable:
 
-1. **Persistent action dock** (e.g. Accept/Maybe/Decline on appt detail, list/calendar tab switcher): `fixed inset-x-0 bottom-0 z-40 border-border/60 border-t bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm`, with matching `pb-*` reserved on the scrollable content so it never sits under the dock.
+1. **Persistent action dock** (e.g. Accept/Maybe/Decline on appt detail, list/calendar tab switcher): `fixed inset-x-0 bottom-0 z-40 border-border/60 border-t bg-background p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]`, with matching `pb-*` reserved on the scrollable content so it never sits under the dock.
 2. **True bottom `Sheet`** with drag-to-dismiss (journal.tsx): `SheetContent side="bottom"`, `showCloseButton={false}`, `className="max-h-[85vh] overflow-y-auto rounded-t-2xl border-t-0 duration-300 lg:hidden"`, a drag handle (`h-1.5 w-9 rounded-full bg-muted-foreground/30`), pointer-driven `translateY`, closes past a 96px threshold; transition disabled while dragging or when `prefersReducedMotion`. Visibility gated by `useIsMobile()` even though desktop reuses the same selection state for a sticky rail.
 3. **`.fab` utility class** (`src/styles.css`, detail pages only) — fixed floating action button cluster: `<div className="fab"><Button asChild size="icon-lg"><div><CogIcon/></div></Button><Button size="icon-lg" onClick={onEdit}><EditIcon/></Button>...</div>`. First `[tabindex]` child is the toggle trigger; siblings reveal via `:focus-within` (rotate/fade the trigger, scale+fade in the rest).
 
@@ -114,7 +115,7 @@ Don't scatter `md:`/`sm:` into this split — pick `lg:` for the structural mobi
 ```tsx
 <Collapsible className="rounded-lg bg-card">
   <CollapsibleTrigger className="group flex w-full items-center justify-between p-4 text-left">
-    <span className="font-bold text-sm">{m.appointments_more_details()}</span>
+    <span className="font-medium text-sm">{m.appointments_more_details()}</span>
     <ChevronDownIcon className="size-4 text-muted-foreground transition-transform duration-200 ease-out group-data-[state=open]:rotate-180" />
   </CollapsibleTrigger>
   <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
@@ -154,9 +155,9 @@ Most-repeated values — prefer these over inventing new ones:
 
 ```ts
 export const categoryStyle: Record<AppointmentType, {bar, solidText, dot}> = {
-  HOLIDAY:       { dot: "bg-primary",  bar: "bg-primary",  solidText: "text-primary-foreground" },
-  TOURNAMENT:    { dot: "bg-success",  bar: "bg-success",  solidText: "text-success-foreground" },
-  TOURNAMENT_DE: { dot: "bg-info",     bar: "bg-info",         solidText: "text-info-foreground" },
+  HOLIDAY:    { dot: "bg-primary",  bar: "bg-primary",  solidText: "text-primary-foreground" },
+  TEAM_MATCH: { dot: "bg-warning",  bar: "bg-warning",  solidText: "text-warning-foreground" },
+  TOURNAMENT: { dot: "bg-success",  bar: "bg-success",  solidText: "text-success-foreground" },
 };
 ```
 
@@ -169,7 +170,7 @@ Field structure (`src/components/settings/Profile.tsx` is the clean reference):
 ```tsx
 <form.Field name="name">
   {(field) => (
-    <fieldset className="flex flex-col gap-1.5">
+    <fieldset className="flex flex-col gap-2">
       <Label htmlFor={field.name}>{m.common_name()}:</Label>
       <Input
         id={field.name}
