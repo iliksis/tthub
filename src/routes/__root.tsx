@@ -15,7 +15,6 @@ import { NavigationWrapper } from "@/components/NavigationWrapper";
 import { NotFound } from "@/components/NotFound";
 import { getTheme } from "@/components/ThemeSwitch";
 import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { m } from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";
 import appCss from "../styles.css?url";
@@ -132,29 +131,27 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
-				<TooltipProvider>
-					<QueryClientProvider client={queryClient}>
-						{user && isAuthedRoute ? (
-							<>
-								<NavigationWrapper title={title}>{children}</NavigationWrapper>
-								<TanStackDevtools
-									config={{
-										position: "bottom-left",
-									}}
-									plugins={[
-										{
-											name: "Tanstack Router",
-											render: <TanStackRouterDevtoolsPanel />,
-										},
-									]}
-								/>
-							</>
-						) : (
-							children
-						)}
-					</QueryClientProvider>
-					<Toaster position="top-center" theme={theme} />
-				</TooltipProvider>
+				<QueryClientProvider client={queryClient}>
+					{user && isAuthedRoute ? (
+						<>
+							<NavigationWrapper title={title}>{children}</NavigationWrapper>
+							<TanStackDevtools
+								config={{
+									position: "bottom-left",
+								}}
+								plugins={[
+									{
+										name: "Tanstack Router",
+										render: <TanStackRouterDevtoolsPanel />,
+									},
+								]}
+							/>
+						</>
+					) : (
+						children
+					)}
+				</QueryClientProvider>
+				<Toaster position="top-center" theme={theme} />
 				<Scripts />
 			</body>
 		</html>
