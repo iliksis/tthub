@@ -103,7 +103,7 @@ function App() {
 	return (
 		<div className="flex flex-col gap-8">
 			<div>
-				<h1 className="font-bold text-lg hidden lg:block">
+				<h1 className="hidden font-medium text-lg lg:block">
 					{m.common_dashboard()}
 				</h1>
 			</div>
@@ -144,7 +144,8 @@ function App() {
 										className="flex items-center justify-between gap-2 border-border/60 border-b py-2 text-sm"
 									>
 										<div className="flex min-w-0 items-center gap-2">
-											<span className="shrink-0 text-muted-foreground text-xs">
+											<span className="size-1.5 shrink-0 rounded-full bg-warning" />
+											<span className="shrink-0 text-muted-foreground text-xs tabular-nums">
 												{openDateFmt(a.startDate)}
 											</span>
 											<Link
@@ -159,15 +160,14 @@ function App() {
 											<Button
 												size="xs"
 												variant="outline"
-												className="border-success/30 text-success hover:bg-success/15"
 												onClick={onResponse(a.id, "ACCEPT")}
 											>
 												{m.common_accept()}
 											</Button>
 											<Button
 												size="xs"
-												variant="outline"
-												className="border-destructive/30 text-destructive hover:bg-destructive/15"
+												variant="ghost"
+												className="text-muted-foreground"
 												onClick={onResponse(a.id, "DECLINE")}
 											>
 												{m.common_decline()}
@@ -187,7 +187,7 @@ function App() {
 				<div className="min-w-0 lg:col-start-2 lg:row-start-2">
 					<Section title={m.dashboard_recent_activity()}>
 						{recentActivity.length > 0 ? (
-							<div className="flex flex-col gap-2.5">
+							<div className="flex flex-col gap-3">
 								{recentActivity.map((entry) => {
 									const badge = auditActionBadge(entry.action);
 									return (
@@ -250,7 +250,7 @@ function App() {
 							)}
 						>
 							<div className="mb-2 flex items-baseline justify-between gap-2">
-								<span className="flex items-center gap-1.5">
+								<span className="flex items-center gap-2">
 									<Link
 										to="/teams/$teamId"
 										params={{ teamId: team.id }}
@@ -269,11 +269,13 @@ function App() {
 									<tbody>
 										{team.standings.map((s) => (
 											<tr key={s.id} className="border-border/40 border-b">
-												<td className="w-5 py-1.5 text-muted-foreground">
+												<td className="w-6 py-2 text-muted-foreground tabular-nums">
 													{s.rank}
 												</td>
-												<td className="truncate py-1.5">{s.teamName}</td>
-												<td className="py-1.5 text-right">{s.pointsWon}</td>
+												<td className="truncate py-2">{s.teamName}</td>
+												<td className="py-2 text-right tabular-nums">
+													{s.pointsWon}
+												</td>
 											</tr>
 										))}
 									</tbody>
