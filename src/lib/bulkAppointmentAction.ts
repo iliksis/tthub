@@ -1,8 +1,8 @@
-import { toast } from "sonner";
 import type {
 	AppointmentSelector,
 	BulkAppointmentsFilter,
 } from "@/api/appointments";
+import { toast } from "@/components/ui/toast";
 
 export type PendingSelector =
 	| { mode: "ids"; ids: string[] }

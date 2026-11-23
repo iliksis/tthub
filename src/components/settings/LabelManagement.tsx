@@ -2,7 +2,6 @@ import { useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import React from "react";
-import { toast } from "sonner";
 import {
 	createLabel,
 	deleteLabel,
@@ -12,6 +11,7 @@ import {
 } from "@/api/labels";
 import { DetailsList } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
+import { toast } from "@/components/ui/toast";
 import { useMutation } from "@/hooks/useMutation";
 import type { Label as LabelRecord } from "@/lib/prisma/client";
 import { getCatppuccinColorStyle } from "@/lib/utils";

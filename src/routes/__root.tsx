@@ -14,7 +14,7 @@ import { run } from "@/api/kernel.server";
 import { NavigationWrapper } from "@/components/NavigationWrapper";
 import { NotFound } from "@/components/NotFound";
 import { getTheme } from "@/components/ThemeSwitch";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toast";
 import { m } from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";
 import appCss from "../styles.css?url";
@@ -151,7 +151,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 						children
 					)}
 				</QueryClientProvider>
-				<Toaster position="top-center" theme={theme} />
+				<Toaster />
 				<Scripts />
 			</body>
 		</html>

@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
-import { toast } from "sonner";
 import { createUser } from "@/api/users";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +18,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { toast } from "@/components/ui/toast";
 import { useMutation } from "@/hooks/useMutation";
 import { Role } from "@/lib/prisma/enums";
 import { m } from "@/paraglide/messages";

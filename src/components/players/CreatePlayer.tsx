@@ -1,9 +1,9 @@
 import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { UserPlus2Icon } from "lucide-react";
 import React from "react";
-import { toast } from "sonner";
 import { createPlayer } from "@/api/players";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 import { useMutation } from "@/hooks/useMutation";
 import { m } from "@/paraglide/messages";
 import { PlayerForm } from "./PlayerForm";

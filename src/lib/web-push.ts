@@ -3,11 +3,11 @@ import { useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import DeviceDetector from "node-device-detector";
 import React from "react";
-import { toast } from "sonner";
 import {
 	createNotificationSubscription,
 	tryGetSubscription,
 } from "@/api/notifications";
+import { toast } from "@/components/ui/toast";
 
 const isSupported =
 	typeof Notification !== "undefined" && "permission" in Notification;

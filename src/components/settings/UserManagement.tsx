@@ -2,7 +2,6 @@ import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { ChevronsUpDownIcon, Trash2Icon, UserPlusIcon } from "lucide-react";
 import React from "react";
-import { toast } from "sonner";
 import { createUserInvitation } from "@/api/invitations";
 import { createPasswordReset } from "@/api/passwordReset";
 import { deleteUser, updateUserRole } from "@/api/users";
@@ -16,6 +15,7 @@ import {
 	DropdownMenuRadioItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "@/components/ui/toast";
 import { useMutation } from "@/hooks/useMutation";
 import type { PasswordReset, User, UserInvitation } from "@/lib/prisma/client";
 import { Role } from "@/lib/prisma/enums";

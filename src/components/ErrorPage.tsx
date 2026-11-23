@@ -1,6 +1,6 @@
 import { ClipboardIcon, TriangleAlertIcon } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 import { m } from "@/paraglide/messages";
 
 export function ErrorPage({ error }: { error: Error }) {

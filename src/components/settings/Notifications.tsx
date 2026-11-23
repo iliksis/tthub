@@ -12,7 +12,6 @@ import {
 	Trash2Icon,
 } from "lucide-react";
 import * as React from "react";
-import { toast } from "sonner";
 import {
 	deleteNotificationSubscription,
 	getMutedLabels,
@@ -26,6 +25,7 @@ import { Section } from "@/components/Section";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "@/components/ui/toast";
 import { useMutation } from "@/hooks/useMutation";
 import type { Label as LabelRecord, Subscription } from "@/lib/prisma/client";
 import { cn } from "@/lib/utils";

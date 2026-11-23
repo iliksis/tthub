@@ -10,7 +10,6 @@ import {
 	Trash2Icon,
 } from "lucide-react";
 import React from "react";
-import { toast } from "sonner";
 import {
 	createSeason,
 	deleteSeason,
@@ -22,6 +21,7 @@ import { DetailsList } from "@/components/DetailsList";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 import { useMutation } from "@/hooks/useMutation";
 import type { Season } from "@/lib/prisma/client";
 import { m } from "@/paraglide/messages";

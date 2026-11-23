@@ -1,9 +1,9 @@
 import { useRouteContext, useRouter } from "@tanstack/react-router";
 import { ShieldPlusIcon } from "lucide-react";
 import React from "react";
-import { toast } from "sonner";
 import { createTeam } from "@/api/teams";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 import { useMutation } from "@/hooks/useMutation";
 import type { Season } from "@/lib/prisma/client";
 import { m } from "@/paraglide/messages";

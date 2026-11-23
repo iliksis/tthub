@@ -1,11 +1,11 @@
 import { useRouter } from "@tanstack/react-router";
 import { CalendarDaysIcon, PlugIcon } from "lucide-react";
 import * as React from "react";
-import { toast } from "sonner";
 import { setImporterEnabled } from "@/api/imports";
 import { ImportDialog } from "@/components/imports/ImportDialog";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "@/components/ui/toast";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 import { useMutation } from "@/hooks/useMutation";
 import type { ImporterConfigField } from "@/importers/types";
