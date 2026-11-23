@@ -7,5 +7,5 @@ The UI primitives in `src/components/ui` are shadcn/ui (new-york) copies on top 
 **Consequences:**
 - `@ui-sdk/react` and `@ui-sdk/core` are pinned to the same exact version (no caret; both are beta, so any bump is deliberate and done for both together).
 - ui-sdk's `web.css` is not imported: styling stays Tailwind v4 plus Catppuccin.
-- shadcn/base-ui and ui-sdk coexist until the last migration PR lands; migrated components keep their public props so consumers don't change.
+- Migration is complete: `@base-ui/react`, `sonner` and `components.json` are removed. Migrated components keep their public props so consumers don't change.
 - The ui-sdk docs ship in `node_modules` and are the reference for building components (see CLAUDE.md).

@@ -1,6 +1,6 @@
 # UI Style Guide
 
-Design conventions distilled from the pages already migrated from daisyUI to shadcn/ui + Catppuccin on `design-rework`. When building new UI or touching an already-refactored page, match these patterns instead of inventing new ones or copying from a page that hasn't been migrated yet.
+Design conventions distilled from the pages already migrated from daisyUI to own ui-sdk components + Catppuccin on `design-rework`. When building new UI or touching an already-refactored page, match these patterns instead of inventing new ones or copying from a page that hasn't been migrated yet.
 
 **Reference pages** (fully refactored — copy patterns from these): `src/routes/_authed/appts/index.tsx`, `src/routes/_authed/appts/$apptId.tsx`, `src/routes/_authed/appts/journal.tsx`, `src/routes/_authed/index.tsx`, `src/routes/_authed/players/$playerId.tsx`, `src/routes/_authed/teams/$teamId.tsx`, `src/components/appointments/PendingPile.tsx`, `src/components/calendar/*`, `src/components/settings/Profile.tsx` / `Notifications.tsx`.
 
@@ -8,7 +8,7 @@ Not every page is migrated yet — if a file still uses daisyUI classes (`btn`, 
 
 ## 1. Foundations
 
-- **Stack**: Tailwind v4 (config-less, `@theme inline` in `src/styles.css`), shadcn/ui "new-york" style, Catppuccin Latte (light) / Macchiato (dark) via `@catppuccin/tailwindcss`.
+- **Stack**: Tailwind v4 (config-less, `@theme inline` in `src/styles.css`), own components on ui-sdk (`src/components/ui`), Catppuccin Latte (light) / Macchiato (dark) via `@catppuccin/tailwindcss`.
 - **Dark mode**: class-based, via `@custom-variant dark (&:where(.dark, .dark *))` / `@custom-variant light (...)` — not `prefers-color-scheme`. Toggling happens by adding `.dark`/`.light` to an ancestor.
 - **Icons**: `lucide-react` exclusively. Do not add another icon package. Unsized icons default to `size-4` (set on Button via `[&_svg:not([class*='size-'])]:size-4`); Badge icons default to `size-3`.
 - **Motion**: no animation library (no framer-motion, react-spring, gsap). Use CSS transitions, `tw-animate-css`'s `animate-in`/`animate-out` (driven by Radix `data-[state=]` attributes), or — for drag interactions like `PendingPile` — raw `PointerEvent` handlers with inline `style={{ transform, opacity }}` plus a `transition-[transform,opacity] duration-200 ease-out` class that's conditionally removed while actively dragging.
@@ -22,7 +22,7 @@ Registered via `@theme inline` as `hsl(var(--token))`, so use them as normal Tai
 
 `background`, `foreground`, `card` (+`-foreground`), `popover` (+`-foreground`), `primary` (+`-foreground`), `secondary` (+`-foreground`), `muted` (+`-foreground`), `accent` (+`-foreground`), `destructive` (+`-foreground`), **`success`** (+`-foreground`), **`warning`** (+`-foreground`), **`info`** (+`-foreground`), `border`, `input`, `ring`, `chart-1`..`chart-5`, `sidebar` (+`-foreground`/`-primary`/`-primary-foreground`/`-accent`/`-accent-foreground`/`-border`/`-ring`).
 
-`success`/`warning`/`info` are custom additions on top of stock shadcn — they exist specifically so status/semantic color doesn't fall back to raw palette colors. Always reach for these first.
+`success`/`warning`/`info` are custom additions on top of the stock shadcn palette — they exist specifically so status/semantic color doesn't fall back to raw palette colors. Always reach for these first.
 
 App-specific calendar tokens `--color-appointment-by`, `--color-tournament-de`, `--color-holiday` (`src/styles.css`) are dead: `MonthCalendar.tsx`'s `categoryStyle` hardcodes `bg-primary`/`bg-warning`/`bg-success` per event type (HOLIDAY/TEAM_MATCH/TOURNAMENT) directly instead of consuming them. Don't add new calendar coloring through these tokens — follow `categoryStyle`'s pattern of semantic Tailwind utilities instead.
 
@@ -43,7 +43,7 @@ Extend/compose these — don't hand-roll a new primitive if one exists here.
 - `size`: `default` (h-8), `xs` (h-6), `sm` (h-7), `lg` (h-9), `icon` (size-8), `icon-xs` (size-6), `icon-sm` (size-7), `icon-lg` (size-9)
 - Defaults: `variant="default" size="default"`.
 
-**Badge** (`badge.tsx`) — pill shape (`rounded-full px-2 py-0.5 text-xs`), no size variants. `variant`: `default`, `secondary`, `destructive`, `success`, `warning`, `info`, `outline`, `ghost`, `link`. `success`/`warning`/`info` are this codebase's additions over stock shadcn — use them for status badges (publish state, response status, audit action) rather than `outline` + manual color classes.
+**Badge** (`badge.tsx`) — pill shape (`rounded-full px-2 py-0.5 text-xs`), no size variants. `variant`: `default`, `secondary`, `destructive`, `success`, `warning`, `info`, `outline`, `ghost`, `link`. `success`/`warning`/`info` are this codebase's additions over the stock shadcn variants — use them for status badges (publish state, response status, audit action) rather than `outline` + manual color classes.
 
 **Alert** (`alert.tsx`) — `rounded-lg border px-2.5 py-2`. `variant`: `default`, `destructive`, `success`, `warning`, `info` (no `outline`/`secondary` — all variants share `bg-card`, only text color changes).
 
@@ -59,7 +59,7 @@ Extend/compose these — don't hand-roll a new primitive if one exists here.
 
 ## 3. Layout shell & breakpoint convention
 
-App shell (`NavigationWrapper`, shadcn Sidebar/SidebarInset): a mobile-only top row (`flex h-11 w-full items-center gap-2 px-3 lg:hidden`, holding just the sidebar trigger inline with the page title — no border, no search button) disappears entirely at `lg:` — desktop has no app-shell chrome above the content, so each route's own page header (see "Desktop page header" below) carries the title. Page content wraps in `lg:mx-4 mx-0 p-4 relative`. Routes render directly into this — don't add another `container`/`max-w-*` wrapper around a page's root.
+App shell (`NavigationWrapper`, Sidebar/SidebarInset): a mobile-only top row (`flex h-11 w-full items-center gap-2 px-3 lg:hidden`, holding just the sidebar trigger inline with the page title — no border, no search button) disappears entirely at `lg:` — desktop has no app-shell chrome above the content, so each route's own page header (see "Desktop page header" below) carries the title. Page content wraps in `lg:mx-4 mx-0 p-4 relative`. Routes render directly into this — don't add another `container`/`max-w-*` wrapper around a page's root.
 
 **Single breakpoint rule**: page-level mobile/desktop layout switches use exactly `lg:` (1024px), as two parallel sibling trees:
 
@@ -110,7 +110,7 @@ Don't scatter `md:`/`sm:` into this split — pick `lg:` for the structural mobi
 
 **Edit forms**: use an edit-as-`Sheet` (right side, `SheetHeader`/`SheetFooter`, `fieldset` + `Label`/`Input` inside, `SheetClose asChild` Cancel + `type="submit" form="edit-appointment"` Save) for inline edits on a detail page. Use `Dialog`/`DialogContent` directly (`src/components/ui/dialog.tsx`) for delete confirmations and standalone multi-field forms (`PlayerForm`, `TeamForm`, `DeleteModal`). Each render a `DialogTitle` (visually `sr-only` when there's no visible heading) inside `DialogContent` and a `DialogFooter` with an optional custom action plus a `DialogClose` "Close" button.
 
-**Collapsible sections** (shadcn `Collapsible`) are a mobile-only space-saving device — desktop shows the same content unconditionally, never collapsed:
+**Collapsible sections** (`Collapsible`) are a mobile-only space-saving device — desktop shows the same content unconditionally, never collapsed:
 
 ```tsx
 <Collapsible className="rounded-lg bg-card">
