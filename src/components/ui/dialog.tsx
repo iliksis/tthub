@@ -8,16 +8,10 @@ import {
 	DialogTrigger as DialogTriggerPrimitive,
 } from "@ui-sdk/react/dialog";
 import { XIcon } from "lucide-react";
-import * as React from "react";
+import type * as React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
-
-// shortcut: ui-sdk dialogs live in the top layer, so base-ui popups (select) must portal into them. Remove once select moves to ui-sdk (#164).
-export const DialogContainerContext = React.createContext<HTMLElement | null>(
-	null,
-);
-const useDialogContainer = () => React.useContext(DialogContainerContext);
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive>) {
 	return <DialogPrimitive {...props} />;
@@ -44,7 +38,6 @@ function DialogContent({
 	children?: React.ReactNode;
 	showCloseButton?: boolean;
 }) {
-	const [container, setContainer] = React.useState<HTMLElement | null>(null);
 	return (
 		<>
 			<DialogBackdrop
@@ -52,7 +45,6 @@ function DialogContent({
 				className="fixed inset-0 isolate z-50 bg-black/10 transition-opacity duration-100 supports-backdrop-filter:backdrop-blur-xs data-ending-style:opacity-0 data-starting-style:opacity-0"
 			/>
 			<DialogContentPrimitive
-				ref={setContainer}
 				data-slot="dialog-content"
 				className={cn(
 					"fixed inset-0 z-50 m-auto grid h-fit max-h-[calc(100%-2rem)] w-full max-w-[calc(100%-2rem)] gap-4 overflow-y-auto rounded-xl border-0 bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 transition-[opacity,scale] duration-100 outline-none backdrop:bg-transparent sm:max-w-sm data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0",
@@ -60,9 +52,7 @@ function DialogContent({
 				)}
 				{...props}
 			>
-				<DialogContainerContext value={container}>
-					{children}
-				</DialogContainerContext>
+				{children}
 				{showCloseButton && (
 					<DialogClosePrimitive
 						data-slot="dialog-close"
@@ -158,5 +148,4 @@ export {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-	useDialogContainer,
 };

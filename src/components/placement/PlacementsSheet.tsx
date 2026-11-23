@@ -339,7 +339,7 @@ export function PlacementsSheet({
 															<SelectValue
 																placeholder={m.common_choose_a_player()}
 															>
-																{(value: string) =>
+																{({ value }) =>
 																	players.find((p) => p.id === value)?.name
 																}
 															</SelectValue>

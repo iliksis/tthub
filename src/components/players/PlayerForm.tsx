@@ -170,7 +170,7 @@ export const PlayerForm = ({
 									>
 										<SelectTrigger id={field.name} className="w-full">
 											<SelectValue>
-												{(value: Gender | null) =>
+												{({ value }) =>
 													genderOptions.find((option) => option.value === value)
 														?.label
 												}
