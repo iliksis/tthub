@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
-// shortcut: ui-sdk dialogs live in the top layer, so base-ui popups (select) must portal into them. Remove once select/dropdown move to ui-sdk (#164, #163).
+// shortcut: ui-sdk dialogs live in the top layer, so base-ui popups (select) must portal into them. Remove once select moves to ui-sdk (#164).
 export const DialogContainerContext = React.createContext<HTMLElement | null>(
 	null,
 );
