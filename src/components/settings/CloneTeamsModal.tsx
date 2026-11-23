@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "@tanstack/react-router";
-import { toast } from "sonner";
 import { cloneTeamsFromSeason } from "@/api/teams";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { EntitySelect } from "@/components/ui/entity-select";
 import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/toast";
 import { useMutation } from "@/hooks/useMutation";
 import type { Season } from "@/lib/prisma/client";
 import { m } from "@/paraglide/messages";

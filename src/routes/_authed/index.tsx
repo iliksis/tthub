@@ -1,7 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { PartyPopperIcon, TrophyIcon, UsersIcon } from "lucide-react";
-import { toast } from "sonner";
 import {
 	createResponse,
 	getNextAppointments,
@@ -16,6 +15,7 @@ import { TeamHalfBadge } from "@/components/teams/TeamSummary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
+import { toast } from "@/components/ui/toast";
 import { auditActionBadge } from "@/lib/auditLabels";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";
 import { collapseHalves } from "@/lib/teamHalf";

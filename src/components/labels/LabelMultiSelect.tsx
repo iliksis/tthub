@@ -1,9 +1,9 @@
 import { PlusIcon, XIcon } from "lucide-react";
 import * as React from "react";
-import { toast } from "sonner";
 import { createLabel, type LabelColor } from "@/api/labels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/toast";
 import { useMutation } from "@/hooks/useMutation";
 import type { Label as LabelRecord } from "@/lib/prisma/client";
 import { cn, getCatppuccinColorStyle } from "@/lib/utils";

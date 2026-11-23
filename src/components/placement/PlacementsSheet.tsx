@@ -1,7 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { CheckIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
 import React from "react";
-import { toast } from "sonner";
 import {
 	createPlacement,
 	deletePlacement,
@@ -24,6 +23,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
+import { toast } from "@/components/ui/toast";
 import { useDragToDismiss } from "@/hooks/use-drag-to-dismiss";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";

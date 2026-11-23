@@ -8,7 +8,6 @@ import {
 	Trash2Icon,
 } from "lucide-react";
 import React from "react";
-import { toast } from "sonner";
 import {
 	createResponse,
 	deleteAppointment,
@@ -53,6 +52,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
+import { toast } from "@/components/ui/toast";
 import { IcalGenerator } from "@/lib/ical";
 import type { Appointment } from "@/lib/prisma/client";
 import {

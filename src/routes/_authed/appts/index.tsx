@@ -20,7 +20,6 @@ import {
 	XIcon,
 } from "lucide-react";
 import React from "react";
-import { toast } from "sonner";
 import { z } from "zod";
 import {
 	type AppointmentWithResponses,
@@ -45,6 +44,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link as EntityLink } from "@/components/ui/link";
+import { toast } from "@/components/ui/toast";
 import { useLoadMoreBatch } from "@/hooks/useLoadMoreBatch";
 import { buildMonthGrid } from "@/lib/calendarGrid";
 import type { AppointmentType, ResponseType } from "@/lib/prisma/enums";

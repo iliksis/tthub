@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
 import * as React from "react";
-import { toast } from "sonner";
 import { getImportProgress, type ImportJob, runImport } from "@/api/imports";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/toast";
 import { useMutation } from "@/hooks/useMutation";
 import type { ImporterConfigField } from "@/importers/types";
 import { m } from "@/paraglide/messages";

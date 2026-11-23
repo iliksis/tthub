@@ -6,7 +6,6 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { EditIcon, SplitIcon, Trash2Icon } from "lucide-react";
 import React from "react";
-import { toast } from "sonner";
 import { getPlayers } from "@/api/players";
 import {
 	applyRosterChanges,
@@ -24,6 +23,7 @@ import { TeamForm } from "@/components/teams/TeamForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
+import { toast } from "@/components/ui/toast";
 import { useMutation } from "@/hooks/useMutation";
 import { ageGroupLabel, calculateAgeGroup, isEditorOrAdmin } from "@/lib/utils";
 import { m } from "@/paraglide/messages";

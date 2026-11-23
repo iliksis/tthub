@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ErrorPage } from "./ErrorPage";
 
 const { toastSuccess } = vi.hoisted(() => ({ toastSuccess: vi.fn() }));
-vi.mock("sonner", () => ({ toast: { success: toastSuccess } }));
+vi.mock("@/components/ui/toast", () => ({ toast: { success: toastSuccess } }));
 
 describe("ErrorPage", () => {
 	const writeText = vi.fn().mockResolvedValue(undefined);

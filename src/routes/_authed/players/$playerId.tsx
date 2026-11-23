@@ -6,7 +6,6 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { EditIcon, Trash2Icon } from "lucide-react";
 import React from "react";
-import { toast } from "sonner";
 import { deletePlayer, getPlayer, updatePlayer } from "@/api/players";
 import { AppointmentRow } from "@/components/AppointmentRow";
 import { DeleteModal } from "@/components/modal/DeleteModal";
@@ -15,6 +14,7 @@ import { Section } from "@/components/Section";
 import { TeamHalfBadge } from "@/components/teams/TeamSummary";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
+import { toast } from "@/components/ui/toast";
 import { useMutation } from "@/hooks/useMutation";
 import { collapseHalves } from "@/lib/teamHalf";
 import { ttrViewerPlayerUrl } from "@/lib/ttrViewer";

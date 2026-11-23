@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { runBulkAppointmentAction } from "@/lib/bulkAppointmentAction";
 
-vi.mock("sonner", () => ({
+vi.mock("@/components/ui/toast", () => ({
 	toast: { error: vi.fn(), success: vi.fn() },
 }));
 

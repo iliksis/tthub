@@ -1,12 +1,12 @@
 import { useForm, useStore } from "@tanstack/react-form";
 import { useRouteContext, useRouter } from "@tanstack/react-router";
-import { toast } from "sonner";
 import { updateUserInformation } from "@/api/users";
 import { Section } from "@/components/Section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/toast";
 import { useMutation } from "@/hooks/useMutation";
 import { roleBadgeVariant, roleLabel } from "@/lib/utils";
 import { m } from "@/paraglide/messages";

@@ -216,7 +216,7 @@ Field structure (`src/components/settings/Profile.tsx` is the clean reference):
 
 ## 8. Toasts
 
-`sonner` via `src/components/ui/sonner.tsx` (themed to app tokens, per-variant lucide icons). Message text comes from the server response's `message` field (see `onSuccess` boilerplate above), not hardcoded in the component — except for pure client-side actions like clipboard copy, which call a message function directly: `toast.success(m.settings_feed_url_copied_to_clipboard())`.
+`toast` from `src/components/ui/toast.tsx` (ui-sdk toast, themed to app tokens, per-variant lucide icons). Message text comes from the server response's `message` field (see `onSuccess` boilerplate above), not hardcoded in the component — except for pure client-side actions like clipboard copy, which call a message function directly: `toast.success(m.settings_feed_url_copied_to_clipboard())`.
 
 ## 9. What NOT to do
 
