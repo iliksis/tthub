@@ -8,9 +8,8 @@ import {
 	DialogTrigger as SheetTriggerPrimitive,
 } from "@ui-sdk/react/dialog";
 import { XIcon } from "lucide-react";
-import * as React from "react";
+import type * as React from "react";
 import { Button } from "@/components/ui/button";
-import { DialogContainerContext } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -41,7 +40,6 @@ function SheetContent({
 	side?: "top" | "right" | "bottom" | "left";
 	showCloseButton?: boolean;
 }) {
-	const [container, setContainer] = React.useState<HTMLElement | null>(null);
 	return (
 		<>
 			<DialogBackdrop
@@ -49,7 +47,6 @@ function SheetContent({
 				className="fixed inset-0 z-50 bg-black/10 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs"
 			/>
 			<SheetContentPrimitive
-				ref={setContainer}
 				data-slot="sheet-content"
 				data-side={side}
 				className={cn(
@@ -58,9 +55,7 @@ function SheetContent({
 				)}
 				{...props}
 			>
-				<DialogContainerContext value={container}>
-					{children}
-				</DialogContainerContext>
+				{children}
 				{showCloseButton && (
 					<SheetClosePrimitive
 						data-slot="sheet-close"

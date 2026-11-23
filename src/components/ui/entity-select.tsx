@@ -31,7 +31,7 @@ export function EntitySelect<T extends EntityOption>({
 }: EntitySelectProps<T>) {
 	return (
 		<Select
-			items={Object.fromEntries(items.map((item) => [item.id, item.name]))}
+			items={items.map((item) => ({ label: item.name, value: item.id }))}
 			value={value}
 			onValueChange={(nextValue) => onValueChange(nextValue ?? undefined)}
 		>
