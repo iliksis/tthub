@@ -214,6 +214,7 @@ function FilterBarSegmentButton({ segment }: { segment: FilterBarSegment }) {
 					segment.options.map((option) => (
 						<DropdownMenuCheckboxItem
 							key={option.value}
+							value={option.value}
 							checked={segment.values.includes(option.value)}
 							onCheckedChange={() => segment.onToggle(option.value)}
 						>

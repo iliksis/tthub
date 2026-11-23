@@ -410,7 +410,7 @@ export function DetailsList<T extends RowData>({
 														<DropdownMenuItem
 															key={dropdownItem.key}
 															disabled={isDropdownDisabled}
-															onClick={() =>
+															onSelect={() =>
 																dropdownItem.onClick(selectedItems)
 															}
 														>
