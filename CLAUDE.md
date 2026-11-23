@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-TTHub is a personal table tennis club management app (teams, players, tournament appointments, RSVPs, placements, calendar feed, web push notifications). Built with TanStack Start (React 19, file-based routing, SSR server functions), Prisma (SQLite via better-sqlite3 driver adapter), Tailwind CSS v4 + shadcn/ui ("new-york" style), Vitest, and Playwright. Deployed via Docker/Fly.io. Unhandled errors show a fallback page where users can copy diagnostic details to share with an admin (`src/components/ErrorPage.tsx`) instead of an automated error-tracking service.
+TTHub is a personal table tennis club management app (teams, players, tournament appointments, RSVPs, placements, calendar feed, web push notifications). Built with TanStack Start (React 19, file-based routing, SSR server functions), Prisma (SQLite via better-sqlite3 driver adapter), Tailwind CSS v4 + own components on ui-sdk, Vitest, and Playwright. Deployed via Docker/Fly.io. Unhandled errors show a fallback page where users can copy diagnostic details to share with an admin (`src/components/ErrorPage.tsx`) instead of an automated error-tracking service.
 
 ## Commands
 
@@ -50,9 +50,9 @@ Date/time formatting (`toLocaleDateString`, `Intl.RelativeTimeFormat`, etc. in `
 
 **Client data fetching**: no TanStack Query mutation wiring; `src/hooks/useMutation.ts` is a small custom hook (`mutate`/`status`/`data`/`error`) wrapping calls to `src/api` functions from components — prefer it over ad hoc `useState`+fetch when adding new mutating UI.
 
-**ui-sdk** (ADR 0006, `docs/adr/0006-own-components-on-ui-sdk.md`): components are being migrated from shadcn/base-ui to our own on `@ui-sdk/react` / `@ui-sdk/core` (pinned to one identical exact version; never import its `web.css`). Its docs ship in `node_modules`: start at `node_modules/@ui-sdk/core/docs/llms.txt`, read `node_modules/@ui-sdk/core/docs/core.md` by heading, and `node_modules/@ui-sdk/react/docs/rendering.md` (per-component pages in `node_modules/@ui-sdk/react/docs/components/`). Migration PRs target the `feat/ui-sdk` feature branch, not `main`.
+**ui-sdk** (ADR 0006, `docs/adr/0006-own-components-on-ui-sdk.md`): components are our own, built on `@ui-sdk/react` / `@ui-sdk/core` (pinned to one identical exact version; never import its `web.css`). Its docs ship in `node_modules`: start at `node_modules/@ui-sdk/core/docs/llms.txt`, read `node_modules/@ui-sdk/core/docs/core.md` by heading, and `node_modules/@ui-sdk/react/docs/rendering.md` (per-component pages in `node_modules/@ui-sdk/react/docs/components/`). shadcn/ui and `@base-ui/react` are gone; do not reintroduce them.
 
-**UI components**: shadcn/ui primitives live in `src/components/ui` (new-york style, zinc base, no prefix) — extend/compose these rather than hand-rolling primitives. `cn()` (`src/lib/utils.ts`) merges Tailwind classes (clsx + tailwind-merge). Styling uses Tailwind v4 (`@tailwindcss/vite`, config-less) plus `@catppuccin/tailwindcss`; per-user avatar colors are deterministically picked from the Catppuccin palette via `createColorForUserId`. See `docs/UI_STYLE_GUIDE.md` for concrete layout/component/color conventions extracted from already-refactored pages — check it before building new UI so patterns stay consistent.
+**UI components**: our own primitives on ui-sdk live in `src/components/ui` (no shadcn CLI or `components.json`; add components by hand) — extend/compose these rather than hand-rolling primitives. `cn()` (`src/lib/utils.ts`) merges Tailwind classes (clsx + tailwind-merge). Styling uses Tailwind v4 (`@tailwindcss/vite`, config-less) plus `@catppuccin/tailwindcss`; per-user avatar colors are deterministically picked from the Catppuccin palette via `createColorForUserId`. See `docs/UI_STYLE_GUIDE.md` for concrete layout/component/color conventions extracted from already-refactored pages — check it before building new UI so patterns stay consistent.
 
 **Notifications**: Web Push via `web-push`/VAPID (`src/lib/web-push.ts` client side). Users manage per-subscription `NotificationSettings` (new/changed appointment toggles) tied to a browser `Subscription`, plus muted labels, through `NotificationsApi` (`src/api/notifications.server.ts`). Sending is the `Notifier` (`src/api/notifier.server.ts`), not an API class: no policy, no session; classes reach it as `this.ctx.notifier` and pass the actor id explicitly so the actor's own devices are skipped. `published`/`updated` are fire-and-forget (call after commit; a failed push is logged, never fails the mutation); `updated` is debounced 5s per appointment in a module-level map (single process: a restart drops pending pushes) so click-to-edit bursts collapse into one push; `cancelUpdated` drops a pending one. `createTestApi` injects a recording fake (`notifications` in its result). A service worker (`public/sw.js`, registered in `__root.tsx`) handles push display; iOS requires the site to be added to the home screen first.
 
@@ -66,7 +66,7 @@ Date/time formatting (`toLocaleDateString`, `Intl.RelativeTimeFormat`, etc. in `
 ## Code style
 
 - Biome (not ESLint/Prettier) enforces formatting (tabs, double quotes) and import/key sorting — run `npm run check` before considering a change done. `src/lib/prisma/**`, `src/routeTree.gen.ts`, and `src/styles.css` are excluded from linting/formatting.
-- Path alias `@/*` → `src/*` (see `tsconfig.json` / shadcn `aliases`).
+- Path alias `@/*` → `src/*` (see `tsconfig.json`).
 - TypeScript strict mode with `noUnusedLocals`/`noUnusedParameters` — dead code and unused params fail the build, not just lint.
 
 ## Agent skills
